@@ -5,26 +5,19 @@ from __future__ import annotations
 
 import argparse
 import json
-import math
-from typing import Iterable, Sequence
+from pathlib import Path
+import sys
 
+ROOT = Path(__file__).resolve().parents[3]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-def shannon_entropy(probabilities: Iterable[float]) -> float:
-    values = tuple(float(p) for p in probabilities)
-    if any(p < 0.0 for p in values):
-        raise ValueError("probabilities must be non-negative")
-    if not math.isclose(sum(values), 1.0, rel_tol=0.0, abs_tol=1e-12):
-        raise ValueError("probabilities must sum to 1")
-    return -sum(p * math.log2(p) for p in values if p > 0.0)
-
-
-def coarse_grain(
-    distribution: Sequence[float], partition: Sequence[Sequence[int]]
-) -> tuple[float, ...]:
-    flat = [index for block in partition for index in block]
-    if sorted(flat) != list(range(len(distribution))):
-        raise ValueError("partition must cover each fine state exactly once")
-    return tuple(sum(distribution[index] for index in block) for block in partition)
+from experiments.lib.information import (  # noqa: E402
+    coarse_grain,
+    require,
+    shannon_entropy,
+    sign_with_tolerance,
+)
 
 
 def run() -> dict[str, object]:
@@ -44,9 +37,9 @@ def run() -> dict[str, object]:
     a_delta = shannon_entropy(a1) - shannon_entropy(a0)
     b_delta = shannon_entropy(b1) - shannon_entropy(b0)
 
-    assert math.isclose(fine_delta, 0.0, abs_tol=1e-12)
-    assert a_delta > 0.0
-    assert b_delta < 0.0
+    require(sign_with_tolerance(fine_delta) == 0, "fine-grained entropy must be invariant")
+    require(a_delta > 0.0, "partition A must give positive observed entropy change")
+    require(b_delta < 0.0, "partition B must give negative observed entropy change")
 
     return {
         "experiment_id": "UFTID3-PR2-COARSE-SIGN-REVERSAL",
