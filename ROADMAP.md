@@ -226,16 +226,82 @@ Treat these as logically separate:
 
 ## Phase 5 - Reproduce Vopson before criticizing
 
+### Locked next implementation: PR #6
+
+**PR #6: Exact mass-energy-information reproduction and Landauer assumption audit**
+
+PR #6 begins only after PR #5 is merged. Its purpose is source-faithful reproduction, not rhetorical refutation.
+
+Required deliverables:
+
+```text
+research/vopson/reproduction/2019-mei/SOURCE_MAP.md
+research/vopson/reproduction/2019-mei/DERIVATION.md
+research/vopson/reproduction/2019-mei/ASSUMPTION_GRAPH.json
+research/vopson/reproduction/2019-mei/DIMENSIONAL_AUDIT.md
+research/vopson/reproduction/2019-mei/CONTROL_MATRIX.md
+research/vopson/reproduction/2019-mei/result.json
+experiments/reproduction/vopson_2019_mei/run.py
+experiments/reproduction/vopson_2019_mei/fixtures.json
+tests/test_vopson_2019_mei.py
+```
+
+The source argument must be decomposed into separately typed steps. In particular, PR #6 must not silently identify these statements:
+
+```text
+LANDAUER_ERASURE_BOUND:
+minimum dissipated heat for logically irreversible erasure >= k_B T ln 2
+
+ADDITIONAL_PHYSICAL_IDENTIFICATION:
+intrinsic stored-bit energy = k_B T ln 2
+
+MASS_CONVERSION:
+m_bit = E_bit / c^2
+```
+
+The arithmetic consequence
+
+```text
+m_bit(T) = k_B T ln(2) / c^2
+```
+
+must be reproduced numerically from declared physical constants and temperatures, while the physical status of the additional identification is audited independently.
+
+PR #6 must include:
+
+- [ ] exact source/equation/page locators for every reproduced step;
+- [ ] a line-by-line derivation map separating established external premises, source definitions, source assumptions, algebraic consequences, interpretive bridges, and empirical claims;
+- [ ] deterministic numerical reproduction at `T = 300 K` and a declared temperature sweep;
+- [ ] dimensional analysis for every intermediate quantity;
+- [ ] an audit of logical information versus ordinary stored energy;
+- [ ] an audit of minimum erasure cost versus intrinsic state energy;
+- [ ] state-function versus process/path-function distinctions where applicable;
+- [ ] matched-energy / different-logical-information control design;
+- [ ] matched-logical-information / different-energy control design;
+- [ ] exact result and source hashes plus retained CI evidence;
+- [ ] explicit nonclaims preventing correct arithmetic from being promoted into validation of intrinsic bit mass.
+
+PR #6 promotion rule:
+
+```text
+ARITHMETIC_REPRODUCED
+!= PREMISE_VALIDATED
+!= PHYSICAL_INTERPRETATION_VALIDATED
+!= EXPERIMENTALLY_CONFIRMED
+```
+
+Legacy `QSOLKCB/info-mass-gravity` code may be used only as quarantined adversarial lineage for arithmetic comparison and assumption-injection tests. It is not source authority for the 2019 paper.
+
 ### 2019 mass-energy-information equivalence
 
-- [ ] Reconstruct the derivation exactly.
-- [ ] Separate logical information from ordinary stored energy.
-- [ ] Audit temperature dependence.
-- [ ] Audit Landauer-related assumptions.
-- [ ] Audit state-function versus path-function reasoning.
+- [ ] Reconstruct the derivation exactly. **Locked to PR #6.**
+- [ ] Separate logical information from ordinary stored energy. **Locked to PR #6.**
+- [ ] Audit temperature dependence. **Locked to PR #6.**
+- [ ] Audit Landauer-related assumptions. **Locked to PR #6.**
+- [ ] Audit state-function versus path-function reasoning. **Locked to PR #6.**
 - [ ] Reproduce experimental sensitivity estimates.
-- [ ] Design matched-energy / different-logical-information comparisons.
-- [ ] Design matched-logical-information / different-energy comparisons.
+- [ ] Design matched-energy / different-logical-information comparisons. **Locked to PR #6.**
+- [ ] Design matched-logical-information / different-energy comparisons. **Locked to PR #6.**
 
 ### 2022 Second Law of Information Dynamics
 

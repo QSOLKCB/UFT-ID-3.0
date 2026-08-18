@@ -8,10 +8,10 @@ retained. It does not upgrade any scientific claim.
 ## Evidence chain
 
 ```text
-primary source
-  -> canonical work record
-  -> exact source claim
-  -> reproduction obligation
+primary source / pinned public repository contract
+  -> canonical source or pattern record
+  -> exact source claim / abstract pattern
+  -> reproduction or theorem obligation
   -> executable derivation / experiment
   -> deterministic result and source hashes
   -> repository assessment
@@ -36,10 +36,12 @@ Run from the repository root:
 python -m compileall -q experiments scripts tests
 python scripts/render_vopson_docs.py --check
 python scripts/validate_vopson_corpus.py
+python scripts/validate_cross_repo_patterns.py
 python scripts/validate_reproducibility.py
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 python experiments/run_pr2.py --json
+python experiments/run_cross_repo.py --json
 ```
 
 `python -O` is intentional. Scientific checks must not depend on ordinary
@@ -61,19 +63,49 @@ explicit fail-closed scientific invariants.
 A source reproduction may use a different definition only when the source
 requires it and the difference is documented explicitly.
 
-## Deterministic receipt
+## Deterministic receipts
 
-`experiments/run_pr2.py` records:
+`experiments/run_pr2.py` records the finite entropy/polygon evidence surface.
+`experiments/run_cross_repo.py` records the cross-repository finite formal-pattern
+surface.
 
-- SHA-256 hashes of every finite experiment source;
-- the shared information primitive hash;
-- the receipt-runner hash;
-- canonical JSON result hashes;
-- a suite fingerprint over the deterministic source/result hash payload;
-- runtime metadata separately from deterministic results.
+Both receipt families bind deterministic source files and canonical result
+payloads while keeping runtime metadata separate from the portable suite
+fingerprint.
 
-Runtime metadata is descriptive. The suite fingerprint is the portable identity
-of the source-and-result bundle.
+For the cross-repository suite, the deterministic source set includes:
+
+```text
+machine/cross_repo_patterns.json
+machine/cross_repo_results.json
+theory/AUXILIARY_CONTRACTS.md
+theory/CROSS_REPO_RESULTS.md
+experiments/cross_repo/run.py
+experiments/run_cross_repo.py
+shared experiment package / information primitives
+```
+
+Runtime metadata is descriptive. A suite fingerprint identifies the declared
+source-and-result bundle; it does not establish semantic truth.
+
+## Cross-repository provenance pins
+
+`machine/cross_repo_patterns.json` records a source repository, `main` ref,
+source path, and exact Git blob SHA for every imported or quarantined pattern.
+
+These are **snapshot provenance pins**. Routine UFT-ID CI validates their local
+shape and consistency but does not perform network fetches to prove that every
+remote repository still has the same current mainline state.
+
+Therefore:
+
+```text
+PINNED_SOURCE_SNAPSHOT != LIVE_REMOTE_FRESHNESS
+```
+
+When current source state matters, re-fetch the public repository and update the
+registry deliberately. Open-PR-only behavior and private repositories are not
+accepted as positive cross-repository pattern authority.
 
 ## CI artifacts
 
@@ -85,6 +117,8 @@ pr2-receipt.json
 finite-signs.json
 coarse-graining.json
 polygon-audit.json
+cross-repo-pattern-validation.json
+cross-repo-receipt.json
 vopson-corpus-validation.json
 vopson-doc-sync.json
 reproducibility-validation.json
@@ -109,9 +143,13 @@ declared work ceiling. The ordered work estimate is `C(N - 1, n - 1)`.
 Requests above the ceiling fail before enumeration. Analytic extrema remain
 available through `analytic_extrema(total, parts)`.
 
+The cross-repository minimum-basis fixture is finite and exhaustive over a tiny
+sealed candidate family. It is evidence for CR5's declared finite hypotheses,
+not a claim that arbitrary minimum-cover problems are computationally cheap.
+
 ## Human and machine synchronization
 
-The JSON corpus and claim graph are canonical machine authorities. Their
+The Vopson JSON corpus and claim graph are canonical machine authorities. Their
 Markdown tables are rendered by:
 
 ```bash
@@ -124,9 +162,17 @@ CI checks them without modifying the tree:
 python scripts/render_vopson_docs.py --check
 ```
 
+The cross-repository pattern atlas is a human diagnostic explanation of
+`machine/cross_repo_patterns.json`; result authority is split explicitly between
+`theory/CROSS_REPO_RESULTS.md` and `machine/cross_repo_results.json`. The
+validator checks identifiers, source classes, privacy/open-PR exclusions, claim
+classes, and result dependencies.
+
 ## Nonclaims
 
 This contract does not claim that deterministic output proves a physical law,
-that a hash proves scientific correctness, that a complete bibliography is a
-completed reproduction, that two Python versions constitute universal
-portability, or that CI can replace independent scientific review.
+that a hash proves scientific correctness, that a public software invariant is
+a physical law, that a pinned source blob proves live remote freshness, that a
+complete bibliography is a completed reproduction, that two Python versions
+constitute universal portability, or that CI can replace independent scientific
+review.

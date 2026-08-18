@@ -5,8 +5,14 @@ on:
     paths:
       - "experiments/**"
       - "scripts/validate_reproducibility.py"
+      - "scripts/validate_cross_repo_patterns.py"
       - "tests/**"
+      - "theory/DEFINITIONS.md"
+      - "theory/THEOREM_TARGETS.md"
       - "theory/FINITE_RESULTS.md"
+      - "theory/AUXILIARY_CONTRACTS.md"
+      - "theory/CROSS_REPO_RESULTS.md"
+      - "research/CROSS_REPO_PATTERN_ATLAS.md"
       - "research/vopson/**"
       - "machine/**"
       - "docs/REPRODUCIBILITY.md"
@@ -16,8 +22,14 @@ on:
     paths:
       - "experiments/**"
       - "scripts/validate_reproducibility.py"
+      - "scripts/validate_cross_repo_patterns.py"
       - "tests/**"
+      - "theory/DEFINITIONS.md"
+      - "theory/THEOREM_TARGETS.md"
       - "theory/FINITE_RESULTS.md"
+      - "theory/AUXILIARY_CONTRACTS.md"
+      - "theory/CROSS_REPO_RESULTS.md"
+      - "research/CROSS_REPO_PATTERN_ATLAS.md"
       - "research/vopson/**"
       - "machine/**"
       - "docs/REPRODUCIBILITY.md"
@@ -49,6 +61,9 @@ jobs:
       - name: Validate reproducibility contract
         run: python scripts/validate_reproducibility.py
 
+      - name: Validate cross-repository pattern registry
+        run: python scripts/validate_cross_repo_patterns.py
+
       - name: Unit and adversarial tests
         run: python -m unittest discover -s tests -v
 
@@ -63,6 +78,8 @@ jobs:
           python experiments/counterexamples/finite_entropy_signs/run.py --json > artifacts/finite-signs.json 2> artifacts/finite-signs.stderr.txt || true
           python experiments/representation/coarse_graining/run.py --json > artifacts/coarse-graining.json 2> artifacts/coarse-graining.stderr.txt || true
           python experiments/reproduction/vopson_2026_polygons/run.py --max-N 16 --max-n 6 --json > artifacts/polygon-audit.json 2> artifacts/polygon-audit.stderr.txt || true
+          python scripts/validate_cross_repo_patterns.py --json > artifacts/cross-repo-pattern-validation.json 2> artifacts/cross-repo-pattern-validation.stderr.txt || true
+          python experiments/run_cross_repo.py --json > artifacts/cross-repo-receipt.json 2> artifacts/cross-repo-receipt.stderr.txt || true
           python scripts/validate_reproducibility.py --json > artifacts/reproducibility-validation.json 2> artifacts/reproducibility-validation.stderr.txt || true
 
       - name: Retain finite evidence bundle
