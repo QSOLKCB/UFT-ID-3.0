@@ -67,6 +67,7 @@ research/vopson/corpus.json
 research/vopson/CLAIM_GRAPH.json
 research/vopson/REPRODUCTION_MATRIX.md
 research/vopson/COUNTEREXAMPLE_MATRIX.md
+research/vopson/RESPONSE_HISTORY.md
 ```
 
 Human-readable guides sit beside the machine files:
@@ -75,17 +76,17 @@ Human-readable guides sit beside the machine files:
 research/vopson/CORPUS.md
 research/vopson/CLAIM_GRAPH.md
 research/vopson/DEFINITIONS.md
-research/vopson/RESPONSE_HISTORY.md
 ```
 
 Rules:
 
 1. ORCID `0000-0002-8073-5538` is a bibliographic identity anchor only.
-2. Do not invent a final DOI. Use `null` plus a verified preprint DOI or official metadata URL.
+2. Do not invent a final DOI. Use `null` plus a validated DOI-form alternate identifier or an official metadata URL.
 3. A dependency edge records reliance, not truth.
 4. `metadata-verified` is not `reproduced`.
-5. A `PROVED` or `COUNTEREXAMPLE` assessment requires explicit repository evidence unless it is clearly identified as established literature.
-6. Before renaming or adding a Vopson target, run:
+5. A repository `PROVED` or `COUNTEREXAMPLE` assessment requires evidence paths contained inside this repository. The only evidence-path exemption is an `external-premise` explicitly classified as `established-literature`.
+6. Human chronology and claim tables are synchronized against the JSON authorities by CI. Editing one side without the other is a validation failure.
+7. Before renaming, adding, or reclassifying a Vopson target, run:
 
 ```bash
 python3 scripts/validate_vopson_corpus.py
@@ -144,6 +145,9 @@ Lean is deferred until definitions stabilize. The future formalization should be
 5. `theory/FINITE_RESULTS.md`
 6. `research/vopson/CORPUS.md`
 7. `research/vopson/CLAIM_GRAPH.md`
-8. `research/vopson/REPRODUCTION_MATRIX.md`
-9. `research/VOPSON_MATRIX.md`
-10. `ROADMAP.md`
+8. `research/vopson/DEFINITIONS.md`
+9. `research/vopson/REPRODUCTION_MATRIX.md`
+10. `research/vopson/COUNTEREXAMPLE_MATRIX.md`
+11. `research/vopson/RESPONSE_HISTORY.md`
+12. `research/VOPSON_MATRIX.md`
+13. `ROADMAP.md`
