@@ -1,9 +1,9 @@
 {
-  "schema_version": "1.5.0",
+  "schema_version": "1.5.1",
   "project": {
     "name": "UFT-ID 3.0",
     "expanded_name": "Unified Field Theory of Information Dynamics 3.0",
-    "status": "vopson-2019-mei-reproduction",
+    "status": "vopson-2019-mei-reproduction-hardened",
     "repository": "QSOLKCB/UFT-ID-3.0"
   },
   "canonical_system": {
@@ -31,9 +31,7 @@
       ".github/workflows/vopson-corpus.yml"
     ],
     "workflow_extensions": [".yml", ".yaml"],
-    "workflow_permissions": {
-      "contents": "read"
-    },
+    "workflow_permissions": {"contents": "read"},
     "job_permission_overrides_allowed": false,
     "action_pins": {
       "actions/checkout": "d23441a48e516b6c34aea4fa41551a30e30af803",
@@ -53,10 +51,7 @@
   },
   "experiment_library": {
     "information_primitives": "experiments/lib/information.py",
-    "package_initializers": [
-      "experiments/__init__.py",
-      "experiments/lib/__init__.py"
-    ],
+    "package_initializers": ["experiments/__init__.py", "experiments/lib/__init__.py"],
     "scientific_asserts_allowed": false,
     "default_probability_tolerance": 1e-12,
     "shannon_logarithm_base": 2,
@@ -115,6 +110,7 @@
     "experiment": "experiments/reproduction/vopson_2019_mei/run.py",
     "fixtures": "experiments/reproduction/vopson_2019_mei/fixtures.json",
     "tests": "tests/test_vopson_2019_mei.py",
+    "validator": "scripts/validate_vopson_2019_mei.py",
     "receipt_runner": "experiments/run_pr6.py",
     "receipt_version": "1.0.0",
     "equation_reproduced": "Eq. (6)",
@@ -124,21 +120,9 @@
   },
   "vopson_corpus_schema": {
     "snapshot_date": "2026-08-18",
-    "peer_review_status": [
-      "peer-reviewed",
-      "editorial-peer-reviewed",
-      "early-online-peer-reviewed",
-      "not-indicated",
-      "not-applicable"
-    ],
+    "peer_review_status": ["peer-reviewed", "editorial-peer-reviewed", "early-online-peer-reviewed", "not-indicated", "not-applicable"],
     "equation_map_status": ["pending", "partial", "complete", "not-applicable"],
-    "reproduction_status": [
-      "metadata-verified",
-      "partial-reproduction",
-      "reproduced",
-      "blocked",
-      "not-started"
-    ],
+    "reproduction_status": ["metadata-verified", "partial-reproduction", "reproduced", "blocked", "not-started"],
     "work_types": ["journal-article", "erratum", "dataset", "editorial", "response", "news-and-views"],
     "node_kinds": ["external-premise", "source-claim", "interpretive-inference", "comparison-result"],
     "edge_types": ["requires", "extends", "supports", "interprets", "tests"],
@@ -150,10 +134,7 @@
       "renderer": "scripts/render_vopson_docs.py"
     }
   },
-  "claim_classes": [
-    "DEFINITION", "THEOREM_TARGET", "PROVED", "COUNTEREXAMPLE", "DIAGNOSTIC",
-    "EMPIRICAL", "INTERPRETIVE", "SPECULATIVE", "NONCLAIM"
-  ],
+  "claim_classes": ["DEFINITION", "THEOREM_TARGET", "PROVED", "COUNTEREXAMPLE", "DIAGNOSTIC", "EMPIRICAL", "INTERPRETIVE", "SPECULATIVE", "NONCLAIM"],
   "authority_layers": ["formal-core", "diagnostic", "empirical", "interpretive", "speculative"],
   "inherited_constraint_core": {
     "symbols": ["S", "A", "r", "Phi", "Phi_crit", "Pi_lex", "Delta"],
@@ -248,6 +229,7 @@
     "research/vopson/reproduction/2019-mei/DIMENSIONAL_AUDIT.md",
     "research/vopson/reproduction/2019-mei/CONTROL_MATRIX.md",
     "research/vopson/reproduction/2019-mei/result.json",
+    "scripts/validate_vopson_2019_mei.py",
     "research/reports/2026-08-18-PR4-ACTION-REGISTER.md",
     "research/VOPSON_MATRIX.md", "ROADMAP.md"
   ]
