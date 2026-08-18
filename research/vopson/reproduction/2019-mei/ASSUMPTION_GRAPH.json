@@ -1,0 +1,27 @@
+{
+  "type": "uft-id-vopson-2019-mei-assumption-graph",
+  "schema_version": "1.0.0",
+  "source_work_id": "VOP-2019-MEI",
+  "source_doi": "10.1063/1.5123794",
+  "nodes": [
+    {"id": "MEI-N1", "kind": "source-definition", "claim_class": "DEFINITION", "statement": "For unbiased binary states, H(X)=1 bit.", "source_locator": "p.2 Eq.(5)", "status": "reproduced"},
+    {"id": "MEI-N2", "kind": "source-derived", "claim_class": "PROVED", "statement": "For N unbiased binary elements, S_info = N k_B ln 2 under the source's Omega construction.", "source_locator": "p.1 Eqs.(3)-(4), p.2 Eq.(5)", "status": "reproduced"},
+    {"id": "MEI-N3", "kind": "source-derived", "claim_class": "PROVED", "statement": "Under the source erasure model, Delta S_info = -N k_B ln 2.", "source_locator": "p.2 erase discussion", "status": "reproduced"},
+    {"id": "MEI-N4", "kind": "external-premise", "claim_class": "PROVED", "statement": "Landauer erasure under the relevant thermodynamic assumptions has a minimum dissipation/work scale k_B T ln 2 per lost bit.", "source_locator": "Landauer 1961 DOI 10.1147/rd.53.0183", "status": "established-literature-scope-qualified"},
+    {"id": "MEI-N5", "kind": "source-text-audit", "claim_class": "DIAGNOSTIC", "statement": "The p.2 printed inequality direction for the physical-entropy/heat term conflicts with the immediately preceding second-law balance and conventional lower-bound form.", "source_locator": "p.2 erase discussion", "status": "recorded-not-silently-corrected"},
+    {"id": "MEI-N6", "kind": "source-assumption", "claim_class": "THEOREM_TARGET", "statement": "A stored bit has intrinsic energy E_bit = k_B T ln 2 while information is stored.", "source_locator": "p.2 Section II leading to Eq.(6)", "status": "physical-identification-unvalidated"},
+    {"id": "MEI-N7", "kind": "external-premise", "claim_class": "PROVED", "statement": "If E_bit is an ordinary stored energy contribution, mass-energy equivalence gives m_bit = E_bit/c^2.", "source_locator": "mass-energy equivalence", "status": "established-literature-conditional-application"},
+    {"id": "MEI-N8", "kind": "source-derived", "claim_class": "PROVED", "statement": "Conditional on MEI-N6 and MEI-N7, m_bit = k_B T ln 2 / c^2.", "source_locator": "p.2 Eq.(6)", "status": "algebraically-reproduced"},
+    {"id": "MEI-N9", "kind": "source-prediction", "claim_class": "THEOREM_TARGET", "statement": "At 300 K, m_bit is about 3.19e-38 kg and a decimal 1 TB device changes by about 2.5e-25 kg between erased and full-information states.", "source_locator": "p.2 after Eq.(6); pp.3-4 experiment", "status": "numerically-reproduced-conditional-on-MEI-N6"}
+  ],
+  "edges": [
+    {"from": "MEI-N1", "to": "MEI-N2", "type": "supports"},
+    {"from": "MEI-N2", "to": "MEI-N3", "type": "supports"},
+    {"from": "MEI-N3", "to": "MEI-N4", "type": "contextualizes"},
+    {"from": "MEI-N4", "to": "MEI-N6", "type": "does-not-entail", "note": "The erasure lower bound does not by itself identify the stored state's intrinsic energy."},
+    {"from": "MEI-N6", "to": "MEI-N8", "type": "requires"},
+    {"from": "MEI-N7", "to": "MEI-N8", "type": "requires"},
+    {"from": "MEI-N8", "to": "MEI-N9", "type": "supports"}
+  ],
+  "promotion_rule": "ARITHMETIC_REPRODUCED != PREMISE_VALIDATED != PHYSICAL_INTERPRETATION_VALIDATED != EXPERIMENTALLY_CONFIRMED"
+}
