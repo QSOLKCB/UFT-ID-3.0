@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """Validate UFT-ID cross-repository pattern and result registries.
 
-This validator checks repository-local registry structure and pinned source
-identities. It deliberately does not fetch remote repositories during CI, so a
-successful run does not assert that a remote main branch has not advanced since
-the recorded snapshot.
+This validator checks repository-local registry structure, pinned source
+identities, bridge obligations, and synchronization between the machine result
+registry and the canonical metadata carried by the human result surface.
+
+It deliberately does not fetch remote repositories during CI, so a successful
+run does not assert that a remote main branch has not advanced since the
+recorded snapshot.
 """
 
 from __future__ import annotations
@@ -19,10 +22,12 @@ ROOT = Path(__file__).resolve().parents[1]
 PATTERNS_PATH = ROOT / "machine/cross_repo_patterns.json"
 RESULTS_PATH = ROOT / "machine/cross_repo_results.json"
 CONTRACT_PATH = ROOT / "machine/contract.json"
+HUMAN_RESULTS_PATH = ROOT / "theory/CROSS_REPO_RESULTS.md"
 SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
 PATTERN_RE = re.compile(r"^XR-P\d{2}$")
 QUARANTINE_RE = re.compile(r"^XR-Q\d{2}$")
 RESULT_RE = re.compile(r"^CR\d+$")
+HUMAN_HEADING_RE = re.compile(r"^## (CR\d+)\. (.+)$")
 
 PRIVATE_REPOSITORIES = {
     "QSOLKCB/QSOL-CONTEXT",
@@ -65,6 +70,47 @@ def nonempty_string_list(value: object) -> bool:
         and bool(value)
         and all(nonempty_string(item) for item in value)
     )
+
+
+def parse_human_results(path: Path) -> tuple[dict[str, dict[str, str]], list[str]]:
+    """Parse canonical CR id/title/class/qualifier/scope metadata from Markdown."""
+
+    errors: list[str] = []
+    lines = path.read_text(encoding="utf-8").splitlines()
+    starts: list[tuple[int, str, str]] = []
+    for index, line in enumerate(lines):
+        match = HUMAN_HEADING_RE.fullmatch(line)
+        if match:
+            starts.append((index, match.group(1), match.group(2).strip()))
+
+    parsed: dict[str, dict[str, str]] = {}
+    for position, (start, result_id, title) in enumerate(starts):
+        end = starts[position + 1][0] if position + 1 < len(starts) else len(lines)
+        if result_id in parsed:
+            errors.append(f"human results duplicate section: {result_id}")
+            continue
+        section = lines[start + 1 : end]
+        claim_class = None
+        qualifier = None
+        scope = None
+        for line in section:
+            if line.startswith("**Class:** `") and line.endswith("`"):
+                claim_class = line[len("**Class:** `") : -1]
+            elif line.startswith("**Qualifier:** `") and line.endswith("`"):
+                qualifier = line[len("**Qualifier:** `") : -1]
+            elif line.startswith("**Canonical scope:** `") and line.endswith("`"):
+                scope = line[len("**Canonical scope:** `") : -1]
+        if not claim_class:
+            errors.append(f"human results {result_id}: missing canonical Class metadata")
+        if not scope:
+            errors.append(f"human results {result_id}: missing Canonical scope metadata")
+        parsed[result_id] = {
+            "title": title,
+            "claim_class": claim_class or "",
+            "qualifier": qualifier or "",
+            "scope": scope or "",
+        }
+    return parsed, errors
 
 
 def validate_source_entry(
@@ -111,6 +157,12 @@ def validate_source_entry(
     if expected_kind == "pattern":
         if not nonempty_string_list(entry.get("uft_mapping")):
             errors.append(f"{pattern_id}: uft_mapping must be a non-empty string list")
+        if not nonempty_string(entry.get("source_contract")):
+            errors.append(f"{pattern_id}: source_contract must be non-empty")
+        if not nonempty_string_list(entry.get("preserved_structure")):
+            errors.append(f"{pattern_id}: preserved_structure must be a non-empty string list")
+        if not nonempty_string_list(entry.get("discarded_structure")):
+            errors.append(f"{pattern_id}: discarded_structure must be a non-empty string list")
         if not nonempty_string(entry.get("abstraction")):
             errors.append(f"{pattern_id}: abstraction must be non-empty")
         if not nonempty_string(entry.get("prohibited_inference")):
@@ -125,12 +177,13 @@ def validate_source_entry(
 
 
 def validate(root: Path = ROOT) -> dict[str, object]:
-    global ROOT, PATTERNS_PATH, RESULTS_PATH, CONTRACT_PATH
-    original = (ROOT, PATTERNS_PATH, RESULTS_PATH, CONTRACT_PATH)
+    global ROOT, PATTERNS_PATH, RESULTS_PATH, CONTRACT_PATH, HUMAN_RESULTS_PATH
+    original = (ROOT, PATTERNS_PATH, RESULTS_PATH, CONTRACT_PATH, HUMAN_RESULTS_PATH)
     ROOT = root.resolve()
     PATTERNS_PATH = ROOT / "machine/cross_repo_patterns.json"
     RESULTS_PATH = ROOT / "machine/cross_repo_results.json"
     CONTRACT_PATH = ROOT / "machine/contract.json"
+    HUMAN_RESULTS_PATH = ROOT / "theory/CROSS_REPO_RESULTS.md"
     errors: list[str] = []
     try:
         patterns = load_json(PATTERNS_PATH)
@@ -139,10 +192,12 @@ def validate(root: Path = ROOT) -> dict[str, object]:
 
         if patterns.get("type") != "uft-id-cross-repo-pattern-registry":
             errors.append("cross-repo pattern registry type mismatch")
-        if patterns.get("schema_version") != "1.0.0":
-            errors.append("cross-repo pattern registry schema_version must be 1.0.0")
-        if patterns.get("snapshot_date") != "2026-08-19":
+        if patterns.get("schema_version") != "1.0.1":
+            errors.append("cross-repo pattern registry schema_version must be 1.0.1")
+        if patterns.get("snapshot_date") != "2026-08-18":
             errors.append("cross-repo pattern registry snapshot_date mismatch")
+        if not nonempty_string(patterns.get("snapshot_basis")):
+            errors.append("cross-repo pattern registry requires snapshot_basis")
         if set(patterns.get("global_boundaries", [])) != REQUIRED_BOUNDARIES:
             errors.append("cross-repo pattern registry boundary contract mismatch")
         if not nonempty_string_list(patterns.get("selection_policy")):
@@ -170,8 +225,8 @@ def validate(root: Path = ROOT) -> dict[str, object]:
 
         if results.get("type") != "uft-id-cross-repo-results":
             errors.append("cross-repo results type mismatch")
-        if results.get("schema_version") != "1.0.0":
-            errors.append("cross-repo results schema_version must be 1.0.0")
+        if results.get("schema_version") != "1.0.1":
+            errors.append("cross-repo results schema_version must be 1.0.1")
         if results.get("authority") != "theory/CROSS_REPO_RESULTS.md":
             errors.append("cross-repo results authority path mismatch")
         if results.get("experiment") != "experiments/cross_repo/run.py":
@@ -183,6 +238,7 @@ def validate(root: Path = ROOT) -> dict[str, object]:
             errors.append("cross-repo results requires non-empty results")
             result_entries = []
         seen_results: set[str] = set()
+        machine_by_id: dict[str, dict[str, Any]] = {}
         for entry in result_entries:
             if not isinstance(entry, dict):
                 errors.append("cross-repo result entry must be an object")
@@ -190,16 +246,21 @@ def validate(root: Path = ROOT) -> dict[str, object]:
             result_id = entry.get("result_id")
             if not isinstance(result_id, str) or RESULT_RE.fullmatch(result_id) is None:
                 errors.append(f"invalid cross-repo result_id: {result_id!r}")
-            elif result_id in seen_results:
+                continue
+            if result_id in seen_results:
                 errors.append(f"duplicate cross-repo result_id: {result_id}")
             else:
                 seen_results.add(result_id)
+            machine_by_id[result_id] = entry
             if entry.get("claim_class") not in allowed_claims:
                 errors.append(f"{result_id}: invalid claim_class {entry.get('claim_class')!r}")
             if not nonempty_string(entry.get("title")):
                 errors.append(f"{result_id}: title must be non-empty")
             if not nonempty_string(entry.get("scope")):
                 errors.append(f"{result_id}: scope must be non-empty")
+            qualifier = entry.get("qualifier")
+            if qualifier is not None and not nonempty_string(qualifier):
+                errors.append(f"{result_id}: qualifier must be a non-empty string when present")
             source_patterns = entry.get("source_patterns")
             if not nonempty_string_list(source_patterns):
                 errors.append(f"{result_id}: source_patterns must be a non-empty string list")
@@ -207,6 +268,32 @@ def validate(root: Path = ROOT) -> dict[str, object]:
                 for pattern_id in source_patterns:
                     if pattern_id not in imported_ids:
                         errors.append(f"{result_id}: unknown or quarantined source pattern {pattern_id}")
+
+        if HUMAN_RESULTS_PATH.is_file():
+            human_by_id, human_errors = parse_human_results(HUMAN_RESULTS_PATH)
+            errors.extend(human_errors)
+            if set(human_by_id) != set(machine_by_id):
+                errors.append(
+                    "human/machine cross-repo result id sets differ: "
+                    f"human={sorted(human_by_id)} machine={sorted(machine_by_id)}"
+                )
+            for result_id in sorted(set(human_by_id) & set(machine_by_id)):
+                human = human_by_id[result_id]
+                machine = machine_by_id[result_id]
+                for key in ("title", "claim_class", "scope"):
+                    if human[key] != machine.get(key):
+                        errors.append(
+                            f"{result_id}: human {key} differs from machine authority: "
+                            f"{human[key]!r} != {machine.get(key)!r}"
+                        )
+                expected_qualifier = machine.get("qualifier", "")
+                if human["qualifier"] != expected_qualifier:
+                    errors.append(
+                        f"{result_id}: human qualifier differs from machine authority: "
+                        f"{human['qualifier']!r} != {expected_qualifier!r}"
+                    )
+        else:
+            errors.append("required cross-repo authority file missing: theory/CROSS_REPO_RESULTS.md")
 
         authority = contract.get("cross_repo_pattern_authority")
         if isinstance(authority, dict):
@@ -248,10 +335,11 @@ def validate(root: Path = ROOT) -> dict[str, object]:
                 "results": len(result_entries),
                 "remote_freshness_checked": False,
                 "snapshot_date": patterns.get("snapshot_date"),
+                "human_result_sync_checked": True,
             },
         }
     finally:
-        ROOT, PATTERNS_PATH, RESULTS_PATH, CONTRACT_PATH = original
+        ROOT, PATTERNS_PATH, RESULTS_PATH, CONTRACT_PATH, HUMAN_RESULTS_PATH = original
 
 
 def main() -> None:
@@ -268,6 +356,7 @@ def main() -> None:
             f"{summary['quarantined']} quarantined lineage records, "
             f"{summary['results']} finite results"
         )
+        print("human result metadata synchronized: yes")
         print("remote freshness checked: no (registry pins are snapshot provenance)")
         for error in report["errors"]:
             print(f"error: {error}")
