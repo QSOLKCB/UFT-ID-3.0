@@ -203,17 +203,33 @@ under suitable regularity and compatibility assumptions, or prove that no useful
 
 ## T14. Recovery-information decomposition
 
-Given constrained evolution `G`, separate the information change caused by proposal `F` from the change caused by recovery `Pi_lex`.
+### Proved finite-valued discrete specialization
 
-A discrete target is
+For a discrete constrained step
 
 ```text
-Delta I_total = Delta I_proposal + Delta I_recovery
+s_n --F--> x_{n+1} --Pi--> s_{n+1}
 ```
 
-with definitions that make the identity exact rather than rhetorical.
+using the same information functional at all three states, if
 
-**Adversarial companion:** Construct a case where the decomposition becomes path-dependent, ill-defined, or double-counts a contribution because proposal and recovery are not cleanly separable.
+```text
+I(s_n), I(x_{n+1}), I(s_{n+1}) in R,
+```
+
+then FR4 proves exactly
+
+```text
+Delta I_total = Delta I_proposal + Delta I_recovery.
+```
+
+See `theory/FINITE_RESULTS.md`, FR4.
+
+### Remaining open target
+
+Characterize extensions where the information functional may take extended-real values, or where proposal/recovery are continuous, stochastic, path-dependent, overlapping, or otherwise not cleanly separable. Any extension must state when every difference is defined and must avoid expressions such as `+infinity - +infinity`.
+
+**Adversarial companion:** Construct a case where the finite-valued identity becomes undefined, path-dependent, or double-counts a contribution because the functional takes extended-real values or proposal and recovery are not cleanly separable.
 
 ## T15. Restricted-case relation to Vopson's SLI
 
@@ -239,12 +255,12 @@ If exact reproduction shows that this framing is not mathematically faithful, re
 | T4 | open | deferred |
 | T5 | open | deferred |
 | T6 | open | deferred |
-| T7 | open | deferred |
-| T8 | open | deferred |
-| T9 | open | deferred |
+| T7 | finite witness FR1 | deferred |
+| T8 | finite witness FR1 | deferred |
+| T9 | finite witness FR3 | deferred |
 | T10 | open | deferred |
 | T11 | open | deferred |
 | T12 | open | deferred |
 | T13 | open | deferred |
-| T14 | open | deferred |
+| T14 | finite-valued discrete case PROVED as FR4; extensions open | deferred |
 | T15 | open | deferred |
