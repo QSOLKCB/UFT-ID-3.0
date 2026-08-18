@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.3.0",
+  "schema_version": "1.3.1",
   "project": {
     "name": "UFT-ID 3.0",
     "expanded_name": "Unified Field Theory of Information Dynamics 3.0",
@@ -26,6 +26,15 @@
     "dependency_policy": "Python standard library only for current validators and finite experiments"
   },
   "ci_provenance": {
+    "workflow_files": [
+      ".github/workflows/finite-adversarial.yml",
+      ".github/workflows/vopson-corpus.yml"
+    ],
+    "workflow_extensions": [".yml", ".yaml"],
+    "workflow_permissions": {
+      "contents": "read"
+    },
+    "job_permission_overrides_allowed": false,
     "action_pins": {
       "actions/checkout": "d23441a48e516b6c34aea4fa41551a30e30af803",
       "actions/setup-python": "ece7cb06caefa5fff74198d8649806c4678c61a1",
@@ -39,17 +48,23 @@
       "python -m unittest discover -s tests -v",
       "python -O -m unittest discover -s tests -v"
     ],
+    "evidence_generation_condition": "always()",
     "validator": "scripts/validate_reproducibility.py"
   },
   "experiment_library": {
     "information_primitives": "experiments/lib/information.py",
+    "package_initializers": [
+      "experiments/__init__.py",
+      "experiments/lib/__init__.py"
+    ],
     "scientific_asserts_allowed": false,
     "default_probability_tolerance": 1e-12,
     "shannon_logarithm_base": 2,
     "polygon_max_exhaustive_compositions": 250000,
+    "polygon_composition_generator": "iterative-cut-positions",
     "large_polygon_policy": "Use analytic_extrema unless exhaustive execution is explicitly opted in",
     "receipt_runner": "experiments/run_pr2.py",
-    "receipt_version": "1.1.0"
+    "receipt_version": "1.1.1"
   },
   "finite_result_authority": {
     "human": "theory/FINITE_RESULTS.md",
@@ -137,6 +152,8 @@
     "established_literature_exemption_is_unrestricted": false,
     "scientific_python_assert_allowed": false,
     "github_action_mutable_tag_allowed": false,
+    "github_workflow_write_permission_allowed": false,
+    "undeclared_github_workflow_allowed": false,
     "ci_receipt_may_be_discarded": false,
     "unbounded_exhaustive_polygon_audit_allowed": false
   },
