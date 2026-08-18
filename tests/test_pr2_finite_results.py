@@ -144,6 +144,13 @@ class PolygonExtremumTests(unittest.TestCase):
         with self.assertRaises(POLYGON.WorkLimitExceeded):
             POLYGON.audit_case(50, 25, max_compositions=1_000)
 
+    def test_high_part_count_does_not_depend_on_python_recursion_depth(self):
+        case = POLYGON.audit_case(1000, 1000, max_compositions=10)
+        self.assertEqual(case["ordered_composition_count"], 1)
+        self.assertEqual(case["minimum"]["counts"], [1] * 1000)
+        self.assertEqual(case["maximum"]["counts"], [1] * 1000)
+        self.assertEqual(case["method"], "bounded-exhaustive")
+
     def test_analytic_extrema_remain_available_above_exhaustive_limit(self):
         case = POLYGON.analytic_extrema(1_000_000, 2)
         self.assertEqual(case["maximum"]["counts"], [500000, 500000])
@@ -164,6 +171,14 @@ class ReceiptTests(unittest.TestCase):
         self.assertEqual(first["result_sha256"], second["result_sha256"])
         self.assertEqual(first["suite_fingerprint_sha256"], second["suite_fingerprint_sha256"])
         self.assertEqual(len(first["suite_fingerprint_sha256"]), 64)
+
+    def test_receipt_hashes_all_executable_package_dependencies(self):
+        receipt = RECEIPT.run_suite()
+        self.assertEqual(receipt["receipt_version"], "1.1.1")
+        self.assertIn("experiments_package_initializer", receipt["source_sha256"])
+        self.assertIn("experiments_lib_initializer", receipt["source_sha256"])
+        self.assertIn("shared_information_primitives", receipt["source_sha256"])
+        self.assertIn("receipt_runner", receipt["source_sha256"])
 
     def test_hash_only_output_is_valid_json(self):
         completed = subprocess.run(
