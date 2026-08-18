@@ -13,6 +13,10 @@ RUN_PATH = ROOT / "experiments/reproduction/vopson_2019_mei/run.py"
 RECEIPT_PATH = ROOT / "experiments/run_pr6.py"
 RESULT_PATH = ROOT / "research/vopson/reproduction/2019-mei/result.json"
 GRAPH_PATH = ROOT / "research/vopson/reproduction/2019-mei/ASSUMPTION_GRAPH.json"
+CONTRACT_PATH = ROOT / "machine/contract.json"
+CORPUS_PATH = ROOT / "research/vopson/corpus.json"
+MATRIX_PATH = ROOT / "research/vopson/REPRODUCTION_MATRIX.md"
+REPRO_DOC_PATH = ROOT / "docs/REPRODUCIBILITY.md"
 
 
 def load_module(name: str, path: Path):
@@ -111,6 +115,31 @@ class Vopson2019MEIAuthorityTests(unittest.TestCase):
         self.assertIn("source-text inequality inconsistency", text)
         self.assertIn("Eq. (6)", text)
         self.assertIn("DOI_AND_EQUATION_IDENTITY != SOURCE_PDF_BYTE_HASH", text)
+
+    def test_machine_contract_registers_pr6_authority(self):
+        contract = json.loads(CONTRACT_PATH.read_text(encoding="utf-8"))
+        self.assertEqual(contract["schema_version"], "1.5.0")
+        authority = contract["vopson_2019_mei_reproduction"]
+        self.assertEqual(authority["source_work_id"], "VOP-2019-MEI")
+        self.assertEqual(authority["source_doi"], "10.1063/1.5123794")
+        self.assertEqual(authority["result"], "research/vopson/reproduction/2019-mei/result.json")
+        self.assertIn("ARITHMETIC_REPRODUCED", authority["promotion_rule"])
+        self.assertFalse(contract["hard_rules"]["landauer_erasure_bound_implies_intrinsic_stored_bit_energy"])
+        self.assertFalse(contract["hard_rules"]["arithmetic_reproduction_implies_physical_validation"])
+
+    def test_reproduction_matrix_promotes_only_source_specific_status(self):
+        matrix = MATRIX_PATH.read_text(encoding="utf-8")
+        self.assertIn("| `VOP-2019-MEI` | Derive bit-mass formula and storage-device prediction | `reproduced` |", matrix)
+        self.assertIn("ARITHMETIC_REPRODUCED", matrix)
+
+    def test_dated_corpus_snapshot_is_not_silently_rewritten(self):
+        corpus = json.loads(CORPUS_PATH.read_text(encoding="utf-8"))
+        work = next(item for item in corpus["works"] if item["work_id"] == "VOP-2019-MEI")
+        self.assertEqual(corpus["as_of"], "2026-08-18")
+        self.assertEqual(work["reproduction_status"], "metadata-verified")
+        policy = REPRO_DOC_PATH.read_text(encoding="utf-8")
+        self.assertIn("source-specific reproduction packages can contain newer evidence", policy.casefold())
+        self.assertIn("result.json", policy)
 
 
 class Vopson2019MEIReceiptTests(unittest.TestCase):
