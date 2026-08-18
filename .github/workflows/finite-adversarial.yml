@@ -56,13 +56,14 @@ jobs:
         run: python -O -m unittest discover -s tests -v
 
       - name: Generate deterministic evidence bundle
+        if: always()
         run: |
           mkdir -p artifacts
-          python experiments/run_pr2.py --json > artifacts/pr2-receipt.json
-          python experiments/counterexamples/finite_entropy_signs/run.py --json > artifacts/finite-signs.json
-          python experiments/representation/coarse_graining/run.py --json > artifacts/coarse-graining.json
-          python experiments/reproduction/vopson_2026_polygons/run.py --max-N 16 --max-n 6 --json > artifacts/polygon-audit.json
-          python scripts/validate_reproducibility.py --json > artifacts/reproducibility-validation.json
+          python experiments/run_pr2.py --json > artifacts/pr2-receipt.json 2> artifacts/pr2-receipt.stderr.txt || true
+          python experiments/counterexamples/finite_entropy_signs/run.py --json > artifacts/finite-signs.json 2> artifacts/finite-signs.stderr.txt || true
+          python experiments/representation/coarse_graining/run.py --json > artifacts/coarse-graining.json 2> artifacts/coarse-graining.stderr.txt || true
+          python experiments/reproduction/vopson_2026_polygons/run.py --max-N 16 --max-n 6 --json > artifacts/polygon-audit.json 2> artifacts/polygon-audit.stderr.txt || true
+          python scripts/validate_reproducibility.py --json > artifacts/reproducibility-validation.json 2> artifacts/reproducibility-validation.stderr.txt || true
 
       - name: Retain finite evidence bundle
         if: always()
@@ -70,5 +71,5 @@ jobs:
         with:
           name: finite-adversarial-py${{ matrix.python-version }}
           path: artifacts/
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 30
