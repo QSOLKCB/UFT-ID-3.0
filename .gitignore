@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Build and generated artifacts
+build/
+dist/
+generated/
+artifacts/
+*.tmp
+*.log
+
+# Data caches
+.cache/
+cache/
+
+# Lean, reserved for later formalization
+.lake/
+.lake-packages/
+_build/
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# Local experiment outputs
+experiments/**/output/
+experiments/**/outputs/
+experiments/**/results-local/

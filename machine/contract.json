@@ -1,0 +1,102 @@
+{
+  "schema_version": "1.0.1",
+  "project": {
+    "name": "UFT-ID 3.0",
+    "expanded_name": "Unified Field Theory of Information Dynamics 3.0",
+    "status": "canonicalization-and-adversarial-research-design",
+    "repository": "QSOLKCB/UFT-ID-3.0"
+  },
+  "canonical_system": {
+    "tuple": ["S", "A", "F", "Pi_lex", "O", "T", "I", "C"],
+    "symbols": {
+      "S": "total state space",
+      "A": "admissible subspace",
+      "F": "proposed evolution",
+      "Pi_lex": "deterministic lexicographic recovery",
+      "O": "observation or coarse-graining map",
+      "T": "regime-transport map",
+      "I": "declared information functional",
+      "C": "constraint structure"
+    }
+  },
+  "maths_staging_file": "MATHS.md",
+  "claim_classes": [
+    "DEFINITION",
+    "THEOREM_TARGET",
+    "PROVED",
+    "COUNTEREXAMPLE",
+    "DIAGNOSTIC",
+    "EMPIRICAL",
+    "INTERPRETIVE",
+    "SPECULATIVE",
+    "NONCLAIM"
+  ],
+  "authority_layers": [
+    "formal-core",
+    "diagnostic",
+    "empirical",
+    "interpretive",
+    "speculative"
+  ],
+  "inherited_constraint_core": {
+    "symbols": ["S", "A", "r", "Phi", "Phi_crit", "Pi_lex", "Delta"],
+    "preferred_lineage": [
+      "10.22541/au.176790866.68066655/v1",
+      "10.22541/au.176790865.55905239/v1",
+      "10.22541/au.176765062.20893637/v1",
+      "10.22541/au.176780579.95800648/v1"
+    ]
+  },
+  "hard_rules": {
+    "information_measures_interchangeable": false,
+    "simulation_counts_as_proof": false,
+    "cross_domain_analogy_implies_shared_mechanism": false,
+    "abstract_theorem_proves_physical_ontology": false,
+    "observer_representation_equals_underlying_state": false,
+    "personal_attack_allowed": false,
+    "vopson_reproduction_required_before_critique": true,
+    "one_claim_class_per_claim": true,
+    "cross_domain_bridge_must_record_lost_structure": true,
+    "time_model_must_match_balance_notation": true
+  },
+  "vopson": {
+    "orcid": "0000-0002-8073-5538",
+    "orcid_role": "bibliographic identity anchor only",
+    "tracks": [
+      "mass-energy-information-equivalence",
+      "genomic-information-entropy",
+      "second-law-of-infodynamics",
+      "cross-domain-applications",
+      "simulation-hypothesis-inference",
+      "information-theoretic-gravity",
+      "polygon-symmetry",
+      "language-diversity"
+    ]
+  },
+  "formal_verification": {
+    "system": "Lean",
+    "status": "deferred",
+    "entry_condition": "canonical definitions and theorem statements frozen after reproduction and adversarial review",
+    "placeholder_formalizations_allowed": false,
+    "initial_targets": [
+      "finite admissibility predicate",
+      "finite total tie-break order",
+      "lexicographic recovery existence and uniqueness",
+      "recovery returns admissible state",
+      "restricted monotonicity theorem",
+      "explicit finite counterexamples"
+    ]
+  },
+  "required_agent_reads": [
+    "README4AI.md",
+    "AGENTS.md",
+    "docs/CLAIMS.md",
+    "docs/NONCLAIMS.md",
+    "docs/ARCHITECTURE.md",
+    "MATHS.md",
+    "theory/DEFINITIONS.md",
+    "theory/THEOREM_TARGETS.md",
+    "research/VOPSON_MATRIX.md",
+    "ROADMAP.md"
+  ]
+}

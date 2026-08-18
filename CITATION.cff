@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use UFT-ID 3.0, please cite this repository and the specific source papers or release used."
+title: "UFT-ID 3.0: Unified Field Theory of Information Dynamics 3.0"
+type: software
+authors:
+  - family-names: Slade
+    given-names: Trent
+    orcid: "https://orcid.org/0009-0002-4515-9237"
+version: "0.1.0-dev"
+license: MIT
+repository-code: "https://github.com/QSOLKCB/UFT-ID-3.0"
+keywords:
+  - information dynamics
+  - infodynamics
+  - information theory
+  - admissibility
+  - deterministic recovery
+  - inference transport
+  - reproducibility
