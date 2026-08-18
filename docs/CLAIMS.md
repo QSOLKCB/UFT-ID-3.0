@@ -4,6 +4,8 @@ This document defines what UFT-ID 3.0 is currently allowed to claim.
 
 ## Status labels
 
+Every nontrivial claim receives **exactly one** status from the canonical claim-class enum. Secondary notes such as "programmatic", "pending theorem work", or "research program" are qualifiers, not claim classes.
+
 ### DEFINITION
 
 A stipulated mathematical or operational definition. A definition is not an empirical discovery.
@@ -44,7 +46,9 @@ A proposition the project explicitly declines to assert.
 
 ### C1 - Constraint-first architecture is mathematically definable
 
-**Status:** DEFINITION / PROGRAMMATIC
+**Status:** DEFINITION
+
+**Qualifier:** programmatic scope.
 
 Informational systems can be modeled using a total state space, an admissible subspace, residual or violation structure, threshold conditions, and deterministic recovery maps where the necessary mathematical structures exist.
 
@@ -52,7 +56,9 @@ This does not assert that every physical system literally implements these objec
 
 ### C2 - Deterministic lexicographic recovery is a valid construction
 
-**Status:** DEFINITION; theorem work pending
+**Status:** DEFINITION
+
+**Qualifier:** theorem work is pending for existence, uniqueness, and stability under explicitly stated assumptions.
 
 For finite admissible candidate sets equipped with a total tie-breaking order, nearest-state recovery can be made deterministic by lexicographic selection. General existence and uniqueness statements depend on the state-space assumptions.
 
@@ -62,30 +68,36 @@ For finite admissible candidate sets equipped with a total tie-breaking order, n
 
 The project treats transfer of parameters, assumptions, models, or conclusions across calibration regimes as a distinct audit target. This is a methodological distinction, not a new physical mechanism.
 
-### C4 - Observation must be separated from underlying state
+### C4 - Observation is represented separately from underlying state
 
-**Status:** PROGRAMMATIC / DEFINITION
+**Status:** DEFINITION
+
+**Qualifier:** this is a modeling commitment, not an ontological claim about observers.
 
 UFT-ID 3.0 explicitly models observation or coarse-graining as a map. Consequently, apparent changes in an observed information measure are not automatically identified with changes in an underlying physical information quantity.
 
-### C5 - Universal sign claims require explicit assumptions
+### C5 - Universal sign claims are an explicit theorem/audit target
 
-**Status:** THEOREM_TARGET / METHODOLOGICAL PRINCIPLE
+**Status:** THEOREM_TARGET
 
-Any claim that an information functional must monotonically increase or decrease requires a declared state space, dynamics, boundary conditions, representation, measure, and information functional. The repository will determine the strongest assumptions under which specific monotonicity results are valid.
+**Qualifier:** methodological rule until the relevant theorem families are proved.
 
-### C6 - Vopson's infodynamics program is testable as a collection of distinct claims
+For any proposed monotonicity result, UFT-ID 3.0 requires the state space, dynamics, time model, boundary conditions, representation, measure, partition/coarse-graining contract, and information functional to be declared. The research program will determine the strongest assumptions under which specific monotonicity results are valid.
 
-**Status:** RESEARCH PROGRAM
+### C6 - Vopson's infodynamics program is treated as separable claim tracks
 
-The mass-equivalence proposal, information-entropy monotonicity proposal, cross-domain applications, gravity derivation, and simulation-hypothesis interpretation are treated as logically separable. Agreement or failure in one track does not automatically settle the others.
+**Status:** DIAGNOSTIC
+
+**Qualifier:** research-program decomposition.
+
+The mass-equivalence proposal, information-entropy monotonicity proposal, cross-domain applications, gravity derivation, and simulation-hypothesis interpretation are treated as logically separable audit tracks. Agreement or failure in one track does not automatically settle the others.
 
 ## Claims requiring future proof or evidence
 
 The following are intentionally not yet promoted beyond theorem target or hypothesis:
 
 - a general information balance law valid across multiple classes of systems;
-- representation-independent sign behavior of information derivatives;
+- representation-independent sign behavior of information derivatives or finite differences;
 - a restricted theorem that exactly recovers the Second Law of Infodynamics as a special case;
 - transport-shear invariants;
 - observer-relative inaccessible-information identities;
