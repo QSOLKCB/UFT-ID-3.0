@@ -43,7 +43,7 @@ Treat this as the main formal inheritance. Earlier lattice-specific and ontology
 
 ## Claim classes
 
-Every nontrivial claim should be classifiable as exactly one of:
+Every nontrivial UFT-ID assessment must use exactly one of:
 
 - `DEFINITION`
 - `THEOREM_TARGET`
@@ -55,7 +55,41 @@ Every nontrivial claim should be classifiable as exactly one of:
 - `SPECULATIVE`
 - `NONCLAIM`
 
-Do not silently promote a claim between classes.
+Recording another author's source claim is not an endorsement and does not silently promote it into one of these classes. The source claim and the UFT-ID assessment remain separate fields.
+
+## Canonical Vopson corpus
+
+For Vopson-related work, the authority chain is:
+
+```text
+research/vopson/AUTHOR.json
+research/vopson/corpus.json
+research/vopson/CLAIM_GRAPH.json
+research/vopson/REPRODUCTION_MATRIX.md
+research/vopson/COUNTEREXAMPLE_MATRIX.md
+```
+
+Human-readable guides sit beside the machine files:
+
+```text
+research/vopson/CORPUS.md
+research/vopson/CLAIM_GRAPH.md
+research/vopson/DEFINITIONS.md
+research/vopson/RESPONSE_HISTORY.md
+```
+
+Rules:
+
+1. ORCID `0000-0002-8073-5538` is a bibliographic identity anchor only.
+2. Do not invent a final DOI. Use `null` plus a verified preprint DOI or official metadata URL.
+3. A dependency edge records reliance, not truth.
+4. `metadata-verified` is not `reproduced`.
+5. A `PROVED` or `COUNTEREXAMPLE` assessment requires explicit repository evidence unless it is clearly identified as established literature.
+6. Before renaming or adding a Vopson target, run:
+
+```bash
+python3 scripts/validate_vopson_corpus.py
+```
 
 ## Hard rules
 
@@ -74,17 +108,18 @@ Do not silently promote a claim between classes.
 
 The repository deliberately tests Vopson's infodynamics program at its strongest published form. Do not straw-man it.
 
-Key tracks:
+Key tracks include:
 
 - mass-energy-information equivalence;
+- digital information and information-catastrophe extrapolations;
+- particle-information and annihilation proposals;
+- genomic entropy methods and mutation-law claims;
 - universal or quasi-universal information-entropy monotonicity;
-- digital information systems;
-- genomic mutation claims;
-- atomic/Hund-rule claims;
-- symmetry claims;
+- atomic, symmetry and cosmological applications;
 - gravity/data-compression claims;
 - language-diversity claims;
-- simulation-hypothesis inference.
+- simulation-hypothesis inference;
+- published qualifications, responses and independent reformulations.
 
 For each track, reconstruct the exact information functional, state representation, dynamics, assumptions, data, and inferential step before attempting criticism.
 
@@ -106,5 +141,9 @@ Lean is deferred until definitions stabilize. The future formalization should be
 2. `docs/ARCHITECTURE.md`
 3. `theory/DEFINITIONS.md`
 4. `theory/THEOREM_TARGETS.md`
-5. `research/VOPSON_MATRIX.md`
-6. `ROADMAP.md`
+5. `theory/FINITE_RESULTS.md`
+6. `research/vopson/CORPUS.md`
+7. `research/vopson/CLAIM_GRAPH.md`
+8. `research/vopson/REPRODUCTION_MATRIX.md`
+9. `research/VOPSON_MATRIX.md`
+10. `ROADMAP.md`
