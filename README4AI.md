@@ -148,6 +148,7 @@ The first source-specific reproduction package lives under:
 research/vopson/reproduction/2019-mei/
 experiments/reproduction/vopson_2019_mei/
 experiments/run_pr6.py
+scripts/validate_vopson_2019_mei.py
 tests/test_vopson_2019_mei.py
 ```
 
@@ -165,6 +166,11 @@ internal source-text inconsistency rather than silently repairing it.
 The reproduction status means the source arithmetic is independently regenerated
 under the declared identification. It does **not** mean intrinsic information mass
 has been physically validated.
+
+The promotion is synchronized across `corpus.json`, `CLAIM_GRAPH.json`, their
+human tables, `REPRODUCTION_MATRIX.md`, and the source-specific result. The work
+is `reproduced`, while `CL-MEI-BIT-MASS` deliberately remains a `THEOREM_TARGET`
+with assessment `arithmetic-reproduced-physical-hypothesis-unresolved`.
 
 ```text
 ARITHMETIC_REPRODUCED
@@ -201,6 +207,7 @@ python -m compileall -q experiments scripts tests
 python scripts/render_vopson_docs.py --check
 python scripts/validate_vopson_corpus.py
 python scripts/validate_cross_repo_patterns.py
+python scripts/validate_vopson_2019_mei.py
 python scripts/validate_reproducibility.py
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
