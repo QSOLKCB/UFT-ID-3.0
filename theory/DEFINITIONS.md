@@ -328,3 +328,128 @@ Delta I_n <= 0.
 ```
 
 For stochastic models, the exact pathwise, expectation-level, or generator-level monotonicity statement must be declared rather than inferred from the deterministic notation.
+
+## D27. Typed transformation pipeline
+
+A typed transformation pipeline is a finite composable sequence
+
+```text
+X_0 --f_0--> X_1 --f_1--> ... --f_{m-1}--> X_m.
+```
+
+Intermediate stages remain distinct typed objects even when the total map is written as one composite `F`, `O`, or `T`. Parsing, normalization, projection, routing, resolution, and transport therefore cannot be silently collapsed into identity maps.
+
+See `theory/AUXILIARY_CONTRACTS.md`, A1.
+
+## D28. Canonical content identity
+
+For a declared canonicalization
+
+```text
+K : X -> C_X
+```
+
+and deterministic digest
+
+```text
+h : C_X -> H,
+```
+
+define
+
+```text
+id_K(x) = h(K(x)).
+```
+
+This is identity relative to the canonicalization/digest contract. It does not by itself establish truth, authorship, authenticity, endorsement, or physical validity.
+
+See A2.
+
+## D29. Projection or receiver contract
+
+A projection/receiver is a map
+
+```text
+P_i : X -> Y_i
+```
+
+with explicitly declared preserved structure, lost structure, observation convention, units/scale where relevant, and invertibility status.
+
+For declared source/receiver observables and comparison map, a receiver defect may quantify preservation of one named structure. Preservation of one structure does not imply preservation of every structure.
+
+See A3.
+
+## D30. Epistemic and authority annotation
+
+Where a model tracks evidence or authority state, use separately typed annotations such as
+
+```text
+E : X -> Q_E
+A_auth : X -> Q_A.
+```
+
+Unless independently derived by a domain model, these are evidence/governance metadata rather than physical observables. Hashes, storage, retrieval score, consensus, model identity, recovery, transport, and replay do not automatically promote them.
+
+See A4.
+
+## D31. Calibration profile
+
+A calibration profile is a declared tuple
+
+```text
+Gamma = (M, estimator, preprocessing, units, reference, thresholds, scope).
+```
+
+Measurements and classifications may therefore be profile-indexed as
+
+```text
+m_Gamma(x), c_Gamma(x).
+```
+
+Threshold transfer from `Gamma` to `Gamma'` requires an explicit bridge; equal metric names do not imply equal calibration.
+
+See A5.
+
+## D32. Retention obligation and sufficient basis
+
+For finite candidate set `R` and declared obligation set `Omega`, each record has a coverage set and declared cost. A subset is sufficient only relative to `Omega` when its union of coverage satisfies every obligation.
+
+A minimum sufficient basis is a deterministic selection from sufficient subsets under a declared objective and tie-break. Sufficiency is not completeness or truth.
+
+See A6.
+
+## D33. Deterministic replay contract
+
+A deterministic replay contract declares canonical input identity, implementation identity, versioned parameters, randomness/seed status, output canonicalization, and result identity.
+
+Replay claims apply only inside those assumptions. A receipt around an external stochastic process does not make the underlying process deterministic.
+
+See A7.
+
+## D34. Versioned semantic bridge
+
+For versioned semantics
+
+```text
+sigma_v : X_v -> Z_v,
+```
+
+a semantic change requires a new contract or an explicit bridge
+
+```text
+B_vw : X_v -> X_w
+```
+
+that declares preserved and lost structure. Adjacent versions are not compatible by default.
+
+See A8.
+
+## Cross-repository source boundary
+
+D27-D34 were sharpened using recurring patterns observed in public QSOLKCB software repositories. Those implementations motivate typed examples only:
+
+```text
+SOFTWARE_CONTRACT != PHYSICAL_LAW
+```
+
+The pinned source registry and quarantined lineage are in `machine/cross_repo_patterns.json` and `research/CROSS_REPO_PATTERN_ATLAS.md`.
