@@ -10,20 +10,22 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 RUN_PATH = ROOT / "experiments/reproduction/vopson_2019_mei/run.py"
+RECEIPT_PATH = ROOT / "experiments/run_pr6.py"
 RESULT_PATH = ROOT / "research/vopson/reproduction/2019-mei/result.json"
 GRAPH_PATH = ROOT / "research/vopson/reproduction/2019-mei/ASSUMPTION_GRAPH.json"
 
 
-def load_module():
-    spec = importlib.util.spec_from_file_location("vopson_2019_mei", RUN_PATH)
+def load_module(name: str, path: Path):
+    spec = importlib.util.spec_from_file_location(name, path)
     if spec is None or spec.loader is None:
-        raise RuntimeError("cannot load Vopson 2019 MEI reproduction module")
+        raise RuntimeError(f"cannot load {path}")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
 
 
-MEI = load_module()
+MEI = load_module("vopson_2019_mei", RUN_PATH)
+RECEIPT = load_module("vopson_2019_mei_receipt", RECEIPT_PATH)
 
 
 class Vopson2019MEIArithmeticTests(unittest.TestCase):
@@ -109,6 +111,28 @@ class Vopson2019MEIAuthorityTests(unittest.TestCase):
         self.assertIn("source-text inequality inconsistency", text)
         self.assertIn("Eq. (6)", text)
         self.assertIn("DOI_AND_EQUATION_IDENTITY != SOURCE_PDF_BYTE_HASH", text)
+
+
+class Vopson2019MEIReceiptTests(unittest.TestCase):
+    def test_receipt_is_deterministic_within_runtime(self):
+        first = RECEIPT.run_suite()
+        second = RECEIPT.run_suite()
+        self.assertEqual(first["local_source_sha256"], second["local_source_sha256"])
+        self.assertEqual(first["result_sha256"], second["result_sha256"])
+        self.assertEqual(first["suite_fingerprint_sha256"], second["suite_fingerprint_sha256"])
+        self.assertEqual(len(first["suite_fingerprint_sha256"]), 64)
+        self.assertIsNone(first["primary_source_byte_hash"])
+
+    def test_receipt_hash_only_is_json(self):
+        completed = subprocess.run(
+            [sys.executable, str(RECEIPT_PATH), "--hash-only"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        payload = json.loads(completed.stdout)
+        self.assertEqual(len(payload["suite_fingerprint_sha256"]), 64)
 
 
 if __name__ == "__main__":
