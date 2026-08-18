@@ -1,105 +1,96 @@
 # Experiments
 
-This directory will contain deterministic reproductions, counterexamples, and empirical tests.
+This directory contains deterministic reproductions, counterexamples,
+representation tests, and later empirical audits.
 
-## Rules
+## Required experiment contract
 
-Every experiment must declare:
+Every experiment declares, where applicable:
 
 ```text
 experiment_id
 claim_target
-source_publication
-input provenance
-input hashes
+claim_class
+source publication and exact locator
+input provenance and hashes
 software/runtime versions
-random seeds or statement of determinism
+random seed or statement of determinism
 preprocessing
 state representation
 information functional
-system boundary
+observation/partition/reference contract
+system boundary and sources
 null model
 primary endpoint
 expected falsifier
 output hashes
+scope limits
 ```
 
-## Planned suites
+## Shared finite primitives
+
+Use `experiments/lib/information.py` for the current finite probability-vector,
+Shannon entropy, row-stochastic, and coarse-graining contracts. A source-specific
+reproduction may intentionally use a different definition, but the departure
+must be explicit.
+
+Scientific invariants use `require(...)` or another explicit exception. Do not
+use ordinary Python `assert`, because `python -O` removes it.
+
+## Current executable suites
 
 ```text
 experiments/
-├── reproduction/
-│   ├── vopson_2019_mass/
-│   ├── vopson_2021_genies/
-│   ├── vopson_2022_sli/
-│   ├── vopson_2022_mutations/
-│   ├── vopson_2023_cross_domain/
-│   ├── vopson_2025_gravity/
-│   ├── vopson_2026_polygons/
-│   └── vopson_2026_language/
+├── lib/
+│   └── information.py
 ├── counterexamples/
-│   ├── entropy_increase/
-│   ├── entropy_constant/
-│   └── entropy_decrease/
+│   └── finite_entropy_signs/run.py
 ├── representation/
-│   ├── relabeling/
-│   ├── recoding/
-│   ├── partition_sweeps/
-│   └── coarse_graining/
-├── transport/
-├── observer/
-└── constrained_recovery/
+│   └── coarse_graining/run.py
+├── reproduction/
+│   └── vopson_2026_polygons/run.py
+└── run_pr2.py
 ```
 
-Directories are created only when executable work exists. This document does not use empty folders as progress markers.
+The historical runner name `run_pr2.py` is retained for compatibility. Receipt
+version 1.1.0 identifies the current finite-adversarial suite and hashes shared
+source dependencies as well as experiment scripts and results.
 
 ## Reproduction before modification
 
-The first stage of every literature-targeted experiment is a faithful reproduction using the original definition and data where available.
-
-Only after that result matches, or the mismatch is explained, should adversarial variants be run.
+First reproduce the source definition and reported result. Only after a match,
+or a documented explanation of the mismatch, should adversarial variants run.
 
 ## Counterexample standard
 
-A counterexample must include:
-
-- the exact proposition being falsified;
-- proof or executable verification that all stated premises are satisfied;
-- the minimal state space practical;
-- no irrelevant complexity;
-- a plain-language explanation of why the example is inside the claim's domain.
-
-A counterexample outside the target claim's domain is not counted.
+A counterexample must include the exact proposition, evidence that all premises
+are satisfied, the smallest practical state space, no irrelevant complexity,
+and a plain-language scope statement. An example outside the target domain is
+not counted.
 
 ## Representation sweep
 
-For entropy-direction claims, test at minimum:
+For entropy-direction claims, test where meaningful bijective relabelling,
+lossless recoding, alphabet grouping, window/partition choices, many-to-one
+coarse-graining, reference measures, observer maps, and boundary/source terms.
+Coordinate changes must be distinguished from genuinely different observables.
 
-- bijective relabeling;
-- lossless recoding;
-- different alphabet groupings;
-- different window/partition choices;
-- many-to-one coarse-graining;
-- system-boundary changes where meaningful.
+## Bounded exhaustive work
 
-Results should distinguish transformations that preserve the underlying observable from transformations that genuinely define a different observable.
+The polygon verifier estimates ordered positive compositions as
+`C(N-1,n-1)` before enumeration. Requests above the machine-contract ceiling
+fail closed. Use analytic extrema for large inputs unless a deliberately large
+exhaustive run is separately justified.
 
-## Statistical discipline
+## Determinism and receipts
 
-Empirical suites should include, as relevant:
-
-- preregistered primary endpoint;
-- held-out data;
-- uncertainty intervals;
-- multiple-comparison correction;
-- sensitivity analysis;
-- domain-appropriate null models;
-- negative results.
-
-## Determinism
-
-If an experiment can be deterministic, it should be. If randomness is necessary, all pseudorandom seeds and generator versions must be recorded.
+If an experiment can be deterministic, it should be. If randomness is
+necessary, record the generator and seed. `experiments/run_pr2.py` emits source
+hashes, result hashes, runtime metadata, and a suite fingerprint. CI retains the
+JSON outputs as workflow artifacts.
 
 ## Artifact policy
 
-Large generated files should not be committed casually. Prefer scripts, compact fixtures, manifests, hashes, and archival releases. A later release may publish reproducibility bundles through Zenodo or another stable archive.
+Large generated outputs are not committed casually. Prefer scripts, fixtures,
+manifests, hashes, and archived release bundles. See
+`docs/REPRODUCIBILITY.md`.
