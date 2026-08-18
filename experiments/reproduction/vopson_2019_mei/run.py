@@ -24,12 +24,30 @@ def require(condition: bool, message: str) -> None:
         raise ValueError(message)
 
 
+def finite_number(value: object, label: str, *, non_negative: bool = False) -> float:
+    """Validate a JSON numeric scalar before any coercion."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TypeError(f"{label} must be a JSON number")
+    result = float(value)
+    if not math.isfinite(result):
+        raise ValueError(f"{label} must be finite")
+    if non_negative and result < 0:
+        raise ValueError(f"{label} must be non-negative")
+    return result
+
+
+def non_negative_integer(value: object, label: str) -> int:
+    """Validate a JSON integer without truncating floats or accepting booleans."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{label} must be a JSON integer")
+    if value < 0:
+        raise ValueError(f"{label} must be non-negative")
+    return value
+
+
 def landauer_scale(temperature_K: float) -> float:
-    if isinstance(temperature_K, bool) or not isinstance(temperature_K, (int, float)):
-        raise TypeError("temperature_K must be a real number")
-    if not math.isfinite(float(temperature_K)) or temperature_K < 0:
-        raise ValueError("temperature_K must be finite and non-negative")
-    return K_B * float(temperature_K) * math.log(2.0)
+    temperature = finite_number(temperature_K, "temperature_K", non_negative=True)
+    return K_B * temperature * math.log(2.0)
 
 
 def conditional_bit_mass(temperature_K: float) -> float:
@@ -38,9 +56,8 @@ def conditional_bit_mass(temperature_K: float) -> float:
 
 
 def storage_mass(bits: int, temperature_K: float) -> float:
-    if isinstance(bits, bool) or not isinstance(bits, int) or bits < 0:
-        raise ValueError("bits must be a non-negative integer")
-    return bits * conditional_bit_mass(temperature_K)
+    validated_bits = non_negative_integer(bits, "bits")
+    return validated_bits * conditional_bit_mass(temperature_K)
 
 
 def relative_error(observed: float, expected: float) -> float:
@@ -49,36 +66,86 @@ def relative_error(observed: float, expected: float) -> float:
     return abs(observed - expected) / abs(expected)
 
 
-def run() -> dict[str, object]:
+def load_fixtures() -> dict[str, object]:
     fixtures = json.loads(FIXTURES.read_text(encoding="utf-8"))
-    require(fixtures["constants"]["boltzmann_J_per_K"] == K_B, "fixture k_B mismatch")
-    require(fixtures["constants"]["speed_of_light_m_per_s"] == C, "fixture c mismatch")
+    if not isinstance(fixtures, dict):
+        raise TypeError("fixtures root must be a JSON object")
+    return fixtures
 
-    tolerance = float(fixtures["comparison_tolerances"]["relative"])
-    source_rounding_tolerance = float(fixtures["comparison_tolerances"]["source_rounding_relative"])
+
+def run() -> dict[str, object]:
+    fixtures = load_fixtures()
+
+    constants = fixtures.get("constants")
+    if not isinstance(constants, dict):
+        raise TypeError("constants must be a JSON object")
+    fixture_kb = finite_number(constants.get("boltzmann_J_per_K"), "constants.boltzmann_J_per_K", non_negative=True)
+    fixture_c = finite_number(constants.get("speed_of_light_m_per_s"), "constants.speed_of_light_m_per_s", non_negative=True)
+    require(fixture_kb == K_B, "fixture k_B mismatch")
+    require(fixture_c == C, "fixture c mismatch")
+
+    tolerances = fixtures.get("comparison_tolerances")
+    if not isinstance(tolerances, dict):
+        raise TypeError("comparison_tolerances must be a JSON object")
+    tolerance = finite_number(tolerances.get("relative"), "comparison_tolerances.relative", non_negative=True)
+    source_rounding_tolerance = finite_number(
+        tolerances.get("source_rounding_relative"),
+        "comparison_tolerances.source_rounding_relative",
+        non_negative=True,
+    )
+
+    cases = fixtures.get("temperature_cases")
+    if not isinstance(cases, list) or not cases:
+        raise TypeError("temperature_cases must be a non-empty JSON array")
 
     temperature_results = []
-    for case in fixtures["temperature_cases"]:
-        temperature = float(case["temperature_K"])
+    for index, case in enumerate(cases):
+        if not isinstance(case, dict):
+            raise TypeError(f"temperature_cases[{index}] must be a JSON object")
+        temperature = finite_number(case.get("temperature_K"), f"temperature_cases[{index}].temperature_K", non_negative=True)
+        expected_energy = finite_number(case.get("landauer_energy_J"), f"temperature_cases[{index}].landauer_energy_J", non_negative=True)
+        expected_mass = finite_number(case.get("conditional_mass_kg"), f"temperature_cases[{index}].conditional_mass_kg", non_negative=True)
         energy = landauer_scale(temperature)
         mass = conditional_bit_mass(temperature)
-        require(relative_error(energy, float(case["landauer_energy_J"])) <= tolerance, "energy fixture mismatch")
-        require(relative_error(mass, float(case["conditional_mass_kg"])) <= tolerance, "mass fixture mismatch")
+        require(relative_error(energy, expected_energy) <= tolerance, "energy fixture mismatch")
+        require(relative_error(mass, expected_mass) <= tolerance, "mass fixture mismatch")
         temperature_results.append({
             "temperature_K": temperature,
             "landauer_scale_J": energy,
             "conditional_bit_mass_kg": mass,
         })
 
-    storage = fixtures["storage_case"]
-    storage_observed = storage_mass(int(storage["bits"]), float(storage["temperature_K"]))
-    require(relative_error(storage_observed, float(storage["expected_conditional_mass_kg"])) <= tolerance, "storage fixture mismatch")
+    storage = fixtures.get("storage_case")
+    if not isinstance(storage, dict):
+        raise TypeError("storage_case must be a JSON object")
+    storage_bytes = non_negative_integer(storage.get("bytes"), "storage_case.bytes")
+    storage_bits = non_negative_integer(storage.get("bits"), "storage_case.bits")
+    storage_temperature = finite_number(storage.get("temperature_K"), "storage_case.temperature_K", non_negative=True)
+    expected_storage_mass = finite_number(
+        storage.get("expected_conditional_mass_kg"),
+        "storage_case.expected_conditional_mass_kg",
+        non_negative=True,
+    )
+    source_storage_mass = finite_number(
+        storage.get("source_reported_mass_kg"),
+        "storage_case.source_reported_mass_kg",
+        non_negative=True,
+    )
+    storage_observed = storage_mass(storage_bits, storage_temperature)
+    require(relative_error(storage_observed, expected_storage_mass) <= tolerance, "storage fixture mismatch")
+
+    source_reported = fixtures.get("source_reported")
+    if not isinstance(source_reported, dict):
+        raise TypeError("source_reported must be a JSON object")
+    cmb_temperature = finite_number(source_reported.get("cmb_temperature_K"), "source_reported.cmb_temperature_K", non_negative=True)
+    room_expected = finite_number(source_reported.get("room_temperature_bit_mass_kg"), "source_reported.room_temperature_bit_mass_kg", non_negative=True)
+    cmb_expected = finite_number(source_reported.get("cmb_bit_mass_kg"), "source_reported.cmb_bit_mass_kg", non_negative=True)
 
     room_mass = conditional_bit_mass(300.0)
-    cmb_mass = conditional_bit_mass(float(fixtures["source_reported"]["cmb_temperature_K"]))
-    require(relative_error(room_mass, float(fixtures["source_reported"]["room_temperature_bit_mass_kg"])) <= source_rounding_tolerance, "source room-temperature rounded value not reproduced")
-    require(relative_error(cmb_mass, float(fixtures["source_reported"]["cmb_bit_mass_kg"])) <= source_rounding_tolerance, "source 2.73 K rounded value not reproduced")
-    require(relative_error(storage_observed, float(storage["source_reported_mass_kg"])) <= source_rounding_tolerance, "source 1 TB rounded mass-change value not reproduced")
+    cmb_mass = conditional_bit_mass(cmb_temperature)
+    require(relative_error(room_mass, room_expected) <= source_rounding_tolerance, "source room-temperature rounded value not reproduced")
+    require(relative_error(cmb_mass, cmb_expected) <= source_rounding_tolerance, "source 2.73 K rounded value not reproduced")
+    require(relative_error(storage_observed, source_storage_mass) <= source_rounding_tolerance, "source 1 TB rounded mass-change value not reproduced")
 
     return {
         "type": "uft-id-vopson-2019-mei-reproduction",
@@ -93,11 +160,11 @@ def run() -> dict[str, object]:
         },
         "temperature_results": temperature_results,
         "storage_case": {
-            "bytes": int(storage["bytes"]),
-            "bits": int(storage["bits"]),
-            "temperature_K": float(storage["temperature_K"]),
+            "bytes": storage_bytes,
+            "bits": storage_bits,
+            "temperature_K": storage_temperature,
             "conditional_mass_kg": storage_observed,
-            "source_reported_mass_kg": float(storage["source_reported_mass_kg"]),
+            "source_reported_mass_kg": source_storage_mass,
         },
         "source_rounding_checks": {
             "room_temperature_300K": True,
