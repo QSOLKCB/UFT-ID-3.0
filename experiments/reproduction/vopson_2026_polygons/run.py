@@ -18,7 +18,9 @@ optimization. This audit therefore separates two questions:
    (1,...,1).
 
 Exhaustive enumeration is used only as a bounded verifier. Analytic extrema are
-available for inputs above the configured work ceiling.
+available for inputs above the configured work ceiling. Composition generation
+is iterative so valid high-part-count inputs do not depend on Python recursion
+depth.
 """
 
 from __future__ import annotations
@@ -27,6 +29,7 @@ import argparse
 import json
 import math
 from collections.abc import Iterator, Sequence
+from itertools import combinations
 from pathlib import Path
 import sys
 
@@ -72,6 +75,8 @@ def shannon_from_counts(counts: Sequence[int]) -> float:
 
 
 def positive_compositions(total: int, parts: int) -> Iterator[tuple[int, ...]]:
+    """Yield ordered positive compositions iteratively using cut positions."""
+
     total = _positive_integer(total, "total")
     parts = _positive_integer(parts, "parts")
     if total < parts:
@@ -79,9 +84,13 @@ def positive_compositions(total: int, parts: int) -> Iterator[tuple[int, ...]]:
     if parts == 1:
         yield (total,)
         return
-    for first in range(1, total - parts + 2):
-        for rest in positive_compositions(total - first, parts - 1):
-            yield (first,) + rest
+
+    for cuts in combinations(range(1, total), parts - 1):
+        boundaries = (0, *cuts, total)
+        yield tuple(
+            boundaries[index + 1] - boundaries[index]
+            for index in range(parts)
+        )
 
 
 def balanced_counts(total: int, parts: int) -> tuple[int, ...]:
@@ -155,7 +164,9 @@ def audit_case(
             "use analytic_extrema() or explicitly opt in with --allow-large-exhaustive"
         )
 
-    candidates = sorted({canonical(composition) for composition in positive_compositions(total, parts)})
+    candidates = sorted(
+        {canonical(composition) for composition in positive_compositions(total, parts)}
+    )
     values = [(shannon_from_counts(candidate), candidate) for candidate in candidates]
 
     minimum_entropy, observed_minimum = min(values, key=lambda item: item[0])
@@ -287,7 +298,10 @@ def run(
         max_compositions=max_compositions,
         allow_large_exhaustive=allow_large_exhaustive,
     )
-    require(variable_n_N6["global_minimum"]["H_bits"] == 0.0, "N=6 minimum must be zero")
+    require(
+        variable_n_N6["global_minimum"]["H_bits"] == 0.0,
+        "N=6 minimum must be zero",
+    )
     require(
         math.isclose(
             variable_n_N6["global_maximum"]["H_bits"],
@@ -327,6 +341,7 @@ def run(
             "ordered_composition_formula": "C(N-1,n-1)",
             "max_compositions": max_compositions,
             "allow_large_exhaustive": allow_large_exhaustive,
+            "generator": "iterative cut-position enumeration",
             "analytic_fallback": "analytic_extrema(total, parts)",
         },
         "fixed_n_result": (
