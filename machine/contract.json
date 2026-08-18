@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.0.1",
   "project": {
     "name": "UFT-ID 3.0",
     "expanded_name": "Unified Field Theory of Information Dynamics 3.0",
@@ -19,6 +19,7 @@
       "C": "constraint structure"
     }
   },
+  "maths_staging_file": "MATHS.md",
   "claim_classes": [
     "DEFINITION",
     "THEOREM_TARGET",
@@ -53,18 +54,25 @@
     "abstract_theorem_proves_physical_ontology": false,
     "observer_representation_equals_underlying_state": false,
     "personal_attack_allowed": false,
-    "vopson_reproduction_required_before_critique": true
+    "vopson_reproduction_required_before_critique": true,
+    "one_claim_class_per_claim": true,
+    "cross_domain_bridge_must_record_lost_structure": true,
+    "time_model_must_match_balance_notation": true
   },
-  "vopson_tracks": [
-    "mass-energy-information-equivalence",
-    "genomic-information-entropy",
-    "second-law-of-infodynamics",
-    "cross-domain-applications",
-    "simulation-hypothesis-inference",
-    "information-theoretic-gravity",
-    "polygon-symmetry",
-    "language-diversity"
-  ],
+  "vopson": {
+    "orcid": "0000-0002-8073-5538",
+    "orcid_role": "bibliographic identity anchor only",
+    "tracks": [
+      "mass-energy-information-equivalence",
+      "genomic-information-entropy",
+      "second-law-of-infodynamics",
+      "cross-domain-applications",
+      "simulation-hypothesis-inference",
+      "information-theoretic-gravity",
+      "polygon-symmetry",
+      "language-diversity"
+    ]
+  },
   "formal_verification": {
     "system": "Lean",
     "status": "deferred",
@@ -85,6 +93,7 @@
     "docs/CLAIMS.md",
     "docs/NONCLAIMS.md",
     "docs/ARCHITECTURE.md",
+    "MATHS.md",
     "theory/DEFINITIONS.md",
     "theory/THEOREM_TARGETS.md",
     "research/VOPSON_MATRIX.md",
