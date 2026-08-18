@@ -24,6 +24,8 @@ EXPERIMENTS = {
 
 SOURCE_FILES = {
     **EXPERIMENTS,
+    "experiments_package_initializer": ROOT / "experiments/__init__.py",
+    "experiments_lib_initializer": ROOT / "experiments/lib/__init__.py",
     "shared_information_primitives": ROOT / "experiments/lib/information.py",
     "receipt_runner": Path(__file__).resolve(),
 }
@@ -81,7 +83,7 @@ def run_suite() -> dict[str, object]:
     }
 
     return {
-        "receipt_version": "1.1.0",
+        "receipt_version": "1.1.1",
         "suite_id": "UFTID3-FINITE-ADVERSARIAL",
         "deterministic_results": True,
         "random_seed": None,
