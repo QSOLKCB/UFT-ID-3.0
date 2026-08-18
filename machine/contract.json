@@ -1,9 +1,9 @@
 {
-  "schema_version": "1.3.1",
+  "schema_version": "1.4.0",
   "project": {
     "name": "UFT-ID 3.0",
     "expanded_name": "Unified Field Theory of Information Dynamics 3.0",
-    "status": "reproducibility-ci-and-experiment-hardening",
+    "status": "cross-repository-formal-pattern-hardening",
     "repository": "QSOLKCB/UFT-ID-3.0"
   },
   "canonical_system": {
@@ -64,13 +64,28 @@
     "polygon_composition_generator": "iterative-cut-positions",
     "large_polygon_policy": "Use analytic_extrema unless exhaustive execution is explicitly opted in",
     "receipt_runner": "experiments/run_pr2.py",
-    "receipt_version": "1.1.1"
+    "receipt_version": "1.1.1",
+    "cross_repo_receipt_runner": "experiments/run_cross_repo.py",
+    "cross_repo_receipt_version": "1.0.0"
   },
   "finite_result_authority": {
     "human": "theory/FINITE_RESULTS.md",
     "machine": "machine/finite_results.json",
     "receipt_runner": "experiments/run_pr2.py",
     "rule": "Only results with explicit hypotheses and a direct proof or executable witness belong on this surface."
+  },
+  "cross_repo_pattern_authority": {
+    "human_atlas": "research/CROSS_REPO_PATTERN_ATLAS.md",
+    "machine_patterns": "machine/cross_repo_patterns.json",
+    "auxiliary_contracts": "theory/AUXILIARY_CONTRACTS.md",
+    "human_results": "theory/CROSS_REPO_RESULTS.md",
+    "machine_results": "machine/cross_repo_results.json",
+    "validator": "scripts/validate_cross_repo_patterns.py",
+    "experiment": "experiments/cross_repo/run.py",
+    "receipt_runner": "experiments/run_cross_repo.py",
+    "receipt_version": "1.0.0",
+    "source_freshness": "snapshot-pinned-not-live-remote-validated-in-ci",
+    "rule": "Public merged repository contracts may motivate mathematical or methodological UFT-ID patterns, but software semantics never inherit physical ontology or epistemic truth by adjacency."
   },
   "vopson_corpus_authority": {
     "author": "research/vopson/AUTHOR.json",
@@ -155,7 +170,17 @@
     "github_workflow_write_permission_allowed": false,
     "undeclared_github_workflow_allowed": false,
     "ci_receipt_may_be_discarded": false,
-    "unbounded_exhaustive_polygon_audit_allowed": false
+    "unbounded_exhaustive_polygon_audit_allowed": false,
+    "software_contract_implies_physical_law": false,
+    "implemented_pattern_implies_universal_theorem": false,
+    "content_identity_implies_truth": false,
+    "recovery_implies_epistemic_promotion": false,
+    "retrieval_or_storage_implies_authority": false,
+    "local_calibration_implies_universal_threshold": false,
+    "formal_proof_implies_implementation_conformance": false,
+    "implementation_conformance_implies_empirical_validation": false,
+    "semantic_coincidence_implies_causation": false,
+    "adjacent_repo_truth_is_inherited": false
   },
   "vopson": {
     "orcid": "0000-0002-8073-5538",
@@ -175,19 +200,23 @@
     "initial_targets": [
       "finite admissibility predicate", "finite total tie-break order",
       "lexicographic recovery existence and uniqueness", "recovery returns admissible state",
-      "restricted monotonicity theorem", "explicit finite counterexamples"
+      "restricted monotonicity theorem", "explicit finite counterexamples",
+      "coprime cyclic traversal", "finite minimum sufficient basis"
     ]
   },
   "required_agent_reads": [
     "README4AI.md", "AGENTS.md", "docs/CLAIMS.md", "docs/NONCLAIMS.md",
     "docs/ARCHITECTURE.md", "docs/REPRODUCIBILITY.md", "docs/MILESTONES.md",
     "experiments/README.md", "MATHS.md", "theory/DEFINITIONS.md",
-    "theory/THEOREM_TARGETS.md", "theory/FINITE_RESULTS.md",
-    "machine/finite_results.json", "research/vopson/AUTHOR.json",
-    "research/vopson/CORPUS.md", "research/vopson/corpus.json",
-    "research/vopson/CLAIM_GRAPH.md", "research/vopson/CLAIM_GRAPH.json",
-    "research/vopson/DEFINITIONS.md", "research/vopson/REPRODUCTION_MATRIX.md",
-    "research/vopson/COUNTEREXAMPLE_MATRIX.md", "research/vopson/RESPONSE_HISTORY.md",
+    "theory/AUXILIARY_CONTRACTS.md", "theory/THEOREM_TARGETS.md",
+    "theory/FINITE_RESULTS.md", "theory/CROSS_REPO_RESULTS.md",
+    "machine/finite_results.json", "machine/cross_repo_patterns.json",
+    "machine/cross_repo_results.json", "research/CROSS_REPO_PATTERN_ATLAS.md",
+    "research/vopson/AUTHOR.json", "research/vopson/CORPUS.md",
+    "research/vopson/corpus.json", "research/vopson/CLAIM_GRAPH.md",
+    "research/vopson/CLAIM_GRAPH.json", "research/vopson/DEFINITIONS.md",
+    "research/vopson/REPRODUCTION_MATRIX.md", "research/vopson/COUNTEREXAMPLE_MATRIX.md",
+    "research/vopson/RESPONSE_HISTORY.md",
     "research/reports/2026-08-18-PR4-ACTION-REGISTER.md",
     "research/VOPSON_MATRIX.md", "ROADMAP.md"
   ]
