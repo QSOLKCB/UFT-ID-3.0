@@ -23,6 +23,8 @@ if str(ROOT) not in sys.path:
 
 from experiments.lib.information import require  # noqa: E402
 
+MAX_MINIMUM_BASIS_SUBSETS = 1 << 18
+
 
 def canonical_json_bytes(value: object) -> bytes:
     return json.dumps(
@@ -81,7 +83,6 @@ def projection_collision_case() -> dict[str, object]:
     }
     require(collisions, "projection should be non-injective")
 
-    # Any deterministic reconstruction chooses one representative per fibre.
     reconstruction = {observed: states[0] for observed, states in fibres.items()}
     exact = [state for state in source_states if reconstruction[project(state)] == state]
     failed = [state for state in source_states if reconstruction[project(state)] != state]
@@ -175,28 +176,48 @@ def minimum_basis(
     obligations: set[str],
     coverage: dict[str, set[str]],
     costs: dict[str, int],
+    *,
+    max_subsets: int = MAX_MINIMUM_BASIS_SUBSETS,
 ) -> tuple[str, ...]:
-    if not obligations:
-        return ()
     ids = sorted(coverage)
     if set(costs) != set(ids):
         raise ValueError("coverage/cost ids differ")
-    candidates = []
+    if isinstance(max_subsets, bool) or not isinstance(max_subsets, int) or max_subsets < 1:
+        raise ValueError("max_subsets must be a positive integer")
+    for record_id in ids:
+        cost = costs[record_id]
+        if isinstance(cost, bool) or not isinstance(cost, int) or cost < 0:
+            raise ValueError(f"cost for {record_id} must be a non-negative integer")
+
+    if not obligations:
+        return ()
+
+    subset_work = 1 << len(ids)
+    if subset_work > max_subsets:
+        raise ValueError(
+            f"minimum-basis exhaustive work {subset_work} subsets exceeds ceiling {max_subsets}"
+        )
+
+    best_objective: tuple[int, int, tuple[str, ...]] | None = None
+    best_subset: tuple[str, ...] | None = None
     for subset in all_subsets(ids):
         covered: set[str] = set()
         for record_id in subset:
             covered.update(coverage[record_id])
-        if obligations.issubset(covered):
-            objective = (
-                sum(costs[record_id] for record_id in subset),
-                len(subset),
-                subset,
-            )
-            candidates.append((objective, subset))
-    if not candidates:
+        if not obligations.issubset(covered):
+            continue
+        objective = (
+            sum(costs[record_id] for record_id in subset),
+            len(subset),
+            subset,
+        )
+        if best_objective is None or objective < best_objective:
+            best_objective = objective
+            best_subset = subset
+
+    if best_subset is None:
         raise ValueError("no sufficient basis exists")
-    candidates.sort(key=lambda item: item[0])
-    return candidates[0][1]
+    return best_subset
 
 
 def minimum_basis_case() -> dict[str, object]:
@@ -218,8 +239,6 @@ def minimum_basis_case() -> dict[str, object]:
         "r6": 2,
     }
     selected = minimum_basis(obligations, coverage, costs)
-    # Multiple cost-3 solutions exist; cardinality selects a two-record basis,
-    # and the final fixed lexicographic tie-break selects r1+r5.
     require(selected == ("r1", "r5"), f"unexpected lexicographic minimum basis: {selected}")
     covered: set[str] = set()
     for record_id in selected:
@@ -233,6 +252,8 @@ def minimum_basis_case() -> dict[str, object]:
         "selected_count": len(selected),
         "coverage": {key: sorted(value) for key, value in sorted(coverage.items())},
         "costs": costs,
+        "exhaustive_work_subsets": 1 << len(coverage),
+        "max_exhaustive_subsets": MAX_MINIMUM_BASIS_SUBSETS,
         "conclusion": "finite objective plus total lexicographic tie-break yields one deterministic sufficient basis",
     }
 
