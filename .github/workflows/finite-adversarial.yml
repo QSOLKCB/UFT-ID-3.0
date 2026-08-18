@@ -7,6 +7,7 @@ on:
       - "tests/**"
       - "theory/FINITE_RESULTS.md"
       - "research/vopson/**"
+      - "machine/finite_results.json"
       - ".github/workflows/finite-adversarial.yml"
   push:
     branches: [main]
@@ -15,6 +16,7 @@ on:
       - "tests/**"
       - "theory/FINITE_RESULTS.md"
       - "research/vopson/**"
+      - "machine/finite_results.json"
       - ".github/workflows/finite-adversarial.yml"
 
 permissions:
@@ -30,6 +32,8 @@ jobs:
           python-version: "3.12"
       - name: Unit tests
         run: python3 -m unittest discover -s tests -v
+      - name: Deterministic evidence receipt
+        run: python3 experiments/run_pr2.py --json > /tmp/pr2-receipt.json
       - name: Finite entropy signs
         run: python3 experiments/counterexamples/finite_entropy_signs/run.py --json > /tmp/finite-signs.json
       - name: Coarse-graining reversal
