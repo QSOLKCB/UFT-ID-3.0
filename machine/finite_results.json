@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.0.1",
   "status": "finite-results-pr2",
   "results": [
     {
@@ -27,8 +27,9 @@
     {
       "id": "FR4",
       "claim_class": "PROVED",
-      "title": "Proposal/recovery information decomposition",
-      "proof_file": "theory/FINITE_RESULTS.md"
+      "title": "Finite-valued discrete proposal/recovery information decomposition",
+      "proof_file": "theory/FINITE_RESULTS.md",
+      "scope": "same information functional with finite real values on pre-proposal, intermediate, and post-recovery states"
     },
     {
       "id": "FR5",
@@ -40,12 +41,19 @@
     {
       "id": "FR6",
       "claim_class": "COUNTEREXAMPLE",
-      "title": "Fixed-(N,n) multiplicity entropy extremum correction",
+      "title": "2026 polygon-source multiplicity entropy extremum correction",
       "proof_file": "theory/FINITE_RESULTS.md",
       "audit_file": "research/vopson/POLYGON_2026_AUDIT.md",
       "executable": "experiments/reproduction/vopson_2026_polygons/run.py",
       "target_source_doi": "10.3390/e28050564",
-      "scope": "fixed total multiplicity N, fixed positive category count n"
+      "target_source_location": "published PDF pp. 3-4",
+      "source_mapping": {
+        "N": "fixed total number of elements / total multiplicity",
+        "g_i": "multiplicity of represented category i",
+        "n": "number of represented categories",
+        "p_i": "g_i/N"
+      },
+      "scope": "reports both fixed-(N,n) slices and the fixed-N variable-n optimization; polygon-specific changing-descriptor comparisons remain separate"
     }
   ],
   "formal_verification": {
