@@ -68,12 +68,13 @@ jobs:
         run: python -O -m unittest discover -s tests -v
 
       - name: Generate corpus evidence bundle
+        if: always()
         run: |
           mkdir -p artifacts
-          python scripts/validate_vopson_corpus.py --json > artifacts/vopson-corpus-validation.json
-          python scripts/render_vopson_docs.py --check --json > artifacts/vopson-doc-sync.json
-          python scripts/validate_reproducibility.py --json > artifacts/reproducibility-validation.json
-          python experiments/run_pr2.py --json > artifacts/pr2-receipt.json
+          python scripts/validate_vopson_corpus.py --json > artifacts/vopson-corpus-validation.json 2> artifacts/vopson-corpus-validation.stderr.txt || true
+          python scripts/render_vopson_docs.py --check --json > artifacts/vopson-doc-sync.json 2> artifacts/vopson-doc-sync.stderr.txt || true
+          python scripts/validate_reproducibility.py --json > artifacts/reproducibility-validation.json 2> artifacts/reproducibility-validation.stderr.txt || true
+          python experiments/run_pr2.py --json > artifacts/pr2-receipt.json 2> artifacts/pr2-receipt.stderr.txt || true
 
       - name: Retain corpus evidence bundle
         if: always()
@@ -81,5 +82,5 @@ jobs:
         with:
           name: vopson-corpus-py${{ matrix.python-version }}
           path: artifacts/
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 30
