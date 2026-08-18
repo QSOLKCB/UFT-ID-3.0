@@ -21,7 +21,7 @@ Examples include:
 
 ## Claim status is mandatory
 
-When proposing a scientific change, identify its status:
+When proposing a scientific change, identify its status using exactly one canonical class:
 
 ```text
 DEFINITION
@@ -34,6 +34,8 @@ INTERPRETIVE
 SPECULATIVE
 NONCLAIM
 ```
+
+Secondary notes such as "programmatic", "pending proof", or "research program" are qualifiers and do not replace the canonical class.
 
 A pull request that upgrades a claim's authority must contain the evidence required for that upgrade.
 
@@ -74,11 +76,14 @@ Before claiming a Vopson result fails, reproduce the original calculation or exp
 If mapping UFT-ID into a new domain, provide an explicit bridge:
 
 ```text
-UFT-ID object -> domain object
-UFT-ID dynamics -> domain dynamics
+UFT-ID object       -> domain object
+UFT-ID dynamics     -> domain dynamics
 preserved structure -> domain invariant
-measurement -> observable quantity
+lost structure      -> discarded / non-preserved structure
+measurement         -> observable quantity
 ```
+
+The bridge must say not only what survives the mapping, but also what the mapping discards, quotients out, coarse-grains, or leaves undefined.
 
 Without such a bridge, label the contribution `INTERPRETIVE` or `SPECULATIVE`.
 
