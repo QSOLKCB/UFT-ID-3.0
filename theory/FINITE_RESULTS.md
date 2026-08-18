@@ -210,7 +210,13 @@ For a discrete constrained step
 s_n --F--> x_{n+1} --Pi--> s_{n+1},
 ```
 
-define
+assume the same information functional `I` is defined at all three states and that
+
+```text
+I(s_n), I(x_{n+1}), I(s_{n+1})
+```
+
+are finite real values. Define
 
 ```text
 Delta I_proposal = I(x_{n+1}) - I(s_n)
@@ -227,11 +233,11 @@ Delta I_total
 
 ### Proof
 
-Direct cancellation of the intermediate term `I(x_{n+1})`.
+Direct cancellation of the finite intermediate term `I(x_{n+1})`.
 
 ### Scope limit
 
-This is an algebraic identity only when the proposal and recovery stages are cleanly defined and the same information functional is evaluated on all three states.
+This proved result is the **finite-valued discrete specialization** only. If `I` can take extended-real values such as `+infinity`, a difference such as `+infinity - +infinity` may be undefined and the identity cannot be invoked without additional conventions or hypotheses. Continuous, stochastic, path-dependent, or non-separable proposal/recovery generalizations remain separate theorem work.
 
 ---
 
@@ -277,11 +283,15 @@ A monotonicity theorem requires an additional relation between admissibility/rec
 
 ---
 
-## FR6. Fixed-(N,n) multiplicity entropy extremum
+## FR6. Multiplicity entropy extremum in the 2026 polygon source
 
 **Claim class:** `COUNTEREXAMPLE`
 
 Primary source under audit: Melvin M. Vopson, *The Role of Information Entropy in Symmetry of Euclidean Polygons*, **Entropy** 28(5), 564 (2026), DOI `10.3390/e28050564`.
+
+The source's general argument on pp. 3-4 fixes total system size `N`, describes positive multiplicities `g_i`, uses probabilities `p_i=g_i/N`, and identifies equal multiplicity as the minimum-entropy condition. Because the source does not cleanly freeze the represented-category count `n` throughout the global optimization, FR6 separates two mathematical readings.
+
+### FR6A. Fixed N and fixed n
 
 For positive integer multiplicities
 
@@ -317,25 +327,38 @@ H(3,3)=1 bit
 H(5,1) ~= 0.650022421648 bit.
 ```
 
-The detailed source-specific scope and executable audit are in:
+### FR6B. Fixed N with n variable
+
+If only `N` is fixed and `n` may range from `1` to `N`, then
+
+```text
+minimum: n=1, counts=(N),       H=0
+maximum: n=N, counts=(1,...,1), H=log2(N).
+```
+
+Thus equal multiplicity alone does not characterize a nontrivial global minimum. This variable-`n` classification also reproduces the source's all-distinct maximum endpoint `g_i=1`, `n=N`.
+
+The detailed source map and executable audit are in:
 
 ```text
 research/vopson/POLYGON_2026_AUDIT.md
 experiments/reproduction/vopson_2026_polygons/run.py
 ```
 
-This result does not imply that polygon comparisons with different effective category counts `n` are numerically wrong.
+### Scope limit
+
+FR6 corrects only the source's general multiplicity-extremum classification. It does **not** imply that every polygon-specific numerical comparison is wrong. Polygon examples that change the effective descriptor category count or descriptor definition must be reproduced separately under their actual observation map.
 
 ---
 
 ## Promotion notes
 
-These results support the following future theorem-surface changes:
+These results support the following theorem-surface changes:
 
 - T7 has an explicit finite positive-change witness.
 - T8 has an explicit finite zero-change witness.
 - T9 has an explicit coarse-graining sign-reversal witness.
-- T14 has an exact discrete algebraic proof.
+- T14's finite-valued discrete specialization is proved as FR4; broader extended-real, continuous, stochastic, or path-dependent decompositions remain open.
 - T15 may use FR2 as one candidate restricted deterministic regime, but fidelity to Vopson's exact published SLI remains a separate reproduction question.
 
 Lean remains deferred. The point of these finite results is to freeze statements worth formalising later, not to formalise moving targets.
