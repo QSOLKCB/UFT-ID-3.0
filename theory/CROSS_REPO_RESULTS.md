@@ -4,9 +4,13 @@ This surface promotes only results with explicit hypotheses and either a direct 
 
 The source repositories motivate the **questions**. They do not supply physical authority for the results.
 
-## CR1. Content identity is invariant under byte-preserving transport
+The section heading, canonical class, optional qualifier, and canonical scope for each `CR` result are synchronized with `machine/cross_repo_results.json` by `scripts/validate_cross_repo_patterns.py`. Explanatory prose may be richer, but it must not contradict those machine-bound metadata fields.
+
+## CR1. Content identity invariant under byte-preserving transport
 
 **Class:** `PROVED`
+
+**Canonical scope:** `deterministic digest of exact unchanged content bytes; location metadata may change`
 
 Let content identity be
 
@@ -42,7 +46,11 @@ QSOL-THOTH, QSOL-CONTROL, and QEC independently distinguish object/content ident
 
 ## CR2. Non-injective projection forbids a global exact reconstruction
 
-**Class:** `PROVED / established mathematics`
+**Class:** `PROVED`
+
+**Qualifier:** `established mathematics`
+
+**Canonical scope:** `set-theoretic projection P:X->Y that is non-injective`
 
 Let
 
@@ -91,9 +99,11 @@ QSOL-IMPORT, QSOL-SUBSTRATE, E8_MUSIC, SONIFICATION, and RSH all separate canoni
 
 ---
 
-## CR3. Calibration-local classification need not survive profile transfer
+## CR3. Calibration-local classification can flip across profiles
 
 **Class:** `COUNTEREXAMPLE`
+
+**Canonical scope:** `same scalar measurement, same classifier form, different declared local thresholds`
 
 Take one scalar measurement
 
@@ -133,9 +143,13 @@ RES=RAG v1.1.0 explicitly declares local calibration and forbids treating report
 
 ---
 
-## CR4. Coprime cyclic stride visits every state exactly once
+## CR4. Coprime cyclic stride visits each residue exactly once
 
-**Class:** `PROVED / established number theory`
+**Class:** `PROVED`
+
+**Qualifier:** `established number theory`
+
+**Canonical scope:** `n>=1 and gcd(k,n)=1`
 
 Let `n >= 1` and integer stride `k` satisfy
 
@@ -173,9 +187,11 @@ A complete deterministic traversal is not a physical law and does not give trave
 
 ---
 
-## CR5. Finite minimum sufficient basis has a unique deterministic selector under total tie-break
+## CR5. Finite minimum sufficient basis has a unique deterministic selector
 
 **Class:** `PROVED`
+
+**Canonical scope:** `finite candidate family, finite obligations, at least one sufficient subset, finite non-negative integer costs, fixed total lexicographic tie-break`
 
 Let `R` be a finite candidate set and `Omega` a finite obligation set. Suppose at least one sufficient subset exists. For each sufficient subset `B`, define objective tuple
 
@@ -183,7 +199,7 @@ Let `R` be a finite candidate set and `Omega` a finite obligation set. Suppose a
 J(B) = (total_cost(B), |B|, sorted_id_tuple(B)).
 ```
 
-where costs are finite and the final identifier tuple is compared under a fixed total lexicographic order.
+where costs are finite non-negative integers and the final identifier tuple is compared under a fixed total lexicographic order.
 
 Then there exists a unique selected minimum sufficient basis.
 
@@ -201,9 +217,13 @@ QSOL-THOTH historical minimum-set reconstruction and QSOL-ARK minimum-recoverabl
 
 ---
 
-## CR6. Integrity can be perfect while semantic truth is false
+## CR6. Integrity can be exact while semantic truth is false
 
-**Class:** `COUNTEREXAMPLE / DIAGNOSTIC`
+**Class:** `COUNTEREXAMPLE`
+
+**Qualifier:** `DIAGNOSTIC`
+
+**Canonical scope:** `digest/byte identity is evaluated independently of proposition truth`
 
 Take the exact UTF-8 bytes for the statement
 
@@ -229,9 +249,11 @@ QSOL-ORACLE, QSOL-INT, QEC, QSOL-CONTROL, and QSOL-HARNESS independently enforce
 
 ---
 
-## CR7. Deterministic replay follows from a deterministic function and identical canonical inputs
+## CR7. Deterministic replay follows from deterministic function semantics and identical canonical inputs
 
 **Class:** `PROVED`
+
+**Canonical scope:** `fixed deterministic function/implementation semantics; serialized byte replay requires additional serializer/runtime assumptions`
 
 Let
 
@@ -272,11 +294,11 @@ QEC, QSOL-HARNESS, QSOL-NEXUS, RSH, E8_MUSIC, and SONIFICATION all distinguish d
 | Result | Status | Lean candidate |
 |---|---|---|
 | CR1 byte-preserving transport identity | PROVED | later, low priority |
-| CR2 non-injective projection reconstruction impossibility | PROVED / established | later |
+| CR2 non-injective projection reconstruction impossibility | PROVED; qualifier: established mathematics | later |
 | CR3 calibration transfer sign/classification flip | COUNTEREXAMPLE | useful finite witness |
-| CR4 coprime cyclic traversal | PROVED / established | excellent finite lemma |
+| CR4 coprime cyclic traversal | PROVED; qualifier: established number theory | excellent finite lemma |
 | CR5 minimum sufficient basis unique selection | PROVED | excellent recovery lemma |
-| CR6 digest integrity does not imply truth | COUNTEREXAMPLE / DIAGNOSTIC | not a physical theorem target |
+| CR6 digest integrity does not imply truth | COUNTEREXAMPLE; qualifier: DIAGNOSTIC | not a physical theorem target |
 | CR7 deterministic replay conditional result | PROVED | trivial but useful contract lemma |
 
 Lean remains deferred under the repository's existing theorem-freeze policy.
