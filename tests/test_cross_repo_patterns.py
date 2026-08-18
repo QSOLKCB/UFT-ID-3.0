@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import importlib.util
 import json
 from pathlib import Path
@@ -57,10 +56,6 @@ def validate_mutation(mutator):
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / relative, target)
         mutator(clone)
-        validator = load_module(
-            f"validate_cross_repo_patterns_{id(clone)}",
-            "scripts/validate_cross_repo_patterns.py",
-        ) if (clone / "scripts/validate_cross_repo_patterns.py").exists() else VALIDATOR
         return VALIDATOR.validate(clone)
 
 
@@ -83,11 +78,19 @@ class CrossRepoRegistryTests(unittest.TestCase):
         self.assertEqual(report["summary"]["quarantined"], 3)
         self.assertEqual(report["summary"]["results"], 7)
         self.assertFalse(report["summary"]["remote_freshness_checked"])
+        self.assertTrue(report["summary"]["human_result_sync_checked"])
+        self.assertEqual(report["summary"]["snapshot_date"], "2026-08-18")
 
     def test_registry_uses_public_source_repositories_only(self):
         forbidden = VALIDATOR.PRIVATE_REPOSITORIES
         for entry in self.patterns["patterns"] + self.patterns["quarantined_lineage"]:
             self.assertNotIn(entry["repository"], forbidden)
+
+    def test_every_positive_pattern_has_explicit_bridge_fields(self):
+        for entry in self.patterns["patterns"]:
+            self.assertTrue(entry["source_contract"].strip())
+            self.assertTrue(entry["preserved_structure"])
+            self.assertTrue(entry["discarded_structure"])
 
     def test_rejects_private_repository_source(self):
         def mutate(root: Path):
@@ -113,6 +116,22 @@ class CrossRepoRegistryTests(unittest.TestCase):
 
         self.assert_report_contains(validate_mutation(mutate), "source_blob_sha must be 40 lowercase hex")
 
+    def test_rejects_missing_preserved_structure(self):
+        def mutate(root: Path):
+            patterns = read_json(root, "machine/cross_repo_patterns.json")
+            patterns["patterns"][0].pop("preserved_structure")
+            write_json(root, "machine/cross_repo_patterns.json", patterns)
+
+        self.assert_report_contains(validate_mutation(mutate), "preserved_structure must be a non-empty string list")
+
+    def test_rejects_missing_discarded_structure(self):
+        def mutate(root: Path):
+            patterns = read_json(root, "machine/cross_repo_patterns.json")
+            patterns["patterns"][0]["discarded_structure"] = []
+            write_json(root, "machine/cross_repo_patterns.json", patterns)
+
+        self.assert_report_contains(validate_mutation(mutate), "discarded_structure must be a non-empty string list")
+
     def test_rejects_quarantined_pattern_as_positive_result_source(self):
         def mutate(root: Path):
             results = read_json(root, "machine/cross_repo_results.json")
@@ -128,6 +147,40 @@ class CrossRepoRegistryTests(unittest.TestCase):
             write_json(root, "machine/cross_repo_results.json", results)
 
         self.assert_report_contains(validate_mutation(mutate), "unknown or quarantined source pattern")
+
+    def test_rejects_human_claim_class_drift(self):
+        def mutate(root: Path):
+            path = root / "theory/CROSS_REPO_RESULTS.md"
+            text = path.read_text(encoding="utf-8")
+            text = text.replace(
+                "## CR6. Integrity can be exact while semantic truth is false\n\n**Class:** `COUNTEREXAMPLE`",
+                "## CR6. Integrity can be exact while semantic truth is false\n\n**Class:** `EMPIRICAL`",
+            )
+            path.write_text(text, encoding="utf-8")
+
+        self.assert_report_contains(validate_mutation(mutate), "CR6: human claim_class differs")
+
+    def test_rejects_human_title_drift(self):
+        def mutate(root: Path):
+            path = root / "theory/CROSS_REPO_RESULTS.md"
+            text = path.read_text(encoding="utf-8").replace(
+                "## CR1. Content identity invariant under byte-preserving transport",
+                "## CR1. Different title",
+            )
+            path.write_text(text, encoding="utf-8")
+
+        self.assert_report_contains(validate_mutation(mutate), "CR1: human title differs")
+
+    def test_rejects_human_scope_drift(self):
+        def mutate(root: Path):
+            path = root / "theory/CROSS_REPO_RESULTS.md"
+            text = path.read_text(encoding="utf-8").replace(
+                "**Canonical scope:** `n>=1 and gcd(k,n)=1`",
+                "**Canonical scope:** `all integers`",
+            )
+            path.write_text(text, encoding="utf-8")
+
+        self.assert_report_contains(validate_mutation(mutate), "CR4: human scope differs")
 
 
 class CrossRepoFiniteResultTests(unittest.TestCase):
@@ -162,6 +215,23 @@ class CrossRepoFiniteResultTests(unittest.TestCase):
         self.assertEqual(case["selected_basis"], ["r1", "r5"])
         self.assertEqual(case["selected_total_cost"], 3)
         self.assertEqual(case["selected_count"], 2)
+        self.assertLessEqual(case["exhaustive_work_subsets"], case["max_exhaustive_subsets"])
+
+    def test_cr5_rejects_negative_cost_even_with_empty_obligations(self):
+        with self.assertRaisesRegex(ValueError, "non-negative integer"):
+            EXPERIMENT.minimum_basis(set(), {"r1": set()}, {"r1": -1})
+
+    def test_cr5_rejects_boolean_and_non_integer_costs(self):
+        with self.assertRaisesRegex(ValueError, "non-negative integer"):
+            EXPERIMENT.minimum_basis({"x"}, {"r1": {"x"}}, {"r1": True})
+        with self.assertRaisesRegex(ValueError, "non-negative integer"):
+            EXPERIMENT.minimum_basis({"x"}, {"r1": {"x"}}, {"r1": 1.5})
+
+    def test_cr5_rejects_exhaustive_work_above_ceiling_before_enumeration(self):
+        coverage = {f"r{i:02d}": {"x"} for i in range(19)}
+        costs = {record_id: 1 for record_id in coverage}
+        with self.assertRaisesRegex(ValueError, "exceeds ceiling"):
+            EXPERIMENT.minimum_basis({"x"}, coverage, costs)
 
     def test_cr6_integrity_does_not_promote_false_semantics(self):
         case = EXPERIMENT.integrity_not_truth_case()
