@@ -4,6 +4,8 @@
 
 The graph deliberately separates source claims, external premises, UFT-ID assessments, and interpretive inferences. Each UFT-ID assessment has exactly one canonical claim class.
 
+The assessment table below is deterministically checked against `CLAIM_GRAPH.json`. A machine-node change without the corresponding human-table change fails CI.
+
 ## High-level dependency map
 
 ```text
@@ -39,21 +41,33 @@ MEI + particle info + SLI + Planck-area counting + entropic-force relation
 
 ## Current assessment summary
 
-| Claim node | UFT-ID class | Current status |
-|---|---|---|
-| `CL-MEI-BIT-MASS` | `THEOREM_TARGET` | Physical hypothesis unresolved; thermodynamic derivation pending |
-| `CL-INFO-CATASTROPHE` | `THEOREM_TARGET` | Corrected extrapolation pending reproduction |
-| `CL-ANNIHILATION-PHOTONS` | `THEOREM_TARGET` | Experimental prediction unresolved |
-| `CL-GENIES-METHOD` | `THEOREM_TARGET` | Exact software/method reproduction pending |
-| `CL-GENETIC-LAW` | `THEOREM_TARGET` | Causal and null-model audit pending |
-| `CL-SLI-PUBLISHED` | `THEOREM_TARGET` | Exact source-domain reconstruction pending |
-| `CL-ATOMIC-HUND` | `INTERPRETIVE` | Encoding relation not yet an energetic derivation |
-| `CL-COSMO-COMPENSATION` | `THEOREM_TARGET` | Later source records a weakness; reconstruction pending |
-| `CL-GRAVITY` | `THEOREM_TARGET` | Line-by-line derivation audit pending |
-| `CL-POLYGON-EXTREMUM` | `COUNTEREXAMPLE` | Bounded multiplicity extremum correction has repository evidence |
-| `CL-LANGUAGE-DIVERSITY` | `THEOREM_TARGET` | Model and data reproduction pending |
-| `CL-SIMULATION-INFERENCE` | `SPECULATIVE` | No unique discriminating inference established |
-| `CMP-DETERMINISTIC-SHANNON` | `PROVED` | Restricted deterministic Shannon regime; not the full SLI |
+| Node | Claim | Kind | UFT-ID class | Assessment status | Source |
+|---|---|---|---|---|---|
+| `EXT-LANDAUER` | Landauer erasure bound | `external-premise` | `PROVED` | `established-literature` | `10.1147/rd.53.0183` |
+| `EXT-E-MC2` | Mass-energy equivalence | `external-premise` | `PROVED` | `established-literature` | - |
+| `EXT-SHANNON` | Finite Shannon entropy | `external-premise` | `DEFINITION` | `established-literature` | `10.1002/j.1538-7305.1948.tb01338.x` |
+| `EXT-PLANCK-AREA` | Planck-area cell counting | `external-premise` | `INTERPRETIVE` | `application-assumption` | - |
+| `EXT-ENTROPIC-FORCE` | Entropic-force relation | `external-premise` | `INTERPRETIVE` | `application-assumption` | - |
+| `EXT-LANGUAGE-DOMINANCE` | Dominant-category population dynamics | `external-premise` | `INTERPRETIVE` | `model-assumption` | - |
+| `CL-MEI-BIT-MASS` | Stored information bit has finite mass | `source-claim` | `THEOREM_TARGET` | `physical-hypothesis-unresolved` | `VOP-2019-MEI` |
+| `CL-INFO-CATASTROPHE` | Digital information growth produces a future information catastrophe | `source-claim` | `THEOREM_TARGET` | `dependent-extrapolation-pending-reproduction` | `VOP-2020-CATASTROPHE`, `VOP-2020-CATASTROPHE-ERRATUM`, `VOP-2020-CATASTROPHE-DATA` |
+| `CL-PARTICLE-INFO` | Visible-matter particles encode a quantifiable information content | `source-claim` | `THEOREM_TARGET` | `quantitative-model-pending-reproduction` | `VOP-2021-VISIBLE-MATTER` |
+| `CL-ANNIHILATION-PHOTONS` | Annihilation emits additional information-erasure photons | `source-claim` | `THEOREM_TARGET` | `experimental-prediction-unresolved` | `VOP-2022-MEI-EXPERIMENT` |
+| `CL-GENIES-METHOD` | Windowed m-block entropy spectra detect genome differences | `source-claim` | `THEOREM_TARGET` | `method-reproduction-pending` | `VOP-2021-GENIES` |
+| `CL-GENETIC-LAW` | Genome mutation dynamics tend to reduce information entropy | `source-claim` | `THEOREM_TARGET` | `empirical-and-causal-reproduction-pending` | `VOP-2022-GENETIC-LAW` |
+| `CL-SLI-PUBLISHED` | Second Law of Information Dynamics | `source-claim` | `THEOREM_TARGET` | `exact-source-domain-reproduction-pending` | `VOP-2022-SLI` |
+| `CL-SLI-XDOMAIN` | Cross-domain SLI extension | `source-claim` | `THEOREM_TARGET` | `bridge-audit-pending` | `VOP-2023-SLI-XDOMAIN`, `VOP-2023-NONEQ` |
+| `CL-ATOMIC-HUND` | Infodynamics explains maximum-spin atomic configurations | `source-claim` | `INTERPRETIVE` | `encoding-result-not-yet-causal` | `VOP-2023-SLI-XDOMAIN` |
+| `CL-COSMO-COMPENSATION` | Cosmological physical and information entropy compensate | `source-claim` | `THEOREM_TARGET` | `self-identified-weakness-and-reconstruction-pending` | `VOP-2023-SLI-XDOMAIN`, `VOP-2025-COSMOLOGY` |
+| `CL-SIMULATION-INFERENCE` | Entropy optimisation supports the simulation hypothesis | `interpretive-inference` | `SPECULATIVE` | `non-deductive-interpretation` | `VOP-2023-SLI-XDOMAIN`, `VOP-2025-GRAVITY`, `VOP-2026-CONNECTOME` |
+| `CL-GRAVITY` | Newtonian gravity emerges from information dynamics | `source-claim` | `THEOREM_TARGET` | `line-by-line-derivation-audit-pending` | `VOP-2025-GRAVITY`, `VOP-2025-GRAVITY-RESPONSE` |
+| `CL-POLYGON-EXTREMUM` | Equal multiplicities minimise polygon descriptor entropy | `source-claim` | `COUNTEREXAMPLE` | `source-specific-extremum-correction` | `VOP-2026-POLYGON` |
+| `CL-LANGUAGE-DIVERSITY` | Language diversity decline conforms to SLI | `source-claim` | `THEOREM_TARGET` | `model-and-data-reproduction-pending` | `VOP-2026-LANGUAGE` |
+| `CMP-DETERMINISTIC-SHANNON` | Deterministic processing is a restricted monotonic regime | `comparison-result` | `PROVED` | `established-literature-comparison` | - |
+
+## Application assumptions
+
+`EXT-PLANCK-AREA`, `EXT-ENTROPIC-FORCE`, and `EXT-LANGUAGE-DOMINANCE` are classified as `INTERPRETIVE` application/model assumptions. They are not UFT-ID theorem targets. If any is later promoted to `THEOREM_TARGET`, it must receive precise hypotheses and an explicit adversarial companion question.
 
 ## Non-circularity rule
 
