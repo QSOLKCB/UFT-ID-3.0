@@ -1,0 +1,58 @@
+{
+  "type": "uft-id-cross-repo-results",
+  "schema_version": "1.0.0",
+  "authority": "theory/CROSS_REPO_RESULTS.md",
+  "experiment": "experiments/cross_repo/run.py",
+  "results": [
+    {
+      "result_id": "CR1",
+      "title": "Content identity invariant under byte-preserving transport",
+      "claim_class": "PROVED",
+      "scope": "deterministic digest of exact unchanged content bytes; location metadata may change",
+      "source_patterns": ["XR-P02", "XR-P04", "XR-P10"]
+    },
+    {
+      "result_id": "CR2",
+      "title": "Non-injective projection forbids a global exact reconstruction",
+      "claim_class": "PROVED",
+      "scope": "set-theoretic projection P:X->Y that is non-injective",
+      "source_patterns": ["XR-P01", "XR-P03", "XR-P12", "XR-P13", "XR-P16"]
+    },
+    {
+      "result_id": "CR3",
+      "title": "Calibration-local classification can flip across profiles",
+      "claim_class": "COUNTEREXAMPLE",
+      "scope": "same scalar measurement, same classifier form, different declared local thresholds",
+      "source_patterns": ["XR-P11"]
+    },
+    {
+      "result_id": "CR4",
+      "title": "Coprime cyclic stride visits each residue exactly once",
+      "claim_class": "PROVED",
+      "scope": "n>=1 and gcd(k,n)=1",
+      "source_patterns": ["XR-P05", "XR-P13"]
+    },
+    {
+      "result_id": "CR5",
+      "title": "Finite minimum sufficient basis has a unique deterministic selector",
+      "claim_class": "PROVED",
+      "scope": "finite candidate family, finite obligations, at least one sufficient subset, finite costs, fixed total lexicographic tie-break",
+      "source_patterns": ["XR-P02", "XR-P09"]
+    },
+    {
+      "result_id": "CR6",
+      "title": "Integrity can be exact while semantic truth is false",
+      "claim_class": "COUNTEREXAMPLE",
+      "qualifier": "DIAGNOSTIC",
+      "scope": "digest/byte identity is evaluated independently of proposition truth",
+      "source_patterns": ["XR-P07", "XR-P08", "XR-P10", "XR-P15"]
+    },
+    {
+      "result_id": "CR7",
+      "title": "Deterministic replay follows from deterministic function semantics and identical canonical inputs",
+      "claim_class": "PROVED",
+      "scope": "fixed deterministic function/implementation semantics; serialized byte replay requires additional serializer/runtime assumptions",
+      "source_patterns": ["XR-P06", "XR-P10", "XR-P12", "XR-P13", "XR-P15", "XR-P16"]
+    }
+  ]
+}
