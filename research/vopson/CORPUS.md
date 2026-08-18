@@ -33,7 +33,7 @@ The allowed peer-review, equation-map, reproduction, work-type, node-kind, and e
 
 | ID | Year | Work | Type / review | Claim tracks | Identifiers | Depends on | Equation map | Reproduction |
 |---|---:|---|---|---|---|---|---|---|
-| `VOP-2019-MEI` | 2019 | [The mass-energy-information equivalence principle](https://doi.org/10.1063/1.5123794) | `journal-article` / `peer-reviewed` | `mass-energy-information-equivalence` | `10.1063/1.5123794` | - | `pending` | `metadata-verified` |
+| `VOP-2019-MEI` | 2019 | [The mass-energy-information equivalence principle](https://doi.org/10.1063/1.5123794) | `journal-article` / `peer-reviewed` | `mass-energy-information-equivalence` | `10.1063/1.5123794` | - | `complete` | `reproduced` |
 | `VOP-2020-CATASTROPHE` | 2020 | [The information catastrophe](https://doi.org/10.1063/5.0019941) | `journal-article` / `peer-reviewed` | `information-catastrophe`, `mass-energy-information-equivalence` | `10.1063/5.0019941` | `VOP-2019-MEI` | `pending` | `metadata-verified` |
 | `VOP-2020-CATASTROPHE-ERRATUM` | 2020 | [Erratum: The information catastrophe](https://doi.org/10.1063/5.0028117) | `erratum` / `peer-reviewed` | `information-catastrophe` | `10.1063/5.0028117` | `VOP-2020-CATASTROPHE` | `not-applicable` | `metadata-verified` |
 | `VOP-2020-CATASTROPHE-DATA` | 2020 | [Dataset for 'The Information Catastrophe'](https://doi.org/10.17029/60d74cee-ed70-41e2-a802-873b7fe1dc34) | `dataset` / `not-applicable` | `information-catastrophe`, `dataset-support` | `10.17029/60d74cee-ed70-41e2-a802-873b7fe1dc34` | `VOP-2020-CATASTROPHE` | `not-applicable` | `metadata-verified` |
