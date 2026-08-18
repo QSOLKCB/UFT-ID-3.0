@@ -1,0 +1,42 @@
+name: finite-adversarial
+
+on:
+  pull_request:
+    paths:
+      - "experiments/**"
+      - "tests/**"
+      - "theory/FINITE_RESULTS.md"
+      - "research/vopson/**"
+      - "machine/finite_results.json"
+      - ".github/workflows/finite-adversarial.yml"
+  push:
+    branches: [main]
+    paths:
+      - "experiments/**"
+      - "tests/**"
+      - "theory/FINITE_RESULTS.md"
+      - "research/vopson/**"
+      - "machine/finite_results.json"
+      - ".github/workflows/finite-adversarial.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  finite-results:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Deterministic evidence receipt
+        run: python3 experiments/run_pr2.py --json > /tmp/pr2-receipt.json
+      - name: Finite entropy signs
+        run: python3 experiments/counterexamples/finite_entropy_signs/run.py --json > /tmp/finite-signs.json
+      - name: Coarse-graining reversal
+        run: python3 experiments/representation/coarse_graining/run.py --json > /tmp/coarse-graining.json
+      - name: Polygon extremum audit
+        run: python3 experiments/reproduction/vopson_2026_polygons/run.py --max-N 16 --max-n 6 --json > /tmp/polygon-audit.json

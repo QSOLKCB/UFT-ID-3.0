@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0.1",
+  "status": "finite-results-pr2",
+  "results": [
+    {
+      "id": "FR1",
+      "claim_class": "COUNTEREXAMPLE",
+      "title": "No unrestricted sign for finite Shannon-entropy change",
+      "proof_file": "theory/FINITE_RESULTS.md",
+      "executable": "experiments/counterexamples/finite_entropy_signs/run.py",
+      "scope": "finite probability dynamics containing stochastic mixing, permutations, and deterministic many-to-one maps"
+    },
+    {
+      "id": "FR2",
+      "claim_class": "PROVED",
+      "title": "Deterministic processing cannot increase finite Shannon entropy",
+      "proof_file": "theory/FINITE_RESULTS.md",
+      "established_source_doi": "10.1002/j.1538-7305.1948.tb01338.x"
+    },
+    {
+      "id": "FR3",
+      "claim_class": "COUNTEREXAMPLE",
+      "title": "Coarse-graining can reverse the observed Shannon-entropy sign",
+      "proof_file": "theory/FINITE_RESULTS.md",
+      "executable": "experiments/representation/coarse_graining/run.py"
+    },
+    {
+      "id": "FR4",
+      "claim_class": "PROVED",
+      "title": "Finite-valued discrete proposal/recovery information decomposition",
+      "proof_file": "theory/FINITE_RESULTS.md",
+      "scope": "same information functional with finite real values on pre-proposal, intermediate, and post-recovery states"
+    },
+    {
+      "id": "FR5",
+      "claim_class": "COUNTEREXAMPLE",
+      "title": "Recovery admissibility does not imply information decrease",
+      "proof_file": "theory/FINITE_RESULTS.md",
+      "test": "tests/test_pr2_finite_results.py"
+    },
+    {
+      "id": "FR6",
+      "claim_class": "COUNTEREXAMPLE",
+      "title": "2026 polygon-source multiplicity entropy extremum correction",
+      "proof_file": "theory/FINITE_RESULTS.md",
+      "audit_file": "research/vopson/POLYGON_2026_AUDIT.md",
+      "executable": "experiments/reproduction/vopson_2026_polygons/run.py",
+      "target_source_doi": "10.3390/e28050564",
+      "target_source_location": "published PDF pp. 3-4",
+      "source_mapping": {
+        "N": "fixed total number of elements / total multiplicity",
+        "g_i": "multiplicity of represented category i",
+        "n": "number of represented categories",
+        "p_i": "g_i/N"
+      },
+      "scope": "reports both fixed-(N,n) slices and the fixed-N variable-n optimization; polygon-specific changing-descriptor comparisons remain separate"
+    }
+  ],
+  "formal_verification": {
+    "lean": "deferred",
+    "reason": "finite mathematical statements are being frozen and adversarially reviewed before formalisation"
+  }
+}
