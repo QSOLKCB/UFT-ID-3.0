@@ -1,6 +1,6 @@
 {
   "type": "uft-id-cross-repo-results",
-  "schema_version": "1.0.0",
+  "schema_version": "1.0.1",
   "authority": "theory/CROSS_REPO_RESULTS.md",
   "experiment": "experiments/cross_repo/run.py",
   "results": [
@@ -15,6 +15,7 @@
       "result_id": "CR2",
       "title": "Non-injective projection forbids a global exact reconstruction",
       "claim_class": "PROVED",
+      "qualifier": "established mathematics",
       "scope": "set-theoretic projection P:X->Y that is non-injective",
       "source_patterns": ["XR-P01", "XR-P03", "XR-P12", "XR-P13", "XR-P16"]
     },
@@ -29,6 +30,7 @@
       "result_id": "CR4",
       "title": "Coprime cyclic stride visits each residue exactly once",
       "claim_class": "PROVED",
+      "qualifier": "established number theory",
       "scope": "n>=1 and gcd(k,n)=1",
       "source_patterns": ["XR-P05", "XR-P13"]
     },
@@ -36,7 +38,7 @@
       "result_id": "CR5",
       "title": "Finite minimum sufficient basis has a unique deterministic selector",
       "claim_class": "PROVED",
-      "scope": "finite candidate family, finite obligations, at least one sufficient subset, finite costs, fixed total lexicographic tie-break",
+      "scope": "finite candidate family, finite obligations, at least one sufficient subset, finite non-negative integer costs, fixed total lexicographic tie-break",
       "source_patterns": ["XR-P02", "XR-P09"]
     },
     {
