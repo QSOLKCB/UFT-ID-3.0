@@ -10,10 +10,13 @@ Before changing theory content:
 
 1. read `README4AI.md`;
 2. read `docs/CLAIMS.md` and `docs/NONCLAIMS.md`;
-3. locate the source or derivation being changed;
-4. state the claim class being modified;
-5. preserve provenance and uncertainty;
-6. add or update tests, counterexamples, or citations where appropriate.
+3. read `MATHS.md` for staged mathematical ideas and `theory/DEFINITIONS.md` / `theory/THEOREM_TARGETS.md` for the current canonical surface;
+4. locate the source or derivation being changed;
+5. state the single canonical claim class being modified;
+6. preserve provenance and uncertainty;
+7. add or update tests, counterexamples, or citations where appropriate.
+
+`MATHS.md` is deliberately non-authoritative. Do not promote an idea from it into the canonical theory without typing the symbols, stating assumptions, checking the closest established result, and adding an adversarial companion question.
 
 ## Source hierarchy
 
@@ -34,8 +37,10 @@ Earlier UFT-ID papers contain several incompatible levels of commitment. UFT-ID 
 ## Mathematical discipline
 
 - Define state space, sigma-algebra or discrete structure, measure, dynamics, and information functional before differentiating or comparing information.
-- State regularity assumptions.
+- State the time model: discrete, differentiable continuous, or stochastic.
+- State regularity assumptions before using derivatives.
 - Check units and dimensions.
+- Keep scalar residuals and vector residuals as distinct typed objects.
 - Distinguish state entropy from entropy production.
 - Distinguish closed, isolated, and open systems.
 - Distinguish boundary flux from internal production.
@@ -55,6 +60,7 @@ source objects -> target objects
 source dynamics -> target dynamics
 preserved invariants -> preserved invariants
 lost structure -> lost structure
+measurement -> observable quantity
 ```
 
 If this map is not supplied, label the correspondence `INTERPRETIVE`.
@@ -74,13 +80,16 @@ Every major theorem target or empirical claim should have an adversarial compani
 
 ## Vopson research rule
 
-Treat Vopson's papers as scientific targets, never as targets for personal attack. Reproduce before criticizing. Separate his independent claims rather than bundling them:
+Treat Vopson's papers as scientific targets, never as targets for personal attack. Reproduce before criticizing. Use ORCID `0000-0002-8073-5538` only as a bibliographic identity anchor. Separate independent claim tracks rather than bundling them:
 
 1. mass-energy-information equivalence;
-2. information-entropy monotonicity;
-3. cross-domain applications;
-4. gravity derivation;
-5. simulation-hypothesis interpretation.
+2. genomic information entropy;
+3. information-entropy monotonicity / Second Law of Infodynamics;
+4. cross-domain applications;
+5. gravity derivation;
+6. simulation-hypothesis interpretation;
+7. symmetry and later extensions;
+8. language diversity and later extensions.
 
 A successful critique should be stronger than a rhetorical contradiction. Preferred outcomes are:
 
