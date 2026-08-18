@@ -1,0 +1,54 @@
+{
+  "type": "uft-id-vopson-2019-mei-reproduction-result",
+  "schema_version": "1.0.0",
+  "source_work_id": "VOP-2019-MEI",
+  "source_doi": "10.1063/1.5123794",
+  "source_equation_map_status": "complete-for-2019-core-derivation",
+  "reproduction_status": "reproduced",
+  "claim_class": "DIAGNOSTIC",
+  "arithmetic": {
+    "equation": "m_bit(T) = k_B T ln(2) / c^2",
+    "temperature_300K": {
+      "landauer_scale_J": 2.870978885078724e-21,
+      "conditional_bit_mass_kg": 3.1943948174115975e-38,
+      "source_reported_kg": 3.19e-38,
+      "status": "reproduced-to-source-rounding"
+    },
+    "temperature_2_73K": {
+      "conditional_bit_mass_kg": 2.9068992838445533e-40,
+      "source_reported_kg": 2.91e-40,
+      "status": "reproduced-to-source-rounding"
+    },
+    "storage_1TB_decimal": {
+      "bytes": 1000000000000,
+      "bits": 8000000000000,
+      "temperature_K": 300.0,
+      "conditional_mass_kg": 2.5555158539292776e-25,
+      "source_reported_kg": 2.5e-25,
+      "status": "reproduced-to-source-rounding"
+    }
+  },
+  "assessment": {
+    "binary_shannon_arithmetic": "reproduced",
+    "source_information_entropy_algebra": "reproduced",
+    "landauer_erasure_scale": "established-external-premise-scope-qualified",
+    "source_p2_inequality_direction": "internally-inconsistent-with-preceding-balance-recorded",
+    "intrinsic_stored_bit_energy_identification": "source-assumption-not-validated",
+    "eq6_conditional_algebra": "reproduced",
+    "physical_intrinsic_bit_mass": "unresolved",
+    "experimental_confirmation": "not-established-by-this-reproduction"
+  },
+  "evidence": [
+    "research/vopson/reproduction/2019-mei/SOURCE_MAP.md",
+    "research/vopson/reproduction/2019-mei/DERIVATION.md",
+    "research/vopson/reproduction/2019-mei/ASSUMPTION_GRAPH.json",
+    "research/vopson/reproduction/2019-mei/DIMENSIONAL_AUDIT.md",
+    "research/vopson/reproduction/2019-mei/CONTROL_MATRIX.md",
+    "experiments/reproduction/vopson_2019_mei/fixtures.json",
+    "experiments/reproduction/vopson_2019_mei/run.py",
+    "tests/test_vopson_2019_mei.py"
+  ],
+  "source_byte_hash": null,
+  "source_byte_hash_status": "primary-paper-bytes-not-committed; identified by DOI/page/equation locators",
+  "promotion_rule": "ARITHMETIC_REPRODUCED != PREMISE_VALIDATED != PHYSICAL_INTERPRETATION_VALIDATED != EXPERIMENTALLY_CONFIRMED"
+}
