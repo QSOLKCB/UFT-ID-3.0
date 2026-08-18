@@ -1,6 +1,6 @@
 # UFT-ID 3.0 Theorem Targets
 
-These are **targets**, not established results. Each statement must acquire exact hypotheses before proof. Every target includes an adversarial companion question so the theorem queue cannot silently become a confirmation queue.
+These are **targets**, not established results unless a bounded specialization is explicitly linked to an established result surface. Each statement must acquire exact hypotheses before proof. Every open target includes an adversarial companion question so the theorem queue cannot silently become a confirmation queue.
 
 ## T1. Finite lexicographic recovery existence and uniqueness
 
@@ -245,6 +245,95 @@ If exact reproduction shows that this framing is not mathematically faithful, re
 
 **Adversarial companion:** Search for the strongest faithful formulation of the published SLI that is *not* implied by the candidate UFT-ID hypotheses, and for UFT-ID systems that satisfy the candidate hypotheses while violating the reproduced SLI quantity or interpretation.
 
+## T16. Byte-preserving transport identity
+
+For content identity defined by a deterministic canonicalization/digest contract, characterize transport maps that modify transport metadata but preserve exact content bytes.
+
+The finite specialization CR1 establishes that under exact byte preservation, content identity is invariant.
+
+**Adversarial companion:** Permit one byte to change, or change the canonicalization contract, and show exactly which identity statement fails.
+
+## T17. Projection/reconstruction injectivity boundary
+
+Characterize when a projection
+
+```text
+P : X -> Y
+```
+
+admits a global exact reconstruction `R` satisfying `R(P(x))=x` for all `x`.
+
+CR2 establishes the negative direction: a non-injective projection cannot admit such a global left inverse.
+
+**Adversarial companion:** Construct a non-injective observation with a useful partial or probabilistic reconstruction and show why local usefulness does not restore global exact invertibility.
+
+## T18. Calibration transport
+
+Given calibration profiles
+
+```text
+Gamma, Gamma'
+```
+
+and profile-indexed measurement/classification rules, state sufficient conditions for a threshold, ordering, or classification to survive transport between profiles.
+
+CR3 supplies the smallest failure pattern: one unchanged scalar measurement can receive opposite classifications under two locally valid thresholds.
+
+**Adversarial companion:** Hold the measurement fixed and vary estimator, units, reference, preprocessing, or threshold individually to identify the weakest bridge that preserves classification.
+
+## T19. Coprime cyclic traversal
+
+For
+
+```text
+p(i) = k*i mod n,
+```
+
+prove that `gcd(k,n)=1` makes `p` a permutation of the `n` residue classes.
+
+CR4 records a direct finite proof and executable fixtures.
+
+**Adversarial companion:** Use a non-coprime stride and quantify orbit decomposition and coverage loss.
+
+## T20. Minimum sufficient basis selection
+
+For a finite candidate family with finite declared obligations, finite costs, at least one sufficient subset, and a fixed total tie-break, prove existence and uniqueness of the minimum sufficient basis under a declared lexicographic objective.
+
+CR5 establishes this finite specialization.
+
+**Adversarial companion:** Remove nonemptiness, finiteness, finite costs, or total tie-breaking and construct the smallest loss of existence or uniqueness.
+
+## T21. Receiver structural preservation
+
+Given source observable `V_X`, receiver `P`, receiver observable `V_Y`, comparison map `tau`, and declared distance/divergence, characterize exact and approximate preservation through receiver defect
+
+```text
+delta_P(x) = d(tau(V_X(x)), V_Y(P(x))).
+```
+
+The cross-repository receiver diagnostic demonstrates that uniform scaling can preserve ratios while clipping destroys them.
+
+**Adversarial companion:** Find two reasonable receiver observables for which one declares exact preservation and the other declares loss, demonstrating that preservation is always structure-indexed.
+
+## T22. Deterministic replay boundary
+
+For a fixed deterministic map or implementation semantics and identical canonical inputs, CR7 establishes equal mathematical outputs.
+
+The open target is to characterize the additional conditions required for byte-identical replay across serializers, numerical runtimes, architectures, external services, concurrency models, and stochastic components.
+
+**Adversarial companion:** Hold semantic input fixed while varying one undeclared runtime or serialization assumption and construct the smallest byte-level replay failure.
+
+## Cross-repository source boundary
+
+T16-T22 were sharpened by recurring contracts in public QSOLKCB software repositories. Those software implementations motivate theorem hypotheses and counterexamples only:
+
+```text
+SOFTWARE_CONTRACT != PHYSICAL_LAW
+IMPLEMENTED_PATTERN != UNIVERSAL_THEOREM
+```
+
+Pinned source identities and quarantined lineage are recorded in `machine/cross_repo_patterns.json` and `research/CROSS_REPO_PATTERN_ATLAS.md`.
+
 ## Proof status table
 
 | Target | Status | Lean |
@@ -264,3 +353,10 @@ If exact reproduction shows that this framing is not mathematically faithful, re
 | T13 | open | deferred |
 | T14 | finite-valued discrete case PROVED as FR4; extensions open | deferred |
 | T15 | open | deferred |
+| T16 | finite specialization PROVED as CR1 | deferred |
+| T17 | non-injective impossibility PROVED as CR2; positive characterization open | deferred |
+| T18 | transfer theorem open; failure witness CR3 | deferred |
+| T19 | PROVED as CR4 / established number theory | deferred |
+| T20 | finite specialization PROVED as CR5 | deferred |
+| T21 | open; finite receiver diagnostic present | deferred |
+| T22 | deterministic-function specialization PROVED as CR7; runtime extensions open | deferred |
