@@ -42,6 +42,8 @@ python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 python experiments/run_pr2.py --json
 python experiments/run_cross_repo.py --json
+python experiments/reproduction/vopson_2019_mei/run.py --json
+python experiments/run_pr6.py --json
 ```
 
 `python -O` is intentional. Scientific checks must not depend on ordinary
@@ -67,9 +69,10 @@ requires it and the difference is documented explicitly.
 
 `experiments/run_pr2.py` records the finite entropy/polygon evidence surface.
 `experiments/run_cross_repo.py` records the cross-repository finite formal-pattern
-surface.
+surface. `experiments/run_pr6.py` records the VOP-2019-MEI source-specific
+reproduction package.
 
-Both receipt families bind deterministic source files and canonical result
+All receipt families bind deterministic repository files and canonical result
 payloads while keeping runtime metadata separate from the portable suite
 fingerprint.
 
@@ -85,8 +88,61 @@ experiments/run_cross_repo.py
 shared experiment package / information primitives
 ```
 
+For VOP-2019-MEI, the receipt binds:
+
+```text
+SOURCE_MAP.md
+DERIVATION.md
+ASSUMPTION_GRAPH.json
+DIMENSIONAL_AUDIT.md
+CONTROL_MATRIX.md
+result.json
+fixtures.json
+run.py
+test_vopson_2019_mei.py
+run_pr6.py
+```
+
+The primary paper bytes are not redistributed. Consequently the PR6 receipt
+records `primary_source_byte_hash = null` and identifies the scientific source
+through DOI plus page/equation locators. A local evidence-chain hash must never
+be mislabeled as a hash of unavailable or uncommitted primary-source bytes.
+
+```text
+LOCAL_REPRODUCTION_HASH != PRIMARY_SOURCE_BYTE_HASH
+DOI_AND_LOCATOR_IDENTITY != SOURCE_PDF_BYTE_HASH
+```
+
 Runtime metadata is descriptive. A suite fingerprint identifies the declared
 source-and-result bundle; it does not establish semantic truth.
+
+## VOP-2019-MEI reproduction boundary
+
+The 2019 reproduction treats the following as different evidence objects:
+
+```text
+Landauer erasure lower bound
+intrinsic stored-bit energy identification
+mass-energy conversion conditional on stored energy
+numerical Eq. (6) prediction
+experimental confirmation
+```
+
+The repository reproduces Eq. (6) and its displayed numerical consequences
+conditional on the source's additional stored-energy identification. It does not
+promote that identification merely because the arithmetic is correct.
+
+The source's p. 2 erasure paragraph contains a printed inequality-direction
+inconsistency relative to the immediately preceding balance and the standard
+lower-bound Landauer form. The reproduction preserves the printed-source issue
+and records the comparison standard separately.
+
+```text
+ARITHMETIC_REPRODUCED
+!= PREMISE_VALIDATED
+!= PHYSICAL_INTERPRETATION_VALIDATED
+!= EXPERIMENTALLY_CONFIRMED
+```
 
 ## Cross-repository provenance pins
 
@@ -117,6 +173,8 @@ pr2-receipt.json
 finite-signs.json
 coarse-graining.json
 polygon-audit.json
+vopson-2019-mei.json
+vopson-2019-mei-receipt.json
 cross-repo-pattern-validation.json
 cross-repo-receipt.json
 vopson-corpus-validation.json
@@ -149,7 +207,7 @@ not a claim that arbitrary minimum-cover problems are computationally cheap.
 
 ## Human and machine synchronization
 
-The Vopson JSON corpus and claim graph are canonical machine authorities. Their
+The Vopson JSON corpus and claim graph are dated registry snapshots. Their
 Markdown tables are rendered by:
 
 ```bash
@@ -162,6 +220,14 @@ CI checks them without modifying the tree:
 python scripts/render_vopson_docs.py --check
 ```
 
+Source-specific reproduction packages can contain newer evidence than a dated
+corpus snapshot. For `VOP-2019-MEI`, `research/vopson/reproduction/2019-mei/result.json`
+and `REPRODUCTION_MATRIX.md` are the fresher reproduction-status authorities;
+the frozen corpus row remains the bibliographic snapshot until that corpus is
+regenerated. A stale snapshot must not override newer explicit reproduction
+evidence, and newer evidence must not silently rewrite historical snapshot
+metadata.
+
 The cross-repository pattern atlas is a human diagnostic explanation of
 `machine/cross_repo_patterns.json`; result authority is split explicitly between
 `theory/CROSS_REPO_RESULTS.md` and `machine/cross_repo_results.json`. The
@@ -171,8 +237,9 @@ classes, and result dependencies.
 ## Nonclaims
 
 This contract does not claim that deterministic output proves a physical law,
-that a hash proves scientific correctness, that a public software invariant is
-a physical law, that a pinned source blob proves live remote freshness, that a
-complete bibliography is a completed reproduction, that two Python versions
-constitute universal portability, or that CI can replace independent scientific
-review.
+that a hash proves scientific correctness, that correct arithmetic validates a
+physical premise, that a source-specific reproduction silently rewrites an older
+bibliographic snapshot, that a public software invariant is a physical law,
+that a pinned source blob proves live remote freshness, that a complete
+bibliography is a completed reproduction, that two Python versions constitute
+universal portability, or that CI can replace independent scientific review.
