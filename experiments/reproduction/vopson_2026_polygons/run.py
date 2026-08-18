@@ -1,13 +1,24 @@
 #!/usr/bin/env python3
-"""Deterministic audit of the fixed-(N,n) multiplicity entropy extremum.
+"""Deterministic audit of the multiplicity Shannon-entropy extremum.
 
 Primary target:
 Melvin M. Vopson, "The Role of Information Entropy in Symmetry of Euclidean
 Polygons", Entropy 28(5), 564 (2026), DOI 10.3390/e28050564.
 
-Scope: only the fixed-total-size, fixed-number-of-positive-categories Shannon
-extremum. This script does not claim that every polygon comparison in the paper
-is invalid.
+Source-faithfulness note:
+The published paper formulates the general problem at fixed total system size
+N in terms of positive multiplicities g_i. Its prose identifies equal
+multiplicity as the entropy-minimising condition. The general statement does
+not cleanly freeze n, the number of represented categories, throughout the
+optimization. This audit therefore separates two questions:
+
+1. fixed N and fixed n: balanced/equal multiplicities maximise Shannon entropy;
+2. fixed N with n allowed to vary from 1 to N: the global minimum is the
+   one-category state (N), while the global maximum is the all-distinct state
+   (1,...,1).
+
+This script does not claim that every polygon comparison in the paper is
+invalid, especially comparisons that change the effective descriptor alphabet.
 """
 
 from __future__ import annotations
@@ -18,10 +29,11 @@ import math
 from collections.abc import Iterator, Sequence
 
 DOI = "10.3390/e28050564"
+SOURCE_PAGES = "3-4 of published 9-page PDF"
 
 
 def shannon_from_counts(counts: Sequence[int]) -> float:
-    if not counts or any(c <= 0 for c in counts):
+    if not counts or any((not isinstance(c, int)) or isinstance(c, bool) or c <= 0 for c in counts):
         raise ValueError("counts must be positive integers")
     total = sum(counts)
     return -sum((c / total) * math.log2(c / total) for c in counts)
@@ -52,27 +64,63 @@ def canonical(counts: Sequence[int]) -> tuple[int, ...]:
 
 
 def audit_case(total: int, parts: int) -> dict[str, object]:
-    values = [(shannon_from_counts(c), c) for c in positive_compositions(total, parts)]
-    if not values:
+    if total < parts or parts < 1:
         raise ValueError("need total >= parts >= 1")
 
-    min_h = min(h for h, _ in values)
-    max_h = max(h for h, _ in values)
-    minimizers = sorted({canonical(c) for h, c in values if math.isclose(h, min_h, abs_tol=1e-12)})
-    maximizers = sorted({canonical(c) for h, c in values if math.isclose(h, max_h, abs_tol=1e-12)})
+    # Canonicalize first so permutations are evaluated only once.  Extrema are
+    # selected by ordinary ordering, not math.isclose: a relative tolerance can
+    # incorrectly merge distinct near-balanced entropies for large N.
+    candidates = sorted({canonical(c) for c in positive_compositions(total, parts)})
+    values = [(shannon_from_counts(c), c) for c in candidates]
+
+    min_h, observed_min = min(values, key=lambda item: item[0])
+    max_h, observed_max = max(values, key=lambda item: item[0])
 
     expected_min = canonical(concentrated_counts(total, parts))
     expected_max = canonical(balanced_counts(total, parts))
-    assert minimizers == [expected_min]
-    assert maximizers == [expected_max]
+    if observed_min != expected_min:
+        raise AssertionError(f"unexpected minimizer: {observed_min} != {expected_min}")
+    if observed_max != expected_max:
+        raise AssertionError(f"unexpected maximizer: {observed_max} != {expected_max}")
 
     return {
         "N": total,
         "n": parts,
-        "composition_count": len(values),
+        "canonical_candidate_count": len(values),
         "minimum": {"counts": list(expected_min), "H_bits": min_h},
         "maximum": {"counts": list(expected_max), "H_bits": max_h},
         "equal_multiplicity_integral": total % parts == 0,
+    }
+
+
+def audit_variable_n(total: int) -> dict[str, object]:
+    if total < 1:
+        raise ValueError("total must be at least 1")
+
+    fixed_n_cases = [audit_case(total, n) for n in range(1, total + 1)]
+    global_min = min(fixed_n_cases, key=lambda case: case["minimum"]["H_bits"])
+    global_max = max(fixed_n_cases, key=lambda case: case["maximum"]["H_bits"])
+
+    expected_min_counts = [total]
+    expected_max_counts = [1] * total
+    if global_min["minimum"]["counts"] != expected_min_counts:
+        raise AssertionError("variable-n global minimum should be the one-category state")
+    if global_max["maximum"]["counts"] != expected_max_counts:
+        raise AssertionError("variable-n global maximum should be the all-distinct state")
+
+    return {
+        "N": total,
+        "n_range": [1, total],
+        "global_minimum": {
+            "n": 1,
+            "counts": expected_min_counts,
+            "H_bits": global_min["minimum"]["H_bits"],
+        },
+        "global_maximum": {
+            "n": total,
+            "counts": expected_max_counts,
+            "H_bits": global_max["maximum"]["H_bits"],
+        },
     }
 
 
@@ -86,11 +134,21 @@ def run(max_N: int, max_n: int) -> dict[str, object]:
             cases.append(audit_case(N, n))
 
     triangle_scale = audit_case(6, 2)
-    assert math.isclose(triangle_scale["maximum"]["H_bits"], 1.0, abs_tol=1e-12)
+    assert math.isclose(triangle_scale["maximum"]["H_bits"], 1.0, abs_tol=1e-12, rel_tol=0.0)
     assert math.isclose(
         triangle_scale["minimum"]["H_bits"],
         -((5 / 6) * math.log2(5 / 6) + (1 / 6) * math.log2(1 / 6)),
         abs_tol=1e-12,
+        rel_tol=0.0,
+    )
+
+    variable_n_N6 = audit_variable_n(6)
+    assert variable_n_N6["global_minimum"]["H_bits"] == 0.0
+    assert math.isclose(
+        variable_n_N6["global_maximum"]["H_bits"],
+        math.log2(6),
+        abs_tol=1e-12,
+        rel_tol=0.0,
     )
 
     return {
@@ -100,27 +158,42 @@ def run(max_N: int, max_n: int) -> dict[str, object]:
             "author": "Melvin M. Vopson",
             "year": 2026,
             "doi": DOI,
+            "source_location": SOURCE_PAGES,
+            "source_problem": (
+                "Shannon entropy of a system with fixed total size N, expressed "
+                "through positive multiplicities g_i; the source identifies "
+                "equal multiplicity as the minimum condition."
+            ),
         },
-        "audited_statement": (
-            "For fixed total multiplicity N and fixed number n of positive "
-            "categories, equal multiplicities minimise Shannon entropy."
-        ),
-        "model": {
-            "constraints": "g_i are positive integers, sum_i g_i = N, n fixed",
-            "probabilities": "p_i = g_i / N",
+        "source_mapping": {
+            "N": "paper's fixed total number of elements / total multiplicity",
+            "g_i": "paper's multiplicity of represented category i",
+            "n": (
+                "number of represented categories; because the source's general "
+                "fixed-N statement does not clearly freeze n globally, this "
+                "audit reports both fixed-n slices and the variable-n problem"
+            ),
+            "p_i": "g_i / N",
             "functional": "H = -sum_i p_i log2 p_i",
         },
-        "result": (
-            "The audited extremum is reversed: balanced/equal multiplicities "
-            "maximise Shannon entropy; the most concentrated positive "
-            "multiplicity vector minimises it."
+        "fixed_n_result": (
+            "For fixed N and fixed n, balanced/equal multiplicities maximise "
+            "Shannon entropy; the most concentrated positive multiplicity "
+            "vector minimises it."
         ),
-        "triangle_scale_N6_n2": triangle_scale,
-        "exhaustive_cases": cases,
+        "variable_n_result": (
+            "For fixed N with n allowed to vary from 1 to N, the global minimum "
+            "is n=1 with counts (N), H=0; the global maximum is n=N with all "
+            "counts equal to 1, H=log2(N). Equal multiplicity by itself therefore "
+            "does not characterize a nontrivial global minimum."
+        ),
+        "triangle_scale_fixed_N6_n2": triangle_scale,
+        "variable_n_N6": variable_n_N6,
+        "exhaustive_fixed_n_cases": cases,
         "scope_limit": (
-            "This result addresses the fixed-(N,n) extremum only. Polygon "
-            "comparisons that also change the effective alphabet/category count "
-            "must be analysed separately."
+            "This result audits the source's general multiplicity extremum. "
+            "Polygon-specific comparisons that change descriptor definitions or "
+            "effective category count must be analysed separately."
         ),
     }
 
@@ -135,12 +208,17 @@ def main() -> None:
     if args.json:
         print(json.dumps(result, indent=2, sort_keys=True))
     else:
-        t = result["triangle_scale_N6_n2"]
+        t = result["triangle_scale_fixed_N6_n2"]
+        v = result["variable_n_N6"]
         print(f"source DOI: {DOI}")
-        print(f"N=6,n=2 balanced: {t['maximum']['counts']} -> H={t['maximum']['H_bits']:.12g} bits")
-        print(f"N=6,n=2 concentrated: {t['minimum']['counts']} -> H={t['minimum']['H_bits']:.12g} bits")
-        print(result["result"])
-        print(f"exhaustively checked {len(result['exhaustive_cases'])} (N,n) cases")
+        print(f"source location: {SOURCE_PAGES}")
+        print(f"fixed N=6,n=2 balanced: {t['maximum']['counts']} -> H={t['maximum']['H_bits']:.12g} bits")
+        print(f"fixed N=6,n=2 concentrated: {t['minimum']['counts']} -> H={t['minimum']['H_bits']:.12g} bits")
+        print(f"variable n, N=6 global minimum: {v['global_minimum']['counts']} -> H={v['global_minimum']['H_bits']:.12g} bits")
+        print(f"variable n, N=6 global maximum: {v['global_maximum']['counts']} -> H={v['global_maximum']['H_bits']:.12g} bits")
+        print(result["fixed_n_result"])
+        print(result["variable_n_result"])
+        print(f"exhaustively checked {len(result['exhaustive_fixed_n_cases'])} fixed-(N,n) cases")
 
 
 if __name__ == "__main__":
