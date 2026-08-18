@@ -10,33 +10,20 @@ from __future__ import annotations
 
 import argparse
 import json
-import math
-from typing import Iterable, Sequence
+from pathlib import Path
+import sys
+from collections.abc import Sequence
 
+ROOT = Path(__file__).resolve().parents[3]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-def shannon_entropy(probabilities: Iterable[float]) -> float:
-    values = tuple(float(p) for p in probabilities)
-    if any(p < 0.0 for p in values):
-        raise ValueError("probabilities must be non-negative")
-    if not math.isclose(sum(values), 1.0, rel_tol=0.0, abs_tol=1e-12):
-        raise ValueError("probabilities must sum to 1")
-    return -sum(p * math.log2(p) for p in values if p > 0.0)
-
-
-def apply_row_stochastic(
-    distribution: Sequence[float], matrix: Sequence[Sequence[float]]
-) -> tuple[float, ...]:
-    n = len(distribution)
-    if len(matrix) != n or any(len(row) != n for row in matrix):
-        raise ValueError("matrix must be square and match distribution size")
-    for row in matrix:
-        if any(x < 0.0 for x in row):
-            raise ValueError("transition probabilities must be non-negative")
-        if not math.isclose(sum(row), 1.0, rel_tol=0.0, abs_tol=1e-12):
-            raise ValueError("every transition row must sum to 1")
-    return tuple(
-        sum(distribution[i] * matrix[i][j] for i in range(n)) for j in range(n)
-    )
+from experiments.lib.information import (  # noqa: E402
+    apply_row_stochastic,
+    require,
+    shannon_entropy,
+    sign_with_tolerance,
+)
 
 
 def case(
@@ -49,8 +36,11 @@ def case(
     h0 = shannon_entropy(p0)
     h1 = shannon_entropy(p1)
     delta = h1 - h0
-    sign = 0 if math.isclose(delta, 0.0, abs_tol=1e-12) else (1 if delta > 0 else -1)
-    assert sign == expected_sign
+    sign = sign_with_tolerance(delta)
+    require(
+        sign == expected_sign,
+        f"unexpected entropy sign for {case_id}: {sign} != {expected_sign}",
+    )
     return {
         "case_id": case_id,
         "state_count": len(p0),

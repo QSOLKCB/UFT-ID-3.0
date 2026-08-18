@@ -1,117 +1,165 @@
 # UFT-ID 3.0
 
-**Unified Field Theory of Information Dynamics 3.0** is a research program for constraint-governed information dynamics, information balance, inference transport, observation, and deterministic recovery.
+**Unified Field Theory of Information Dynamics 3.0** is a constraint-governed
+research programme for information dynamics, admissibility, observation,
+transport, and deterministic recovery.
 
-This repository is deliberately conservative about claims. UFT-ID 3.0 is not presented here as a confirmed fundamental theory of physics. The project separates formal mathematics, diagnostic methodology, empirical results, interpretation, and speculation so that no layer silently inherits authority from another.
+The repository does not present UFT-ID 3.0 as a confirmed fundamental physical
+theory. Formal mathematics, diagnostics, executable evidence, interpretation,
+speculation, and nonclaims have separate authority surfaces.
 
 ## Core question
 
-When an informational state changes, what exactly changed?
+When an informational description changes, what changed?
 
-UFT-ID 3.0 separates at least four possibilities:
-
-1. the underlying system state changed;
-2. a constraint or recovery operation changed the state;
-3. information was transported between regimes;
-4. an observer, representation, or coarse-graining map changed what was accessible.
-
-A decrease in a chosen entropy or information measure is therefore not automatically interpreted as destruction of physical information.
+UFT-ID distinguishes underlying state dynamics, constraint or recovery
+dynamics, transport between regimes, observation or coarse-graining, and
+boundary/source exchange. A decrease in one selected entropy is not
+automatically physical destruction of information.
 
 ## Canonical abstract system
-
-The initial canonical object is
 
 ```text
 U = (S, A, F, Pi_lex, O, T, I, C)
 ```
 
-where:
+- `S`: total state space
+- `A`: admissible subset
+- `F`: proposed evolution
+- `Pi_lex`: deterministic recovery
+- `O`: observation or coarse-graining map
+- `T`: regime-transport map
+- `I`: explicitly declared information functional
+- `C`: constraint structure
 
-- `S` is the total state space;
-- `A` is the admissible subspace;
-- `F` is the proposed evolution;
-- `Pi_lex` is deterministic recovery into `A`;
-- `O` is an observation or coarse-graining map;
-- `T` is a regime-transport map;
-- `I` is a declared information functional;
-- `C` is the constraint structure.
+No component becomes physical merely because it appears in the tuple.
 
-Earlier UFT-ID work supplies the constraint-first core: overcomplete state spaces, admissibility, residuals, quadratic tension, critical thresholds, deterministic lexicographic recovery, and impulse objects. UFT-ID 3.0 generalizes that core before committing to any particular lattice, symmetry group, physical ontology, or application domain.
-
-## Provisional information balance program
-
-A central research target is a balance law of the form
+## Current theorem-level direction
 
 ```text
-dI/dt = production - loss - boundary_flux + constraint/recovery contribution
+No universal information-direction theorem exists without fixing the state
+model, dynamics, information functional, observation map, reference measure,
+partition/coarse-graining, boundaries, and source assumptions.
 ```
 
-The exact functional, regularity assumptions, units, and domain of validity are not assumed in advance. The project will test when monotonic information decrease follows as a restricted case and when it does not.
+Within a declared class, monotonicity may be proved from actual dynamics. For
+example, finite deterministic processing satisfies `H(f(X)) <= H(X)`, while a
+broader class containing stochastic mixing, permutations, and many-to-one maps
+admits positive, zero, and negative Shannon-entropy changes.
 
-## Relation to infodynamics
+The generic information-balance expression remains a model template. It is not
+predictive physics until every term is independently operationalized and the
+model makes held-out predictions.
 
-One explicit research target is the strongest possible scientific comparison with Melvin Vopson's published infodynamics program, including:
+## Executable finite results
 
-- the 2019 mass-energy-information equivalence proposal;
-- the 2022 Second Law of Information Dynamics;
-- the 2023 cross-domain extension and simulation-hypothesis argument;
-- the 2025 information-theoretic gravity derivation;
-- the 2026 polygon-symmetry and language-diversity applications.
+`theory/FINITE_RESULTS.md` records the proved or counterexample surface.
+Executable witnesses include:
 
-The objective is not personal criticism. The objective is a reproducible theorem-and-experiment program that identifies the precise assumptions under which information monotonicity is true, false, representation-dependent, or empirically unsupported.
+- two-state positive/zero/negative Shannon-change cases;
+- one entropy-preserving fine trajectory with opposite observed signs under two
+  coarse-grainings;
+- proposal/recovery information decomposition;
+- admissible recovery that increases a declared information functional;
+- the bounded 2026 polygon multiplicity-extremum audit.
 
-See [`research/VOPSON_MATRIX.md`](research/VOPSON_MATRIX.md).
+Machine metadata is in `machine/finite_results.json`.
 
-## Epistemic layers
+## Vopson audit programme
 
-UFT-ID 3.0 uses five explicit layers:
+The public scholarly target corpus is under `research/vopson/`. It keeps
+published work, source claim, logical dependency, exact reproduction
+obligation, repository evidence, UFT-ID assessment, and claim class distinct.
 
-1. **Formal Core**: definitions, lemmas, theorems, proofs, counterexamples.
-2. **Diagnostic Layer**: audit constructs such as inference transport, calibration boundaries, stabilizers, and reification risk.
-3. **Empirical Layer**: datasets, simulations, replications, statistical tests, and experimental results.
-4. **Interpretive Layer**: mappings to physics, computation, cognition, networks, or other domains.
-5. **Speculative Layer**: hypotheses that are interesting but not established by the formal or empirical layers.
+Corpus inclusion is not endorsement. A dependency edge records reliance, not
+truth. The audit tracks mass-energy-information equivalence, SLI, genetics,
+gravity, symmetry, language diversity, simulation interpretations, errata, and
+published responses.
 
-Promotion between layers requires an explicit bridge argument or evidence.
+## Validation quick start
+
+Supported CI runtimes are Python 3.12 and 3.13 on `ubuntu-24.04`.
+
+```bash
+python -m compileall -q experiments scripts tests
+python scripts/render_vopson_docs.py --check
+python scripts/validate_vopson_corpus.py
+python scripts/validate_reproducibility.py
+python -m unittest discover -s tests -v
+python -O -m unittest discover -s tests -v
+python experiments/run_pr2.py --json
+```
+
+See `docs/REPRODUCIBILITY.md` for the evidence-chain contract and
+`docs/MILESTONES.md` for the evidence-gated project sequence.
 
 ## Repository map
 
 ```text
 .
-├── README.md
-├── README4AI.md
-├── AGENTS.md
+├── README.md / README4AI.md / AGENTS.md
+├── MATHS.md
 ├── ROADMAP.md
-├── CITATION.cff
-├── CONTRIBUTING.md
 ├── docs/
 │   ├── ARCHITECTURE.md
 │   ├── CLAIMS.md
+│   ├── CORPUS.md
+│   ├── MILESTONES.md
 │   ├── NONCLAIMS.md
-│   └── CORPUS.md
+│   └── REPRODUCIBILITY.md
 ├── theory/
 │   ├── DEFINITIONS.md
-│   └── THEOREM_TARGETS.md
-├── research/
-│   ├── VOPSON_MATRIX.md
-│   └── RESEARCH_GAPS.md
+│   ├── THEOREM_TARGETS.md
+│   └── FINITE_RESULTS.md
 ├── experiments/
-│   └── README.md
-└── machine/
-    └── contract.json
+│   ├── lib/
+│   ├── counterexamples/
+│   ├── representation/
+│   ├── reproduction/
+│   └── run_pr2.py
+├── research/
+│   ├── reports/
+│   ├── vopson/
+│   ├── RESEARCH_GAPS.md
+│   └── VOPSON_MATRIX.md
+├── scripts/
+│   ├── render_vopson_docs.py
+│   ├── validate_reproducibility.py
+│   └── validate_vopson_corpus.py
+├── machine/
+│   ├── contract.json
+│   └── finite_results.json
+├── tests/
+└── .github/workflows/
 ```
+
+## Evidence and CI
+
+Workflows use read-only permissions, a fixed runner, a Python-version matrix,
+full-SHA action pins, compilation, normal and optimized tests, and retained
+JSON evidence artifacts. Scientific invariants use explicit exceptions rather
+than ordinary `assert` statements.
+
+## Epistemic layers
+
+1. **Formal Core**: definitions, proofs, counterexamples.
+2. **Diagnostic**: audit and transport constructs.
+3. **Empirical**: data, reproductions, simulations, experiments.
+4. **Interpretive**: domain mappings and explanatory proposals.
+5. **Speculative**: hypotheses not established by the prior layers.
+
+Promotion requires evidence appropriate to the target layer.
 
 ## Formal verification
 
-Lean formalization is planned, but intentionally deferred until the mathematical vocabulary and theorem targets are frozen. Formalizing unstable definitions would merely make a moving target machine-checked.
-
-The planned Lean phase will begin with the finite-state constraint core, deterministic lexicographic recovery, restricted monotonicity results, explicit counterexamples, and transport/observation invariants.
+Lean remains deferred until notation, theorem statements, and canonical
+counterexamples survive source reproduction and adversarial review. Lean can
+verify deductions from assumptions; it cannot establish the physical truth of
+those assumptions.
 
 ## Design rule
 
 > A model may be useful without being ontologically true.
-
-Correspondingly:
 
 ```text
 representation != referent
@@ -123,8 +171,12 @@ self-consistency != truth
 
 ## Status
 
-UFT-ID 3.0 is currently in the **canonicalization and adversarial research-design phase**. No claim in this repository should be described as established physical law unless the relevant evidence and status label explicitly support that wording.
+The project is in the **reproducibility and source-fidelity phase**. The next
+scientific target is an exact reconstruction of the 2019 mass-energy-information
+calculation, separating reproduced arithmetic from its additional physical
+premises.
 
 ## License
 
-Software and repository documentation are released under the repository's MIT License unless a specific file states otherwise. Source papers retain their original licenses and are cited rather than relicensed here.
+Software and repository documentation are MIT-licensed unless a file states
+otherwise. Cited papers and datasets retain their original licences.

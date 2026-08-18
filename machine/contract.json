@@ -1,22 +1,13 @@
 {
-  "schema_version": "1.2.1",
+  "schema_version": "1.3.1",
   "project": {
     "name": "UFT-ID 3.0",
     "expanded_name": "Unified Field Theory of Information Dynamics 3.0",
-    "status": "canonical-vopson-corpus-and-claim-graph",
+    "status": "reproducibility-ci-and-experiment-hardening",
     "repository": "QSOLKCB/UFT-ID-3.0"
   },
   "canonical_system": {
-    "tuple": [
-      "S",
-      "A",
-      "F",
-      "Pi_lex",
-      "O",
-      "T",
-      "I",
-      "C"
-    ],
+    "tuple": ["S", "A", "F", "Pi_lex", "O", "T", "I", "C"],
     "symbols": {
       "S": "total state space",
       "A": "admissible subspace",
@@ -29,6 +20,52 @@
     }
   },
   "maths_staging_file": "MATHS.md",
+  "runtime_support": {
+    "python": ["3.12", "3.13"],
+    "github_runner": "ubuntu-24.04",
+    "dependency_policy": "Python standard library only for current validators and finite experiments"
+  },
+  "ci_provenance": {
+    "workflow_files": [
+      ".github/workflows/finite-adversarial.yml",
+      ".github/workflows/vopson-corpus.yml"
+    ],
+    "workflow_extensions": [".yml", ".yaml"],
+    "workflow_permissions": {
+      "contents": "read"
+    },
+    "job_permission_overrides_allowed": false,
+    "action_pins": {
+      "actions/checkout": "d23441a48e516b6c34aea4fa41551a30e30af803",
+      "actions/setup-python": "ece7cb06caefa5fff74198d8649806c4678c61a1",
+      "actions/upload-artifact": "330a01c490aca151604b8cf639adc76d48f6c5d4"
+    },
+    "persist_checkout_credentials": false,
+    "artifact_directory": "artifacts",
+    "artifact_retention_days": 30,
+    "compile_command": "python -m compileall -q experiments scripts tests",
+    "test_commands": [
+      "python -m unittest discover -s tests -v",
+      "python -O -m unittest discover -s tests -v"
+    ],
+    "evidence_generation_condition": "always()",
+    "validator": "scripts/validate_reproducibility.py"
+  },
+  "experiment_library": {
+    "information_primitives": "experiments/lib/information.py",
+    "package_initializers": [
+      "experiments/__init__.py",
+      "experiments/lib/__init__.py"
+    ],
+    "scientific_asserts_allowed": false,
+    "default_probability_tolerance": 1e-12,
+    "shannon_logarithm_base": 2,
+    "polygon_max_exhaustive_compositions": 250000,
+    "polygon_composition_generator": "iterative-cut-positions",
+    "large_polygon_policy": "Use analytic_extrema unless exhaustive execution is explicitly opted in",
+    "receipt_runner": "experiments/run_pr2.py",
+    "receipt_version": "1.1.1"
+  },
   "finite_result_authority": {
     "human": "theory/FINITE_RESULTS.md",
     "machine": "machine/finite_results.json",
@@ -46,6 +83,7 @@
     "counterexample_matrix": "research/vopson/COUNTEREXAMPLE_MATRIX.md",
     "response_history": "research/vopson/RESPONSE_HISTORY.md",
     "validator": "scripts/validate_vopson_corpus.py",
+    "renderer": "scripts/render_vopson_docs.py",
     "rule": "Recording a source claim does not adopt it as a UFT-ID claim; exact reproduction and one-class UFT-ID assessment remain separate."
   },
   "vopson_corpus_schema": {
@@ -57,12 +95,7 @@
       "not-indicated",
       "not-applicable"
     ],
-    "equation_map_status": [
-      "pending",
-      "partial",
-      "complete",
-      "not-applicable"
-    ],
+    "equation_map_status": ["pending", "partial", "complete", "not-applicable"],
     "reproduction_status": [
       "metadata-verified",
       "partial-reproduction",
@@ -70,64 +103,24 @@
       "blocked",
       "not-started"
     ],
-    "work_types": [
-      "journal-article",
-      "erratum",
-      "dataset",
-      "editorial",
-      "response",
-      "news-and-views"
-    ],
-    "node_kinds": [
-      "external-premise",
-      "source-claim",
-      "interpretive-inference",
-      "comparison-result"
-    ],
-    "edge_types": [
-      "requires",
-      "extends",
-      "supports",
-      "interprets",
-      "tests"
-    ],
-    "established_literature_exempt_kinds": [
-      "external-premise"
-    ],
+    "work_types": ["journal-article", "erratum", "dataset", "editorial", "response", "news-and-views"],
+    "node_kinds": ["external-premise", "source-claim", "interpretive-inference", "comparison-result"],
+    "edge_types": ["requires", "extends", "supports", "interprets", "tests"],
+    "established_literature_exempt_kinds": ["external-premise"],
     "alternate_identifier_scheme": "doi",
     "human_sync": {
       "corpus_table": "research/vopson/CORPUS.md#chronology",
-      "claim_table": "research/vopson/CLAIM_GRAPH.md#current-assessment-summary"
+      "claim_table": "research/vopson/CLAIM_GRAPH.md#current-assessment-summary",
+      "renderer": "scripts/render_vopson_docs.py"
     }
   },
   "claim_classes": [
-    "DEFINITION",
-    "THEOREM_TARGET",
-    "PROVED",
-    "COUNTEREXAMPLE",
-    "DIAGNOSTIC",
-    "EMPIRICAL",
-    "INTERPRETIVE",
-    "SPECULATIVE",
-    "NONCLAIM"
+    "DEFINITION", "THEOREM_TARGET", "PROVED", "COUNTEREXAMPLE", "DIAGNOSTIC",
+    "EMPIRICAL", "INTERPRETIVE", "SPECULATIVE", "NONCLAIM"
   ],
-  "authority_layers": [
-    "formal-core",
-    "diagnostic",
-    "empirical",
-    "interpretive",
-    "speculative"
-  ],
+  "authority_layers": ["formal-core", "diagnostic", "empirical", "interpretive", "speculative"],
   "inherited_constraint_core": {
-    "symbols": [
-      "S",
-      "A",
-      "r",
-      "Phi",
-      "Phi_crit",
-      "Pi_lex",
-      "Delta"
-    ],
+    "symbols": ["S", "A", "r", "Phi", "Phi_crit", "Pi_lex", "Delta"],
     "preferred_lineage": [
       "10.22541/au.176790866.68066655/v1",
       "10.22541/au.176790865.55905239/v1",
@@ -156,20 +149,22 @@
     "evidence_path_may_escape_repository": false,
     "work_dependency_cycle_allowed": false,
     "human_machine_corpus_drift_allowed": false,
-    "established_literature_exemption_is_unrestricted": false
+    "established_literature_exemption_is_unrestricted": false,
+    "scientific_python_assert_allowed": false,
+    "github_action_mutable_tag_allowed": false,
+    "github_workflow_write_permission_allowed": false,
+    "undeclared_github_workflow_allowed": false,
+    "ci_receipt_may_be_discarded": false,
+    "unbounded_exhaustive_polygon_audit_allowed": false
   },
   "vopson": {
     "orcid": "0000-0002-8073-5538",
     "orcid_role": "bibliographic identity anchor only",
     "tracks": [
-      "mass-energy-information-equivalence",
-      "genomic-information-entropy",
-      "second-law-of-infodynamics",
-      "cross-domain-applications",
-      "simulation-hypothesis-inference",
-      "information-theoretic-gravity",
-      "polygon-symmetry",
-      "language-diversity"
+      "mass-energy-information-equivalence", "genomic-information-entropy",
+      "second-law-of-infodynamics", "cross-domain-applications",
+      "simulation-hypothesis-inference", "information-theoretic-gravity",
+      "polygon-symmetry", "language-diversity"
     ]
   },
   "formal_verification": {
@@ -178,35 +173,22 @@
     "entry_condition": "canonical definitions and theorem statements frozen after reproduction and adversarial review",
     "placeholder_formalizations_allowed": false,
     "initial_targets": [
-      "finite admissibility predicate",
-      "finite total tie-break order",
-      "lexicographic recovery existence and uniqueness",
-      "recovery returns admissible state",
-      "restricted monotonicity theorem",
-      "explicit finite counterexamples"
+      "finite admissibility predicate", "finite total tie-break order",
+      "lexicographic recovery existence and uniqueness", "recovery returns admissible state",
+      "restricted monotonicity theorem", "explicit finite counterexamples"
     ]
   },
   "required_agent_reads": [
-    "README4AI.md",
-    "AGENTS.md",
-    "docs/CLAIMS.md",
-    "docs/NONCLAIMS.md",
-    "docs/ARCHITECTURE.md",
-    "MATHS.md",
-    "theory/DEFINITIONS.md",
-    "theory/THEOREM_TARGETS.md",
-    "theory/FINITE_RESULTS.md",
-    "machine/finite_results.json",
-    "research/vopson/AUTHOR.json",
-    "research/vopson/CORPUS.md",
-    "research/vopson/corpus.json",
-    "research/vopson/CLAIM_GRAPH.md",
-    "research/vopson/CLAIM_GRAPH.json",
-    "research/vopson/DEFINITIONS.md",
-    "research/vopson/REPRODUCTION_MATRIX.md",
-    "research/vopson/COUNTEREXAMPLE_MATRIX.md",
-    "research/vopson/RESPONSE_HISTORY.md",
-    "research/VOPSON_MATRIX.md",
-    "ROADMAP.md"
+    "README4AI.md", "AGENTS.md", "docs/CLAIMS.md", "docs/NONCLAIMS.md",
+    "docs/ARCHITECTURE.md", "docs/REPRODUCIBILITY.md", "docs/MILESTONES.md",
+    "experiments/README.md", "MATHS.md", "theory/DEFINITIONS.md",
+    "theory/THEOREM_TARGETS.md", "theory/FINITE_RESULTS.md",
+    "machine/finite_results.json", "research/vopson/AUTHOR.json",
+    "research/vopson/CORPUS.md", "research/vopson/corpus.json",
+    "research/vopson/CLAIM_GRAPH.md", "research/vopson/CLAIM_GRAPH.json",
+    "research/vopson/DEFINITIONS.md", "research/vopson/REPRODUCTION_MATRIX.md",
+    "research/vopson/COUNTEREXAMPLE_MATRIX.md", "research/vopson/RESPONSE_HISTORY.md",
+    "research/reports/2026-08-18-PR4-ACTION-REGISTER.md",
+    "research/VOPSON_MATRIX.md", "ROADMAP.md"
   ]
 }

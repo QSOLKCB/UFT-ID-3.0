@@ -5,34 +5,82 @@ on:
     paths:
       - "research/vopson/**"
       - "scripts/validate_vopson_corpus.py"
-      - "tests/test_vopson_corpus.py"
-      - "machine/contract.json"
+      - "scripts/render_vopson_docs.py"
+      - "scripts/validate_reproducibility.py"
+      - "tests/**"
+      - "machine/**"
+      - "README.md"
       - "README4AI.md"
       - "AGENTS.md"
-      - ".github/workflows/vopson-corpus.yml"
+      - "docs/REPRODUCIBILITY.md"
+      - ".github/workflows/**"
   push:
     branches: [main]
     paths:
       - "research/vopson/**"
       - "scripts/validate_vopson_corpus.py"
-      - "tests/test_vopson_corpus.py"
-      - "machine/contract.json"
-      - ".github/workflows/vopson-corpus.yml"
+      - "scripts/render_vopson_docs.py"
+      - "scripts/validate_reproducibility.py"
+      - "tests/**"
+      - "machine/**"
+      - "README.md"
+      - "README4AI.md"
+      - "AGENTS.md"
+      - "docs/REPRODUCIBILITY.md"
+      - ".github/workflows/**"
 
 permissions:
   contents: read
 
 jobs:
   validate-corpus:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          python-version: "3.12"
+          persist-credentials: false
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Compile Python
+        run: python -m compileall -q experiments scripts tests
+
+      - name: Check generated Vopson documentation
+        run: python scripts/render_vopson_docs.py --check
+
       - name: Validate canonical Vopson corpus
-        run: python3 scripts/validate_vopson_corpus.py
-      - name: Emit machine validation report
-        run: python3 scripts/validate_vopson_corpus.py --json > /tmp/vopson-corpus-validation.json
-      - name: Run repository unit tests
-        run: python3 -m unittest discover -s tests -v
+        run: python scripts/validate_vopson_corpus.py
+
+      - name: Validate reproducibility contract
+        run: python scripts/validate_reproducibility.py
+
+      - name: Unit and adversarial tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Optimized-Python tests
+        run: python -O -m unittest discover -s tests -v
+
+      - name: Generate corpus evidence bundle
+        if: always()
+        run: |
+          mkdir -p artifacts
+          python scripts/validate_vopson_corpus.py --json > artifacts/vopson-corpus-validation.json 2> artifacts/vopson-corpus-validation.stderr.txt || true
+          python scripts/render_vopson_docs.py --check --json > artifacts/vopson-doc-sync.json 2> artifacts/vopson-doc-sync.stderr.txt || true
+          python scripts/validate_reproducibility.py --json > artifacts/reproducibility-validation.json 2> artifacts/reproducibility-validation.stderr.txt || true
+          python experiments/run_pr2.py --json > artifacts/pr2-receipt.json 2> artifacts/pr2-receipt.stderr.txt || true
+
+      - name: Retain corpus evidence bundle
+        if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: vopson-corpus-py${{ matrix.python-version }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 30

@@ -4,39 +4,72 @@ on:
   pull_request:
     paths:
       - "experiments/**"
+      - "scripts/validate_reproducibility.py"
       - "tests/**"
       - "theory/FINITE_RESULTS.md"
       - "research/vopson/**"
-      - "machine/finite_results.json"
-      - ".github/workflows/finite-adversarial.yml"
+      - "machine/**"
+      - "docs/REPRODUCIBILITY.md"
+      - ".github/workflows/**"
   push:
     branches: [main]
     paths:
       - "experiments/**"
+      - "scripts/validate_reproducibility.py"
       - "tests/**"
       - "theory/FINITE_RESULTS.md"
       - "research/vopson/**"
-      - "machine/finite_results.json"
-      - ".github/workflows/finite-adversarial.yml"
+      - "machine/**"
+      - "docs/REPRODUCIBILITY.md"
+      - ".github/workflows/**"
 
 permissions:
   contents: read
 
 jobs:
   finite-results:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          python-version: "3.12"
-      - name: Unit tests
-        run: python3 -m unittest discover -s tests -v
-      - name: Deterministic evidence receipt
-        run: python3 experiments/run_pr2.py --json > /tmp/pr2-receipt.json
-      - name: Finite entropy signs
-        run: python3 experiments/counterexamples/finite_entropy_signs/run.py --json > /tmp/finite-signs.json
-      - name: Coarse-graining reversal
-        run: python3 experiments/representation/coarse_graining/run.py --json > /tmp/coarse-graining.json
-      - name: Polygon extremum audit
-        run: python3 experiments/reproduction/vopson_2026_polygons/run.py --max-N 16 --max-n 6 --json > /tmp/polygon-audit.json
+          persist-credentials: false
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Compile Python
+        run: python -m compileall -q experiments scripts tests
+
+      - name: Validate reproducibility contract
+        run: python scripts/validate_reproducibility.py
+
+      - name: Unit and adversarial tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Optimized-Python tests
+        run: python -O -m unittest discover -s tests -v
+
+      - name: Generate deterministic evidence bundle
+        if: always()
+        run: |
+          mkdir -p artifacts
+          python experiments/run_pr2.py --json > artifacts/pr2-receipt.json 2> artifacts/pr2-receipt.stderr.txt || true
+          python experiments/counterexamples/finite_entropy_signs/run.py --json > artifacts/finite-signs.json 2> artifacts/finite-signs.stderr.txt || true
+          python experiments/representation/coarse_graining/run.py --json > artifacts/coarse-graining.json 2> artifacts/coarse-graining.stderr.txt || true
+          python experiments/reproduction/vopson_2026_polygons/run.py --max-N 16 --max-n 6 --json > artifacts/polygon-audit.json 2> artifacts/polygon-audit.stderr.txt || true
+          python scripts/validate_reproducibility.py --json > artifacts/reproducibility-validation.json 2> artifacts/reproducibility-validation.stderr.txt || true
+
+      - name: Retain finite evidence bundle
+        if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: finite-adversarial-py${{ matrix.python-version }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 30
