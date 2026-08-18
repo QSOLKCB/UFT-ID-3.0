@@ -37,6 +37,7 @@ python -m compileall -q experiments scripts tests
 python scripts/render_vopson_docs.py --check
 python scripts/validate_vopson_corpus.py
 python scripts/validate_cross_repo_patterns.py
+python scripts/validate_vopson_2019_mei.py
 python scripts/validate_reproducibility.py
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
@@ -144,6 +145,11 @@ ARITHMETIC_REPRODUCED
 != EXPERIMENTALLY_CONFIRMED
 ```
 
+`scripts/validate_vopson_2019_mei.py` validates the source-specific assumption
+graph, its node/edge vocabulary and referential integrity, the result boundary,
+and synchronization of the promoted reproduction status across `corpus.json`,
+`CLAIM_GRAPH.json`, their generated human tables, and `REPRODUCTION_MATRIX.md`.
+
 ## Cross-repository provenance pins
 
 `machine/cross_repo_patterns.json` records a source repository, `main` ref,
@@ -175,6 +181,7 @@ coarse-graining.json
 polygon-audit.json
 vopson-2019-mei.json
 vopson-2019-mei-receipt.json
+vopson-2019-mei-validation.json
 cross-repo-pattern-validation.json
 cross-repo-receipt.json
 vopson-corpus-validation.json
@@ -207,7 +214,7 @@ not a claim that arbitrary minimum-cover problems are computationally cheap.
 
 ## Human and machine synchronization
 
-The Vopson JSON corpus and claim graph are dated registry snapshots. Their
+The Vopson JSON corpus and claim graph are canonical machine authorities. Their
 Markdown tables are rendered by:
 
 ```bash
@@ -220,13 +227,20 @@ CI checks them without modifying the tree:
 python scripts/render_vopson_docs.py --check
 ```
 
-Source-specific reproduction packages can contain newer evidence than a dated
-corpus snapshot. For `VOP-2019-MEI`, `research/vopson/reproduction/2019-mei/result.json`
-and `REPRODUCTION_MATRIX.md` are the fresher reproduction-status authorities;
-the frozen corpus row remains the bibliographic snapshot until that corpus is
-regenerated. A stale snapshot must not override newer explicit reproduction
-evidence, and newer evidence must not silently rewrite historical snapshot
-metadata.
+When a reproduction status is promoted, the canonical work registry, canonical
+claim graph, generated human tables, reproduction matrix, and source-specific
+result must be synchronized in the same change. A source claim may remain a
+`THEOREM_TARGET` even after its arithmetic has been reproduced when the physical
+premise itself remains unresolved.
+
+For `VOP-2019-MEI`, the synchronized state is:
+
+```text
+work reproduction_status = reproduced
+work equation_map_status  = complete
+claim class                = THEOREM_TARGET
+claim assessment           = arithmetic-reproduced-physical-hypothesis-unresolved
+```
 
 The cross-repository pattern atlas is a human diagnostic explanation of
 `machine/cross_repo_patterns.json`; result authority is split explicitly between
@@ -238,8 +252,8 @@ classes, and result dependencies.
 
 This contract does not claim that deterministic output proves a physical law,
 that a hash proves scientific correctness, that correct arithmetic validates a
-physical premise, that a source-specific reproduction silently rewrites an older
-bibliographic snapshot, that a public software invariant is a physical law,
-that a pinned source blob proves live remote freshness, that a complete
-bibliography is a completed reproduction, that two Python versions constitute
-universal portability, or that CI can replace independent scientific review.
+physical premise, that a synchronized reproduction promotion proves the source
+hypothesis, that a public software invariant is a physical law, that a pinned
+source blob proves live remote freshness, that a complete bibliography is a
+completed reproduction, that two Python versions constitute universal
+portability, or that CI can replace independent scientific review.
