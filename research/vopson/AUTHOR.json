@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0.0",
+  "author_id": "orcid:0000-0002-8073-5538",
+  "canonical_name": "Melvin M. Vopson",
+  "public_name_variants": [
+    "Melvin Vopson",
+    "Melvin M. Vopson",
+    "Marian Vopsaroiu"
+  ],
+  "orcid": "0000-0002-8073-5538",
+  "orcid_role": "bibliographic identity anchor only",
+  "public_affiliation_snapshot": {
+    "institution": "University of Portsmouth",
+    "unit": "School of Mathematics & Physics",
+    "role": "Associate Professor in Physics",
+    "verified_as_of": "2026-08-18",
+    "source_url": "https://researchportal.port.ac.uk/en/persons/melvin-vopson/"
+  },
+  "scope": "Public scholarly identity and publication disambiguation only.",
+  "privacy_boundary": {
+    "included": [
+      "public name variants",
+      "ORCID",
+      "public institutional affiliation"
+    ],
+    "excluded": [
+      "private contact details",
+      "personal addresses",
+      "non-scholarly profiling",
+      "speculation about motives"
+    ]
+  }
+}

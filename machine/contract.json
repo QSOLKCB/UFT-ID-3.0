@@ -1,13 +1,22 @@
 {
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.1",
   "project": {
     "name": "UFT-ID 3.0",
     "expanded_name": "Unified Field Theory of Information Dynamics 3.0",
-    "status": "finite-adversarial-results-and-reproduction",
+    "status": "canonical-vopson-corpus-and-claim-graph",
     "repository": "QSOLKCB/UFT-ID-3.0"
   },
   "canonical_system": {
-    "tuple": ["S", "A", "F", "Pi_lex", "O", "T", "I", "C"],
+    "tuple": [
+      "S",
+      "A",
+      "F",
+      "Pi_lex",
+      "O",
+      "T",
+      "I",
+      "C"
+    ],
     "symbols": {
       "S": "total state space",
       "A": "admissible subspace",
@@ -25,6 +34,71 @@
     "machine": "machine/finite_results.json",
     "receipt_runner": "experiments/run_pr2.py",
     "rule": "Only results with explicit hypotheses and a direct proof or executable witness belong on this surface."
+  },
+  "vopson_corpus_authority": {
+    "author": "research/vopson/AUTHOR.json",
+    "human_corpus": "research/vopson/CORPUS.md",
+    "corpus": "research/vopson/corpus.json",
+    "claim_graph_human": "research/vopson/CLAIM_GRAPH.md",
+    "claim_graph": "research/vopson/CLAIM_GRAPH.json",
+    "definitions": "research/vopson/DEFINITIONS.md",
+    "reproduction_matrix": "research/vopson/REPRODUCTION_MATRIX.md",
+    "counterexample_matrix": "research/vopson/COUNTEREXAMPLE_MATRIX.md",
+    "response_history": "research/vopson/RESPONSE_HISTORY.md",
+    "validator": "scripts/validate_vopson_corpus.py",
+    "rule": "Recording a source claim does not adopt it as a UFT-ID claim; exact reproduction and one-class UFT-ID assessment remain separate."
+  },
+  "vopson_corpus_schema": {
+    "snapshot_date": "2026-08-18",
+    "peer_review_status": [
+      "peer-reviewed",
+      "editorial-peer-reviewed",
+      "early-online-peer-reviewed",
+      "not-indicated",
+      "not-applicable"
+    ],
+    "equation_map_status": [
+      "pending",
+      "partial",
+      "complete",
+      "not-applicable"
+    ],
+    "reproduction_status": [
+      "metadata-verified",
+      "partial-reproduction",
+      "reproduced",
+      "blocked",
+      "not-started"
+    ],
+    "work_types": [
+      "journal-article",
+      "erratum",
+      "dataset",
+      "editorial",
+      "response",
+      "news-and-views"
+    ],
+    "node_kinds": [
+      "external-premise",
+      "source-claim",
+      "interpretive-inference",
+      "comparison-result"
+    ],
+    "edge_types": [
+      "requires",
+      "extends",
+      "supports",
+      "interprets",
+      "tests"
+    ],
+    "established_literature_exempt_kinds": [
+      "external-premise"
+    ],
+    "alternate_identifier_scheme": "doi",
+    "human_sync": {
+      "corpus_table": "research/vopson/CORPUS.md#chronology",
+      "claim_table": "research/vopson/CLAIM_GRAPH.md#current-assessment-summary"
+    }
   },
   "claim_classes": [
     "DEFINITION",
@@ -45,7 +119,15 @@
     "speculative"
   ],
   "inherited_constraint_core": {
-    "symbols": ["S", "A", "r", "Phi", "Phi_crit", "Pi_lex", "Delta"],
+    "symbols": [
+      "S",
+      "A",
+      "r",
+      "Phi",
+      "Phi_crit",
+      "Pi_lex",
+      "Delta"
+    ],
     "preferred_lineage": [
       "10.22541/au.176790866.68066655/v1",
       "10.22541/au.176790865.55905239/v1",
@@ -65,7 +147,16 @@
     "cross_domain_bridge_must_record_lost_structure": true,
     "time_model_must_match_balance_notation": true,
     "static_entropy_order_implies_dynamics": false,
-    "admissible_recovery_implies_information_decrease": false
+    "admissible_recovery_implies_information_decrease": false,
+    "source_claim_recording_implies_uft_endorsement": false,
+    "missing_final_doi_may_be_guessed": false,
+    "dependency_edge_implies_truth": false,
+    "corpus_status_vocabulary_is_self_authorizing": false,
+    "alternate_identifier_may_be_untyped": false,
+    "evidence_path_may_escape_repository": false,
+    "work_dependency_cycle_allowed": false,
+    "human_machine_corpus_drift_allowed": false,
+    "established_literature_exemption_is_unrestricted": false
   },
   "vopson": {
     "orcid": "0000-0002-8073-5538",
@@ -106,6 +197,15 @@
     "theory/THEOREM_TARGETS.md",
     "theory/FINITE_RESULTS.md",
     "machine/finite_results.json",
+    "research/vopson/AUTHOR.json",
+    "research/vopson/CORPUS.md",
+    "research/vopson/corpus.json",
+    "research/vopson/CLAIM_GRAPH.md",
+    "research/vopson/CLAIM_GRAPH.json",
+    "research/vopson/DEFINITIONS.md",
+    "research/vopson/REPRODUCTION_MATRIX.md",
+    "research/vopson/COUNTEREXAMPLE_MATRIX.md",
+    "research/vopson/RESPONSE_HISTORY.md",
     "research/VOPSON_MATRIX.md",
     "ROADMAP.md"
   ]
