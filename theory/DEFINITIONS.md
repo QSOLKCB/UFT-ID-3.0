@@ -22,9 +22,9 @@ A = { s in S | every hard constraint in C is satisfied by s }.
 
 `A` may be discrete or continuous and need not be a linear subspace.
 
-## D4. Residual
+## D4. Scalar residual
 
-When a suitable non-negative distance or violation function exists, define a residual
+When a suitable non-negative distance or violation function exists, define a scalar residual
 
 ```text
 r : S -> R_{>=0}
@@ -42,11 +42,31 @@ The converse `r(s)=0 -> s in A` requires assumptions such as closedness of `A` i
 
 ## D5. Tension functional
 
-Given a residual vector `r(s)` and an appropriate positive semidefinite stiffness object `K`, define the quadratic tension candidate
+The canonical scalar specialization uses the scalar residual from D4:
 
 ```text
-Phi(s) = 1/2 * r(s)^T K r(s).
+Phi(s) = (k/2) * r(s)^2,    k >= 0.
 ```
+
+A vector-residual specialization is permitted only after introducing a separate residual map
+
+```text
+rho : S -> V
+```
+
+into a real inner-product space `V`, together with a declared positive-semidefinite self-adjoint operator
+
+```text
+K : V -> V.
+```
+
+Then
+
+```text
+Phi(s) = 1/2 * <rho(s), K rho(s)>.
+```
+
+The scalar residual `r` and vector residual `rho` are distinct typed objects and must not be silently interchanged.
 
 Other tension functionals may be used if stated explicitly.
 
@@ -64,9 +84,9 @@ A proposed evolution is a map or evolution family
 F : S -> S
 ```
 
-in discrete time, or its continuous/stochastic analogue.
+in discrete time, or its explicitly declared continuous-time or stochastic analogue.
 
-`F(s)` is the candidate next state before the admissibility audit.
+`F(s)` is the candidate next state before the admissibility audit in the discrete specialization.
 
 ## D8. Candidate recovery set
 
@@ -78,7 +98,7 @@ R_A(x) subseteq A.
 
 The simplest finite model uses `R_A(x)=A`.
 
-## D9. Primary recovery objective
+## D9. Ordered recovery objectives
 
 Let
 
@@ -187,43 +207,63 @@ This is representation relative. It does not by itself measure physical informat
 
 A regime is a model context containing at least a state domain, constraints, and any calibration or scope conditions needed to interpret quantities.
 
-Write regimes as `Ra`, `Rb`, and so forth.
+Write regimes as `R_a`, `R_b`, and so forth.
 
 ## D20. Transport map
 
-A transport map from regime `a` to regime `b` is
+A transport map from regime `a` to regime `b` is defined on a declared ambient source domain
 
 ```text
-T_ab : A_a -> S_b.
+T_ab : D_ab -> S_b,
+A_a subseteq D_ab subseteq S_a.
 ```
 
-It carries states, parameters, assumptions, or representations between declared regimes.
+The smallest admissible-only specialization chooses `D_ab = A_a`. A larger ambient domain is required for residual-stability theorems that compare transport behavior away from `A_a`.
+
+The transported object may be a state, parameter, assumption, or representation, but its type must be explicit.
 
 ## D21. Transport admissibility
 
-Transport of `s` is admissible when
+For `s in D_ab`, transport is target-admissible when
 
 ```text
 T_ab(s) in A_b.
 ```
+
+When a theorem concerns preservation of admissibility, it must additionally state whether the source assumption `s in A_a` is required.
 
 ## D22. Transport residual
 
 When the target regime has a suitable distance,
 
 ```text
-r_T(s) = d_b(T_ab(s), A_b).
+r_T(s) = d_b(T_ab(s), A_b),    s in D_ab.
+```
+
+This is distinct from the source residual
+
+```text
+r_a(s) = d_a(s, A_a).
 ```
 
 ## D23. Transport shear
 
-If comparable invariant maps `C_a` and `C_b` have been defined, a transport distortion may be written schematically as
+Constraint symbols are not reused as invariant maps.
+
+Let
 
 ```text
-kappa_T(s) = D_C(C_b(T_ab(s)), C_a(s)).
+V_a : D_ab -> Z
+V_b : S_b  -> Z
 ```
 
-The choice of invariant map and distance `D_C` must be specified. No universal formula is assumed.
+be declared structural/invariant maps into a common comparison space `Z`, equipped with a distance or divergence `D_Z`. Then a transport distortion may be defined as
+
+```text
+kappa_T(s) = D_Z(V_b(T_ab(s)), V_a(s)).
+```
+
+If the natural codomains differ, an explicit comparison/bridge map must be introduced before `kappa_T` is defined. No universal formula is assumed.
 
 ## D24. Admissible fixed point
 
@@ -234,26 +274,57 @@ s_star in A
 G(s_star) = s_star.
 ```
 
-## D25. Information balance decomposition
+## D25. Information-balance forms
 
-A candidate information-balance decomposition is an identity of the form
+A balance equation is model-specific and must match the model's time structure.
+
+### D25a. Differentiable continuous-time form
+
+If `t -> I_t` is differentiable, or absolutely continuous with an almost-everywhere derivative, a candidate decomposition may be written
 
 ```text
-dI/dt = P_I - L_I - B_I + X_I
+dI_t/dt = P_I(t) - L_I(t) - B_I(t) + X_I(t)
 ```
 
-where the meanings of production `P_I`, internal loss `L_I`, boundary flux `B_I`, and constraint/recovery contribution `X_I` are defined for a specific model.
+for the times at which the derivative exists.
 
-This is presently a theorem target/template, not an asserted universal law.
+### D25b. Discrete-time form
+
+For a discrete trajectory `I_n`, use
+
+```text
+Delta I_n = I_{n+1} - I_n
+          = P_I[n] - L_I[n] - B_I[n] + X_I[n].
+```
+
+### D25c. Stochastic form
+
+For a stochastic process `X_t`, the balance must specify the object being differentiated. Examples include an expectation-level identity
+
+```text
+d/dt E[I(X_t)] = P_I(t) - L_I(t) - B_I(t) + X_I(t)
+```
+
+when the expectation and derivative are well-defined, or a generator/martingale decomposition stated for the chosen stochastic model.
+
+The symbols `P_I`, `L_I`, `B_I`, and `X_I` are placeholders until independently defined from the model dynamics, boundary terms, observation contract, and recovery mechanism. The decomposition is presently a theorem template, not an asserted universal law.
 
 ## D26. Restricted infodynamic regime
 
-A restricted infodynamic regime is any explicitly defined class of systems for which the chosen information functional satisfies
+A restricted infodynamic regime is an explicitly defined class of systems for which the chosen information functional satisfies a declared monotonicity statement under stated assumptions.
+
+Continuous-time form:
 
 ```text
-dI/dt <= 0
+dI_t/dt <= 0
 ```
 
-under stated assumptions.
+where the derivative exists.
 
-The goal is to derive those assumptions rather than stipulate universality.
+Discrete-time form:
+
+```text
+Delta I_n <= 0.
+```
+
+For stochastic models, the exact pathwise, expectation-level, or generator-level monotonicity statement must be declared rather than inferred from the deterministic notation.
