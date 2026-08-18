@@ -131,7 +131,7 @@ research/vopson/DEFINITIONS.md
 Rules:
 
 1. ORCID `0000-0002-8073-5538` is a public bibliographic anchor only.
-2. Never invent a DOI, source locator, review status, or reproduction result.
+2. Never invent a DOI, source locator, review status, source-byte hash, or reproduction result.
 3. A dependency edge records reliance, not truth.
 4. `metadata-verified` is not `reproduced`.
 5. `PROVED` and `COUNTEREXAMPLE` require repository-contained evidence unless
@@ -139,6 +139,49 @@ Rules:
 6. Human corpus tables must match their JSON authorities.
 7. Static entropy ordering does not supply physical dynamics.
 8. A restricted deterministic Shannon theorem is not the full published SLI.
+
+## VOP-2019-MEI reproduction authority
+
+The first source-specific reproduction package lives under:
+
+```text
+research/vopson/reproduction/2019-mei/
+experiments/reproduction/vopson_2019_mei/
+experiments/run_pr6.py
+scripts/validate_vopson_2019_mei.py
+tests/test_vopson_2019_mei.py
+```
+
+It reproduces the 2019 paper's Eq. (6) arithmetic and displayed `300 K`, `2.73 K`,
+and decimal `1 TB` numerical values while keeping the physical bridge explicit:
+
+```text
+LANDAUER_ERASURE_BOUND
+!= INTRINSIC_STORED_BIT_ENERGY
+```
+
+The package records the source's p. 2 erasure-inequality direction as an
+internal source-text inconsistency rather than silently repairing it.
+
+The reproduction status means the source arithmetic is independently regenerated
+under the declared identification. It does **not** mean intrinsic information mass
+has been physically validated.
+
+The promotion is synchronized across `corpus.json`, `CLAIM_GRAPH.json`, their
+human tables, `REPRODUCTION_MATRIX.md`, and the source-specific result. The work
+is `reproduced`, while `CL-MEI-BIT-MASS` deliberately remains a `THEOREM_TARGET`
+with assessment `arithmetic-reproduced-physical-hypothesis-unresolved`.
+
+```text
+ARITHMETIC_REPRODUCED
+!= PREMISE_VALIDATED
+!= PHYSICAL_INTERPRETATION_VALIDATED
+!= EXPERIMENTALLY_CONFIRMED
+```
+
+Primary paper bytes are not committed. Cite the DOI and exact page/equation
+locators. Never invent a source PDF hash merely because local reproduction files
+have deterministic hashes.
 
 ## Reproducibility authority
 
@@ -164,11 +207,14 @@ python -m compileall -q experiments scripts tests
 python scripts/render_vopson_docs.py --check
 python scripts/validate_vopson_corpus.py
 python scripts/validate_cross_repo_patterns.py
+python scripts/validate_vopson_2019_mei.py
 python scripts/validate_reproducibility.py
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 python experiments/run_pr2.py --json
 python experiments/run_cross_repo.py --json
+python experiments/reproduction/vopson_2019_mei/run.py --json
+python experiments/run_pr6.py --json
 ```
 
 To update machine-derived Vopson Markdown tables intentionally:
@@ -201,6 +247,11 @@ Then review the diff and rerun `--check`.
     consensus, recovery, or transport.
 12. Do not use legacy QAI-UFT or info-mass-gravity ontology as formal authority;
     their registered role is adversarial/quarantined lineage only.
+13. Do not infer intrinsic stored-bit energy from the Landauer erasure bound
+    without an independently justified physical bridge.
+14. Correct arithmetic is not experimental confirmation.
+15. Do not silently correct a source-text inconsistency; record the printed
+    source and the comparison standard separately.
 
 ## Lean
 
@@ -229,8 +280,14 @@ finite minimum sufficient-basis selector.
 15. `research/vopson/CLAIM_GRAPH.md`
 16. `research/vopson/DEFINITIONS.md`
 17. `research/vopson/REPRODUCTION_MATRIX.md`
-18. `research/vopson/COUNTEREXAMPLE_MATRIX.md`
-19. `research/vopson/RESPONSE_HISTORY.md`
-20. `research/reports/2026-08-18-PR4-ACTION-REGISTER.md`
-21. `research/VOPSON_MATRIX.md`
-22. `ROADMAP.md`
+18. `research/vopson/reproduction/2019-mei/SOURCE_MAP.md`
+19. `research/vopson/reproduction/2019-mei/DERIVATION.md`
+20. `research/vopson/reproduction/2019-mei/ASSUMPTION_GRAPH.json`
+21. `research/vopson/reproduction/2019-mei/DIMENSIONAL_AUDIT.md`
+22. `research/vopson/reproduction/2019-mei/CONTROL_MATRIX.md`
+23. `research/vopson/reproduction/2019-mei/result.json`
+24. `research/vopson/COUNTEREXAMPLE_MATRIX.md`
+25. `research/vopson/RESPONSE_HISTORY.md`
+26. `research/reports/2026-08-18-PR4-ACTION-REGISTER.md`
+27. `research/VOPSON_MATRIX.md`
+28. `ROADMAP.md`

@@ -6,6 +6,7 @@ on:
       - "experiments/**"
       - "scripts/validate_reproducibility.py"
       - "scripts/validate_cross_repo_patterns.py"
+      - "scripts/validate_vopson_2019_mei.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -23,6 +24,7 @@ on:
       - "experiments/**"
       - "scripts/validate_reproducibility.py"
       - "scripts/validate_cross_repo_patterns.py"
+      - "scripts/validate_vopson_2019_mei.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -64,6 +66,14 @@ jobs:
       - name: Validate cross-repository pattern registry
         run: python scripts/validate_cross_repo_patterns.py
 
+      - name: Validate Vopson 2019 MEI authority surface
+        run: python scripts/validate_vopson_2019_mei.py
+
+      - name: Reproduce Vopson 2019 MEI arithmetic
+        run: |
+          python experiments/reproduction/vopson_2019_mei/run.py --json > /tmp/vopson-2019-mei.json
+          python experiments/run_pr6.py --hash-only > /tmp/vopson-2019-mei-receipt.json
+
       - name: Unit and adversarial tests
         run: python -m unittest discover -s tests -v
 
@@ -78,6 +88,9 @@ jobs:
           python experiments/counterexamples/finite_entropy_signs/run.py --json > artifacts/finite-signs.json 2> artifacts/finite-signs.stderr.txt || true
           python experiments/representation/coarse_graining/run.py --json > artifacts/coarse-graining.json 2> artifacts/coarse-graining.stderr.txt || true
           python experiments/reproduction/vopson_2026_polygons/run.py --max-N 16 --max-n 6 --json > artifacts/polygon-audit.json 2> artifacts/polygon-audit.stderr.txt || true
+          python experiments/reproduction/vopson_2019_mei/run.py --json > artifacts/vopson-2019-mei.json 2> artifacts/vopson-2019-mei.stderr.txt || true
+          python experiments/run_pr6.py --json > artifacts/vopson-2019-mei-receipt.json 2> artifacts/vopson-2019-mei-receipt.stderr.txt || true
+          python scripts/validate_vopson_2019_mei.py --json > artifacts/vopson-2019-mei-validation.json 2> artifacts/vopson-2019-mei-validation.stderr.txt || true
           python scripts/validate_cross_repo_patterns.py --json > artifacts/cross-repo-pattern-validation.json 2> artifacts/cross-repo-pattern-validation.stderr.txt || true
           python experiments/run_cross_repo.py --json > artifacts/cross-repo-receipt.json 2> artifacts/cross-repo-receipt.stderr.txt || true
           python scripts/validate_reproducibility.py --json > artifacts/reproducibility-validation.json 2> artifacts/reproducibility-validation.stderr.txt || true

@@ -37,11 +37,14 @@ python -m compileall -q experiments scripts tests
 python scripts/render_vopson_docs.py --check
 python scripts/validate_vopson_corpus.py
 python scripts/validate_cross_repo_patterns.py
+python scripts/validate_vopson_2019_mei.py
 python scripts/validate_reproducibility.py
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 python experiments/run_pr2.py --json
 python experiments/run_cross_repo.py --json
+python experiments/reproduction/vopson_2019_mei/run.py --json
+python experiments/run_pr6.py --json
 ```
 
 `python -O` is intentional. Scientific checks must not depend on ordinary
@@ -67,9 +70,10 @@ requires it and the difference is documented explicitly.
 
 `experiments/run_pr2.py` records the finite entropy/polygon evidence surface.
 `experiments/run_cross_repo.py` records the cross-repository finite formal-pattern
-surface.
+surface. `experiments/run_pr6.py` records the VOP-2019-MEI source-specific
+reproduction package.
 
-Both receipt families bind deterministic source files and canonical result
+All receipt families bind deterministic repository files and canonical result
 payloads while keeping runtime metadata separate from the portable suite
 fingerprint.
 
@@ -85,8 +89,66 @@ experiments/run_cross_repo.py
 shared experiment package / information primitives
 ```
 
+For VOP-2019-MEI, the receipt binds:
+
+```text
+SOURCE_MAP.md
+DERIVATION.md
+ASSUMPTION_GRAPH.json
+DIMENSIONAL_AUDIT.md
+CONTROL_MATRIX.md
+result.json
+fixtures.json
+run.py
+test_vopson_2019_mei.py
+run_pr6.py
+```
+
+The primary paper bytes are not redistributed. Consequently the PR6 receipt
+records `primary_source_byte_hash = null` and identifies the scientific source
+through DOI plus page/equation locators. A local evidence-chain hash must never
+be mislabeled as a hash of unavailable or uncommitted primary-source bytes.
+
+```text
+LOCAL_REPRODUCTION_HASH != PRIMARY_SOURCE_BYTE_HASH
+DOI_AND_LOCATOR_IDENTITY != SOURCE_PDF_BYTE_HASH
+```
+
 Runtime metadata is descriptive. A suite fingerprint identifies the declared
 source-and-result bundle; it does not establish semantic truth.
+
+## VOP-2019-MEI reproduction boundary
+
+The 2019 reproduction treats the following as different evidence objects:
+
+```text
+Landauer erasure lower bound
+intrinsic stored-bit energy identification
+mass-energy conversion conditional on stored energy
+numerical Eq. (6) prediction
+experimental confirmation
+```
+
+The repository reproduces Eq. (6) and its displayed numerical consequences
+conditional on the source's additional stored-energy identification. It does not
+promote that identification merely because the arithmetic is correct.
+
+The source's p. 2 erasure paragraph contains a printed inequality-direction
+inconsistency relative to the immediately preceding balance and the standard
+lower-bound Landauer form. The reproduction preserves the printed-source issue
+and records the comparison standard separately.
+
+```text
+ARITHMETIC_REPRODUCED
+!= PREMISE_VALIDATED
+!= PHYSICAL_INTERPRETATION_VALIDATED
+!= EXPERIMENTALLY_CONFIRMED
+```
+
+`scripts/validate_vopson_2019_mei.py` validates the source-specific assumption
+graph, its node/edge vocabulary and referential integrity, the result boundary,
+and synchronization of the promoted reproduction status across `corpus.json`,
+`CLAIM_GRAPH.json`, their generated human tables, and `REPRODUCTION_MATRIX.md`.
 
 ## Cross-repository provenance pins
 
@@ -117,6 +179,9 @@ pr2-receipt.json
 finite-signs.json
 coarse-graining.json
 polygon-audit.json
+vopson-2019-mei.json
+vopson-2019-mei-receipt.json
+vopson-2019-mei-validation.json
 cross-repo-pattern-validation.json
 cross-repo-receipt.json
 vopson-corpus-validation.json
@@ -162,6 +227,21 @@ CI checks them without modifying the tree:
 python scripts/render_vopson_docs.py --check
 ```
 
+When a reproduction status is promoted, the canonical work registry, canonical
+claim graph, generated human tables, reproduction matrix, and source-specific
+result must be synchronized in the same change. A source claim may remain a
+`THEOREM_TARGET` even after its arithmetic has been reproduced when the physical
+premise itself remains unresolved.
+
+For `VOP-2019-MEI`, the synchronized state is:
+
+```text
+work reproduction_status = reproduced
+work equation_map_status  = complete
+claim class                = THEOREM_TARGET
+claim assessment           = arithmetic-reproduced-physical-hypothesis-unresolved
+```
+
 The cross-repository pattern atlas is a human diagnostic explanation of
 `machine/cross_repo_patterns.json`; result authority is split explicitly between
 `theory/CROSS_REPO_RESULTS.md` and `machine/cross_repo_results.json`. The
@@ -171,8 +251,9 @@ classes, and result dependencies.
 ## Nonclaims
 
 This contract does not claim that deterministic output proves a physical law,
-that a hash proves scientific correctness, that a public software invariant is
-a physical law, that a pinned source blob proves live remote freshness, that a
-complete bibliography is a completed reproduction, that two Python versions
-constitute universal portability, or that CI can replace independent scientific
-review.
+that a hash proves scientific correctness, that correct arithmetic validates a
+physical premise, that a synchronized reproduction promotion proves the source
+hypothesis, that a public software invariant is a physical law, that a pinned
+source blob proves live remote freshness, that a complete bibliography is a
+completed reproduction, that two Python versions constitute universal
+portability, or that CI can replace independent scientific review.

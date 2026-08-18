@@ -1,9 +1,9 @@
 {
-  "schema_version": "1.4.0",
+  "schema_version": "1.5.1",
   "project": {
     "name": "UFT-ID 3.0",
     "expanded_name": "Unified Field Theory of Information Dynamics 3.0",
-    "status": "cross-repository-formal-pattern-hardening",
+    "status": "vopson-2019-mei-reproduction-hardened",
     "repository": "QSOLKCB/UFT-ID-3.0"
   },
   "canonical_system": {
@@ -31,9 +31,7 @@
       ".github/workflows/vopson-corpus.yml"
     ],
     "workflow_extensions": [".yml", ".yaml"],
-    "workflow_permissions": {
-      "contents": "read"
-    },
+    "workflow_permissions": {"contents": "read"},
     "job_permission_overrides_allowed": false,
     "action_pins": {
       "actions/checkout": "d23441a48e516b6c34aea4fa41551a30e30af803",
@@ -53,10 +51,7 @@
   },
   "experiment_library": {
     "information_primitives": "experiments/lib/information.py",
-    "package_initializers": [
-      "experiments/__init__.py",
-      "experiments/lib/__init__.py"
-    ],
+    "package_initializers": ["experiments/__init__.py", "experiments/lib/__init__.py"],
     "scientific_asserts_allowed": false,
     "default_probability_tolerance": 1e-12,
     "shannon_logarithm_base": 2,
@@ -66,7 +61,9 @@
     "receipt_runner": "experiments/run_pr2.py",
     "receipt_version": "1.1.1",
     "cross_repo_receipt_runner": "experiments/run_cross_repo.py",
-    "cross_repo_receipt_version": "1.0.0"
+    "cross_repo_receipt_version": "1.0.0",
+    "vopson_2019_mei_receipt_runner": "experiments/run_pr6.py",
+    "vopson_2019_mei_receipt_version": "1.0.0"
   },
   "finite_result_authority": {
     "human": "theory/FINITE_RESULTS.md",
@@ -101,23 +98,31 @@
     "renderer": "scripts/render_vopson_docs.py",
     "rule": "Recording a source claim does not adopt it as a UFT-ID claim; exact reproduction and one-class UFT-ID assessment remain separate."
   },
+  "vopson_2019_mei_reproduction": {
+    "source_work_id": "VOP-2019-MEI",
+    "source_doi": "10.1063/1.5123794",
+    "source_map": "research/vopson/reproduction/2019-mei/SOURCE_MAP.md",
+    "derivation": "research/vopson/reproduction/2019-mei/DERIVATION.md",
+    "assumption_graph": "research/vopson/reproduction/2019-mei/ASSUMPTION_GRAPH.json",
+    "dimensional_audit": "research/vopson/reproduction/2019-mei/DIMENSIONAL_AUDIT.md",
+    "control_matrix": "research/vopson/reproduction/2019-mei/CONTROL_MATRIX.md",
+    "result": "research/vopson/reproduction/2019-mei/result.json",
+    "experiment": "experiments/reproduction/vopson_2019_mei/run.py",
+    "fixtures": "experiments/reproduction/vopson_2019_mei/fixtures.json",
+    "tests": "tests/test_vopson_2019_mei.py",
+    "validator": "scripts/validate_vopson_2019_mei.py",
+    "receipt_runner": "experiments/run_pr6.py",
+    "receipt_version": "1.0.0",
+    "equation_reproduced": "Eq. (6)",
+    "primary_source_byte_policy": "Primary paper bytes are not committed; identify the source by DOI plus page/equation locators and never invent a source-byte hash.",
+    "source_text_issue": "The p.2 printed erasure-heat inequality direction is preserved as an internal source-text inconsistency rather than silently corrected.",
+    "promotion_rule": "ARITHMETIC_REPRODUCED != PREMISE_VALIDATED != PHYSICAL_INTERPRETATION_VALIDATED != EXPERIMENTALLY_CONFIRMED"
+  },
   "vopson_corpus_schema": {
     "snapshot_date": "2026-08-18",
-    "peer_review_status": [
-      "peer-reviewed",
-      "editorial-peer-reviewed",
-      "early-online-peer-reviewed",
-      "not-indicated",
-      "not-applicable"
-    ],
+    "peer_review_status": ["peer-reviewed", "editorial-peer-reviewed", "early-online-peer-reviewed", "not-indicated", "not-applicable"],
     "equation_map_status": ["pending", "partial", "complete", "not-applicable"],
-    "reproduction_status": [
-      "metadata-verified",
-      "partial-reproduction",
-      "reproduced",
-      "blocked",
-      "not-started"
-    ],
+    "reproduction_status": ["metadata-verified", "partial-reproduction", "reproduced", "blocked", "not-started"],
     "work_types": ["journal-article", "erratum", "dataset", "editorial", "response", "news-and-views"],
     "node_kinds": ["external-premise", "source-claim", "interpretive-inference", "comparison-result"],
     "edge_types": ["requires", "extends", "supports", "interprets", "tests"],
@@ -129,10 +134,7 @@
       "renderer": "scripts/render_vopson_docs.py"
     }
   },
-  "claim_classes": [
-    "DEFINITION", "THEOREM_TARGET", "PROVED", "COUNTEREXAMPLE", "DIAGNOSTIC",
-    "EMPIRICAL", "INTERPRETIVE", "SPECULATIVE", "NONCLAIM"
-  ],
+  "claim_classes": ["DEFINITION", "THEOREM_TARGET", "PROVED", "COUNTEREXAMPLE", "DIAGNOSTIC", "EMPIRICAL", "INTERPRETIVE", "SPECULATIVE", "NONCLAIM"],
   "authority_layers": ["formal-core", "diagnostic", "empirical", "interpretive", "speculative"],
   "inherited_constraint_core": {
     "symbols": ["S", "A", "r", "Phi", "Phi_crit", "Pi_lex", "Delta"],
@@ -180,7 +182,11 @@
     "formal_proof_implies_implementation_conformance": false,
     "implementation_conformance_implies_empirical_validation": false,
     "semantic_coincidence_implies_causation": false,
-    "adjacent_repo_truth_is_inherited": false
+    "adjacent_repo_truth_is_inherited": false,
+    "landauer_erasure_bound_implies_intrinsic_stored_bit_energy": false,
+    "arithmetic_reproduction_implies_physical_validation": false,
+    "source_text_inconsistency_may_be_silently_corrected": false,
+    "source_byte_hash_may_be_invented": false
   },
   "vopson": {
     "orcid": "0000-0002-8073-5538",
@@ -217,6 +223,13 @@
     "research/vopson/CLAIM_GRAPH.json", "research/vopson/DEFINITIONS.md",
     "research/vopson/REPRODUCTION_MATRIX.md", "research/vopson/COUNTEREXAMPLE_MATRIX.md",
     "research/vopson/RESPONSE_HISTORY.md",
+    "research/vopson/reproduction/2019-mei/SOURCE_MAP.md",
+    "research/vopson/reproduction/2019-mei/DERIVATION.md",
+    "research/vopson/reproduction/2019-mei/ASSUMPTION_GRAPH.json",
+    "research/vopson/reproduction/2019-mei/DIMENSIONAL_AUDIT.md",
+    "research/vopson/reproduction/2019-mei/CONTROL_MATRIX.md",
+    "research/vopson/reproduction/2019-mei/result.json",
+    "scripts/validate_vopson_2019_mei.py",
     "research/reports/2026-08-18-PR4-ACTION-REGISTER.md",
     "research/VOPSON_MATRIX.md", "ROADMAP.md"
   ]

@@ -49,7 +49,7 @@ MEI + particle info + SLI + Planck-area counting + entropic-force relation
 | `EXT-PLANCK-AREA` | Planck-area cell counting | `external-premise` | `INTERPRETIVE` | `application-assumption` | - |
 | `EXT-ENTROPIC-FORCE` | Entropic-force relation | `external-premise` | `INTERPRETIVE` | `application-assumption` | - |
 | `EXT-LANGUAGE-DOMINANCE` | Dominant-category population dynamics | `external-premise` | `INTERPRETIVE` | `model-assumption` | - |
-| `CL-MEI-BIT-MASS` | Stored information bit has finite mass | `source-claim` | `THEOREM_TARGET` | `physical-hypothesis-unresolved` | `VOP-2019-MEI` |
+| `CL-MEI-BIT-MASS` | Stored information bit has finite mass | `source-claim` | `THEOREM_TARGET` | `arithmetic-reproduced-physical-hypothesis-unresolved` | `VOP-2019-MEI` |
 | `CL-INFO-CATASTROPHE` | Digital information growth produces a future information catastrophe | `source-claim` | `THEOREM_TARGET` | `dependent-extrapolation-pending-reproduction` | `VOP-2020-CATASTROPHE`, `VOP-2020-CATASTROPHE-ERRATUM`, `VOP-2020-CATASTROPHE-DATA` |
 | `CL-PARTICLE-INFO` | Visible-matter particles encode a quantifiable information content | `source-claim` | `THEOREM_TARGET` | `quantitative-model-pending-reproduction` | `VOP-2021-VISIBLE-MATTER` |
 | `CL-ANNIHILATION-PHOTONS` | Annihilation emits additional information-erasure photons | `source-claim` | `THEOREM_TARGET` | `experimental-prediction-unresolved` | `VOP-2022-MEI-EXPERIMENT` |

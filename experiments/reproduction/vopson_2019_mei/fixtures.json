@@ -1,0 +1,34 @@
+{
+  "type": "uft-id-vopson-2019-mei-fixtures",
+  "schema_version": "1.0.0",
+  "constants": {
+    "boltzmann_J_per_K": 1.380649e-23,
+    "speed_of_light_m_per_s": 299792458,
+    "ln2": 0.6931471805599453
+  },
+  "temperature_cases": [
+    {"temperature_K": 0.0, "landauer_energy_J": 0.0, "conditional_mass_kg": 0.0},
+    {"temperature_K": 2.73, "landauer_energy_J": 2.6125907854216388e-23, "conditional_mass_kg": 2.9068992838445533e-40},
+    {"temperature_K": 77.0, "landauer_energy_J": 7.368845805035391e-22, "conditional_mass_kg": 8.198946698023099e-39},
+    {"temperature_K": 273.15, "landauer_energy_J": 2.6140262748641777e-21, "conditional_mass_kg": 2.9084964812532587e-38},
+    {"temperature_K": 300.0, "landauer_energy_J": 2.870978885078724e-21, "conditional_mass_kg": 3.1943948174115975e-38},
+    {"temperature_K": 310.0, "landauer_energy_J": 2.9666781812480147e-21, "conditional_mass_kg": 3.3008746446586507e-38}
+  ],
+  "storage_case": {
+    "label": "source-1TB-decimal",
+    "bytes": 1000000000000,
+    "bits": 8000000000000,
+    "temperature_K": 300.0,
+    "expected_conditional_mass_kg": 2.5555158539292776e-25,
+    "source_reported_mass_kg": 2.5e-25
+  },
+  "source_reported": {
+    "room_temperature_bit_mass_kg": 3.19e-38,
+    "cmb_temperature_K": 2.73,
+    "cmb_bit_mass_kg": 2.91e-40
+  },
+  "comparison_tolerances": {
+    "relative": 1e-12,
+    "source_rounding_relative": 0.03
+  }
+}
