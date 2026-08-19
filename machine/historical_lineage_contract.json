@@ -1,0 +1,45 @@
+{
+  "type": "uft-id-historical-lineage-contract",
+  "schema_version": "1.0.0",
+  "snapshot_date": "2026-08-19",
+  "authorities": {
+    "sources": "machine/historical_sources.json",
+    "symbols": "machine/historical_symbols.json",
+    "conflicts": "machine/historical_conflicts.json",
+    "results": "machine/historical_results.json",
+    "inheritance": "machine/methodological_inheritance.json",
+    "human": "research/HISTORICAL_LINEAGE.md",
+    "validator": "scripts/validate_historical_lineage.py",
+    "receipt": "experiments/run_lineage.py",
+    "tests": "tests/test_historical_lineage.py"
+  },
+  "required_platform_families": [
+    "academia",
+    "zenodo",
+    "authorea",
+    "google-drive",
+    "github",
+    "archived-copy"
+  ],
+  "result_classes": [
+    "formal",
+    "computational",
+    "empirical",
+    "interpretive",
+    "speculative"
+  ],
+  "exit_criterion": "Every reused idea has a registered source, exactly one UFT-ID claim class, preserved structure, explicit non-inheritance and a prohibited inference; every historical source has classified-result coverage; definition conflicts remain explicit.",
+  "hard_rules": {
+    "historical_source_implies_current_endorsement": false,
+    "platform_mirror_confers_authority": false,
+    "missing_metadata_may_be_guessed": false,
+    "definition_conflicts_may_be_silently_reconciled": false,
+    "method_inheritance_implies_ontology_inheritance": false,
+    "source_hash_implies_semantic_truth": false,
+    "formal_result_implies_runtime_conformance": false,
+    "runtime_conformance_implies_empirical_validation": false,
+    "observer_inaccessibility_implies_physical_destruction": false,
+    "publish_private_connector_identifiers": false,
+    "working_copy_export_hash_equals_native_cloud_hash": false
+  }
+}
