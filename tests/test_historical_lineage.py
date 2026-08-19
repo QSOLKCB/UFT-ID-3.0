@@ -153,9 +153,9 @@ class CodexMutationTests(unittest.TestCase):
 
     def test_inheritance_requires_uft_mapping(self):
         value = copy.deepcopy(docs())
-        del value["inheritance"]["imports"][0]["uft_mapping"]
+        value["inheritance"]["imports"][0]["uft_mapping"] = []
         validation = validate_docs(value)
-        assert_error(self, validation, "INH-01.uft_mapping must be a list")
+        assert_error(self, validation, "INH-01.uft_mapping must be non-empty")
 
     def test_inheritance_mapping_must_resolve_to_canonical_id(self):
         value = copy.deepcopy(docs())
@@ -240,18 +240,18 @@ class CodexMutationTests(unittest.TestCase):
         item = next(
             item for item in value["results"]["results"] if item["result_class"] == "speculative"
         )
-        del item["not_inherited"]
+        item["not_inherited"] = []
         validation = validate_docs(value)
-        assert_error(self, validation, f"{item['result_id']}.not_inherited must be a list")
+        assert_error(self, validation, f"{item['result_id']} interpretive/speculative result requires non-empty not_inherited")
 
     def test_result_schema_requires_title_summary_status_and_preservation_lists(self):
         value = copy.deepcopy(docs())
-        del value["results"]["results"][0]["title"]
+        value["results"]["results"][0]["title"] = ""
         validation = validate_docs(value)
         assert_error(self, validation, "HIST-R01.title required")
 
         value = copy.deepcopy(docs())
-        del value["results"]["results"][0]["preserved_for_uft3"]
+        value["results"]["results"][0]["preserved_for_uft3"] = None
         validation = validate_docs(value)
         assert_error(self, validation, "HIST-R01.preserved_for_uft3 must be a list")
 
