@@ -7,6 +7,7 @@ on:
       - "scripts/validate_reproducibility.py"
       - "scripts/validate_cross_repo_patterns.py"
       - "scripts/validate_vopson_2019_mei.py"
+      - "scripts/validate_historical_lineage.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -14,6 +15,7 @@ on:
       - "theory/AUXILIARY_CONTRACTS.md"
       - "theory/CROSS_REPO_RESULTS.md"
       - "research/CROSS_REPO_PATTERN_ATLAS.md"
+      - "research/HISTORICAL_LINEAGE.md"
       - "research/vopson/**"
       - "machine/**"
       - "docs/REPRODUCIBILITY.md"
@@ -25,6 +27,7 @@ on:
       - "scripts/validate_reproducibility.py"
       - "scripts/validate_cross_repo_patterns.py"
       - "scripts/validate_vopson_2019_mei.py"
+      - "scripts/validate_historical_lineage.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -32,6 +35,7 @@ on:
       - "theory/AUXILIARY_CONTRACTS.md"
       - "theory/CROSS_REPO_RESULTS.md"
       - "research/CROSS_REPO_PATTERN_ATLAS.md"
+      - "research/HISTORICAL_LINEAGE.md"
       - "research/vopson/**"
       - "machine/**"
       - "docs/REPRODUCIBILITY.md"
@@ -66,6 +70,9 @@ jobs:
       - name: Validate cross-repository pattern registry
         run: python scripts/validate_cross_repo_patterns.py
 
+      - name: Validate historical lineage authority surface
+        run: python scripts/validate_historical_lineage.py
+
       - name: Validate Vopson 2019 MEI authority surface
         run: python scripts/validate_vopson_2019_mei.py
 
@@ -93,6 +100,8 @@ jobs:
           python scripts/validate_vopson_2019_mei.py --json > artifacts/vopson-2019-mei-validation.json 2> artifacts/vopson-2019-mei-validation.stderr.txt || true
           python scripts/validate_cross_repo_patterns.py --json > artifacts/cross-repo-pattern-validation.json 2> artifacts/cross-repo-pattern-validation.stderr.txt || true
           python experiments/run_cross_repo.py --json > artifacts/cross-repo-receipt.json 2> artifacts/cross-repo-receipt.stderr.txt || true
+          python scripts/validate_historical_lineage.py --json > artifacts/historical-lineage-validation.json 2> artifacts/historical-lineage-validation.stderr.txt || true
+          python experiments/run_lineage.py --json > artifacts/historical-lineage-receipt.json 2> artifacts/historical-lineage-receipt.stderr.txt || true
           python scripts/validate_reproducibility.py --json > artifacts/reproducibility-validation.json 2> artifacts/reproducibility-validation.stderr.txt || true
 
       - name: Retain finite evidence bundle
