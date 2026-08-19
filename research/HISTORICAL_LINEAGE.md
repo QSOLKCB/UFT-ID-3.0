@@ -79,42 +79,49 @@ No audited historical source is promoted to empirical merely because it contains
 
 ### INH-01 Canonical source versus projection
 Claim class: `DEFINITION`. Sources: `UFT-METH-001`.
+UFT mapping: `D27`, `D28`, `D29`, `D30`.
 Preserved: canonical source remains separately identified from projections; retrieval is distinct from inference; absence is unavailable rather than automatically false; epistemic state is preserved across projection.
 Not inherited: QSOL-SUBSTRATE resource layout; private/public context architecture; domain-mode taxonomy; software authority as physical authority.
 Prohibited inference: A projection or retrieval surface is not promoted to source truth or physical ontology.
 
 ### INH-02 Receiver neutrality and non-privileged projection
 Claim class: `DEFINITION`. Sources: `UFT-METH-002`.
+UFT mapping: `D29`, `D33`, `T21`.
 Preserved: receiver is an explicit map; canonical event/source object is separate from receiver artifacts; no receiver is mathematically privileged; preserved and lost structure must be declared.
 Not inherited: E8/D4/qutrit ontology; 303 as physical dimension; audio/MIDI/WAV interpretation; particular receiver vocabulary.
 Prohibited inference: A deterministic receiver is not a uniquely natural observation of the underlying domain.
 
 ### INH-03 Multi-scale invariant preservation and deterministic receipts
 Claim class: `DIAGNOSTIC`. Sources: `UFT-METH-003`.
+UFT mapping: `D28`, `D29`, `D33`, `T21`, `T22`.
 Preserved: canonical input/output identity; recompute-not-trust validation; explicit invariant checks at named boundaries; deterministic evidence receipts; runtime/release identity kept separate from scientific claim.
 Not inherited: quantum hardware validity; fault-tolerance threshold claims; decoder-specific ontology; deterministic software as evidence for deterministic universe.
 Prohibited inference: A replay-safe receipt or invariant match does not establish a physical quantum claim.
 
 ### INH-04 Dark-state / observer-inaccessible specialization
 Claim class: `DIAGNOSTIC`. Sources: `UFT-HIST-009`.
+UFT mapping: `D16`, `D17`, `D18`, `T17`.
 Preserved: internal/latent state may be distinct from observable emission; inaccessibility is observer-relative; black-box limits can be studied without declaring hidden state absent; reconstruction may fail without physical destruction.
 Not inherited: dark information as a substance; dark matter/dark energy identification; psi or anomalous cognition mechanism; consciousness ontology; claim that unobserved means physically destroyed.
 Prohibited inference: Observer inaccessibility is not evidence for a hidden physical substance or anomalous causal channel.
 
 ### INH-05 Calibration locality and provenance discipline
 Claim class: `DIAGNOSTIC`. Sources: `UFT-METH-004`.
+UFT mapping: `D31`, `T18`, `CR3`.
 Preserved: metrics and thresholds are calibration-profile dependent; representation/ground metric/estimator choices are explicit; recalibration is a named event; numerical claims retain provenance labels.
 Not inherited: universal RES/RAG consciousness ontology; 0.42 or any other local threshold as universal constant; Wasserstein distance as universal physical cost; CSNP labels as fundamental physics.
 Prohibited inference: A threshold or metric value measured under one calibration profile cannot be transported unchanged without a bridge.
 
 ### INH-06 Formal theorem != runtime result != physical validation
 Claim class: `DEFINITION`. Sources: `UFT-METH-005`.
+UFT mapping: `D30`, `D33`, `T22`.
 Preserved: model output is untrusted input; consensus/telemetry/provider identity confer no epistemic authority; runtime behavior and tests are distinct from prose/formal declarations; live stochastic inference is not falsely marked replayable.
 Not inherited: NEXUS council/world governance; model-role ontology; shared-world cognitive substrate as scientific ontology; provider-specific semantics.
 Prohibited inference: A proof-looking artifact, runtime success, consensus result, or telemetry record cannot be promoted across evidence layers without the required bridge.
 
 ### INH-07 Machine-readable nonclaim and epistemic-cap surfaces
 Claim class: `DEFINITION`. Sources: `UFT-METH-006`.
+UFT mapping: `D30`, `D33`.
 Preserved: machine-readable epistemic states; machine-readable evidence classes and promotion caps; unknown is not false; conflict remains visible; formal syntax is not proof; receipt identity does not imply empirical truth.
 Not inherited: RSH helix/tissue geometry; biological interpretation; specific claim-tier vocabulary as universal law; RSH formal theorem content.
 Prohibited inference: A machine-readable claim policy constrains what may be asserted; it does not itself prove the governed scientific claim.
