@@ -27,6 +27,7 @@ R = load_module("pr8_receipt", ROOT / "experiments/run_pr8.py")
 def canonical_documents():
     return {
         "contract": json.loads((ROOT / "machine/formalization_contract.json").read_text()),
+        "base_contract": json.loads((ROOT / "machine/contract.json").read_text()),
         "invariants": json.loads((ROOT / "machine/invariant_specs.json").read_text()),
         "assurance": json.loads((ROOT / "machine/assurance_graph.json").read_text()),
         "obligations": json.loads((ROOT / "machine/definition_obligations.json").read_text()),
@@ -45,6 +46,7 @@ def canonical_documents():
 def validate_docs(value):
     return V.validate_documents(
         value["contract"],
+        value["base_contract"],
         value["invariants"],
         value["assurance"],
         value["obligations"],
@@ -108,13 +110,14 @@ class PR8FormalizationTests(unittest.TestCase):
             finally:
                 E.ROOT = old_root
 
-    def test_receipt_deterministic_and_hashes_imported_helpers(self):
+    def test_receipt_deterministic_and_hashes_full_dependencies(self):
         first = R.run_suite()
         second = R.run_suite()
         self.assertEqual(first["suite_fingerprint_sha256"], second["suite_fingerprint_sha256"])
         self.assertEqual(first["result_sha256"], second["result_sha256"])
         self.assertEqual(len(first["suite_fingerprint_sha256"]), 64)
         for path in (
+            "machine/contract.json",
             "experiments/__init__.py",
             "experiments/lib/__init__.py",
             "experiments/lib/information.py",
@@ -134,10 +137,26 @@ class PR8MutationTests(unittest.TestCase):
         value["contract"]["hard_rules"].pop("named_object_implies_well_defined_object")
         self.assert_error_contains(value, "complete expected key set")
 
+    def test_rejects_stale_base_project_contract_schema(self):
+        value = canonical_documents()
+        value["contract"]["base_project_contract_schema"] = "0.0.0"
+        self.assert_error_contains(value, "base_project_contract_schema")
+
+    def test_rejects_base_claim_class_drift(self):
+        value = canonical_documents()
+        value["base_contract"]["claim_classes"].remove("NONCLAIM")
+        self.assert_error_contains(value, "base project claim_classes")
+
     def test_rejects_unregistered_cross_repo_source(self):
         value = canonical_documents()
         value["contract"]["cross_repo_pattern_refs"][0] = "XR-P99"
         self.assert_error_contains(value, "canonical donor pattern set")
+
+    def test_rejects_unrelated_lineage_on_internal_norm_theorem(self):
+        value = canonical_documents()
+        record = next(x for x in value["invariants"]["records"] if x["id"] == "UI-INV-002")
+        record["source_lineage"] = ["XR-P10"]
+        self.assert_error_contains(value, "canonical retained proof semantics")
 
     def test_rejects_private_attachment_identifier_or_extra_metadata_key(self):
         value = canonical_documents()
@@ -145,11 +164,21 @@ class PR8MutationTests(unittest.TestCase):
         source["attachment_id"] = "file-secret-123"
         self.assert_error_contains(value, "exact allow-listed keys")
 
-    def test_rejects_private_source_hash_key_even_when_null_or_fake(self):
+    def test_rejects_private_source_hash_key_even_when_fake(self):
         value = canonical_documents()
         source = value["contract"]["source_inputs"][0]
         source["blob_sha"] = "deadbeef"
         self.assert_error_contains(value, "exact allow-listed keys")
+
+    def test_rejects_private_locator_inside_allowed_scope_value(self):
+        value = canonical_documents()
+        value["contract"]["source_inputs"][0]["scope"] = "private input file-secret-123"
+        self.assert_error_contains(value, "private attachment/connector locator")
+
+    def test_rejects_private_url_inside_allowed_list_value(self):
+        value = canonical_documents()
+        value["contract"]["source_inputs"][0]["not_inherited"][0] = "see https://drive.google.com/private"
+        self.assert_error_contains(value, "private attachment/connector locator")
 
     def test_rejects_invariant_generic_schema_without_name(self):
         value = canonical_documents()
@@ -165,12 +194,29 @@ class PR8MutationTests(unittest.TestCase):
         value = canonical_documents()
         record = next(x for x in value["invariants"]["records"] if x["id"] == "UI-INV-002")
         record.pop("proof")
-        self.assert_error_contains(value, "requires an explicit proof")
+        self.assert_error_contains(value, "canonical retained proof semantics")
+
+    def test_rejects_proved_invariant_property_drift(self):
+        value = canonical_documents()
+        record = next(x for x in value["invariants"]["records"] if x["id"] == "UI-INV-002")
+        record["property"] = "sqnorm(rot90(v)) = 0"
+        record["proof"] = "arbitrary nonempty prose"
+        self.assert_error_contains(value, "canonical retained proof semantics")
 
     def test_rejects_dangling_assurance_edge(self):
         value = canonical_documents()
         value["assurance"]["support_edges"][0]["to"] = "MISSING"
         self.assert_error_contains(value, "dangling endpoint")
+
+    def test_rejects_deleted_canonical_support_edge(self):
+        value = canonical_documents()
+        value["assurance"]["support_edges"].pop()
+        self.assert_error_contains(value, "canonical PR8 graph semantics")
+
+    def test_rejects_mutated_support_edge_relation(self):
+        value = canonical_documents()
+        value["assurance"]["support_edges"][0]["relation"] = "whatever"
+        self.assert_error_contains(value, "canonical PR8 graph semantics")
 
     def test_rejects_duplicate_forbidden_assurance_pair(self):
         value = canonical_documents()
@@ -208,6 +254,18 @@ class PR8MutationTests(unittest.TestCase):
         item["id"] = "MODEL-OBL-ALIEN"
         self.assert_error_contains(value, "model obligation IDs")
 
+    def test_rejects_weakened_entropy_obligation_payload(self):
+        value = canonical_documents()
+        item = next(x for x in value["obligations"]["definition_obligations"] if x["id"] == "DEF-OBL-ENTROPY")
+        item["minimum_declarations"] = ["say entropy"]
+        self.assert_error_contains(value, "minimum_declarations differ from canonical payload")
+
+    def test_rejects_weakened_model_obligation_payload(self):
+        value = canonical_documents()
+        item = next(x for x in value["obligations"]["claim_realization_obligations"] if x["id"] == "MODEL-OBL-SIMULATION")
+        item["required_evidence"] = ["some code"]
+        self.assert_error_contains(value, "required_evidence differs from canonical payload")
+
     def test_rejects_eigenmode_without_minimum_declarations(self):
         value = canonical_documents()
         item = next(x for x in value["obligations"]["definition_obligations"] if x["term"] == "eigenmode")
@@ -219,6 +277,19 @@ class PR8MutationTests(unittest.TestCase):
         value["falsification"]["synthetic_conformance_example"]["rejection_conditions"] = []
         self.assert_error_contains(value, "rejection_conditions")
 
+    def test_rejects_self_authorizing_falsification_required_fields(self):
+        value = canonical_documents()
+        value["falsification"]["required_fields"].remove("status")
+        value["falsification"]["synthetic_conformance_example"].pop("status")
+        self.assert_error_contains(value, "canonical FalsificationSpec schema")
+
+    def test_rejects_overlapping_prediction_and_rejection_relations(self):
+        value = canonical_documents()
+        example = value["falsification"]["synthetic_conformance_example"]
+        example["predictions"] = ["q(1) > q(0)"]
+        example["rejection_conditions"] = ["q(1) >= q(0)"]
+        self.assert_error_contains(value, "mutually exclusive logical complement")
+
     def test_rejects_unsupported_falsification_relation(self):
         value = canonical_documents()
         value["falsification"]["synthetic_conformance_example"]["predictions"] = ["q(1) approximately q(0)"]
@@ -229,6 +300,22 @@ class PR8MutationTests(unittest.TestCase):
         value["human_docs"]["assurance_human"] = value["human_docs"]["assurance_human"].replace(
             "**Claim class:** `DEFINITION`.",
             "**Claim class:** `DEFINITION` / `NONCLAIM`.",
+        )
+        self.assert_error_contains(value, "canonical claim class")
+
+    def test_rejects_dual_invariant_claim_class_header(self):
+        value = canonical_documents()
+        value["human_docs"]["invariant_human"] = value["human_docs"]["invariant_human"].replace(
+            "**Claim class:** `DEFINITION` for the generic calculus.",
+            "**Claim class:** `DEFINITION` / `EMPIRICAL`.",
+        )
+        self.assert_error_contains(value, "canonical claim class")
+
+    def test_rejects_dual_obligation_claim_class_header(self):
+        value = canonical_documents()
+        value["human_docs"]["obligations_human"] = value["human_docs"]["obligations_human"].replace(
+            "**Claim class:** `DEFINITION`.",
+            "**Claim class:** `DEFINITION` / `EMPIRICAL`.",
         )
         self.assert_error_contains(value, "canonical claim class")
 
