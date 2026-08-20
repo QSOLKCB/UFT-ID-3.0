@@ -20,6 +20,7 @@ For types `X` and `Y`, a UFT-ID invariant specification is
 InvSpec[X,Y] =
 (
   id,
+  name,
   domain,
   codomain,
   transformation,
@@ -44,11 +45,10 @@ f:X\to Y,\qquad H:X\to\mathsf{Prop},\qquad P:X\times Y\to\mathsf{Prop},
 with intended validity
 
 \[
-\forall x\in X,\quad
-H(x)\land \neg B(x)\Longrightarrow P(x,f(x)).
+\forall x\in X,\quad H(x)\land \neg B(x)\Longrightarrow P(x,f(x)).
 \]
 
-`B` is specification metadata for known break/failure conditions. It could be absorbed into a stronger hypothesis, but keeping it explicit follows the strongest audit pattern found in the QEC invariant registry: statement, validity conditions, proof sketch, consequence, break conditions and limitations remain separately visible.
+`B` is specification metadata for known break/failure conditions. It could be absorbed into a stronger hypothesis, but keeping it explicit preserves the useful engineering distinction between ordinary validity assumptions and known named failure modes. Break conditions never substitute for proof.
 
 ## Typed specializations
 
@@ -99,7 +99,7 @@ The last two examples have different semantics. The existence of one record shap
 
 ## Initial executable surface
 
-### UI-INV-002 — exact quarter-turn fixture
+### UI-INV-002 — exact quarter-turn invariant
 
 Let
 
@@ -109,13 +109,26 @@ Let
 q(x,y)=x^2+y^2.
 \]
 
-Then exactly over integer pairs:
+For arbitrary integers `x,y`,
 
 \[
-q(\operatorname{rot}_{90}(x,y))=q(x,y).
+\begin{aligned}
+q(\operatorname{rot}_{90}(x,y))
+&=q(-y,x)\\
+&=(-y)^2+x^2\\
+&=y^2+x^2\\
+&=x^2+y^2\\
+&=q(x,y).
+\end{aligned}
 \]
 
-The PR #8 runner checks this with integer arithmetic. This is a finite/exact implementation witness of a standard representation-invariance pattern, not a novel physical conservation law.
+Hence
+
+\[
+\forall(x,y)\in\mathbb Z^2,\quad q(\operatorname{rot}_{90}(x,y))=q(x,y).
+\]
+
+This algebraic derivation is the proof of the universally quantified `Z^2` claim. The PR #8 runner separately checks a concrete integer case as an implementation/conformance witness. The executable fixture is not being promoted into the universal proof.
 
 ### UI-INV-003 — scaling adversary
 
@@ -127,13 +140,30 @@ q(2v)=4q(v)\ne q(v).
 
 Therefore `q is invariant` is incomplete without naming the transformation class.
 
-### UI-INV-004 — observer-dependent entropy sign
+### UI-INV-004 — observer-dependent entropy sign under fixed dynamics
 
-Use fine distributions
+Use initial fine distribution
 
 \[
-p_0=(0,0,\tfrac14,\tfrac34),\qquad
-p_1=(0,\tfrac12,0,\tfrac12).
+p_0=(0,0,\tfrac14,\tfrac34)
+\]
+
+and the declared row-stochastic transition kernel
+
+\[
+K=
+\begin{pmatrix}
+1&0&0&0\\
+0&1&0&0\\
+0&1&0&0\\
+0&\tfrac13&0&\tfrac23
+\end{pmatrix}.
+\]
+
+With row-vector convention,
+
+\[
+p_1=p_0K=(0,\tfrac12,0,\tfrac12).
 \]
 
 Fine Shannon entropy rises:
@@ -156,7 +186,7 @@ the observed entropy falls, while under
 
 it rises.
 
-The experiment fixes the same underlying before/after distributions and the same Shannon functional. Only the observation partition changes.
+The experiment computes `p1` from `p0` and this single declared kernel, then applies both observers to that same fine trajectory. Only the observation partition changes between the observer comparisons.
 
 Hence:
 
@@ -191,7 +221,7 @@ The hypothesis-preservation clause is mandatory. PR #8 records this as a theorem
 
 ## Source boundary
 
-The calculus is sharpened by public QEC and UFF patterns and by a private author-supplied paper audit used only as design input.
+Positive public methodological lineage in this PR is referenced through the canonical `machine/cross_repo_patterns.json` IDs, including QEC boundary/replay discipline, NEXUS authority separation, QSOL-IMPORT normalization boundaries, and HARNESS execution-evidence gating. Private author-supplied research inputs remain design inputs only.
 
 No private attachment identifier, attachment hash or private source locator is published.
 
