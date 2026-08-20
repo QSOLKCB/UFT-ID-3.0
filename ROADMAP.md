@@ -392,6 +392,128 @@ EMPIRICAL_FIT != UNIQUE_EXPLANATION
 
 ---
 
+# Future positive-control programme — history-dependent topological metastability
+
+**Status:** ROADMAP-ONLY RESEARCH TARGET. Not part of the current PR #11 theorem authority and not a renumbering of the PR #9-#18 schedule.
+
+### Primary empirical source
+
+Canonical citation:
+
+> Xin, F., Gelkop, Y., van der Veer, E. et al. *Spontaneous formation and optical manipulation of a woven domain fabric in a ferroelectric crystal.* Light: Science & Applications **15**, 315 (2026). DOI `10.1038/s41377-026-02374-7`. Published/version of record: 2026-07-14.
+
+The paper is treated as a **primary empirical source** for an observed history-dependent woven ferroelectric domain system with topological descriptors, metastability, thermal-history dependence, and optical manipulation. It is not a theorem premise for the current relation calculus.
+
+Public commentary provenance:
+
+```text
+Sabine Hossenfelder video:
+https://www.youtube.com/watch?v=NzQQXQK_Ngk
+```
+
+Her public commentary, including the stated `0/10` bullshit-meter assessment, is a commentary/calibration datum only. It is not scientific evidence and does not alter the paper's evidentiary status.
+
+```text
+PAPER_EVIDENCE != COMMENTARY != UFT_ID_DERIVED_RESULT
+PRIMARY_SOURCE != EXTERNAL_RATING
+```
+
+### Abstract donor pattern
+
+Study a history-dependent topological-metastability structure with typed components such as:
+
+```text
+X          realizable state carrier
+stepRel    transition/intervention relation
+H          preparation / thermal / intervention history
+E : X -> R energy-like or objective functional when physically justified
+tau : X -> T structural/topological descriptor
+```
+
+The ferroelectric domain ontology is not inherited. The reusable target is the abstract separation between state, history, stability, energy ordering, topology/structure, and intervention.
+
+### Candidate boundaries
+
+```text
+STABLE != GLOBAL_MINIMUM
+METASTABLE != UNIQUE
+SAME_MACRO_CONDITIONS != SAME_REALIZATION
+ENERGY_DESCENT != TOPOLOGY_PRESERVATION
+RESTORED_STATE_CLASS != RESTORED_ORIGINAL_STATE
+TOPOLOGICAL_PROTECTION != IMMUTABILITY
+HIGH_CONFIDENCE_IN_OBSERVATION != HIGH_CONFIDENCE_IN_EXTRAPOLATION
+FERROELECTRIC_RESULT != COSMOLOGICAL_VALIDATION
+```
+
+### Candidate theorem / counterexample target
+
+Introduce only after an independent mathematical fixture is supplied:
+
+```text
+E(y) < E(x)
+DOES NOT GENERALLY IMPLY
+tau(y) = tau(x)
+```
+
+The theorem or counterexample must stand on UFT-ID's own mathematics. Xin et al. may motivate the question and later serve as an empirical positive control, but the experiment must not be used as proof of the general statement.
+
+### Recovery and history target
+
+Model recovery of a state **class** separately from recovery of the original realization. A future finite fixture should permit:
+
+```text
+Woven(W1)
+Woven(W2)
+W1 != W2
+```
+
+with a history-dependent transition such as:
+
+```text
+W1 -> disentangled -> W2
+```
+
+This motivates:
+
+```text
+RECOVERY_OF_MACROCLASS != RECOVERY_OF_ORIGINAL_STATE
+CURRENT_STATE != STATE_PLUS_PREPARATION_HISTORY
+```
+
+and, only after the history semantics are defined, a possible augmented carrier:
+
+```text
+X_hat = X x H
+```
+
+This belongs naturally with the later trace/history, nonergodicity, stochastic, and empirical-bridge work rather than the current finite relation core.
+
+### Positive-control role
+
+Use the paper as a future **positive topology control** for evidentiary architecture: observable 3D crossing structure, explicit structural/topological descriptors, history-dependent reproducibility, and controlled physical intervention are qualitatively different from merely assigning a topology label or parameter in code.
+
+```text
+TOPOLOGICAL_TERMINOLOGY != TOPOLOGICAL_EVIDENCE
+OBSERVED_STRUCTURE != NOMINAL_PARAMETER
+CONTROLLED_INTERVENTION != UNIQUE_SELECTION
+```
+
+This positive control must not be promoted into genus, E8, quantum-field, cosmological, or universal-ontology claims. Any broader extrapolation requires its own bridge and evidence.
+
+### Future acceptance gate
+
+A later implementation slice may promote this roadmap target only if it supplies:
+
+- exact source provenance and claim-class separation;
+- an independent finite mathematical counterexample for energy descent versus structural preservation;
+- an explicit history model if history is theorem-relevant;
+- a clear definition of state identity versus macroclass identity;
+- a typed topological/structural descriptor rather than topology-themed prose;
+- a formal-to-empirical bridge that distinguishes paper observations from UFT-ID abstraction;
+- explicit nonclaims blocking transfer from ferroelectric materials to cosmology or fundamental physics.
+
+---
+
 # Formal fixture policy
 
 ```text
