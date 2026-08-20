@@ -1,0 +1,165 @@
+{
+  "records": [
+    {
+      "claim_class": "PROVED",
+      "executable_evidence": [
+        "experiments/graph_realization/run.py",
+        "tests/test_graph_realization.py"
+      ],
+      "hypotheses": [
+        "X is finite and labelled",
+        "stepRel:X->X->Prop"
+      ],
+      "id": "UFT-GR-001",
+      "name": "Finite relation to digraph realization",
+      "nonclaims": [
+        "This representation theorem does not attach geometry or physical ontology to the graph."
+      ],
+      "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-001-finite-relation--digraph-identity",
+      "statement": "For a finite labelled carrier X, G_step=(X,A_step) with (x,y) in A_step iff stepRel(x,y) preserves the one-step relation exactly."
+    },
+    {
+      "claim_class": "PROVED",
+      "executable_evidence": [
+        "experiments/graph_realization/run.py",
+        "tests/test_graph_realization.py"
+      ],
+      "hypotheses": [
+        "G_step is the exact graph realization of stepRel"
+      ],
+      "id": "UFT-GR-002",
+      "name": "Normality equals zero outdegree",
+      "nonclaims": [
+        "Zero outdegree does not imply admissibility, fixed-point status, truth, or physical stability."
+      ],
+      "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-002-normality--zero-outdegree",
+      "statement": "In G_step, Normal_stepRel(x) iff outdegree(x)=0."
+    },
+    {
+      "claim_class": "PROVED",
+      "executable_evidence": [
+        "experiments/graph_realization/run.py",
+        "tests/test_graph_realization.py"
+      ],
+      "hypotheses": [
+        "G_step is the exact graph realization of stepRel"
+      ],
+      "id": "UFT-GR-003",
+      "name": "Reachability equals directed path existence",
+      "nonclaims": [
+        "Finite reachability does not establish infinite-path liveness."
+      ],
+      "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-003-reachability--directed-walkpath-existence",
+      "statement": "For finite G_step, y is reflexive-transitively reachable from x iff there is a directed walk from x to y; when x!=y a directed path may be chosen."
+    },
+    {
+      "claim_class": "PROVED",
+      "executable_evidence": [
+        "experiments/graph_realization/run.py",
+        "tests/test_graph_realization.py"
+      ],
+      "hypotheses": [
+        "X is finite",
+        "G_step is the exact graph realization of stepRel"
+      ],
+      "id": "UFT-GR-004",
+      "name": "Finite termination equals acyclicity",
+      "nonclaims": [
+        "The finite DAG criterion is not a general proof of well-foundedness for arbitrary infinite carriers."
+      ],
+      "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-004-finite-termination--dag-acyclicity",
+      "statement": "On a finite carrier, forward termination of stepRel is equivalent to absence of directed cycles in G_step."
+    },
+    {
+      "claim_class": "PROVED",
+      "executable_evidence": [
+        "experiments/graph_realization/run.py",
+        "tests/test_graph_realization.py"
+      ],
+      "hypotheses": [
+        "finite nonempty directed graph"
+      ],
+      "id": "UFT-GR-005",
+      "name": "Finite sink strong-component existence",
+      "nonclaims": [
+        "A sink SCC need not contain a normal vertex and is not a fixed point or termination claim."
+      ],
+      "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-005-finite-sink-scc-existence",
+      "statement": "Every nonempty finite directed graph has at least one sink strongly connected component."
+    },
+    {
+      "claim_class": "PROVED",
+      "executable_evidence": [
+        "experiments/graph_realization/run.py",
+        "tests/test_graph_realization.py"
+      ],
+      "hypotheses": [
+        "finite directed graph",
+        "vertices of condensation are SCCs"
+      ],
+      "id": "UFT-GR-006",
+      "name": "SCC condensation is acyclic",
+      "nonclaims": [
+        "Acyclic class-level progression does not imply state-level termination inside an SCC."
+      ],
+      "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-006-scc-condensation-is-acyclic",
+      "statement": "The condensation graph obtained by collapsing strongly connected components of a finite directed graph is acyclic."
+    },
+    {
+      "claim_class": "COUNTEREXAMPLE",
+      "evidence": [
+        "experiments/graph_realization/run.py",
+        "tests/test_graph_realization.py"
+      ],
+      "fixture": "parallel labelled arcs u->v versus one unlabelled arc u->v",
+      "id": "CX-GR-001",
+      "kills": [
+        "LOSSY_PROJECTION_IMPLIES_STRUCTURAL_EQUIVALENCE",
+        "SIMPLE_ADJACENCY_DETERMINES_RICH_INCIDENCE"
+      ],
+      "name": "Rich-to-simple projection loses arc identity",
+      "nonclaims": [
+        "This is a representation-loss counterexample, not a physical information-destruction claim."
+      ],
+      "statement": "Two distinct rich directed multigraph records can collapse to the same simple endpoint-adjacency relation."
+    },
+    {
+      "claim_class": "COUNTEREXAMPLE",
+      "evidence": [
+        "experiments/graph_realization/run.py",
+        "tests/test_graph_realization.py"
+      ],
+      "fixture": "M={a,b,c}: chain a-b-c versus triangle a-b-c-a",
+      "id": "CX-GR-002",
+      "kills": [
+        "MODULE_INVENTORY_DETERMINES_GLOBAL_NETWORK"
+      ],
+      "name": "Module inventory does not determine incidence",
+      "nonclaims": [
+        "Shared module count or local motif does not select a unique global topology."
+      ],
+      "statement": "The same labelled module set can support distinct typed incidence relations."
+    },
+    {
+      "claim_class": "COUNTEREXAMPLE",
+      "evidence": [
+        "experiments/graph_realization/run.py",
+        "tests/test_graph_realization.py"
+      ],
+      "fixture": "K1,3 drawn with different coordinates",
+      "id": "CX-GR-003",
+      "kills": [
+        "DRAWING_COORDINATES_ARE_GRAPH_IDENTITY",
+        "VISUAL_RESEMBLANCE_IMPLIES_PHYSICAL_EQUIVALENCE"
+      ],
+      "name": "Drawing does not determine abstract geometry or physics",
+      "nonclaims": [
+        "A visual embedding may still be useful when its role is explicitly declared."
+      ],
+      "statement": "One abstract graph admits multiple coordinate drawings with identical adjacency."
+    }
+  ],
+  "schema_version": "1.0.0",
+  "snapshot_date": "2026-08-20",
+  "type": "uft-id-graph-realization-results"
+}
