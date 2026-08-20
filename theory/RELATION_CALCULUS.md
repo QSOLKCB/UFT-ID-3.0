@@ -1,7 +1,7 @@
 # Relation, Reachability, Confluence, and Selection Calculus
 
 **Authority:** canonical human mathematical surface for the planned PR #11 relation-first recovery core.  
-**Snapshot:** 2026-08-21.
+**Snapshot:** 2026-08-20.
 
 This surface uses a general rewrite relation
 
@@ -444,5 +444,4 @@ No arrow is automatic. A successful construction proves existence or compatibili
 \text{DISTINCT NORMAL REALIZATIONS WITH DISTINCT LABELS}
 \Rightarrow
 \text{NO UNIQUE SELECTION FROM THE DECLARED RELATION ALONE}.
-}
 \]
