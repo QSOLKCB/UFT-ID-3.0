@@ -206,18 +206,18 @@ class PR11RelationMutationTests(unittest.TestCase):
                 self.assert_error_contains(value, "claim_classes must contain non-empty strings only")
 
     def test_rejects_pr11_future_utc_snapshot_dates(self):
-        targets = (
-            ("contract", None),
-            ("theorems", None),
-            ("counterexamples", None),
-            ("selection", None),
-            ("roadmap_state", None),
-        )
-        for key, _ in targets:
+        expected_diagnostics = {
+            "contract": "relation contract UTC snapshot drift",
+            "theorems": "relation theorem registry shape/snapshot mismatch",
+            "counterexamples": "relation counterexample registry shape/snapshot mismatch",
+            "selection": "genus selection specimen canonical payload drift",
+            "roadmap_state": "live roadmap state canonical payload drift",
+        }
+        for key, diagnostic in expected_diagnostics.items():
             with self.subTest(key=key):
                 value = canonical_documents()
                 value[key]["snapshot_date"] = "2026-08-21"
-                self.assert_error_contains(value, "snapshot")
+                self.assert_error_contains(value, diagnostic)
 
     def test_rejects_theorem_statement_broadening(self):
         value = canonical_documents()
