@@ -31,12 +31,14 @@ CORE_FILES = [
     "theory/RELATION_CALCULUS.md",
     "theory/GRAPH_REALIZATION.md",
     "scripts/validate_graph_realization.py",
+    "scripts/verify_graph_artifacts.py",
     "experiments/relation/run.py",
     "experiments/graph_realization/__init__.py",
     "experiments/graph_realization/run.py",
     "tests/test_graph_realization.py",
     "tests/test_pr11_codex_final4.py",
     "tests/test_pr11_codex_final2.py",
+    "tests/test_pr11_codex_latest5.py",
     "experiments/run_graph_realization.py",
 ]
 
