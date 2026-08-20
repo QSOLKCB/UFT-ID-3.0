@@ -890,7 +890,7 @@ UNTYPED_K4 != TYPED_WHEATSTONE_BRIDGE
 SAME_K4 != SAME_SEMANTICS
 ZERO_OBSERVABLE != ZERO_INTERNAL_STATE
 BALANCE_CONSTRAINT != UNIQUE_REALIZATION
-CONSTRAINT + KNOWN_CONTEXT MAY ENABLE IDENTIFIABILITY
+CONSTRAINT + KNOWN_CONTEXT MAY ENABLE_IDENTIFIABILITY
 TRANSDUCTION != IDENTITY
 RAW_SIGNAL != CALIBRATED_QUANTITY
 ```
@@ -1310,3 +1310,233 @@ A later implementation slice may promote a fivefold/assembly abstraction only if
 - no use of user-supplied images as canonical evidence;
 - mutation tests rejecting `five -> universal symmetry/ontology` promotion;
 - explicit confirmation that `SHARED_CARDINALITY != SHARED_PHYSICAL_MECHANISM`.
+
+---
+
+# Future 3-4-5 finite numerosity and semantic-lifting stress programme
+
+**Status:** ROADMAP-ONLY MODEL-DONOR / ADVERSARIAL PROGRAMME. It does not renumber PR #12-#18, does not claim that 3, 4, or 5 are physically privileged, and does not infer a common mechanism from repeated cardinalities.
+
+**Claim class:** `INTERPRETIVE` for every source-to-UFT-ID correspondence in this section until explicit BridgeCore objects and independent mathematical fixtures exist.
+
+### Mission
+
+Build an anti-numerology type system that distinguishes an integer value from the role that integer plays in a structure. The programme deliberately juxtaposes unrelated threefold, fourfold, and fivefold systems so that shared numerosity cannot be silently lifted into shared graph structure, geometry, dynamics, semantics, mechanism, or ontology.
+
+Stage a typed descriptor such as:
+
+```text
+NumberSpec = (n, role, carrier, structure, semantics, scope)
+```
+
+where `role` may distinguish cardinality, arity, vector-space dimension, radix, sequence length, symmetry order, copy count, module count, ring count, or another explicitly declared numeric use.
+
+Master firewall:
+
+```text
+NUMBER != ROLE
+ROLE != CARRIER
+CARRIER != INCIDENCE
+INCIDENCE != GEOMETRY
+GEOMETRY != SEMANTICS
+SEMANTICS != MECHANISM
+MECHANISM != ONTOLOGY
+```
+
+and:
+
+```text
+SAME_NUMBER != SAME_NUMERIC_ROLE
+SAME_NUMERIC_ROLE != SAME_STRUCTURE
+SAME_STRUCTURE != SAME_SEMANTICS
+SHARED_CARDINALITY != SHARED_PHYSICAL_MECHANISM
+```
+
+### A. Threefold stress family
+
+Candidate donors and fixtures:
+
+- ternary / three-valued logic: three truth values do not determine a unique logic or truth-table algebra;
+- ternary operation: `f : X^3 -> X` is an arity statement and does not imply `|X| = 3`;
+- ordinary versus balanced ternary: radix three does not determine one digit alphabet or representation convention;
+- `Fin3`: the existing exhaustive `2^(3^2) = 512` labelled binary relations show directly that a three-element carrier does not determine one transition graph;
+- qutrit context: `dim(H)=3` is not a three-element state carrier;
+- triality / order-three operators: order or symmetry structure is not automatically a graph-theoretic 3-cycle;
+- Sierpiński triangle: three self-similar copies and a scale factor are generative-rule data, not evidence for triality or three-state dynamics;
+- biological trimers: three subunits do not imply pairwise `K3` connectivity;
+- codons: sequence length three over a four-symbol alphabet does not imply a three-state space;
+- musical triads: three pitches do not determine one interval structure, rooting, inversion, or harmonic function;
+- three-phase AC: phase count and cyclic phase offsets do not by themselves define a causal 3-cycle.
+
+Freeze candidate boundaries:
+
+```text
+CARDINALITY_3 != ARITY_3 != DIMENSION_3 != RADIX_3
+THREE_STATES != TRIALITY != GRAPH_3_CYCLE
+FIN3 != C3 != TRIANGLE != QUTRIT
+DIMENSION_3 != CARDINALITY_3
+THREE_OBJECTS != TRIALITY
+TRIMER != K3
+SEQUENCE_LENGTH_3 != STATE_SPACE_CARDINALITY_3
+THREE_NOTES != UNIQUE_TRIAD
+CYCLIC_PHASE_ORDER != CAUSAL_CYCLE
+F3^3=I3 != GRAPH_THEORETIC_3_CYCLE
+```
+
+#### Sierpiński-specific continuum target
+
+Use a future synthetic Sierpiński construction only for typed recursion / limit distinctions. If `S_n` denotes a finite approximation and `S_infty` the limiting object, preserve:
+
+```text
+FINITE_ITERATION != LIMIT_OBJECT
+FINITE_VISUAL_APPROXIMATION != FRACTAL
+GENERATIVE_RULE != COMPLETED_LIMIT
+TRIANGULAR_APPEARANCE != SIERPINSKI_CONSTRUCTION
+SELF_SIMILAR_MOTIF != EXACT_SELF_SIMILARITY
+AMBIENT_DIMENSION != FRACTAL_DIMENSION != TOPOLOGICAL_DIMENSION
+```
+
+A finite-stage computation must not be promoted into a continuum/limit theorem without the missing mathematical bridge.
+
+### B. Fourfold stress family
+
+Candidate donors and fixtures:
+
+- tetrahedron: four corner vertices, six geometric edges, `K4` 1-skeleton;
+- Wheatstone bridge: four circuit junctions can project to an untyped `K4` only after typed component roles are forgotten;
+- tetrachord: four tones plus a fixed outer span do not uniquely determine the internal interval decomposition;
+- rumination tetrahedron source candidate: DOI `10.1080/23311908.2026.2670046`, to be used only as a conceptual/heuristic donor after exact source extraction and claim classification;
+- tetracyclic antidepressant terminology: four-ring structural classification does not determine molecular graph identity, pharmacological profile, or therapeutic mechanism;
+- tetrabenazine / VMAT2: keep lexical similarity separate from drug-class membership; if later used as a transport-state donor, source identity and mechanism must be pinned independently.
+
+Freeze candidate boundaries:
+
+```text
+CARDINALITY_4 != TETRAHEDRAL_GEOMETRY
+FOUR_COMPONENT_MODEL != K4_GRAPH
+TETRAHEDRAL_HEURISTIC != GEOMETRIC_TETRAHEDRON
+HEURISTIC_DEPENDENCY != FORMAL_CAUSAL_EDGE
+FIXED_ENDPOINTS != FIXED_INTERNAL_REALIZATION
+FIXED_TOTAL_INTERVAL != UNIQUE_INTERVAL_DECOMPOSITION
+FOUR_CHEMICAL_RINGS != K4
+RING_COUNT != MOLECULAR_GRAPH_IDENTITY
+MOLECULAR_GRAPH != PHARMACOLOGICAL_PROFILE
+SAME_STRUCTURAL_CLASSIFIER != SAME_FUNCTIONAL_PROFILE
+TETRABENAZINE != TETRACYCLIC_ANTIDEPRESSANT
+NAME_PREFIX_SIMILARITY != CLASS_MEMBERSHIP
+```
+
+The musical word `genus` in tetrachord theory must never be conflated with topological genus:
+
+```text
+MUSICAL_GENUS != TOPOLOGICAL_GENUS
+LEXICAL_IDENTITY != TYPE_IDENTITY
+SAME_WORD != SAME_INVARIANT
+```
+
+### C. Fivefold stress family
+
+Reuse the existing fivefold donor programme as the cardinality-five branch rather than inventing a second authority. Its core boundaries remain:
+
+```text
+CARDINALITY_5 != FIVEFOLD_SYMMETRY
+PENTAMER != REGULAR_PENTAGON != C5
+PENTAMER != PENTATONIC_SCALE
+UNROOTED_SET_IDENTITY != ROOTED_STRUCTURE_IDENTITY
+CHART != OBJECT
+SAME_FIVE != SAME_STRUCTURE
+```
+
+The fivefold branch therefore contributes assembly/interface, lossy projection, rooting, and coordinate-chart examples without asserting a universal fivefold mechanism.
+
+### D. Genuine numerical relation versus semantic lifting
+
+The integers 3, 4, and 5 do possess a genuine arithmetic relation:
+
+```text
+3^2 + 4^2 = 5^2
+```
+
+That fact is a positive control for what an explicit numerical theorem looks like. It does **not** license transport of the relation to arbitrary systems merely because they have been associated with 3, 4, and 5.
+
+For objects `X3`, `X4`, and `X5`, a numerical relation
+
+```text
+R_N(3,4,5)
+```
+
+must not be lifted to
+
+```text
+R_C(X3,X4,X5)
+```
+
+without an explicit typed bridge and a preservation theorem.
+
+Freeze:
+
+```text
+ARITHMETIC_RELATION != STRUCTURAL_BRIDGE
+PYTHAGOREAN_RELATION != ONTOLOGICAL_RELATION
+NUMBER_RELATION != SYSTEM_RELATION
+NUMERIC_RELATION + LABEL_ASSIGNMENT != STRUCTURAL_THEOREM
+NO_SEMANTIC_LIFTING_WITHOUT_A_BRIDGE
+```
+
+In particular:
+
+```text
+qutrit + tetrahedron != IgM pentamer
+```
+
+is not a mathematical consequence of `3^2 + 4^2 = 5^2`.
+
+### E. Cross-cardinality finite fixtures
+
+Future machine-testable fixtures should be minimal and theorem-linked rather than a standalone zoo. Candidate tests include:
+
+1. same cardinality, different relation/operation tables;
+2. same carrier size, different graph topology;
+3. same endpoint/global constraint, different internal realization;
+4. same element set, different distinguished root/order;
+5. same graph, different typed edge roles;
+6. same visual motif, different generating rule;
+7. same lexical prefix/number word, different semantic type;
+8. real arithmetic relation whose attempted semantic lift is rejected for lack of a bridge.
+
+The existing `Fin3` exhaustive relation engine is the canonical starting point for the three-state branch:
+
+```text
+|X| = 3
+DOES NOT DETERMINE
+stepRel
+```
+
+because all 512 labelled relations on `Fin3` already exhibit cycles, forks, chains, loops, normal states, terminating systems, and nonterminating systems under the same carrier cardinality.
+
+### F. Integration targets
+
+```text
+PR #12 BridgeCore
+PR #14 representation and congruence calculus
+PR #15 information comparability / typed-role compatibility
+PR #16 recovery and identifiability specializations
+PR #17 continuum / limit obligations for Sierpiński-style recursion
+formal assurance and semantic-lifting guards
+PR #18 empirical falsification profiles
+```
+
+### Acceptance gate
+
+A later implementation slice may promote a 3-4-5 numerosity abstraction only if it supplies:
+
+- explicit `NumberSpec` or equivalent typed numeric-role metadata;
+- independent mathematical fixtures for every promoted theorem/counterexample;
+- source provenance for empirical or disciplinary examples;
+- `INTERPRETIVE` mapping status until explicit bridges exist;
+- no inference from shared number alone to graph, geometry, semantics, mechanism, or ontology;
+- no lexical transfer such as musical `genus` -> topological genus;
+- explicit separation of cardinality, arity, dimension, radix, order, sequence length, copy count, and module count;
+- mutation tests that attempt forbidden semantic lifting and require failure;
+- preservation/loss declarations for any actual bridge;
+- explicit confirmation that `NUMBER != ROLE != STRUCTURE != MECHANISM != ONTOLOGY`.
