@@ -1,0 +1,131 @@
+{
+  "type": "uft-id-relation-theorem-registry",
+  "schema_version": "1.0.0",
+  "snapshot_date": "2026-08-21",
+  "records": [
+    {
+      "id": "UFT-RW-001",
+      "lean_target_name": "UFT_RW_001_reach_preserves",
+      "name": "Branchwise invariant induction",
+      "claim_class": "PROVED",
+      "statement": "If P(x) and every r-step preserves P, then every state reachable from x by reflexive-transitive closure satisfies P.",
+      "hypotheses": [
+        "r:X->X->Prop",
+        "P:X->Prop",
+        "P(x)",
+        "for all u,v, P(u) and r(u,v) imply P(v)"
+      ],
+      "proof_reference": "theory/RELATION_CALCULUS.md#uft-rw-001-branchwise-invariant-induction",
+      "executable_evidence": [
+        "experiments/relation/run.py",
+        "tests/test_pr11_relation_core.py"
+      ],
+      "nonclaims": [
+        "This does not prove termination, confluence, admissibility, or physical invariance."
+      ]
+    },
+    {
+      "id": "UFT-RW-002",
+      "lean_target_name": "UFT_RW_002_rightUnique_confluent",
+      "name": "Right-unique rewriting is confluent",
+      "claim_class": "PROVED",
+      "statement": "If r is right-unique, then r is confluent.",
+      "hypotheses": [
+        "r:X->X->Prop",
+        "for all x,y,z, r(x,y) and r(x,z) imply y=z"
+      ],
+      "proof_reference": "theory/RELATION_CALCULUS.md#uft-rw-002-right-unique-rewriting-is-confluent",
+      "executable_evidence": [
+        "experiments/relation/run.py",
+        "tests/test_pr11_relation_core.py"
+      ],
+      "nonclaims": [
+        "Right-uniqueness does not imply termination."
+      ]
+    },
+    {
+      "id": "UFT-RW-003",
+      "lean_target_name": "UFT_RW_003_confluent_reachableNormal_eq",
+      "name": "Confluence gives at most one reachable normal form",
+      "claim_class": "PROVED",
+      "statement": "If r is confluent, then from any common source x, any two reachable normal forms are equal.",
+      "hypotheses": [
+        "r:X->X->Prop",
+        "r is confluent",
+        "x reaches n1",
+        "x reaches n2",
+        "n1 is normal",
+        "n2 is normal"
+      ],
+      "proof_reference": "theory/RELATION_CALCULUS.md#uft-rw-003-confluence-gives-at-most-one-reachable-normal-form",
+      "executable_evidence": [
+        "experiments/relation/run.py",
+        "tests/test_pr11_relation_core.py"
+      ],
+      "nonclaims": [
+        "Confluence alone does not establish existence of a normal form."
+      ]
+    },
+    {
+      "id": "UFT-RW-004",
+      "lean_target_name": "UFT_RW_004_terminating_reachesNormal",
+      "name": "Termination gives reachable normal-form existence",
+      "claim_class": "PROVED",
+      "statement": "If the forward rewrite relation r terminates, every state x reaches at least one normal form.",
+      "hypotheses": [
+        "r:X->X->Prop",
+        "forward rewriting is terminating, equivalently the swapped relation is well-founded"
+      ],
+      "proof_reference": "theory/RELATION_CALCULUS.md#uft-rw-004-termination-gives-reachable-normal-form-existence",
+      "executable_evidence": [
+        "experiments/relation/run.py",
+        "tests/test_pr11_relation_core.py"
+      ],
+      "nonclaims": [
+        "Existential normalization is not an executable normalizer and does not imply confluence."
+      ]
+    },
+    {
+      "id": "UFT-SEL-001",
+      "lean_target_name": "UFT_SEL_001_distinctNormalLabels_refuteUniqueSelection",
+      "name": "Distinct reachable normal labels refute unique selection",
+      "claim_class": "PROVED",
+      "statement": "If x reaches normal forms n1 and n2 and a label map lambda gives lambda(n1) != lambda(n2), then x does not have at most one reachable normal form; therefore r alone cannot justify a unique-selection claim over lambda.",
+      "hypotheses": [
+        "r:X->X->Prop",
+        "lambda:X->L",
+        "x reaches n1",
+        "x reaches n2",
+        "n1 is normal",
+        "n2 is normal",
+        "lambda(n1) != lambda(n2)"
+      ],
+      "proof_reference": "theory/RELATION_CALCULUS.md#uft-sel-001-distinct-reachable-normal-labels-refute-unique-selection",
+      "executable_evidence": [
+        "experiments/relation/run.py",
+        "tests/test_pr11_relation_core.py"
+      ],
+      "nonclaims": [
+        "This theorem does not establish that any particular external scientific package has both branches; those premises must be sourced separately."
+      ]
+    }
+  ],
+  "derived_corollaries": [
+    {
+      "name": "termination-and-confluence-give-exactly-one-reachable-normal-form",
+      "statement": "If r terminates and is confluent, then every x has exactly one reachable normal form.",
+      "from": [
+        "UFT-RW-003",
+        "UFT-RW-004"
+      ],
+      "separate_headline_theorem_id": false
+    }
+  ],
+  "deferred_theorem_targets": [
+    {
+      "name": "Newman's lemma",
+      "status": "deferred",
+      "reason": "Requires a complete repository well-founded-induction proof before advertisement."
+    }
+  ]
+}
