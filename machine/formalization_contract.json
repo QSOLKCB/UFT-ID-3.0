@@ -46,6 +46,26 @@
     {"planned_pr": 14, "surface": "lean-foundation-and-audit"},
     {"planned_pr": 15, "surface": "representation-and-receiver-robustness"}
   ],
+  "roadmap_rebase": {
+    "authority": "ROADMAP.md",
+    "basis": "Post-PR8 four-pass mathematical audit and hostile verification",
+    "active_pr": 9,
+    "legacy_deferred_surfaces_semantics": "The deferred_surfaces array above is the PR8-era planning baseline retained for PR8 validator and receipt compatibility; it is not the current scheduling authority.",
+    "current_sequence": [
+      {"planned_pr": 9, "surface": "deterministic-observation-calculus"},
+      {"planned_pr": 10, "surface": "lean-observation-foundation"},
+      {"planned_pr": 11, "surface": "relation-first-recovery-core"},
+      {"planned_pr": 12, "surface": "bridge-core"},
+      {"planned_pr": 13, "surface": "epistemic-bridge-specialization"},
+      {"planned_pr": 14, "surface": "representation-and-congruence-calculus"},
+      {"planned_pr": 15, "surface": "information-comparability-core"},
+      {"planned_pr": 16, "surface": "recovery-specializations"},
+      {"planned_pr": 17, "surface": "continuum-stochastic-prevalence-obligations"},
+      {"planned_pr": 18, "surface": "empirical-falsification-profile"}
+    ],
+    "dropped_standalone_surface": "finite-reference-model-battery",
+    "fixture_policy": "Minimal fixtures travel with the theorem or counterexample that requires them."
+  },
   "design_rules": [
     "The compact U=(S,A,F,Pi_lex,O,T,I,C) notation remains a summary, not a license to overload distinct mechanism types.",
     "Every invariant names domain/codomain, transformation, hypotheses, predicate/property, break conditions, kind, scope, status, claim class, lineage and nonclaims.",
