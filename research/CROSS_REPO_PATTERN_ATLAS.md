@@ -40,6 +40,8 @@ implementation conformance != empirical validation
 observation convention != physical time
 semantic coincidence != causal evidence
 local calibration != universal constant
+compatibility != unique selection
+placement geometry != topology derivation
 ```
 
 Those recurrences are not evidence of a new physical law. They are evidence that UFT-ID's type boundaries are useful enough to recur across very different engineered systems.
@@ -59,6 +61,8 @@ Those recurrences are not evidence of a new physical law. They are evidence that
 | Cyclic traversal | LATTICE, SONIFICATION | finite coprime traversal theorem |
 | Semantic coincidence boundary | SAW-1 | exact match does not imply causal mechanism |
 | Formal/conformance/evidence hierarchy | E8_MUSIC, RSH, QSOL-HARNESS | preserve proof, implementation, experiment, and ontology as different evidence layers |
+| Finite decorative compatibility | SONIFICATION `XR-P17` | multiple constructions may share the same finite triality/qutrit compatibility machinery without unique selection |
+| Placement geometry vs topology | SPECTRAL `XR-P18` | spiral/phi/qutrit ordering may organize labels without deriving genus or physical topology |
 
 ## Source-by-source extraction
 
@@ -140,6 +144,32 @@ Reusable pattern: canonical event identity is receiver-neutral. Algebraic dimens
 
 UFT-ID implication: cross-domain maps must not merge coincident integers or labels into a shared ontology. This is a particularly clean bridge-obligation example.
 
+### XR-P17 — SONIFICATION finite triality compatibility context
+
+Canonical source: `QSOLKCB/SONIFICATION`, `docs/MATHEMATICAL_MODEL.md`, blob `0e8f986dd5ca191c1eded726dd6e276c1f856613`.
+
+Reusable pattern: ETQ-101 supplies a finite authored compatibility context with 33 mutually exclusive triality/qutrit blocks plus two fixed singlets, the local `D3=diag(1,-2,1)` operator, the `theta=pi/2` phase-kick convention, and the exact local identity `F3^3=I3`. The source itself keeps those algebraic labels separate from physical E8 ontology.
+
+UFT-ID implication: finite compatibility machinery can be sufficient to decorate several distinct candidate constructions. Compatibility, block count, phase closure, or E8-derived labels do not thereby select a unique genus or establish a physical topology.
+
+```text
+FINITE_COMPATIBILITY != UNIQUE_SELECTION
+DECORATIVE_BLOCK_COUNT != TOPOLOGY_DERIVATION
+```
+
+### XR-P18 — SPECTRAL placement geometry context
+
+Canonical source: `QSOLKCB/SPECTRAL`, `E8/APP/README.md`, blob `4855bfff69d89c4920a2b2daf59c38b875a617ec`.
+
+Reusable pattern: the E8 Geometry Studio exposes Triality Spiral, qutrit/ternary controls, phi-scaled geometry, and E8-derived control paths as explicit sonification/composition mappings rather than physical E8 measurements.
+
+UFT-ID implication: a spiral, phi-scaled ordering, qutrit control path, or other placement geometry may organize labelled sectors while remaining independent of the topology those labels decorate.
+
+```text
+PLACEMENT_GEOMETRY != TOPOLOGY_DERIVATION
+CONTROL_GEOMETRY != PHYSICAL_MEASUREMENT
+```
+
 ### SAW-1
 
 Reusable pattern: an exact semantic/numerical correspondence can be chronologically verified and hash-bound while remaining a coincidence with no causal, retrocausal, or predictive implication.
@@ -195,5 +225,9 @@ The cross-repo scan suggests that UFT-ID should become stricter in four places:
 2. **Receiver contracts:** declare exactly which structure each projection preserves and loses.
 3. **Calibration profiles:** index thresholds and classifications by their metric/estimator/unit/preprocessing contract.
 4. **Evidence separation:** content integrity, replay, recovery, observation, consensus, and storage must never silently become truth or physical authority.
+
+The two current selection-context records add a fifth discipline:
+
+5. **Selection discipline:** compatibility and placement structure must not be promoted into uniqueness or topology derivation without an explicit discriminating theorem.
 
 These are auxiliary contracts around the existing canonical tuple. They do **not** enlarge the canonical tuple merely to accommodate repository terminology.
