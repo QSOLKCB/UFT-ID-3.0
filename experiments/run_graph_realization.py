@@ -109,7 +109,7 @@ def run_suite() -> dict[str, object]:
     source_hashes = {path: sha256_bytes((ROOT / path).read_bytes()) for path in files}
     identity = {
         "type": "uft-id-graph-realization-receipt",
-        "schema_version": "1.0.1",
+        "schema_version": "1.0.0",
         "source_sha256": source_hashes,
         "declared_evidence_paths": sorted(declared_evidence_paths()),
         "result_sha256": sha256_bytes(canonical_bytes(result)),
