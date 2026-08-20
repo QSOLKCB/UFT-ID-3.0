@@ -20,6 +20,10 @@ CORE_FILES = [
     "machine/graph_realization_contract.json",
     "machine/graph_realization_results.json",
     "machine/cross_repo_patterns.json",
+    "docs/CLAIMS.md",
+    "README4AI.md",
+    "docs/REPRODUCIBILITY.md",
+    "ROADMAP.md",
     "research/GRAPH_REALIZATION_SOURCES.md",
     "theory/RELATION_CALCULUS.md",
     "theory/GRAPH_REALIZATION.md",
@@ -105,7 +109,7 @@ def run_suite() -> dict[str, object]:
     source_hashes = {path: sha256_bytes((ROOT / path).read_bytes()) for path in files}
     identity = {
         "type": "uft-id-graph-realization-receipt",
-        "schema_version": "1.0.0",
+        "schema_version": "1.0.1",
         "source_sha256": source_hashes,
         "declared_evidence_paths": sorted(declared_evidence_paths()),
         "result_sha256": sha256_bytes(canonical_bytes(result)),
@@ -116,6 +120,7 @@ def run_suite() -> dict[str, object]:
             "exhaustive_relation_count": result["bounded_exhaustive_check"]["total_relations"],
             "adjacency_pair_checks": result["bounded_exhaustive_check"]["adjacency_pair_checks"],
             "reachability_source_checks": result["bounded_exhaustive_check"]["reachability_source_checks"],
+            "scc_partition_checks": result["bounded_exhaustive_check"]["scc_partition_checks"],
         },
     }
     fingerprint = sha256_bytes(canonical_bytes(identity))
@@ -131,7 +136,8 @@ def run_suite() -> dict[str, object]:
         "claim_boundary": (
             "FINITE_GRAPH_CONFORMANCE != GENERAL_PROOF; "
             "ALGEBRA != GRAPH != EMBEDDING != PHYSICS; "
-            "MATERIAL_POSITIVE_CONTROL != UFT_ID_PHYSICAL_PREMISE"
+            "MATERIAL_POSITIVE_CONTROL != UFT_ID_PHYSICAL_PREMISE; "
+            "PAPER_MODEL != UFT_ID_PHYSICAL_ONTOLOGY"
         ),
     }
 
