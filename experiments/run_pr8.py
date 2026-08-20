@@ -15,6 +15,7 @@ VALIDATOR = ROOT / "scripts/validate_formalization_contracts.py"
 EXPERIMENT = ROOT / "experiments/formalization/run.py"
 
 FILES = [
+    "machine/contract.json",
     "machine/formalization_contract.json",
     "machine/invariant_specs.json",
     "machine/assurance_graph.json",
@@ -67,7 +68,7 @@ def run_suite() -> dict[str, object]:
     source_hashes = {path: sha256_bytes((ROOT / path).read_bytes()) for path in sorted(FILES)}
     identity = {
         "type": "uft-id-pr8-formalization-receipt",
-        "schema_version": "1.0.1",
+        "schema_version": "1.0.2",
         "source_sha256": source_hashes,
         "result_sha256": sha256_bytes(canonical_bytes(result)),
         "summary": {
