@@ -192,9 +192,9 @@ def validate(root: Path = ROOT) -> dict[str, object]:
 
         if patterns.get("type") != "uft-id-cross-repo-pattern-registry":
             errors.append("cross-repo pattern registry type mismatch")
-        if patterns.get("schema_version") != "1.0.1":
-            errors.append("cross-repo pattern registry schema_version must be 1.0.1")
-        if patterns.get("snapshot_date") != "2026-08-18":
+        if patterns.get("schema_version") != "1.0.2":
+            errors.append("cross-repo pattern registry schema_version must be 1.0.2")
+        if patterns.get("snapshot_date") != "2026-08-21":
             errors.append("cross-repo pattern registry snapshot_date mismatch")
         if not nonempty_string(patterns.get("snapshot_basis")):
             errors.append("cross-repo pattern registry requires snapshot_basis")
