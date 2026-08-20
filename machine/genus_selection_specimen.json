@@ -1,6 +1,6 @@
 {
   "type": "uft-id-selection-stress-test",
-  "schema_version": "1.0.0",
+  "schema_version": "1.0.1",
   "snapshot_date": "2026-08-21",
   "id": "SEL-STRESS-GENUS-10-30",
   "claim_class": "DIAGNOSTIC",
@@ -39,44 +39,14 @@
     "local_cycle_identity": "F3^3=I3",
     "interpretation": "The ETQ blocks are labels/decorations assigned to handle sectors. They do not construct or prove the topology."
   },
-  "public_context_pins": [
+  "public_context_pattern_refs": [
     {
-      "repository": "QSOLKCB/SONIFICATION",
-      "ref": "main",
-      "source_path": "docs/MATHEMATICAL_MODEL.md",
-      "source_blob_sha": "0e8f986dd5ca191c1eded726dd6e276c1f856613",
-      "role": "compatibility-context-only",
-      "supports": [
-        "33 mutually exclusive triality/qutrit blocks plus two singlets",
-        "D3=diag(1,-2,1)",
-        "theta=pi/2 phase kick",
-        "F3^3=I3"
-      ],
-      "not_inherited": [
-        "E8 ontology",
-        "physical qutrit ontology",
-        "genus selection",
-        "topological surface construction"
-      ]
+      "pattern_id": "XR-P17",
+      "role": "compatibility-context-only"
     },
     {
-      "repository": "QSOLKCB/SPECTRAL",
-      "ref": "main",
-      "source_path": "E8/APP/README.md",
-      "source_blob_sha": "4855bfff69d89c4920a2b2daf59c38b875a617ec",
-      "role": "placement-context-only",
-      "supports": [
-        "Triality Spiral path",
-        "qutrit/ternary controls",
-        "phi-scaled geometry",
-        "E8 used as control/composition geometry"
-      ],
-      "not_inherited": [
-        "physical E8 measurement",
-        "genus derivation",
-        "cosmological ontology",
-        "unique topological selection"
-      ]
+      "pattern_id": "XR-P18",
+      "role": "placement-context-only"
     }
   ],
   "placement_example": {
