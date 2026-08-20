@@ -1,7 +1,7 @@
 # Falsification Contracts
 
 **Status:** PR #8 active scaffold; empirical specializations deferred.  
-**Claim class:** `DEFINITION` / `NONCLAIM`.
+**Claim class:** `DEFINITION`.
 
 The paper bundle supplied for the formalization audit contained a useful recurring pattern: scientific claims should state not only what they explain, but what controlled observation would count against them.
 
@@ -43,14 +43,18 @@ A **rejection condition** is an observable result that counts against the scoped
 
 ## Synthetic conformance fixture `FALS-SYN-001`
 
-PR #8 includes one deliberately content-free example:
+PR #8 includes one deliberately content-free example whose values and relations are read from the machine authority at runtime:
 
 ```text
+q(0) = 1
+q(1) = 2
 alpha: 0 -> 1
 prediction: q(1) < q(0)
 null:       q(1) = q(0)
 reject if:  q(1) >= q(0)
 ```
+
+The runner parses and evaluates the declared machine relation rather than carrying an independent hard-coded scientific rule.
 
 This fixture tests contract semantics only.
 
@@ -58,6 +62,8 @@ This fixture tests contract semantics only.
 FALSIFIABLE_SCHEMA != EMPIRICAL_VALIDATION
 REJECTION_CONDITION != AUTOMATIC_REJECTION_OF_A_BROADER_THEORY
 ```
+
+Those are explicit nonclaims attached to this `DEFINITION` surface, not a second canonical claim class for the document.
 
 ## Deferred work
 
