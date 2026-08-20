@@ -25,27 +25,11 @@ The compact mnemonic remains:
 U = (S, A, F, Pi_lex, O, T, I, C)
 ```
 
-but it is a summary, not permission to collapse distinct relation, observation, recovery, bridge, information, assurance, or physical semantics into one object.
+but it is a summary, not permission to collapse relation, observation, recovery, bridge, information, assurance, or physical semantics into one object.
 
-Each implementation slice must have:
+Every implementation slice must preserve claim classes, explicit hypotheses, positive and adversarial fixtures, mutation tests, deterministic receipts where applicable, synchronized human/machine authority, explicit deferrals, and the boundary from implementation success to scientific truth.
 
-- one bounded authority surface;
-- one canonical claim class per claim;
-- explicit definitions and hypotheses;
-- positive and adversarial fixtures;
-- fail-closed mutation tests;
-- deterministic receipts where executable evidence is claimed;
-- exact machine/human synchronization where both exist;
-- explicit deferrals;
-- no automatic promotion from implementation success to scientific or physical truth.
-
-The live schedule after merged PR #9 is machine-readable in:
-
-```text
-machine/roadmap_state.json
-```
-
-The older `machine/formalization_contract.json::roadmap_rebase` remains the PR9-era compatibility snapshot used by the PR8/PR9 validators and receipts. It is not rewritten retroactively merely to move the live pointer.
+The live schedule after merged PR #9 is machine-readable in `machine/roadmap_state.json`. The older `machine/formalization_contract.json::roadmap_rebase` remains the PR9-era compatibility snapshot used by the PR8/PR9 validators and receipts and is not rewritten retroactively.
 
 ---
 
@@ -85,16 +69,7 @@ Established bounded source lineage, symbol mapping, preserved conflicts, methodo
 
 ## PR #8 — Invariant calculus, assurance graph, and model obligations — COMPLETE
 
-Established:
-
-- typed `InvSpec` machinery;
-- formal assurance graph;
-- machine-enforced non-promotion boundaries;
-- definition obligations;
-- model-realization obligations;
-- falsification scaffold;
-- executable witnesses;
-- deterministic receipts.
+Established typed `InvSpec`, the formal assurance graph, definition and model-realization obligations, falsification scaffolding, executable witnesses, and deterministic receipts.
 
 ```text
 FORMAL_SYNTAX != PROOF
@@ -106,13 +81,7 @@ REPLAY != MEASUREMENT
 
 ## PR #9 — Deterministic observation calculus — COMPLETE
 
-Merged at commit:
-
-```text
-091405c136fd8dc936e6bd3a544ab22433d04782
-```
-
-Implemented deterministic set-theoretic observation, fibres, observational equivalence, quotient-to-image correspondence, injectivity/surjectivity boundaries, exact reconstruction scope, floor-sampling arithmetic, counterexamples, validators, receipts, and CI.
+Merged at commit `091405c136fd8dc936e6bd3a544ab22433d04782`.
 
 ```text
 OBSERVATIONAL_EQUIVALENCE != PHYSICAL_IDENTITY
@@ -129,9 +98,7 @@ EXACT_RECONSTRUCTION != PHYSICAL_STATE_SURVIVAL
 
 **Status:** COMPLETE.
 
-This heading is retained in the ordered programme because later validators and theorem surfaces depend on its position.
-
-Exit criterion was met on merged main: deterministic observations have a typed contract, theorem/counterexample registries, exact finite witnesses, mutation tests, and deterministic receipts.
+This heading remains in the ordered programme because later validators and theorem surfaces depend on its position. The merged implementation contains the typed deterministic observation contract, theorem/counterexample registries, exact finite witnesses, mutation tests, receipts, and CI.
 
 ---
 
@@ -139,37 +106,15 @@ Exit criterion was met on merged main: deterministic observations have a typed c
 
 **Status:** DEFERRED as an independent formal-proof track.
 
-The original plan was to bootstrap a pinned Lean/mathlib environment immediately after PR #9. The hostile relation audit changed the priority: theorem statements and counterexamples for the relation core should be frozen before expanding the proof environment.
+The hostile relation audit changed the immediate priority. Relation theorem statements and counterexamples should freeze before broadening the proof toolchain.
 
-This deferral does **not** promote Python checks into Lean proofs.
-
-Later targets remain:
-
-- observational equivalence/setoid;
-- quotient-to-range equivalence;
-- left-inverse/injectivity relations;
-- right-inverse/surjectivity relations;
-- fibre/class equivalence;
-- floor-sampling arithmetic where suitable;
-- the relation/reachability theorem family after its statements freeze.
-
-Required future assurance:
-
-- pinned `lean-toolchain`;
-- pinned mathlib commit;
-- no `sorry` or `admit`;
-- theorem manifest;
-- axiom/assumption audit;
-- CI build;
-- proposition identity bound into proof receipts.
+Future assurance still requires a pinned Lean toolchain and mathlib commit, no `sorry` or `admit`, theorem manifests, axiom audits, CI builds, and proposition identity in proof receipts.
 
 ```text
 MATHLIB_THEOREM_EXISTS != OUR_LEAN_BUILD_PASSES
 MATHEMATICAL_PROOF != LEAN_PROOF
 LEAN_PROOF != RUNTIME_CONFORMANCE != EMPIRICAL_VALIDATION
 ```
-
-Lean remains deferred in the repository contract until the proof toolchain is deliberately introduced.
 
 ---
 
@@ -185,10 +130,10 @@ Replace the overstrong direct-recovery carrier
 K subseteq X x A
 ```
 
-as the generic multi-step mechanism with an unlabelled binary endorelation:
+as the generic multi-step mechanism with a labelled binary endorelation on a declared carrier:
 
 ```text
-r : X -> X -> Prop
+stepRel : X -> X -> Prop
 ```
 
 and keep admissibility separate:
@@ -197,7 +142,7 @@ and keep admissibility separate:
 A : X -> Prop
 ```
 
-`K subseteq X x A` remains valid only for a specialization whose one-step targets are already admissible. It is not the general rewrite/reachability carrier.
+The name `stepRel` avoids collision with the existing scalar residual `r:S->R_{>=0}`. `K subseteq X x A` remains valid only for a specialization whose one-step targets are already admissible.
 
 ### Canonical definitions
 
@@ -220,49 +165,27 @@ NORMAL != ADMISSIBLE != FIXED_POINT
 REACHABLE != ADMISSIBLE != NORMAL != UNIQUE_REACHABLE_NORMAL
 ```
 
-### Advertised foundational theorem surface
+### Advertised theorem surface
 
 Implement and prove exactly:
 
-1. `UFT-RW-001` — branchwise invariant induction;
-2. `UFT-RW-002` — right-unique rewriting is confluent;
-3. `UFT-RW-003` — confluence gives at most one reachable normal form;
-4. `UFT-RW-004` — termination gives reachable normal-form existence.
+1. `UFT-RW-001` branchwise invariant induction;
+2. `UFT-RW-002` right-unique rewriting is confluent;
+3. `UFT-RW-003` confluence gives at most one reachable normal form;
+4. `UFT-RW-004` termination gives reachable normal-form existence;
+5. `UFT-SEL-001` distinct reachable normal labels refute unique selection.
 
-Treat:
+Treat termination plus confluence giving exactly one reachable normal form as a derived corollary of UFT-RW-003 and UFT-RW-004, not a separately inflated theorem ID.
 
-```text
-termination + confluence
-=> exactly one reachable normal form
-```
+### Selection discipline
 
-as a derived corollary of UFT-RW-003 and UFT-RW-004, not another independently inflated theorem ID.
-
-### Selection theorem
-
-Add:
-
-```text
-UFT-SEL-001
-```
-
-Distinct reachable normal labels refute unique selection.
-
-If the same source reaches normal forms `n1` and `n2` and a semantic label map satisfies:
+If one source reaches normal forms `n1` and `n2` with:
 
 ```text
 lambda(n1) != lambda(n2)
 ```
 
-then:
-
-```text
-not AtMostOneReachableNormalFrom(r, x)
-```
-
-and the declared relation alone cannot justify a unique-selection claim over that label.
-
-This creates the reusable epistemic ladder:
+then `AtMostOneReachableNormalFrom(stepRel,x)` is false. The declared relation therefore cannot by itself justify a unique-selection claim over `lambda`.
 
 ```text
 LABEL
@@ -275,7 +198,7 @@ LABEL
 
 No arrow is automatic.
 
-### Minimal canonical counterexamples
+### Minimal counterexamples
 
 Ship only:
 
@@ -285,89 +208,43 @@ CX-RW-LOOP1
 CX-RW-EXIT2
 ```
 
-`CX-RW-FORK3`:
+`FORK3` is the three-state terminating nonconfluent fork; `LOOP1` is the one-state confluent nonterminating loop; `EXIT2` has a unique reachable normal form plus a nonterminating branch.
 
 ```text
-a -> b
-a -> c
-```
-
-with `b,c` normal.
-
-It demonstrates:
-
-```text
-BRANCHING != CONFLUENCE
 TERMINATION != CONFLUENCE
-TERMINATION != UNIQUE_NORMAL_FORM
-ONE_SELECTOR_RESULT != RELATION_SEMANTICS
-```
-
-`CX-RW-LOOP1`:
-
-```text
-a -> a
-```
-
-demonstrates:
-
-```text
 CONFLUENCE != TERMINATION
-CONFLUENCE != NORMAL_FORM_EXISTENCE
-```
-
-`CX-RW-EXIT2`:
-
-```text
-a -> a
-a -> b
-```
-
-with `b` normal, demonstrates:
-
-```text
-UNIQUE_REACHABLE_NORMAL_FORM != TERMINATION
 UNIQUE_REACHABLE_NORMAL_FORM != ALL_PATHS_NORMALIZE
-WEAK_NORMALIZATION != STRONG_NORMALIZATION
 ```
 
 ### Bounded exhaustive conformance
 
-Enumerate every unlabelled relation on `Fin 1`, `Fin 2`, and `Fin 3`:
+Enumerate every labelled relation on `Fin 1`, `Fin 2`, and `Fin 3`:
 
 ```text
 2 + 16 + 512 = 530 relations
 ```
 
-Use this to:
+These are adjacency relations on fixed labelled carriers. The executable does not quotient by carrier permutations or isomorphism classes.
 
-- check finite instances of the theorem implications;
-- verify fixture properties;
-- verify the stated small-cardinality minimality boundaries.
+Use this bounded surface to check finite theorem instances, fixture properties, and small-cardinality minimality claims.
 
 ```text
 FINITE_CONFORMANCE != GENERAL_PROOF
 ```
 
-The mathematical proofs live in `theory/RELATION_CALCULUS.md`.
-
 ### Genus-selection adversarial specialization
 
-Add a deliberately minimal internal selection stress test:
+The internal stress fixture is:
 
 ```text
 common -> M10
 common -> M30
-```
 
-with both endpoints normal in the declared fixture and:
-
-```text
 genus(M10) = 10
 genus(M30) = 30
 ```
 
-Use independent topological constructions:
+with independent topological constructions:
 
 ```text
 Sigma_g = #_{h=1}^g T^2
@@ -382,31 +259,26 @@ Sigma_10: chi=-18, rank H1=20
 Sigma_30: chi=-58, rank H1=60
 ```
 
-Public compatibility context is pinned from SONIFICATION and SPECTRAL, but remains context-only:
+Public context provenance is owned only by the canonical cross-repository registry:
 
-- SONIFICATION supplies 33 complete triality/qutrit blocks + two singlets, `D3=diag(1,-2,1)`, the `theta=pi/2` kick, and `F3^3=I3`;
-- SPECTRAL supplies Triality Spiral/qutrit/phi control geometry.
+- `XR-P17` pins the SONIFICATION ETQ-101 mathematical model and supplies the finite triality/qutrit compatibility context;
+- `XR-P18` pins the SPECTRAL E8 Geometry Studio and supplies the Triality Spiral/qutrit/phi placement context.
 
-Those structures may decorate or order labelled handle sectors. They do not derive topology.
+`machine/genus_selection_specimen.json` references those XR IDs rather than maintaining a parallel repository/path/blob authority.
 
 ```text
 E8_TRIALITY_COMPATIBILITY != UNIQUE_GENUS
 GOLDEN_SPIRAL_PLACEMENT != GENUS_DERIVATION
 LABELLED_HANDLE_DECORATION != TOPOLOGY_CONSTRUCTION
 COMPATIBLE_REALIZATION != UNIQUE_SELECTION
-```
-
-The internal fixture proves a selection-logic failure under its declared premises. It does not automatically become a verdict on any external paper or code package.
-
-```text
 INTERNAL_STRESS_TEST != EXTERNAL_PAPER_REFUTATION
 ```
 
-A source-specific Genus-10 audit requires exact public source/package pins before repository promotion.
+A source-specific Genus-10 audit still requires exact external source/package identification before repository promotion.
 
-### Explicit removals from the PR #11 theorem surface
+### Explicit deferrals
 
-Do not implement as headline theorems here:
+Do not promote here:
 
 - Newman's lemma;
 - generic selector soundness;
@@ -414,25 +286,14 @@ Do not implement as headline theorems here:
 - observation-compatible quotient dynamics;
 - schedule independence;
 - trace semantics;
-- finite-search assurance;
-- `all_branches_eventually_admissible`.
-
-Universal eventuality over infinite branches needs explicit infinite path semantics and potentially fairness. Reflexive-transitive closure quantifies over finite reductions only.
+- finite-search assurance as a theorem family;
+- universal infinite-branch eventuality;
+- stochastic rewriting;
+- Lean proof objects.
 
 ### Exit criterion
 
-PR #11 is complete when:
-
-- `r:X->X->Prop` is the generic carrier;
-- `A:X->Prop` remains separate;
-- the four foundational rewrite theorems and `UFT-SEL-001` are human/machine synchronized;
-- the three minimal counterexamples are frozen;
-- all 530 relations through `Fin3` execute deterministically;
-- genus 10/30 is an internal, provenance-bounded stress test;
-- mutation tests reject semantic broadening;
-- CI passes in normal and optimized Python;
-- deterministic receipts bind the authority surface;
-- no Lean proof is claimed.
+PR #11 is complete when `stepRel:X->X->Prop` and `A:X->Prop` remain separately typed; the theorem and counterexample surfaces are synchronized; all 530 labelled finite relations execute deterministically; canonical XR context references replace parallel pins; mutation tests reject semantic broadening and malformed input; receipts bind the authority surface; CI passes in normal and optimized Python; and no Lean or external-paper claim is over-promoted.
 
 ---
 
@@ -454,8 +315,6 @@ source_version
 target_version
 ```
 
-Do not force every arrow into one mathematical category.
-
 **Exit criterion:** bridge composition is typed and scope/version compatible; preservation and loss are explicit; transport cannot masquerade as semantic equivalence.
 
 ---
@@ -464,22 +323,9 @@ Do not force every arrow into one mathematical category.
 
 **Status:** PLANNED.
 
-Treat epistemic authority separately from structural transport.
+Treat epistemic authority separately from structural transport. Do not impose an unsupported global lattice over unknown, conflict, retrieved, inferred, verified, or executed states.
 
-Do not impose a universal total order over:
-
-```text
-unknown
-conflict
-retrieved
-inferred
-verified
-executed
-```
-
-Use independent dimensions or local preorders only where semantics are explicit.
-
-**Exit criterion:** structure/byte transport cannot manufacture stronger evidence authority; conflict and unknown remain distinct.
+**Exit criterion:** byte/structure transport cannot manufacture stronger evidence authority and conflict remains distinct from unknown.
 
 ---
 
@@ -487,20 +333,9 @@ Use independent dimensions or local preorders only where semantics are explicit.
 
 **Status:** PLANNED.
 
-Separate:
+Separate similarity, orthogonal/unitary similarity, congruence, coordinate change, and receiver transformation. Every invariant must name its transformation class and hypotheses.
 
-```text
-same source object
-same normalized object
-same observation
-same representation
-same semantics
-same physical state
-```
-
-Define relation/congruence obligations only for transformations that actually preserve the required structure.
-
-**Exit criterion:** no equality-like word silently crosses a representation or ontology boundary.
+**Exit criterion:** equality-like language cannot silently cross a representation boundary.
 
 ---
 
@@ -508,27 +343,13 @@ Define relation/congruence obligations only for transformations that actually pr
 
 **Status:** PLANNED.
 
-Freeze a typed `InfoSpec` containing, as applicable:
-
-```text
-functional family
-domain
-codomain
-reference measure/distribution
-partition/alphabet
-observation map
-estimator
-units/conventions
-scope
-```
-
-Require explicit bridges before comparing information values across changed contracts.
+Freeze a typed `InfoSpec` and explicit `Comparable(I1,I2)` contract before information differences are entitled.
 
 ```text
 SAME_WORD_INFORMATION != SAME_FUNCTIONAL
+IDENTICAL_SPEC => COMPARABLE
+COMPARABLE != IDENTICAL_SPEC
 ```
-
-**Exit criterion:** monotonicity and cross-regime comparisons cannot omit the information contract.
 
 ---
 
@@ -536,21 +357,12 @@ SAME_WORD_INFORMATION != SAME_FUNCTIONAL
 
 **Status:** PLANNED.
 
-Only after the relation core is stable, add refinements such as:
-
-- finite lexicographic selection;
-- metric projection;
-- decoder recovery;
-- contractive/reference-relative recovery;
-- selector soundness/completeness;
-- executable normalizers where well-founded recursion is supplied.
+Only after the relation core stabilizes, add finite lexicographic selection, metric projection, decoder recovery, contractive/reference-relative recovery, selector soundness/completeness, and executable normalizers where well-founded recursion is supplied.
 
 ```text
 GENERIC_RELATION != DETERMINISTIC_SELECTOR
 EXISTENTIAL_NORMALIZATION != EXECUTABLE_NORMALIZER
 ```
-
-**Exit criterion:** specialization theorems list every extra assumption they consume.
 
 ---
 
@@ -558,22 +370,12 @@ EXISTENTIAL_NORMALIZATION != EXECUTABLE_NORMALIZER
 
 **Status:** PLANNED.
 
-Add only after finite deterministic semantics stabilize:
-
-- stochastic kernels;
-- measurable state spaces;
-- continuum/PDE obligations;
-- well-posedness status;
-- prevalence/measure claims;
-- infinite path semantics;
-- fairness only where explicitly needed.
+Add stochastic kernels, measurable spaces, continuum/PDE obligations, well-posedness status, prevalence/measure claims, explicit infinite paths, and fairness only after the finite deterministic core is stable.
 
 ```text
 FINITE_REACHABILITY != INFINITE_PATH_LIVENESS
 FINITE_COUNTEREXAMPLE != PREVALENCE_CLAIM
 ```
-
-**Exit criterion:** continuum/stochastic notation cannot appear without its analytic contract.
 
 ---
 
@@ -581,19 +383,7 @@ FINITE_COUNTEREXAMPLE != PREVALENCE_CLAIM
 
 **Status:** PLANNED.
 
-Connect theorem-facing formal structures to empirical hypotheses without promotion leakage.
-
-Require:
-
-- controlled variables;
-- observables;
-- predictions;
-- null model;
-- rejection condition;
-- uncertainty;
-- provenance;
-- scope;
-- explicit bridge from formal object to measurement.
+Connect formal structures to empirical hypotheses with controlled variables, observables, predictions, null models, rejection conditions, uncertainty, provenance, scope, and explicit formal-to-measurement bridges.
 
 ```text
 FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION
@@ -608,25 +398,13 @@ EMPIRICAL_FIT != UNIQUE_EXPLANATION
 NO_STANDALONE_FINITE_FIXTURE_ZOO
 ```
 
-Minimal fixtures travel with the theorem or counterexample that requires them.
+Minimal fixtures travel with the theorem or counterexample that needs them. A fixture must have theorem-conformance, counterexample, assumption-ablation, minimality, or deterministic-receipt purpose.
 
-A fixture must have at least one of:
-
-- theorem conformance purpose;
-- counterexample purpose;
-- assumption-ablation purpose;
-- minimality purpose;
-- deterministic receipt purpose.
-
-Rule 110, decorative dependency graphs, broad schedule examples, or unrelated finite-search demonstrations do not enter a formal PR merely because they are interesting.
-
-For the genomic/Vopson research branch only:
+For the genomic/Vopson branch only:
 
 ```text
 GENIES_REQUIRED_FOR_GENOMIC_BRANCH_ONLY
 ```
-
-That research-specific gate does not contaminate the generic relation calculus.
 
 ---
 
@@ -636,7 +414,7 @@ Lean remains a separate formal-verification track.
 
 Repository-contained mathematical proofs may be classified `PROVED` when complete and auditable in the repository, but they must not be described as machine checked until the pinned Lean toolchain builds them.
 
-Initial future relation targets should mirror, not silently broaden, the frozen theorem surface:
+Initial future relation targets mirror, rather than silently broaden, the frozen theorem surface:
 
 ```text
 UFT_RW_001_reach_preserves
@@ -645,8 +423,6 @@ UFT_RW_003_confluent_reachableNormal_eq
 UFT_RW_004_terminating_reachesNormal
 UFT_SEL_001_distinctNormalLabels_refuteUniqueSelection
 ```
-
-Newman's lemma comes later only with a complete proof.
 
 ```text
 THEOREM_STATEMENT_FROZEN != LEAN_PROVED
@@ -657,43 +433,9 @@ MATHEMATICAL_PROOF != MACHINE_CHECKED_PROOF
 
 # Selection and uniqueness policy
 
-Any future UFT-ID claim that a structure, parameter, topology, representation, model, or regime is uniquely selected must distinguish:
+Future unique-selection claims must distinguish compatibility, existence, realization, invariance, discrimination, uniqueness, and physical selection. At minimum, `COMPATIBLE(X)` does not imply `UNIQUE(X)`.
 
-```text
-compatibility
-existence
-realization
-invariance
-discrimination
-uniqueness
-physical selection
-```
-
-At minimum:
-
-```text
-COMPATIBLE(X)
-```
-
-does not imply:
-
-```text
-UNIQUE(X)
-```
-
-and a numerical observable that is constant across competing candidates has zero selection power over those candidates.
-
-A robust uniqueness claim should identify:
-
-1. the candidate class;
-2. the admissibility predicate;
-3. the derivation/reachability semantics;
-4. the terminal/normal criterion, if used;
-5. the label or semantic property being selected;
-6. a discriminant or theorem excluding alternatives;
-7. all additional hypotheses required for uniqueness.
-
-The relation-core counterexample pattern is:
+A robust uniqueness claim identifies the candidate class, admissibility predicate, derivation/reachability semantics, terminal criterion if used, selected label, discriminant or exclusion theorem, and every extra hypothesis required for uniqueness.
 
 ```text
 same source
@@ -722,7 +464,7 @@ python experiments/relation/run.py --json
 python experiments/run_pr11.py --json
 ```
 
-The relation suite is standard-library Python and bounded to the declared 530-relation conformance surface in routine CI.
+The relation suite is standard-library Python and bounded to the declared 530 labelled-relation conformance surface in routine CI.
 
 ```text
 GREEN_CI != PHYSICAL_TRUTH
@@ -733,7 +475,7 @@ DETERMINISTIC_RECEIPT != SCIENTIFIC_CONFIRMATION
 
 # Historical PR8 planning anchors retained for validator compatibility
 
-The following headings describe the older PR8-era plan. They are retained verbatim because the PR8 validator confirms that the historical planning surface was not silently erased. They are **not** the live schedule above.
+The following phrases are the older PR8-era planning surface. They remain verbatim for validator/receipt compatibility and are **not** the live schedule above.
 
 ```text
 PR #8 — Invariant calculus, assurance graph, and model obligations
@@ -752,19 +494,7 @@ The post-PR8 hostile audit superseded that order while preserving its provenance
 
 # Release-level exit criteria
 
-A future formalization release should not be cut until:
-
-- every advertised theorem has an inspectable proof or is explicitly a theorem target;
-- machine registries and human statements agree;
-- counterexamples remain executable;
-- source-specific critiques identify exact sources;
-- no private attachment locator leaks into public machine authority;
-- proof/runtime/empirical/physical layers remain separated;
-- unique-selection claims survive explicit alternate-realization tests;
-- CI evidence is retained;
-- all deferrals are visible rather than implied complete.
-
-The central discipline remains:
+A future formalization release should not be cut until every advertised theorem has an inspectable proof or is explicitly a theorem target; machine and human statements agree; counterexamples remain executable; source-specific critiques identify exact sources; private locators do not leak; proof/runtime/empirical/physical layers stay separate; unique-selection claims survive alternate-realization tests; CI evidence is retained; and all deferrals remain visible.
 
 ```text
 A BEAUTIFUL STRUCTURE CAN BE COMPATIBLE
