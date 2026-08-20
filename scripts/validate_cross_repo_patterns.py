@@ -293,7 +293,8 @@ def validate(root: Path = ROOT) -> dict[str, object]:
         if HUMAN_ATLAS_PATH.is_file():
             atlas = HUMAN_ATLAS_PATH.read_text(encoding="utf-8")
             for pattern_id in ("XR-P17", "XR-P18"):
-                if pattern_id not in atlas:
+                heading = f"### {pattern_id} "
+                if not any(line.startswith(heading) for line in atlas.splitlines()):
                     errors.append(f"human cross-repo atlas missing canonical context pattern: {pattern_id}")
         else:
             errors.append("required cross-repo authority file missing: research/CROSS_REPO_PATTERN_ATLAS.md")
