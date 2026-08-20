@@ -74,12 +74,39 @@ class CrossRepoRegistryTests(unittest.TestCase):
     def test_canonical_registry_passes(self):
         report = VALIDATOR.validate()
         self.assertTrue(report["ok"], report["errors"])
-        self.assertGreaterEqual(report["summary"]["patterns"], 16)
+        self.assertGreaterEqual(report["summary"]["patterns"], 18)
         self.assertEqual(report["summary"]["quarantined"], 3)
         self.assertEqual(report["summary"]["results"], 7)
         self.assertFalse(report["summary"]["remote_freshness_checked"])
         self.assertTrue(report["summary"]["human_result_sync_checked"])
-        self.assertEqual(report["summary"]["snapshot_date"], "2026-08-18")
+        self.assertEqual(report["summary"]["snapshot_date"], "2026-08-21")
+
+    def test_genus_context_sources_are_canonical_registry_entries(self):
+        by_id = {entry["pattern_id"]: entry for entry in self.patterns["patterns"]}
+        self.assertEqual(
+            (
+                by_id["XR-P17"]["repository"],
+                by_id["XR-P17"]["source_path"],
+                by_id["XR-P17"]["source_blob_sha"],
+            ),
+            (
+                "QSOLKCB/SONIFICATION",
+                "docs/MATHEMATICAL_MODEL.md",
+                "0e8f986dd5ca191c1eded726dd6e276c1f856613",
+            ),
+        )
+        self.assertEqual(
+            (
+                by_id["XR-P18"]["repository"],
+                by_id["XR-P18"]["source_path"],
+                by_id["XR-P18"]["source_blob_sha"],
+            ),
+            (
+                "QSOLKCB/SPECTRAL",
+                "E8/APP/README.md",
+                "4855bfff69d89c4920a2b2daf59c38b875a617ec",
+            ),
+        )
 
     def test_registry_uses_public_source_repositories_only(self):
         forbidden = VALIDATOR.PRIVATE_REPOSITORIES
