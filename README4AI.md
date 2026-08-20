@@ -24,9 +24,9 @@ U = (S, A, F, Pi_lex, O, T, I, C)
 - `I`: explicitly declared information functional
 - `C`: constraint structure
 
-Do not specialize these symbols to E8, SU(3), LQG, cognition, AGI, gravity, or
-another ontology unless the target document explicitly enters an interpretive
-or speculative layer.
+Do not specialize these symbols to E8, SU(3), LQG, cognition, AGI, gravity,
+extra-time spacetime, or another ontology unless the target document explicitly
+enters an interpretive or speculative layer.
 
 ## Current mathematical direction
 
@@ -53,8 +53,76 @@ Every UFT-ID assessment uses exactly one of:
 - `NONCLAIM`
 
 Recording another author's source claim is not an endorsement. Source claim and
-repository assessment are distinct objects even where the current schema stores
-them in one graph node.
+repository assessment are distinct objects even where a schema stores them near
+each other.
+
+## Relation and graph-realization authority
+
+The current relation core uses:
+
+```text
+stepRel : X -> X -> Prop
+A       : X -> Prop
+```
+
+with admissibility independent from rewriting. The graph-realization layer is a
+finite/set-theoretic representation of `stepRel`, not a new physical ontology:
+
+```text
+G_step = (X, A_step)
+(x,y) in A_step iff stepRel(x,y)
+```
+
+Canonical graph surfaces:
+
+```text
+machine/graph_realization_contract.json
+machine/graph_realization_results.json
+research/GRAPH_REALIZATION_SOURCES.md
+theory/GRAPH_REALIZATION.md
+scripts/validate_graph_realization.py
+experiments/graph_realization/run.py
+experiments/run_graph_realization.py
+tests/test_graph_realization.py
+```
+
+The positive graph result surface currently registers `UFT-GR-001` through
+`UFT-GR-006` as `PROVED` abstract mathematics. Read `docs/CLAIMS.md` for the
+allowed claim scope.
+
+The finite executable battery independently cross-checks all 530 labelled
+binary relations on `Fin1`, `Fin2`, and `Fin3`, including relation adjacency,
+normality, reachability, finite termination, SCC partition, sink SCCs, and SCC
+condensation.
+
+```text
+FINITE_GRAPH_CONFORMANCE != GENERAL_PROOF
+ABSTRACT_GRAPH_RESULT != PHYSICAL_ONTOLOGY
+GRAPH != DRAWING
+NORMAL_VERTEX != SINK_SCC
+```
+
+Typed incidence is kept separate from untyped adjacency:
+
+```text
+IncSpec = (M, L, I)
+I subseteq M x L x M
+```
+
+A tetrahedron's geometric 1-skeleton is `K4`; an SiS4 chemical-bond graph and a
+polyhedral-sharing graph are different objects. ETQ/SPECTRAL coupling and
+placement structures are likewise distinct unless an explicit bridge is given.
+
+```text
+TETRAHEDRAL_1_SKELETON_K4 != SIS4_CHEMICAL_BOND_GRAPH
+LOCAL_COORDINATION_GEOMETRY != CHEMICAL_BOND_GRAPH != POLYHEDRAL_SHARING_GRAPH
+COUPLING_GRAPH != PLACEMENT_GRAPH
+ALGEBRA != GRAPH != EMBEDDING != PHYSICS
+```
+
+The Grinberg graph-theory source is a mathematical donor. The SiS2 source is a
+bounded structural positive control. Neither source makes a UFT-ID physical
+claim true by analogy.
 
 ## Cross-repository formal pattern authority
 
@@ -97,8 +165,7 @@ Rules:
 7. Content identity, recovery, retrieval, storage, consensus, telemetry,
    deterministic replay, or successful transport do not automatically confer
    semantic truth or physical authority.
-8. Calibration thresholds remain local until an explicit bridge establishes
-   transfer.
+8. Calibration thresholds remain local until an explicit bridge establishes transfer.
 9. Formal proof, implementation conformance, empirical validation, and physical
    ontology remain distinct evidence layers.
 10. A semantic or numerical coincidence is not causal evidence.
@@ -134,8 +201,7 @@ Rules:
 2. Never invent a DOI, source locator, review status, source-byte hash, or reproduction result.
 3. A dependency edge records reliance, not truth.
 4. `metadata-verified` is not `reproduced`.
-5. `PROVED` and `COUNTEREXAMPLE` require repository-contained evidence unless
-   a controlled external premise is explicitly marked established literature.
+5. `PROVED` and `COUNTEREXAMPLE` require repository-contained evidence unless a controlled external premise is explicitly marked established literature.
 6. Human corpus tables must match their JSON authorities.
 7. Static entropy ordering does not supply physical dynamics.
 8. A restricted deterministic Shannon theorem is not the full published SLI.
@@ -156,27 +222,9 @@ It reproduces the 2019 paper's Eq. (6) arithmetic and displayed `300 K`, `2.73 K
 and decimal `1 TB` numerical values while keeping the physical bridge explicit:
 
 ```text
-LANDAUER_ERASURE_BOUND
-!= INTRINSIC_STORED_BIT_ENERGY
-```
-
-The package records the source's p. 2 erasure-inequality direction as an
-internal source-text inconsistency rather than silently repairing it.
-
-The reproduction status means the source arithmetic is independently regenerated
-under the declared identification. It does **not** mean intrinsic information mass
-has been physically validated.
-
-The promotion is synchronized across `corpus.json`, `CLAIM_GRAPH.json`, their
-human tables, `REPRODUCTION_MATRIX.md`, and the source-specific result. The work
-is `reproduced`, while `CL-MEI-BIT-MASS` deliberately remains a `THEOREM_TARGET`
-with assessment `arithmetic-reproduced-physical-hypothesis-unresolved`.
-
-```text
-ARITHMETIC_REPRODUCED
-!= PREMISE_VALIDATED
-!= PHYSICAL_INTERPRETATION_VALIDATED
-!= EXPERIMENTALLY_CONFIRMED
+LANDAUER_ERASURE_BOUND != INTRINSIC_STORED_BIT_ENERGY
+ARITHMETIC_REPRODUCED != PREMISE_VALIDATED
+ARITHMETIC_REPRODUCED != EXPERIMENTALLY_CONFIRMED
 ```
 
 Primary paper bytes are not committed. Cite the DOI and exact page/equation
@@ -187,15 +235,9 @@ have deterministic hashes.
 
 Read `docs/REPRODUCIBILITY.md` before changing executable evidence.
 
-Canonical finite information helpers live in
-`experiments/lib/information.py`. Do not copy local variants of Shannon entropy
-or probability validation without a source-specific reason. Scientific
-invariants must use explicit exceptions, not ordinary Python `assert`, because
-`python -O` removes assertions.
-
-Polygon exhaustive work is bounded by the machine contract. Use
-`analytic_extrema()` for inputs above the ceiling unless a deliberately large
-exhaustive run is justified outside routine CI.
+Canonical finite information helpers live in `experiments/lib/information.py`.
+Scientific invariants must use explicit exceptions, not ordinary Python
+`assert`, because `python -O` removes assertions.
 
 GitHub Actions must use the fixed runner and full commit SHA pins declared in
 `machine/contract.json`. CI receipts are retained as workflow artifacts.
@@ -209,6 +251,12 @@ python scripts/validate_vopson_corpus.py
 python scripts/validate_cross_repo_patterns.py
 python scripts/validate_vopson_2019_mei.py
 python scripts/validate_reproducibility.py
+python scripts/validate_formalization_contracts.py
+python scripts/validate_observation_specs.py
+python scripts/validate_relation_core.py
+python scripts/validate_graph_realization.py
+python experiments/graph_realization/run.py --json
+python experiments/run_graph_realization.py --json
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 python experiments/run_pr2.py --json
@@ -252,6 +300,10 @@ Then review the diff and rerun `--check`.
 14. Correct arithmetic is not experimental confirmation.
 15. Do not silently correct a source-text inconsistency; record the printed
     source and the comparison standard separately.
+16. Do not infer physical ontology from graph isomorphism, visual resemblance,
+    tetrahedral geometry, material coordination, or a finite conformance suite.
+17. Do not promote roadmap-only donor models, including extra-time spacetime
+    hypotheses, into current UFT-ID theorem or physical authority.
 
 ## Lean
 
@@ -264,30 +316,38 @@ finite minimum sufficient-basis selector.
 ## Read next
 
 1. `AGENTS.md`
-2. `docs/ARCHITECTURE.md`
-3. `docs/REPRODUCIBILITY.md`
-4. `docs/MILESTONES.md`
-5. `experiments/README.md`
-6. `theory/DEFINITIONS.md`
-7. `theory/AUXILIARY_CONTRACTS.md`
-8. `theory/THEOREM_TARGETS.md`
-9. `theory/FINITE_RESULTS.md`
-10. `theory/CROSS_REPO_RESULTS.md`
-11. `research/CROSS_REPO_PATTERN_ATLAS.md`
-12. `machine/cross_repo_patterns.json`
-13. `machine/cross_repo_results.json`
-14. `research/vopson/CORPUS.md`
-15. `research/vopson/CLAIM_GRAPH.md`
-16. `research/vopson/DEFINITIONS.md`
-17. `research/vopson/REPRODUCTION_MATRIX.md`
-18. `research/vopson/reproduction/2019-mei/SOURCE_MAP.md`
-19. `research/vopson/reproduction/2019-mei/DERIVATION.md`
-20. `research/vopson/reproduction/2019-mei/ASSUMPTION_GRAPH.json`
-21. `research/vopson/reproduction/2019-mei/DIMENSIONAL_AUDIT.md`
-22. `research/vopson/reproduction/2019-mei/CONTROL_MATRIX.md`
-23. `research/vopson/reproduction/2019-mei/result.json`
-24. `research/vopson/COUNTEREXAMPLE_MATRIX.md`
-25. `research/vopson/RESPONSE_HISTORY.md`
-26. `research/reports/2026-08-18-PR4-ACTION-REGISTER.md`
-27. `research/VOPSON_MATRIX.md`
-28. `ROADMAP.md`
+2. `docs/CLAIMS.md`
+3. `docs/ARCHITECTURE.md`
+4. `docs/REPRODUCIBILITY.md`
+5. `docs/MILESTONES.md`
+6. `experiments/README.md`
+7. `theory/DEFINITIONS.md`
+8. `theory/AUXILIARY_CONTRACTS.md`
+9. `theory/THEOREM_TARGETS.md`
+10. `theory/FINITE_RESULTS.md`
+11. `theory/RELATION_CALCULUS.md`
+12. `theory/GRAPH_REALIZATION.md`
+13. `machine/graph_realization_contract.json`
+14. `machine/graph_realization_results.json`
+15. `research/GRAPH_REALIZATION_SOURCES.md`
+16. `scripts/validate_graph_realization.py`
+17. `experiments/run_graph_realization.py`
+18. `theory/CROSS_REPO_RESULTS.md`
+19. `research/CROSS_REPO_PATTERN_ATLAS.md`
+20. `machine/cross_repo_patterns.json`
+21. `machine/cross_repo_results.json`
+22. `research/vopson/CORPUS.md`
+23. `research/vopson/CLAIM_GRAPH.md`
+24. `research/vopson/DEFINITIONS.md`
+25. `research/vopson/REPRODUCTION_MATRIX.md`
+26. `research/vopson/reproduction/2019-mei/SOURCE_MAP.md`
+27. `research/vopson/reproduction/2019-mei/DERIVATION.md`
+28. `research/vopson/reproduction/2019-mei/ASSUMPTION_GRAPH.json`
+29. `research/vopson/reproduction/2019-mei/DIMENSIONAL_AUDIT.md`
+30. `research/vopson/reproduction/2019-mei/CONTROL_MATRIX.md`
+31. `research/vopson/reproduction/2019-mei/result.json`
+32. `research/vopson/COUNTEREXAMPLE_MATRIX.md`
+33. `research/vopson/RESPONSE_HISTORY.md`
+34. `research/reports/2026-08-18-PR4-ACTION-REGISTER.md`
+35. `research/VOPSON_MATRIX.md`
+36. `ROADMAP.md`
