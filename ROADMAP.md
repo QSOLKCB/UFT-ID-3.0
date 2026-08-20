@@ -624,3 +624,203 @@ WITHOUT BEING UNIQUE,
 AND A UNIQUE MATHEMATICAL RESULT CAN STILL FAIL
 TO SELECT A PHYSICAL ONTOLOGY.
 ```
+
+---
+
+# Future model-donor programme — typed causality, projection, and assumption structure
+
+**Status:** ROADMAP-ONLY RESEARCH TARGET / MODEL DONOR. This section is not current graph theorem authority, does not renumber planned PR #12-#18, and does not adopt the source model as UFT-ID ontology.
+
+### Primary model source
+
+> Marco Pettini, *Quantum Entanglement Beyond Kinematics: A Dynamical Hypothesis in (3,2)-Dimensional Spacetime*, arXiv:2606.12457v2 (2026). DOI `10.48550/arXiv.2606.12457`.
+
+The source is treated as a **model donor** for formal distinctions that can be abstracted independently. Its `(3,2)` spacetime, bulk field, Bohm-Bub collapse realization, and proposed cross-pair signal are not inherited as established physical facts or UFT-ID premises.
+
+```text
+PAPER_MODEL != UFT_ID_PHYSICAL_ONTOLOGY
+(3,2)_SPACETIME_MODEL != UFT_ID_ONTOLOGY
+BULK_FIELD_XA_MODEL != ESTABLISHED_PHYSICAL_FIELD
+MODEL_CAUSALITY_CONTRACT != EMPIRICAL_VALIDATION
+BORN_RULE_COMPATIBILITY != MICROSCOPIC_DERIVATION
+PREDICTED_CROSS_PAIR_SIGNAL != OBSERVED_CROSS_PAIR_SIGNAL
+```
+
+### A. Ansatz-bounded uniqueness
+
+The paper explicitly distinguishes fixation of a structure inside a declared ansatz from unrestricted uniqueness. UFT-ID should turn that distinction into a generic future theorem/counterexample target.
+
+For a declared model class `A subset U`, proving
+
+```text
+exists unique x in A such that P(x)
+```
+
+does not establish
+
+```text
+exists unique x in U such that P(x)
+```
+
+without a completeness/exhaustion bridge showing that every relevant candidate lies in `A`.
+
+```text
+ANSATZ_UNIQUENESS != GLOBAL_UNIQUENESS
+MODEL_CLASS_EXHAUSTION != PHYSICAL_SELECTION
+```
+
+### B. Typed multi-relation incidence
+
+Stage a future labelled relation object:
+
+```text
+G_L = (V, L, I)
+I subseteq V x L x V
+```
+
+where relation labels can distinguish, for example:
+
+```text
+response
+correlation
+coupling
+placement
+edge-share
+corner-share
+```
+
+A future synthetic fixture should permit two events `A,B` with a correlation-labelled edge while no causal-response edge exists between them. The fixture must remain abstract and must not use the Pettini model as proof of a general causal theorem.
+
+```text
+CORRELATION_EDGE != CAUSAL_RESPONSE_EDGE
+NONZERO_CORRELATION != CONTROLLABLE_INFLUENCE
+FORGET_EDGE_TYPE = POTENTIAL_INFORMATION_LOSS
+```
+
+This extends the typed-incidence discipline already motivated independently by SiS2 (`edge-share` versus `corner-share`) and ETQ/SPECTRAL (`coupling` versus `placement`). Shared typing structure does not imply shared physical mechanism.
+
+### C. Lossy projection and context compression
+
+Stage an abstract projection chain:
+
+```text
+X_bulk -> X_brane -> lambda
+```
+
+where the final context label may be many-to-one. The reusable formal question is how preserved/lost structure propagates through a chain of projections, not whether UFT-ID contains a physical bulk field.
+
+```text
+MICROSTATE != PROJECTION != CONTEXT_LABEL
+MANY_TO_ONE_CONTEXT_MAP != PHYSICAL_IDENTITY
+COARSE_GRAINED_SUFFICIENCY != EXACT_RECONSTRUCTION
+```
+
+This belongs naturally in BridgeCore and the existing observation/reconstruction calculus.
+
+### D. Conditional determinism versus ensemble statistics
+
+Stage a future distinction between deterministic evolution conditional on a declared contextual microstate and probabilistic statistics obtained only after averaging over a distribution of such microstates.
+
+```text
+CONDITIONAL_DETERMINISM != ENSEMBLE_DETERMINISM
+DETERMINISTIC_MICRODYNAMICS != DETERMINISTIC_OBSERVED_STATISTICS
+EQUIVARIANCE_ASSUMED != EQUIVARIANCE_DERIVED
+STATIONARY_DISTRIBUTION_EXISTS != GENERIC_RELAXATION_PROVED
+```
+
+No Born-rule derivation may be claimed merely because an equivariant distribution has been selected or an explicit stationary family has been constructed.
+
+### E. Approximation versus exact-object boundary
+
+Use the paper's separation between geometric-optics characteristics and exact spectral/mode-sum propagation as a future representation/approximation audit pattern.
+
+```text
+WKB_CHARACTERISTIC != EXACT_PROPAGATOR
+SINGLE_RAY_PROPERTY != FULL_FIELD_PROPERTY
+GEOMETRIC_OPTICS != EXACT_SPECTRAL_DYNAMICS
+```
+
+A property of one approximation, ray, representation, or asymptotic sector must not be promoted automatically to the exact object.
+
+### F. Assumption graph and assurance staging
+
+Build a future machine-readable dependency surface that distinguishes source-derived statements, explicit modelling assumptions, conditional predictions, and empirical observations.
+
+```text
+DERIVED != ASSUMED != CONDITIONALLY_PREDICTED != EMPIRICALLY_OBSERVED
+```
+
+For this donor source, the future audit should keep geometry-derived claims separate from H1-H3, equivariance, preparation-source assumptions, detector/readout assumptions, correlator ansatz choices, and unresolved stability/genericity questions. The source's own categorization motivates the schema; UFT-ID must verify any imported proposition independently before promoting it.
+
+### G. Representation-map robustness
+
+Stage an admissible map class `F_class` and allow a declared observable `Q` to be tested for invariance across that class:
+
+```text
+for all F1,F2 in F_class:
+Q(F1) = Q(F2)
+```
+
+without requiring `F1 = F2`.
+
+```text
+MAP_NONUNIQUENESS != OBSERVABLE_NONROBUSTNESS
+ROBUST_WITHIN_DECLARED_MAP_CLASS != UNQUALIFIED_REPRESENTATION_INDEPENDENCE
+```
+
+This should feed the planned representation/congruence calculus, where every robustness claim names the transformation/map class over which it is quantified.
+
+### H. Future falsification-profile specimen
+
+Record the paper's proposed source prediction
+
+```text
+C_AE ~ (ell/d)^2
+```
+
+only as a **preprint model prediction** suitable for future `FalsificationSpec` anatomy. A future source-specific profile may record the controlled geometry, predicted distance dependence, standard-model/null comparator, required observables, conventional-cross-talk controls, uncertainty, and rejection conditions.
+
+```text
+PREPRINT_PREDICTION != EXPERIMENTAL_RESULT
+FALSIFIABLE != VERIFIED
+MODEL_DISTINGUISHES_STANDARD_QM != MODEL_IS_CORRECT
+```
+
+No repository claim may state or imply that the cross-pair signal has been observed unless independent experimental evidence is added and classified separately.
+
+### Integration targets
+
+This donor programme may strengthen later work in:
+
+```text
+PR #12 BridgeCore
+PR #14 representation and congruence calculus
+formal assurance / assumption graphs
+typed multi-relation incidence
+PR #18 empirical falsification profiles
+```
+
+It is explicitly not evidence for:
+
+```text
+E8 physical ontology
+ETQ physical ontology
+Fuller/Synergetics physical selection
+extra-time reality
+cosmological topology
+```
+
+### Acceptance gate
+
+A later implementation slice may promote any Pettini-inspired abstraction only if it supplies:
+
+- exact source identity and claim-class separation;
+- an independent UFT-ID mathematical definition or fixture;
+- preserved and lost structure for every projection/bridge;
+- explicit relation labels when multiple edge semantics coexist;
+- explicit assumption versus derivation dependencies;
+- a declared map class for robustness claims;
+- a source-prediction versus observed-result separation;
+- mutation tests blocking ontology promotion;
+- deterministic receipts for any executable authority;
+- explicit confirmation that `PAPER_MODEL != UFT_ID_PHYSICAL_ONTOLOGY`.
