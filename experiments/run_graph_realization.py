@@ -13,6 +13,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 VALIDATOR = ROOT / "scripts/validate_graph_realization.py"
 EXPERIMENT = ROOT / "experiments/graph_realization/run.py"
+BASE_CONTRACT = ROOT / "machine/contract.json"
 
 CORE_FILES = [
     "machine/contract.json",
@@ -21,6 +22,7 @@ CORE_FILES = [
     "machine/graph_realization_results.json",
     "machine/cross_repo_patterns.json",
     "docs/CLAIMS.md",
+    "docs/NONCLAIMS.md",
     "README4AI.md",
     "docs/REPRODUCIBILITY.md",
     "ROADMAP.md",
@@ -54,6 +56,25 @@ def load_module(name: str, path: Path):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def registered_receipt_version() -> str:
+    payload = json.loads(BASE_CONTRACT.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise RuntimeError("machine/contract.json must be an object")
+    authority = payload.get("graph_realization_authority")
+    library = payload.get("experiment_library")
+    if not isinstance(authority, dict) or not isinstance(library, dict):
+        raise RuntimeError("graph receipt version registries must be objects")
+    authority_version = authority.get("receipt_version")
+    library_version = library.get("graph_realization_receipt_version")
+    if not isinstance(authority_version, str) or not authority_version:
+        raise RuntimeError("graph authority receipt_version must be a non-empty string")
+    if not isinstance(library_version, str) or not library_version:
+        raise RuntimeError("graph experiment-library receipt version must be a non-empty string")
+    if authority_version != library_version:
+        raise RuntimeError("graph receipt version registry disagreement")
+    return authority_version
 
 
 def safe_repo_file(path: str) -> str:
@@ -110,7 +131,7 @@ def run_suite() -> dict[str, object]:
     source_hashes = {path: sha256_bytes((ROOT / path).read_bytes()) for path in files}
     identity = {
         "type": "uft-id-graph-realization-receipt",
-        "schema_version": "1.0.0",
+        "schema_version": registered_receipt_version(),
         "source_sha256": source_hashes,
         "declared_evidence_paths": sorted(declared_evidence_paths()),
         "result_sha256": sha256_bytes(canonical_bytes(result)),
