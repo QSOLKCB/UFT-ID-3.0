@@ -35,12 +35,14 @@ class GraphRealizationTests(unittest.TestCase):
         self.assertEqual(check["normal_state_checks"], 1570)
         self.assertEqual(check["reachability_source_checks"], 1570)
         self.assertEqual(check["termination_checks"], 530)
+        self.assertEqual(check["scc_partition_checks"], 530)
         self.assertEqual(check["sink_scc_checks"], 530)
         self.assertEqual(check["condensation_checks"], 530)
 
     def test_tetrahedron_one_skeleton_is_k4(self):
         fixture = GRAPH.tetrahedron_k4_fixture()
         self.assertEqual(len(fixture["vertices"]), 4)
+        self.assertEqual(fixture["edge_semantics"], "undirected")
         self.assertEqual(fixture["edge_count"], 6)
         self.assertEqual(set(fixture["degrees"].values()), {3})
         self.assertIn("!= SIS4_CHEMICAL_BOND_GRAPH", fixture["boundary"])
@@ -50,6 +52,14 @@ class GraphRealizationTests(unittest.TestCase):
         self.assertEqual(witness["rich_a_arc_count"], 2)
         self.assertEqual(witness["rich_b_arc_count"], 1)
         self.assertTrue(witness["distinct_sources_same_projection"])
+
+    def test_duplicate_rich_arc_ids_fail_closed(self):
+        arcs = (
+            {"id": "dup", "source": "u", "target": "v", "label": "L1"},
+            {"id": "dup", "source": "u", "target": "v", "label": "L2"},
+        )
+        with self.assertRaisesRegex(ValueError, "ids must be unique"):
+            GRAPH.simplify_rich_arcs(("u", "v"), arcs)
 
     def test_module_inventory_does_not_determine_incidence(self):
         witness = GRAPH.module_inventory_counterexample()
@@ -62,11 +72,16 @@ class GraphRealizationTests(unittest.TestCase):
         self.assertTrue(witness["same_graph_distinct_coordinates"])
         self.assertNotEqual(witness["drawing_a"], witness["drawing_b"])
 
-    def test_coupling_and_placement_graphs_are_separate(self):
+    def test_coupling_and_placement_graphs_are_explicitly_undirected(self):
         witness = GRAPH.coupling_vs_placement_fixture()
+        self.assertEqual(witness["edge_semantics"], "undirected")
         self.assertEqual(witness["coupling_graph"], "K1,3")
         self.assertEqual(witness["placement_graph"], "K4")
-        self.assertNotEqual(witness["coupling_edges"], witness["placement_edges"])
+        self.assertEqual(len(witness["coupling_undirected_edges"]), 3)
+        self.assertEqual(len(witness["placement_undirected_edges"]), 6)
+        self.assertNotEqual(
+            witness["coupling_undirected_edges"], witness["placement_undirected_edges"]
+        )
 
     def test_sink_scc_can_exist_without_normal_vertex(self):
         states = ("a", "b")
@@ -75,6 +90,24 @@ class GraphRealizationTests(unittest.TestCase):
         self.assertEqual(sinks, (frozenset({"a", "b"}),))
         self.assertEqual(GRAPH.outdegree(states, edges, "a"), 1)
         self.assertEqual(GRAPH.outdegree(states, edges, "b"), 1)
+
+    def test_scc_partition_is_checked_against_mutual_reachability(self):
+        states = ("a", "b")
+        edges = (("a", "b"),)
+        correct = GRAPH.strongly_connected_components(states, edges)
+        bogus = (frozenset({"a", "b"}),)
+        self.assertTrue(GRAPH.scc_partition_matches_mutual_reachability(states, edges, correct))
+        self.assertFalse(GRAPH.scc_partition_matches_mutual_reachability(states, edges, bogus))
+        self.assertEqual(correct, (frozenset({"a"}), frozenset({"b"})))
+
+    def test_scc_helpers_are_recursion_safe_on_long_chain(self):
+        size = 1500
+        states = tuple(str(i) for i in range(size))
+        edges = tuple((str(i), str(i + 1)) for i in range(size - 1))
+        components = GRAPH.strongly_connected_components(states, edges)
+        self.assertEqual(len(components), size)
+        self.assertEqual(GRAPH.sink_components(states, edges), (frozenset({str(size - 1)}),))
+        self.assertTrue(GRAPH.condensation_is_acyclic(states, edges))
 
     def test_malformed_states_fail_closed(self):
         with self.assertRaises(ValueError):
@@ -94,16 +127,28 @@ class GraphRealizationTests(unittest.TestCase):
         self.assertEqual(result["result_count"], 9)
         self.assertEqual(result["source_count"], 2)
 
-    def _mutate_and_validate(self, relpath: str, transform):
+    def _mutate_and_validate(self, relpath: str, transform, *, rebind_digest: str | None = None):
         path = ROOT / relpath
         original = path.read_text(encoding="utf-8")
+        old_digest = VALIDATOR.EXPECTED_SHA256.get(rebind_digest) if rebind_digest else None
         try:
-            path.write_text(transform(original), encoding="utf-8")
+            mutated = transform(original)
+            path.write_text(mutated, encoding="utf-8")
+            if rebind_digest is not None:
+                VALIDATOR.EXPECTED_SHA256[rebind_digest] = VALIDATOR.sha256_bytes(
+                    mutated.encode("utf-8")
+                )
             return VALIDATOR.validate()
         finally:
             path.write_text(original, encoding="utf-8")
+            if rebind_digest is not None and old_digest is not None:
+                VALIDATOR.EXPECTED_SHA256[rebind_digest] = old_digest
 
-    def test_contract_semantic_promotion_is_rejected(self):
+    def assert_dedicated_error(self, result, fragment: str):
+        self.assertEqual(result["status"], "error")
+        self.assertTrue(any(fragment in error for error in result["errors"]), result["errors"])
+
+    def test_contract_semantic_promotion_guard_is_independent_of_digest(self):
         result = self._mutate_and_validate(
             "machine/graph_realization_contract.json",
             lambda text: text.replace(
@@ -111,11 +156,12 @@ class GraphRealizationTests(unittest.TestCase):
                 "This proves a universal physical ontology; No physical ontology is inferred",
                 1,
             ),
+            rebind_digest="contract",
         )
-        self.assertEqual(result["status"], "error")
-        self.assertIn("contract canonical payload drift", result["errors"])
+        self.assert_dedicated_error(result, "forbidden semantic/ontology promotion")
+        self.assertNotIn("contract canonical payload drift", result["errors"])
 
-    def test_result_statement_drift_is_rejected(self):
+    def test_result_semantic_promotion_guard_is_independent_of_digest(self):
         result = self._mutate_and_validate(
             "machine/graph_realization_results.json",
             lambda text: text.replace(
@@ -123,41 +169,75 @@ class GraphRealizationTests(unittest.TestCase):
                 "Every sink SCC is a physical fixed point.",
                 1,
             ),
+            rebind_digest="results",
         )
-        self.assertEqual(result["status"], "error")
-        self.assertIn("results canonical payload drift", result["errors"])
+        self.assert_dedicated_error(result, "forbidden semantic/ontology promotion")
+        self.assertNotIn("results canonical payload drift", result["errors"])
 
-    def test_human_additive_physical_claim_is_rejected(self):
+    def test_human_additive_physical_claim_guard_is_independent_of_digest(self):
         result = self._mutate_and_validate(
             "theory/GRAPH_REALIZATION.md",
             lambda text: text + "\nSiS2 proves E8 information physics.\n",
+            rebind_digest="human",
         )
-        self.assertEqual(result["status"], "error")
-        self.assertIn("human canonical payload drift", result["errors"])
+        self.assert_dedicated_error(result, "forbidden semantic/ontology promotion")
+        self.assertNotIn("human canonical payload drift", result["errors"])
 
-    def test_private_mail_locator_is_rejected(self):
+    def test_private_mail_guard_is_independent_of_digest(self):
         result = self._mutate_and_validate(
             "research/GRAPH_REALIZATION_SOURCES.md",
             lambda text: text + "\nmail.google.com private correspondence\n",
+            rebind_digest="sources",
         )
-        self.assertEqual(result["status"], "error")
-        self.assertTrue(any("sources canonical payload drift" in error or "private locator" in error for error in result["errors"]))
+        self.assert_dedicated_error(result, "private locator")
+        self.assertNotIn("sources canonical payload drift", result["errors"])
 
-    def test_source_doi_drift_is_rejected(self):
+    def test_source_doi_guard_is_independent_of_digest(self):
         result = self._mutate_and_validate(
             "machine/graph_realization_contract.json",
             lambda text: text.replace("10.1021/ic501825r", "10.0000/not-real", 1),
+            rebind_digest="contract",
+        )
+        self.assert_dedicated_error(result, "Evers SiS2 source identity drift")
+        self.assertNotIn("contract canonical payload drift", result["errors"])
+
+    def test_pettini_roadmap_promotion_is_rejected(self):
+        result = self._mutate_and_validate(
+            "ROADMAP.md",
+            lambda text: text.replace(
+                "ROADMAP-ONLY RESEARCH TARGET / MODEL DONOR",
+                "CURRENT GRAPH THEOREM AUTHORITY",
+                1,
+            ),
         )
         self.assertEqual(result["status"], "error")
-        self.assertTrue(any("contract canonical payload drift" in error or "Evers SiS2 source identity drift" in error for error in result["errors"]))
+        self.assertTrue(
+            any(
+                "Pettini" in error and (
+                    "missing semantic anchor" in error or "current graph theorem authority" in error
+                )
+                for error in result["errors"]
+            ),
+            result["errors"],
+        )
 
-    def test_receipt_binds_graph_and_relation_sources(self):
+    def test_receipt_binds_graph_relation_and_central_human_surfaces(self):
         files = set(RECEIPT.receipt_files())
-        self.assertIn("research/GRAPH_REALIZATION_SOURCES.md", files)
-        self.assertIn("theory/GRAPH_REALIZATION.md", files)
-        self.assertIn("machine/graph_realization_contract.json", files)
-        self.assertIn("experiments/relation/run.py", files)
-        self.assertIn("experiments/graph_realization/run.py", files)
+        for expected in (
+            "machine/contract.json",
+            "machine/relation_contract.json",
+            "machine/graph_realization_contract.json",
+            "machine/graph_realization_results.json",
+            "research/GRAPH_REALIZATION_SOURCES.md",
+            "theory/GRAPH_REALIZATION.md",
+            "experiments/relation/run.py",
+            "experiments/graph_realization/run.py",
+            "docs/CLAIMS.md",
+            "README4AI.md",
+            "docs/REPRODUCIBILITY.md",
+            "ROADMAP.md",
+        ):
+            self.assertIn(expected, files)
 
     def test_receipt_is_deterministic(self):
         first = RECEIPT.run_suite()
