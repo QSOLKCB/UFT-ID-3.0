@@ -153,6 +153,19 @@ class CrossRepoRegistryTests(unittest.TestCase):
             write_json(root, "machine/cross_repo_results.json", results)
         self.assert_report_contains(validate_mutation(mutate), "unknown or quarantined source pattern")
 
+    def test_rejects_malformed_claim_class_member_without_crashing(self):
+        malformed_members = ({"bad": True}, ["bad"], 7, True, None)
+        for malformed in malformed_members:
+            with self.subTest(malformed=malformed):
+                def mutate(root: Path, item=malformed):
+                    contract = read_json(root, "machine/contract.json")
+                    contract["claim_classes"] = ["DEFINITION", item]
+                    write_json(root, "machine/contract.json", contract)
+                self.assert_report_contains(
+                    validate_mutation(mutate),
+                    "claim_classes members must be non-empty strings",
+                )
+
     def test_rejects_human_atlas_omitting_xr_p17_or_xr_p18(self):
         for pattern_id in ("XR-P17", "XR-P18"):
             with self.subTest(pattern_id=pattern_id):
@@ -160,6 +173,29 @@ class CrossRepoRegistryTests(unittest.TestCase):
                     path = root / "research/CROSS_REPO_PATTERN_ATLAS.md"
                     path.write_text(path.read_text(encoding="utf-8").replace(pid, f"REMOVED-{pid}"), encoding="utf-8")
                 self.assert_report_contains(validate_mutation(mutate), f"human cross-repo atlas missing canonical context pattern: {pattern_id}")
+
+    def test_rejects_human_atlas_semantic_promotion_with_heading_intact(self):
+        replacements = {
+            "XR-P17": (
+                "UFT-ID implication: finite compatibility machinery can be sufficient to decorate several distinct candidate constructions. Compatibility, block count, phase closure, or E8-derived labels do not thereby select a unique genus or establish a physical topology.",
+                "UFT-ID implication: E8 and triality uniquely select genus 10 and establish universal cosmological topology.",
+            ),
+            "XR-P18": (
+                "UFT-ID implication: a spiral, phi-scaled ordering, qutrit control path, or other placement geometry may organize labelled sectors while remaining independent of the topology those labels decorate.",
+                "UFT-ID implication: phi spiral placement physically derives topology and proves cosmological selection.",
+            ),
+        }
+        for pattern_id, (old, new) in replacements.items():
+            with self.subTest(pattern_id=pattern_id):
+                def mutate(root: Path, before=old, after=new):
+                    path = root / "research/CROSS_REPO_PATTERN_ATLAS.md"
+                    text = path.read_text(encoding="utf-8")
+                    self.assertIn(before, text)
+                    path.write_text(text.replace(before, after), encoding="utf-8")
+                self.assert_report_contains(
+                    validate_mutation(mutate),
+                    f"human cross-repo atlas canonical context payload drift: {pattern_id}",
+                )
 
     def test_rejects_future_utc_snapshot_date(self):
         def mutate(root: Path):
