@@ -16,6 +16,10 @@ PATHS = {
     "sources": ROOT / "research/GRAPH_REALIZATION_SOURCES.md",
     "human": ROOT / "theory/GRAPH_REALIZATION.md",
     "base_contract": ROOT / "machine/contract.json",
+    "claims": ROOT / "docs/CLAIMS.md",
+    "readme4ai": ROOT / "README4AI.md",
+    "reproducibility": ROOT / "docs/REPRODUCIBILITY.md",
+    "roadmap": ROOT / "ROADMAP.md",
     "relation_contract": ROOT / "machine/relation_contract.json",
     "cross_repo_patterns": ROOT / "machine/cross_repo_patterns.json",
     "experiment": ROOT / "experiments/graph_realization/run.py",
@@ -85,6 +89,76 @@ PRIVATE_PATTERNS = (
     "private-user-images",
 )
 
+SEMANTIC_PROMOTION_PATTERNS = (
+    "this proves a universal physical ontology",
+    "every sink scc is a physical fixed point",
+    "sis2 proves e8 information physics",
+    "graph realization proves uft-id physics",
+    "material positive control proves uft-id physics",
+    "pettini proves extra time is physically real",
+    "pettini proves uft-id extra-time ontology",
+    "current graph theorem authority: pettini",
+)
+
+CLAIMS_ANCHORS = (
+    "### C7 - Finite relation semantics admit an exact graph-realization layer",
+    "**Status:** PROVED",
+    "`UFT-GR-001` through `UFT-GR-006`",
+    "FINITE_GRAPH_CONFORMANCE != GENERAL_PROOF",
+    "ABSTRACT_GRAPH_RESULT != PHYSICAL_ONTOLOGY",
+)
+
+README_ANCHORS = (
+    "## Relation and graph-realization authority",
+    "machine/graph_realization_contract.json",
+    "machine/graph_realization_results.json",
+    "theory/GRAPH_REALIZATION.md",
+    "scripts/validate_graph_realization.py",
+    "experiments/run_graph_realization.py",
+    "python scripts/validate_graph_realization.py",
+    "python experiments/graph_realization/run.py --json",
+)
+
+REPRO_ANCHORS = (
+    "## Graph-realization conformance boundary",
+    "python scripts/validate_graph_realization.py",
+    "python experiments/graph_realization/run.py --json",
+    "python experiments/run_graph_realization.py --json",
+    "graph-realization-validation.json",
+    "graph-realization-witness.json",
+    "graph-realization-receipt.json",
+    "docs/CLAIMS.md",
+    "README4AI.md",
+    "ROADMAP.md",
+)
+
+PETTINI_START = "# Future model-donor programme — typed causality, projection, and assumption structure"
+PETTINI_ANCHORS = (
+    "ROADMAP-ONLY RESEARCH TARGET / MODEL DONOR",
+    "Marco Pettini",
+    "Quantum Entanglement Beyond Kinematics: A Dynamical Hypothesis in (3,2)-Dimensional Spacetime",
+    "10.48550/arXiv.2606.12457",
+    "ANSATZ_UNIQUENESS != GLOBAL_UNIQUENESS",
+    "MODEL_CLASS_EXHAUSTION != PHYSICAL_SELECTION",
+    "G_L = (V, L, I)",
+    "CORRELATION_EDGE != CAUSAL_RESPONSE_EDGE",
+    "NONZERO_CORRELATION != CONTROLLABLE_INFLUENCE",
+    "FORGET_EDGE_TYPE = POTENTIAL_INFORMATION_LOSS",
+    "MICROSTATE != PROJECTION != CONTEXT_LABEL",
+    "MANY_TO_ONE_CONTEXT_MAP != PHYSICAL_IDENTITY",
+    "CONDITIONAL_DETERMINISM != ENSEMBLE_DETERMINISM",
+    "EQUIVARIANCE_ASSUMED != EQUIVARIANCE_DERIVED",
+    "WKB_CHARACTERISTIC != EXACT_PROPAGATOR",
+    "DERIVED != ASSUMED != CONDITIONALLY_PREDICTED != EMPIRICALLY_OBSERVED",
+    "MAP_NONUNIQUENESS != OBSERVABLE_NONROBUSTNESS",
+    "PREPRINT_PREDICTION != EXPERIMENTAL_RESULT",
+    "FALSIFIABLE != VERIFIED",
+    "(3,2)_SPACETIME_MODEL != UFT_ID_ONTOLOGY",
+    "BULK_FIELD_XA_MODEL != ESTABLISHED_PHYSICAL_FIELD",
+    "PREDICTED_CROSS_PAIR_SIGNAL != OBSERVED_CROSS_PAIR_SIGNAL",
+    "PAPER_MODEL != UFT_ID_PHYSICAL_ONTOLOGY",
+)
+
 
 def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
@@ -122,6 +196,19 @@ def no_private_locators(value: object, label: str, errors: list[str]) -> None:
             errors.append(f"{label} contains forbidden private locator token: {pattern}")
 
 
+def no_semantic_promotion(value: object, label: str, errors: list[str]) -> None:
+    text = json.dumps(value, ensure_ascii=False).casefold() if not isinstance(value, str) else value.casefold()
+    for pattern in SEMANTIC_PROMOTION_PATTERNS:
+        if pattern in text:
+            errors.append(f"{label} contains forbidden semantic/ontology promotion: {pattern}")
+
+
+def require_anchors(text: str, anchors: tuple[str, ...], label: str, errors: list[str]) -> None:
+    for anchor in anchors:
+        if anchor not in text:
+            errors.append(f"{label} missing semantic anchor: {anchor}")
+
+
 def validate() -> dict[str, object]:
     errors: list[str] = []
 
@@ -138,6 +225,10 @@ def validate() -> dict[str, object]:
     cross_repo = load_json(PATHS["cross_repo_patterns"])
     sources = PATHS["sources"].read_text(encoding="utf-8")
     human = PATHS["human"].read_text(encoding="utf-8")
+    claims = PATHS["claims"].read_text(encoding="utf-8")
+    readme4ai = PATHS["readme4ai"].read_text(encoding="utf-8")
+    reproducibility = PATHS["reproducibility"].read_text(encoding="utf-8")
+    roadmap = PATHS["roadmap"].read_text(encoding="utf-8")
 
     for name in ("contract", "results", "sources", "human"):
         actual = sha256_bytes(PATHS[name].read_bytes())
@@ -261,11 +352,36 @@ def validate() -> dict[str, object]:
         if anchor not in combined:
             errors.append(f"human graph authority missing semantic anchor: {anchor}")
 
+    require_anchors(claims, CLAIMS_ANCHORS, "docs/CLAIMS.md graph registration", errors)
+    require_anchors(readme4ai, README_ANCHORS, "README4AI graph registration", errors)
+    require_anchors(reproducibility, REPRO_ANCHORS, "reproducibility graph registration", errors)
+
+    pettini_index = roadmap.find(PETTINI_START)
+    if pettini_index < 0:
+        errors.append("ROADMAP missing Pettini model-donor programme")
+        pettini = ""
+    else:
+        pettini = roadmap[pettini_index:]
+        require_anchors(pettini, PETTINI_ANCHORS, "ROADMAP Pettini model-donor programme", errors)
+        if "current graph theorem authority" in pettini.casefold():
+            errors.append("ROADMAP Pettini model donor must remain outside current graph theorem authority")
+        if "extra-time physics is adopted by uft-id" in pettini.casefold():
+            errors.append("ROADMAP Pettini model donor illegally promotes extra-time ontology")
+
     no_private_locators(contract, "graph contract", errors)
     no_private_locators(results, "graph results", errors)
     no_private_locators(central if isinstance(central, dict) else {}, "central graph authority", errors)
     no_private_locators(sources, "graph source map", errors)
     no_private_locators(human, "graph human theory", errors)
+
+    no_semantic_promotion(contract, "graph contract", errors)
+    no_semantic_promotion(results, "graph results", errors)
+    no_semantic_promotion(sources, "graph source map", errors)
+    no_semantic_promotion(human, "graph human theory", errors)
+    no_semantic_promotion(claims, "claims graph registration", errors)
+    no_semantic_promotion(readme4ai, "README4AI graph registration", errors)
+    no_semantic_promotion(reproducibility, "reproducibility graph registration", errors)
+    no_semantic_promotion(pettini, "ROADMAP Pettini model donor", errors)
 
     return {
         "status": "error" if errors else "ok",
