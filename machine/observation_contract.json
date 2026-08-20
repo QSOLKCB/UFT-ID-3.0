@@ -1,6 +1,6 @@
 {
   "type": "uft-id-observation-contract",
-  "schema_version": "1.0.1",
+  "schema_version": "1.0.2",
   "snapshot_date": "2026-08-20",
   "claim_class": "DEFINITION",
   "scope": "Deterministic set-theoretic observation, fibres, observational equivalence, image-scoped exact reconstruction, and exact floor-sampling fixtures.",
@@ -27,6 +27,10 @@
     "surjectivity",
     "quotient"
   ],
+  "execution_limits": {
+    "max_floor_dimension": 10000,
+    "policy": "Fail before allocating or enumerating floor-sampling ranges when L or R exceeds the declared fixture ceiling."
+  },
   "hard_rules": {
     "observation_equivalence_implies_physical_identity": false,
     "noninjective_observation_has_global_exact_left_inverse": false,
