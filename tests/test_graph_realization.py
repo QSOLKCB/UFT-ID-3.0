@@ -67,10 +67,13 @@ class GraphRealizationTests(unittest.TestCase):
         self.assertTrue(witness["same_inventory_distinct_incidence"])
         self.assertNotEqual(witness["chain_incidence"], witness["triangle_incidence"])
 
-    def test_drawing_is_not_graph_identity(self):
+    def test_drawing_is_not_graph_identity_and_fixture_is_undirected_k13(self):
         witness = GRAPH.drawing_counterexample()
         self.assertTrue(witness["same_graph_distinct_coordinates"])
         self.assertNotEqual(witness["drawing_a"], witness["drawing_b"])
+        self.assertEqual(witness["graph"], "K1,3")
+        self.assertEqual(witness["edge_semantics"], "undirected")
+        self.assertEqual(len(witness["undirected_edges"]), 3)
 
     def test_coupling_and_placement_graphs_are_explicitly_undirected(self):
         witness = GRAPH.coupling_vs_placement_fixture()
@@ -127,10 +130,18 @@ class GraphRealizationTests(unittest.TestCase):
         self.assertEqual(result["result_count"], 9)
         self.assertEqual(result["source_count"], 2)
 
-    def _mutate_and_validate(self, relpath: str, transform, *, rebind_digest: str | None = None):
+    def _mutate_and_validate(
+        self,
+        relpath: str,
+        transform,
+        *,
+        rebind_digest: str | None = None,
+        rebind_blob: str | None = None,
+    ):
         path = ROOT / relpath
         original = path.read_text(encoding="utf-8")
         old_digest = VALIDATOR.EXPECTED_SHA256.get(rebind_digest) if rebind_digest else None
+        old_blob = VALIDATOR.EXPECTED_HUMAN_BLOBS.get(rebind_blob) if rebind_blob else None
         try:
             mutated = transform(original)
             path.write_text(mutated, encoding="utf-8")
@@ -138,11 +149,17 @@ class GraphRealizationTests(unittest.TestCase):
                 VALIDATOR.EXPECTED_SHA256[rebind_digest] = VALIDATOR.sha256_bytes(
                     mutated.encode("utf-8")
                 )
+            if rebind_blob is not None:
+                VALIDATOR.EXPECTED_HUMAN_BLOBS[rebind_blob] = VALIDATOR.git_blob_sha(
+                    mutated.encode("utf-8")
+                )
             return VALIDATOR.validate()
         finally:
             path.write_text(original, encoding="utf-8")
             if rebind_digest is not None and old_digest is not None:
                 VALIDATOR.EXPECTED_SHA256[rebind_digest] = old_digest
+            if rebind_blob is not None and old_blob is not None:
+                VALIDATOR.EXPECTED_HUMAN_BLOBS[rebind_blob] = old_blob
 
     def assert_dedicated_error(self, result, fragment: str):
         self.assertEqual(result["status"], "error")
@@ -201,6 +218,25 @@ class GraphRealizationTests(unittest.TestCase):
         self.assert_dedicated_error(result, "Evers SiS2 source identity drift")
         self.assertNotIn("contract canonical payload drift", result["errors"])
 
+    def test_paraphrased_pettini_ontology_promotion_is_rejected_by_closed_roadmap_blob(self):
+        result = self._mutate_and_validate(
+            "ROADMAP.md",
+            lambda text: text + "\nThe source model establishes extra-time reality as a physical fact.\n",
+        )
+        self.assert_dedicated_error(result, "roadmap canonical human authority blob drift")
+
+    def test_all_central_human_authorities_are_frozen(self):
+        cases = (
+            ("docs/CLAIMS.md", "claims"),
+            ("README4AI.md", "readme4ai"),
+            ("docs/REPRODUCIBILITY.md", "reproducibility"),
+            ("ROADMAP.md", "roadmap"),
+        )
+        for relpath, key in cases:
+            with self.subTest(relpath=relpath):
+                result = self._mutate_and_validate(relpath, lambda text: text + "\nadditive drift\n")
+                self.assert_dedicated_error(result, f"{key} canonical human authority blob drift")
+
     def test_pettini_roadmap_promotion_is_rejected(self):
         result = self._mutate_and_validate(
             "ROADMAP.md",
@@ -209,6 +245,7 @@ class GraphRealizationTests(unittest.TestCase):
                 "CURRENT GRAPH THEOREM AUTHORITY",
                 1,
             ),
+            rebind_blob="roadmap",
         )
         self.assertEqual(result["status"], "error")
         self.assertTrue(
@@ -220,6 +257,24 @@ class GraphRealizationTests(unittest.TestCase):
             ),
             result["errors"],
         )
+        self.assertNotIn("roadmap canonical human authority blob drift", result["errors"])
+
+    def test_pettini_exact_arxiv_version_is_pinned_independent_of_blob_freeze(self):
+        result = self._mutate_and_validate(
+            "ROADMAP.md",
+            lambda text: text.replace("arXiv:2606.12457v2", "arXiv:2606.12457v1", 1),
+            rebind_blob="roadmap",
+        )
+        self.assert_dedicated_error(result, "arXiv:2606.12457v2")
+        self.assertNotIn("roadmap canonical human authority blob drift", result["errors"])
+
+    def test_graph_artifact_retention_commands_are_required(self):
+        command = VALIDATOR.GRAPH_ARTIFACT_COMMANDS[0]
+        result = self._mutate_and_validate(
+            ".github/workflows/finite-adversarial.yml",
+            lambda text: text.replace(command, "# graph validation artifact command removed", 1),
+        )
+        self.assert_dedicated_error(result, "finite-adversarial graph artifact retention")
 
     def test_receipt_binds_graph_relation_and_central_human_surfaces(self):
         files = set(RECEIPT.receipt_files())
@@ -236,6 +291,7 @@ class GraphRealizationTests(unittest.TestCase):
             "README4AI.md",
             "docs/REPRODUCIBILITY.md",
             "ROADMAP.md",
+            ".github/workflows/finite-adversarial.yml",
         ):
             self.assertIn(expected, files)
 
