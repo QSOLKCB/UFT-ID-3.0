@@ -214,6 +214,8 @@ EXISTENTIAL_NORMALIZATION_PROOF != COMPUTABLE_NORMALIZATION_ALGORITHM
 
 ### Derived corollary
 
+**Canonical derived corollary:** `If stepRel terminates and is confluent, then every x has exactly one reachable normal form.`
+
 UFT-RW-003 plus UFT-RW-004 gives:
 
 \[
