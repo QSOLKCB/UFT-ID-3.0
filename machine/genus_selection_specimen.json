@@ -1,7 +1,7 @@
 {
   "type": "uft-id-selection-stress-test",
   "schema_version": "1.0.1",
-  "snapshot_date": "2026-08-21",
+  "snapshot_date": "2026-08-20",
   "id": "SEL-STRESS-GENUS-10-30",
   "claim_class": "DIAGNOSTIC",
   "purpose": "Instantiate UFT-SEL-001 with two labelled closed orientable surface realizations to test whether shared decorative/compatibility machinery can uniquely select genus 10.",
