@@ -97,6 +97,13 @@ class PR9ObservationTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 E.floor_case(L, R)
 
+    def test_floor_case_rejects_oversized_dimensions_before_enumeration(self):
+        ceiling = E.max_floor_dimension()
+        with self.assertRaises(ValueError):
+            E.floor_case(ceiling + 1, 1)
+        with self.assertRaises(ValueError):
+            E.floor_case(1, ceiling + 1)
+
     def test_receipt_is_deterministic_and_binds_declared_authority(self):
         first = R.run_suite()
         second = R.run_suite()
@@ -129,15 +136,26 @@ class PR9ObservationMutationTests(unittest.TestCase):
         value["specs"]["records"][0].pop("source_type")
         self.assert_error_contains(value, "exact canonical fields")
 
+    def test_rejects_observation_spec_payload_drift(self):
+        value = canonical_documents()
+        spec = next(x for x in value["specs"]["records"] if x["id"] == "OBS-SPEC-003")
+        spec["map_ref"] = "floor_sample(L,R,i)=floor(i*R/L)"
+        self.assert_error_contains(value, "OBS-SPEC-003 observation spec canonical payload drift")
+
     def test_rejects_stochastic_kind_in_pr9(self):
         value = canonical_documents()
         value["specs"]["records"][0]["kind"] = "stochastic-kernel"
-        self.assert_error_contains(value, "unsupported in PR9")
+        self.assert_error_contains(value, "canonical payload drift")
 
     def test_rejects_self_authorizing_generic_field_removal(self):
         value = canonical_documents()
         value["specs"]["generic_form"]["fields"].remove("target_type")
         self.assert_error_contains(value, "ObservationSpec fields")
+
+    def test_rejects_execution_limit_drift(self):
+        value = canonical_documents()
+        value["contract"]["execution_limits"]["max_floor_dimension"] = 1000000000
+        self.assert_error_contains(value, "exact bounded fixture policy")
 
     def test_rejects_theorem_statement_drift(self):
         value = canonical_documents()
@@ -181,7 +199,13 @@ class PR9ObservationMutationTests(unittest.TestCase):
         value = canonical_documents()
         theorem = next(x for x in value["theorems"]["records"] if x["id"] == "UFT-OBS-001")
         theorem["proof_reference"] = ""
-        self.assert_error_contains(value, "proof_reference required")
+        self.assert_error_contains(value, "proof reference drift")
+
+    def test_rejects_noncanonical_proof_reference(self):
+        value = canonical_documents()
+        theorem = next(x for x in value["theorems"]["records"] if x["id"] == "UFT-OBS-001")
+        theorem["proof_reference"] = "missing.md#bogus"
+        self.assert_error_contains(value, "UFT-OBS-001 proof reference drift")
 
     def test_rejects_counterexample_class_drift(self):
         value = canonical_documents()
@@ -203,13 +227,19 @@ class PR9ObservationMutationTests(unittest.TestCase):
         value["specs"]["records"][0]["scope"] = "derived from /mnt/data/private-note.md"
         self.assert_error_contains(value, "forbidden private locator")
 
-    def test_rejects_roadmap_drift(self):
+    def test_rejects_roadmap_order_drift(self):
         value = canonical_documents()
         value["roadmap"] = value["roadmap"].replace(
-            "PR #15 — Information comparability core",
-            "PR #15 — mystery",
+            "## PR #10 — Lean observation foundation",
+            "## PR #TEMP — Lean observation foundation",
+        ).replace(
+            "## PR #11 — Relation-first recovery core",
+            "## PR #10 — Relation-first recovery core",
+        ).replace(
+            "## PR #TEMP — Lean observation foundation",
+            "## PR #11 — Lean observation foundation",
         )
-        self.assert_error_contains(value, "roadmap missing post-audit anchor")
+        self.assert_error_contains(value, "PR-to-surface order drift")
 
     def test_rejects_machine_roadmap_rebase_drift(self):
         value = canonical_documents()
