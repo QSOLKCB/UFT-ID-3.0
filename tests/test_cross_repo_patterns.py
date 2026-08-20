@@ -79,33 +79,18 @@ class CrossRepoRegistryTests(unittest.TestCase):
         self.assertEqual(report["summary"]["results"], 7)
         self.assertFalse(report["summary"]["remote_freshness_checked"])
         self.assertTrue(report["summary"]["human_result_sync_checked"])
-        self.assertEqual(report["summary"]["snapshot_date"], "2026-08-21")
+        self.assertTrue(report["summary"]["human_pattern_atlas_sync_checked"])
+        self.assertEqual(report["summary"]["snapshot_date"], "2026-08-20")
 
     def test_genus_context_sources_are_canonical_registry_entries(self):
         by_id = {entry["pattern_id"]: entry for entry in self.patterns["patterns"]}
         self.assertEqual(
-            (
-                by_id["XR-P17"]["repository"],
-                by_id["XR-P17"]["source_path"],
-                by_id["XR-P17"]["source_blob_sha"],
-            ),
-            (
-                "QSOLKCB/SONIFICATION",
-                "docs/MATHEMATICAL_MODEL.md",
-                "0e8f986dd5ca191c1eded726dd6e276c1f856613",
-            ),
+            (by_id["XR-P17"]["repository"], by_id["XR-P17"]["source_path"], by_id["XR-P17"]["source_blob_sha"]),
+            ("QSOLKCB/SONIFICATION", "docs/MATHEMATICAL_MODEL.md", "0e8f986dd5ca191c1eded726dd6e276c1f856613"),
         )
         self.assertEqual(
-            (
-                by_id["XR-P18"]["repository"],
-                by_id["XR-P18"]["source_path"],
-                by_id["XR-P18"]["source_blob_sha"],
-            ),
-            (
-                "QSOLKCB/SPECTRAL",
-                "E8/APP/README.md",
-                "4855bfff69d89c4920a2b2daf59c38b875a617ec",
-            ),
+            (by_id["XR-P18"]["repository"], by_id["XR-P18"]["source_path"], by_id["XR-P18"]["source_blob_sha"]),
+            ("QSOLKCB/SPECTRAL", "E8/APP/README.md", "4855bfff69d89c4920a2b2daf59c38b875a617ec"),
         )
 
     def test_registry_uses_public_source_repositories_only(self):
@@ -124,7 +109,6 @@ class CrossRepoRegistryTests(unittest.TestCase):
             patterns = read_json(root, "machine/cross_repo_patterns.json")
             patterns["patterns"][0]["repository"] = "QSOLKCB/QSOL-CONTEXT"
             write_json(root, "machine/cross_repo_patterns.json", patterns)
-
         self.assert_report_contains(validate_mutation(mutate), "private repository is forbidden")
 
     def test_rejects_open_pr_only_source_status(self):
@@ -132,7 +116,6 @@ class CrossRepoRegistryTests(unittest.TestCase):
             patterns = read_json(root, "machine/cross_repo_patterns.json")
             patterns["patterns"][0]["source_status"] = "open-pr-only"
             write_json(root, "machine/cross_repo_patterns.json", patterns)
-
         self.assert_report_contains(validate_mutation(mutate), "open-PR-only source status is forbidden")
 
     def test_rejects_malformed_blob_pin(self):
@@ -140,7 +123,6 @@ class CrossRepoRegistryTests(unittest.TestCase):
             patterns = read_json(root, "machine/cross_repo_patterns.json")
             patterns["patterns"][0]["source_blob_sha"] = "deadbeef"
             write_json(root, "machine/cross_repo_patterns.json", patterns)
-
         self.assert_report_contains(validate_mutation(mutate), "source_blob_sha must be 40 lowercase hex")
 
     def test_rejects_missing_preserved_structure(self):
@@ -148,7 +130,6 @@ class CrossRepoRegistryTests(unittest.TestCase):
             patterns = read_json(root, "machine/cross_repo_patterns.json")
             patterns["patterns"][0].pop("preserved_structure")
             write_json(root, "machine/cross_repo_patterns.json", patterns)
-
         self.assert_report_contains(validate_mutation(mutate), "preserved_structure must be a non-empty string list")
 
     def test_rejects_missing_discarded_structure(self):
@@ -156,7 +137,6 @@ class CrossRepoRegistryTests(unittest.TestCase):
             patterns = read_json(root, "machine/cross_repo_patterns.json")
             patterns["patterns"][0]["discarded_structure"] = []
             write_json(root, "machine/cross_repo_patterns.json", patterns)
-
         self.assert_report_contains(validate_mutation(mutate), "discarded_structure must be a non-empty string list")
 
     def test_rejects_quarantined_pattern_as_positive_result_source(self):
@@ -164,7 +144,6 @@ class CrossRepoRegistryTests(unittest.TestCase):
             results = read_json(root, "machine/cross_repo_results.json")
             results["results"][0]["source_patterns"] = ["XR-Q02"]
             write_json(root, "machine/cross_repo_results.json", results)
-
         self.assert_report_contains(validate_mutation(mutate), "unknown or quarantined source pattern")
 
     def test_rejects_unknown_pattern_dependency(self):
@@ -172,8 +151,22 @@ class CrossRepoRegistryTests(unittest.TestCase):
             results = read_json(root, "machine/cross_repo_results.json")
             results["results"][0]["source_patterns"] = ["XR-P99"]
             write_json(root, "machine/cross_repo_results.json", results)
-
         self.assert_report_contains(validate_mutation(mutate), "unknown or quarantined source pattern")
+
+    def test_rejects_human_atlas_omitting_xr_p17_or_xr_p18(self):
+        for pattern_id in ("XR-P17", "XR-P18"):
+            with self.subTest(pattern_id=pattern_id):
+                def mutate(root: Path, pid=pattern_id):
+                    path = root / "research/CROSS_REPO_PATTERN_ATLAS.md"
+                    path.write_text(path.read_text(encoding="utf-8").replace(pid, f"REMOVED-{pid}"), encoding="utf-8")
+                self.assert_report_contains(validate_mutation(mutate), f"human cross-repo atlas missing canonical context pattern: {pattern_id}")
+
+    def test_rejects_future_utc_snapshot_date(self):
+        def mutate(root: Path):
+            patterns = read_json(root, "machine/cross_repo_patterns.json")
+            patterns["snapshot_date"] = "2026-08-21"
+            write_json(root, "machine/cross_repo_patterns.json", patterns)
+        self.assert_report_contains(validate_mutation(mutate), "snapshot_date mismatch")
 
     def test_rejects_human_claim_class_drift(self):
         def mutate(root: Path):
@@ -184,7 +177,6 @@ class CrossRepoRegistryTests(unittest.TestCase):
                 "## CR6. Integrity can be exact while semantic truth is false\n\n**Class:** `EMPIRICAL`",
             )
             path.write_text(text, encoding="utf-8")
-
         self.assert_report_contains(validate_mutation(mutate), "CR6: human claim_class differs")
 
     def test_rejects_human_title_drift(self):
@@ -195,7 +187,6 @@ class CrossRepoRegistryTests(unittest.TestCase):
                 "## CR1. Different title",
             )
             path.write_text(text, encoding="utf-8")
-
         self.assert_report_contains(validate_mutation(mutate), "CR1: human title differs")
 
     def test_rejects_human_scope_drift(self):
@@ -206,7 +197,6 @@ class CrossRepoRegistryTests(unittest.TestCase):
                 "**Canonical scope:** `all integers`",
             )
             path.write_text(text, encoding="utf-8")
-
         self.assert_report_contains(validate_mutation(mutate), "CR4: human scope differs")
 
 
