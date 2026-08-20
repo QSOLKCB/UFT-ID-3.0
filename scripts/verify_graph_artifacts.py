@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE_CONTRACT = ROOT / "machine/contract.json"
+EXPERIMENT = ROOT / "experiments/graph_realization/run.py"
+RECEIPT_RUNNER = ROOT / "experiments/run_graph_realization.py"
 
 VALIDATION_FILE = "graph-realization-validation.json"
 WITNESS_FILE = "graph-realization-witness.json"
@@ -62,6 +65,15 @@ def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def load_module(name: str, path: Path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"cannot load {path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def load_object(path: Path) -> dict[str, object]:
     if not path.is_file() or path.stat().st_size == 0:
         raise RuntimeError(f"missing or empty retained graph artifact: {path.name}")
@@ -93,14 +105,17 @@ def fingerprint_identity(receipt: dict[str, object]) -> dict[str, object]:
     return {field: receipt.get(field) for field in FINGERPRINT_FIELDS}
 
 
-def verify_hash_map(value: object) -> None:
+def verify_hash_map(value: object) -> dict[str, str]:
     if not isinstance(value, dict) or not value:
         raise RuntimeError("retained graph receipt source hash map malformed")
+    result: dict[str, str] = {}
     for path, digest in value.items():
         if not isinstance(path, str) or not path:
             raise RuntimeError("retained graph receipt source path malformed")
         if not isinstance(digest, str) or HEX64_RE.fullmatch(digest) is None:
             raise RuntimeError("retained graph receipt source digest malformed")
+        result[path] = digest
+    return result
 
 
 def verify(artifact_dir: Path) -> dict[str, object]:
@@ -123,6 +138,14 @@ def verify(artifact_dir: Path) -> dict[str, object]:
     if not isinstance(exhaustive, dict) or exhaustive != EXPECTED_BOUNDED_CHECK:
         raise RuntimeError("retained graph witness bounded-check payload drift")
 
+    # Verify the *entire* retained witness, not only its count envelope.  This
+    # keeps positive controls, counterexamples, and claim boundaries from being
+    # silently dropped while hashes are recomputed around an incomplete object.
+    experiment = load_module("graph_artifact_experiment", EXPERIMENT)
+    expected_witness = experiment.run_suite()
+    if witness != expected_witness:
+        raise RuntimeError("retained graph witness full payload drift")
+
     if receipt.get("type") != "uft-id-graph-realization-receipt":
         raise RuntimeError("retained graph receipt type drift")
     if receipt.get("schema_version") != registered_receipt_version():
@@ -136,14 +159,24 @@ def verify(artifact_dir: Path) -> dict[str, object]:
     if not isinstance(summary, dict) or summary != EXPECTED_RECEIPT_SUMMARY:
         raise RuntimeError("retained graph receipt summary drift")
 
-    verify_hash_map(receipt.get("source_sha256"))
+    # Reconstruct the exact source/evidence sets from the canonical runner and
+    # recompute every repository-file digest.  A self-consistent receipt cannot
+    # substitute invented paths or invented hashes.
+    runner = load_module("graph_artifact_receipt_runner", RECEIPT_RUNNER)
+    expected_files = runner.receipt_files()
+    expected_evidence = sorted(runner.declared_evidence_paths())
+
+    source_hashes = verify_hash_map(receipt.get("source_sha256"))
+    if sorted(source_hashes) != expected_files:
+        raise RuntimeError("retained graph receipt source file set drift")
+    for path in expected_files:
+        actual = sha256_bytes((ROOT / path).read_bytes())
+        if source_hashes[path] != actual:
+            raise RuntimeError(f"retained graph receipt source digest mismatch: {path}")
+
     evidence_paths = receipt.get("declared_evidence_paths")
-    if (
-        not isinstance(evidence_paths, list)
-        or not evidence_paths
-        or any(not isinstance(path, str) or not path for path in evidence_paths)
-    ):
-        raise RuntimeError("retained graph receipt declared evidence paths malformed")
+    if not isinstance(evidence_paths, list) or evidence_paths != expected_evidence:
+        raise RuntimeError("retained graph receipt declared evidence path set drift")
 
     fingerprint = receipt.get("suite_fingerprint_sha256")
     if not isinstance(fingerprint, str) or HEX64_RE.fullmatch(fingerprint) is None:
