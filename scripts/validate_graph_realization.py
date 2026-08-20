@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import re
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +15,7 @@ PATHS = {
     "results": ROOT / "machine/graph_realization_results.json",
     "sources": ROOT / "research/GRAPH_REALIZATION_SOURCES.md",
     "human": ROOT / "theory/GRAPH_REALIZATION.md",
+    "base_contract": ROOT / "machine/contract.json",
     "relation_contract": ROOT / "machine/relation_contract.json",
     "cross_repo_patterns": ROOT / "machine/cross_repo_patterns.json",
     "experiment": ROOT / "experiments/graph_realization/run.py",
@@ -49,6 +49,29 @@ EXPECTED_BOUNDARIES = {
     "F3^3=I3 != GRAPH_THEORETIC_3_CYCLE",
     "FINITE_GRAPH_CONFORMANCE != GENERAL_PROOF",
     "MATERIAL_POSITIVE_CONTROL != UFT_ID_PHYSICAL_PREMISE",
+}
+
+EXPECTED_CENTRAL_AUTHORITY = {
+    "human": "theory/GRAPH_REALIZATION.md",
+    "machine_contract": "machine/graph_realization_contract.json",
+    "machine_results": "machine/graph_realization_results.json",
+    "source_map": "research/GRAPH_REALIZATION_SOURCES.md",
+    "validator": "scripts/validate_graph_realization.py",
+    "experiment": "experiments/graph_realization/run.py",
+    "tests": "tests/test_graph_realization.py",
+    "receipt_runner": "experiments/run_graph_realization.py",
+    "receipt_version": "1.0.0",
+    "base_relation_authority": "machine/relation_contract.json",
+    "rule": "Finite relation/digraph realization and typed incidence preserve only declared structure; graph identity, drawings, tetrahedral geometry, material examples, ETQ/SPECTRAL context, and combinatorial invariants do not acquire physical ontology by resemblance or representation.",
+}
+
+EXPECTED_AGENT_READS = {
+    "theory/GRAPH_REALIZATION.md",
+    "machine/graph_realization_contract.json",
+    "machine/graph_realization_results.json",
+    "research/GRAPH_REALIZATION_SOURCES.md",
+    "scripts/validate_graph_realization.py",
+    "experiments/run_graph_realization.py",
 }
 
 PRIVATE_PATTERNS = (
@@ -102,7 +125,7 @@ def no_private_locators(value: object, label: str, errors: list[str]) -> None:
 def validate() -> dict[str, object]:
     errors: list[str] = []
 
-    for name, path in PATHS.items():
+    for _, path in PATHS.items():
         if not path.is_file():
             errors.append(f"missing graph-realization authority file: {path.relative_to(ROOT)}")
     if errors:
@@ -110,6 +133,7 @@ def validate() -> dict[str, object]:
 
     contract = load_json(PATHS["contract"])
     results = load_json(PATHS["results"])
+    base_contract = load_json(PATHS["base_contract"])
     relation_contract = load_json(PATHS["relation_contract"])
     cross_repo = load_json(PATHS["cross_repo_patterns"])
     sources = PATHS["sources"].read_text(encoding="utf-8")
@@ -130,6 +154,31 @@ def validate() -> dict[str, object]:
         errors.append("graph contract claim class drift")
     if set(contract.get("hard_boundaries", [])) != EXPECTED_BOUNDARIES:
         errors.append("graph contract hard-boundary set drift")
+
+    central = base_contract.get("graph_realization_authority")
+    if central != EXPECTED_CENTRAL_AUTHORITY:
+        errors.append("central graph_realization_authority payload drift")
+    else:
+        for field in (
+            "human", "machine_contract", "machine_results", "source_map", "validator",
+            "experiment", "tests", "receipt_runner", "base_relation_authority",
+        ):
+            safe_repo_path(central.get(field), errors, f"central graph authority {field}")
+
+    experiment_library = base_contract.get("experiment_library")
+    if not isinstance(experiment_library, dict):
+        errors.append("base experiment_library must be an object")
+    else:
+        if experiment_library.get("graph_realization_receipt_runner") != "experiments/run_graph_realization.py":
+            errors.append("central graph receipt runner registration drift")
+        if experiment_library.get("graph_realization_receipt_version") != "1.0.0":
+            errors.append("central graph receipt version registration drift")
+
+    required_reads = base_contract.get("required_agent_reads")
+    if not isinstance(required_reads, list) or any(not isinstance(item, str) or not item for item in required_reads):
+        errors.append("base required_agent_reads must be a list of non-empty strings")
+    elif not EXPECTED_AGENT_READS.issubset(set(required_reads)):
+        errors.append("central required_agent_reads missing graph authority surface")
 
     relation_bridge = contract.get("relation_bridge")
     if not isinstance(relation_bridge, dict):
@@ -214,6 +263,7 @@ def validate() -> dict[str, object]:
 
     no_private_locators(contract, "graph contract", errors)
     no_private_locators(results, "graph results", errors)
+    no_private_locators(central if isinstance(central, dict) else {}, "central graph authority", errors)
     no_private_locators(sources, "graph source map", errors)
     no_private_locators(human, "graph human theory", errors)
 
