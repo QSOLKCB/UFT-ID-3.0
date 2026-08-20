@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
-import itertools
 import json
 from collections import deque
 from pathlib import Path
@@ -15,6 +14,7 @@ RELATION_RUN = ROOT / "experiments/relation/run.py"
 
 State = str
 Edge = tuple[State, State]
+UndirectedEdge = tuple[State, State]
 TypedLink = tuple[str, str, str]
 
 
@@ -54,6 +54,26 @@ def edge_set(states: tuple[State, ...], edges: Iterable[Edge]) -> frozenset[Edge
     return frozenset(out)
 
 
+def undirected_edge_set(
+    states: Iterable[State], edges: Iterable[UndirectedEdge]
+) -> frozenset[UndirectedEdge]:
+    carrier = states_tuple(states)
+    allowed = set(carrier)
+    out: set[UndirectedEdge] = set()
+    for edge in edges:
+        if not isinstance(edge, tuple) or len(edge) != 2:
+            raise ValueError("each undirected edge must be a pair")
+        a, b = edge
+        if not isinstance(a, str) or not isinstance(b, str):
+            raise ValueError("undirected edge endpoints must be strings")
+        if a not in allowed or b not in allowed:
+            raise ValueError("undirected edge endpoint outside carrier")
+        if a == b:
+            raise ValueError("undirected simple edge may not be a loop")
+        out.add(tuple(sorted((a, b))))
+    return frozenset(out)
+
+
 def adjacency_matrix(states: Iterable[State], edges: Iterable[Edge]) -> list[list[int]]:
     carrier = states_tuple(states)
     rel = edge_set(carrier, edges)
@@ -64,7 +84,9 @@ def adjacency_matrix(states: Iterable[State], edges: Iterable[Edge]) -> list[lis
     return matrix
 
 
-def boolean_reachability(states: Iterable[State], edges: Iterable[Edge]) -> dict[str, frozenset[str]]:
+def boolean_reachability(
+    states: Iterable[State], edges: Iterable[Edge]
+) -> dict[str, frozenset[str]]:
     """Reflexive-transitive closure via independent Boolean Floyd-Warshall."""
     carrier = states_tuple(states)
     matrix = adjacency_matrix(carrier, edges)
@@ -114,47 +136,116 @@ def is_dag_kahn(states: Iterable[State], edges: Iterable[Edge]) -> bool:
 def strongly_connected_components(
     states: Iterable[State], edges: Iterable[Edge]
 ) -> tuple[frozenset[str], ...]:
+    """Iterative Kosaraju SCC decomposition; no recursion-depth dependency."""
     carrier = states_tuple(states)
     rel = edge_set(carrier, edges)
-    successors = {x: tuple(y for y in carrier if (x, y) in rel) for x in carrier}
+    successors = {x: [] for x in carrier}
+    predecessors = {x: [] for x in carrier}
+    for a, b in rel:
+        successors[a].append(b)
+        predecessors[b].append(a)
+    for x in carrier:
+        successors[x].sort()
+        predecessors[x].sort()
 
-    index_counter = 0
-    stack: list[str] = []
-    on_stack: set[str] = set()
-    indices: dict[str, int] = {}
-    lowlink: dict[str, int] = {}
+    visited: set[str] = set()
+    finish_order: list[str] = []
+    for start in carrier:
+        if start in visited:
+            continue
+        visited.add(start)
+        stack: list[tuple[str, int]] = [(start, 0)]
+        while stack:
+            vertex, next_index = stack[-1]
+            neighbors = successors[vertex]
+            if next_index < len(neighbors):
+                neighbor = neighbors[next_index]
+                stack[-1] = (vertex, next_index + 1)
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    stack.append((neighbor, 0))
+            else:
+                finish_order.append(vertex)
+                stack.pop()
+
+    assigned: set[str] = set()
     components: list[frozenset[str]] = []
-
-    def strongconnect(v: str) -> None:
-        nonlocal index_counter
-        indices[v] = index_counter
-        lowlink[v] = index_counter
-        index_counter += 1
-        stack.append(v)
-        on_stack.add(v)
-
-        for w in successors[v]:
-            if w not in indices:
-                strongconnect(w)
-                lowlink[v] = min(lowlink[v], lowlink[w])
-            elif w in on_stack:
-                lowlink[v] = min(lowlink[v], indices[w])
-
-        if lowlink[v] == indices[v]:
-            members: set[str] = set()
-            while True:
-                w = stack.pop()
-                on_stack.remove(w)
-                members.add(w)
-                if w == v:
-                    break
-            components.append(frozenset(members))
-
-    for vertex in carrier:
-        if vertex not in indices:
-            strongconnect(vertex)
+    for start in reversed(finish_order):
+        if start in assigned:
+            continue
+        members: set[str] = set()
+        stack = [start]
+        assigned.add(start)
+        while stack:
+            vertex = stack.pop()
+            members.add(vertex)
+            for neighbor in predecessors[vertex]:
+                if neighbor not in assigned:
+                    assigned.add(neighbor)
+                    stack.append(neighbor)
+        components.append(frozenset(members))
 
     return tuple(sorted(components, key=lambda c: tuple(sorted(c))))
+
+
+def mutual_reachability_components(
+    states: Iterable[State], edges: Iterable[Edge]
+) -> tuple[frozenset[str], ...]:
+    """Independent SCC oracle from mutual reachability equivalence classes."""
+    carrier = states_tuple(states)
+    rel = edge_set(carrier, edges)
+    reach = boolean_reachability(carrier, rel)
+    unassigned = set(carrier)
+    components: list[frozenset[str]] = []
+    for pivot in carrier:
+        if pivot not in unassigned:
+            continue
+        component = frozenset(
+            candidate
+            for candidate in carrier
+            if candidate in reach[pivot] and pivot in reach[candidate]
+        )
+        if not component or pivot not in component:
+            raise RuntimeError("mutual-reachability SCC oracle produced invalid component")
+        unassigned.difference_update(component)
+        components.append(component)
+    if unassigned:
+        raise RuntimeError("mutual-reachability SCC oracle failed to cover carrier")
+    return tuple(sorted(components, key=lambda c: tuple(sorted(c))))
+
+
+def scc_partition_matches_mutual_reachability(
+    states: Iterable[State], edges: Iterable[Edge], components: Iterable[frozenset[str]]
+) -> bool:
+    carrier = states_tuple(states)
+    rel = edge_set(carrier, edges)
+    supplied = tuple(sorted(tuple(components), key=lambda c: tuple(sorted(c))))
+    return supplied == mutual_reachability_components(carrier, rel)
+
+
+def independent_sink_components(
+    states: Iterable[State], edges: Iterable[Edge]
+) -> tuple[frozenset[str], ...]:
+    carrier = states_tuple(states)
+    rel = edge_set(carrier, edges)
+    components = mutual_reachability_components(carrier, rel)
+    sinks = [
+        comp
+        for comp in components
+        if not any(a in comp and b not in comp for a, b in rel)
+    ]
+    return tuple(sorted(sinks, key=lambda c: tuple(sorted(c))))
+
+
+def independent_condensation(
+    states: Iterable[State], edges: Iterable[Edge]
+) -> tuple[tuple[frozenset[str], ...], frozenset[tuple[int, int]]]:
+    carrier = states_tuple(states)
+    rel = edge_set(carrier, edges)
+    components = mutual_reachability_components(carrier, rel)
+    owner = {v: index for index, comp in enumerate(components) for v in comp}
+    c_edges = frozenset((owner[a], owner[b]) for a, b in rel if owner[a] != owner[b])
+    return components, c_edges
 
 
 def sink_components(states: Iterable[State], edges: Iterable[Edge]) -> tuple[frozenset[str], ...]:
@@ -164,9 +255,9 @@ def sink_components(states: Iterable[State], edges: Iterable[Edge]) -> tuple[fro
     owner = {v: index for index, comp in enumerate(components) for v in comp}
     sinks = []
     for index, comp in enumerate(components):
-        if all(owner[a] == owner[b] for a, b in rel if owner[a] == index):
+        if not any(owner[a] == index and owner[b] != index for a, b in rel):
             sinks.append(comp)
-    return tuple(sinks)
+    return tuple(sorted(sinks, key=lambda c: tuple(sorted(c))))
 
 
 def condensation(
@@ -176,9 +267,7 @@ def condensation(
     rel = edge_set(carrier, edges)
     components = strongly_connected_components(carrier, rel)
     owner = {v: index for index, comp in enumerate(components) for v in comp}
-    c_edges = frozenset(
-        (owner[a], owner[b]) for a, b in rel if owner[a] != owner[b]
-    )
+    c_edges = frozenset((owner[a], owner[b]) for a, b in rel if owner[a] != owner[b])
     return components, c_edges
 
 
@@ -195,6 +284,7 @@ def simplify_rich_arcs(
     carrier = states_tuple(states)
     allowed = set(carrier)
     out: set[Edge] = set()
+    seen_ids: set[str] = set()
     for arc in rich_arcs:
         if not isinstance(arc, dict):
             raise ValueError("rich arc must be an object")
@@ -202,6 +292,10 @@ def simplify_rich_arcs(
             raise ValueError("rich arc must contain exactly id/source/target/label")
         if any(not isinstance(arc[key], str) or not arc[key] for key in arc):
             raise ValueError("rich arc fields must be non-empty strings")
+        arc_id = str(arc["id"])
+        if arc_id in seen_ids:
+            raise ValueError("rich arc ids must be unique")
+        seen_ids.add(arc_id)
         source = str(arc["source"])
         target = str(arc["target"])
         if source not in allowed or target not in allowed:
@@ -234,19 +328,16 @@ def validate_incidence(
 
 def tetrahedron_k4_fixture() -> dict[str, object]:
     vertices = ("0", "1", "2", "3")
-    edges = frozenset(
-        (vertices[i], vertices[j])
-        for i in range(4)
-        for j in range(i + 1, 4)
+    edges = undirected_edge_set(
+        vertices,
+        ((vertices[i], vertices[j]) for i in range(4) for j in range(i + 1, 4)),
     )
-    degrees = {
-        v: sum(1 for edge in edges if v in edge)
-        for v in vertices
-    }
+    degrees = {v: sum(1 for edge in edges if v in edge) for v in vertices}
     if len(edges) != 6 or set(degrees.values()) != {3}:
         raise RuntimeError("tetrahedron K4 fixture drift")
     return {
         "vertices": list(vertices),
+        "edge_semantics": "undirected",
         "undirected_edges": [list(edge) for edge in sorted(edges)],
         "edge_count": 6,
         "degrees": degrees,
@@ -261,9 +352,7 @@ def rich_projection_counterexample() -> dict[str, object]:
         {"id": "alpha", "source": "u", "target": "v", "label": "L1"},
         {"id": "beta", "source": "u", "target": "v", "label": "L2"},
     )
-    rich_b = (
-        {"id": "gamma", "source": "u", "target": "v", "label": "L1"},
-    )
+    rich_b = ({"id": "gamma", "source": "u", "target": "v", "label": "L1"},)
     simple_a = simplify_rich_arcs(states, rich_a)
     simple_b = simplify_rich_arcs(states, rich_b)
     if rich_a == rich_b or simple_a != simple_b:
@@ -311,17 +400,21 @@ def drawing_counterexample() -> dict[str, object]:
 
 def coupling_vs_placement_fixture() -> dict[str, object]:
     vertices = ("hub", "a", "b", "c")
-    coupling = frozenset({("hub", "a"), ("hub", "b"), ("hub", "c")})
-    placement = frozenset(
-        {
+    coupling = undirected_edge_set(
+        vertices, (("hub", "a"), ("hub", "b"), ("hub", "c"))
+    )
+    placement = undirected_edge_set(
+        vertices,
+        (
             ("hub", "a"), ("hub", "b"), ("hub", "c"),
             ("a", "b"), ("b", "c"), ("a", "c"),
-        }
+        ),
     )
     return {
         "vertices": list(vertices),
-        "coupling_edges": [list(x) for x in sorted(coupling)],
-        "placement_edges": [list(x) for x in sorted(placement)],
+        "edge_semantics": "undirected",
+        "coupling_undirected_edges": [list(x) for x in sorted(coupling)],
+        "placement_undirected_edges": [list(x) for x in sorted(placement)],
         "coupling_graph": "K1,3",
         "placement_graph": "K4",
         "boundary": "COUPLING_GRAPH != PLACEMENT_GRAPH",
@@ -335,6 +428,7 @@ def exhaustive_cross_checks() -> dict[str, object]:
     normal_state_checks = 0
     reachability_source_checks = 0
     termination_checks = 0
+    scc_partition_checks = 0
     sink_scc_checks = 0
     condensation_checks = 0
 
@@ -369,19 +463,27 @@ def exhaustive_cross_checks() -> dict[str, object]:
                 raise RuntimeError("UFT-GR-004 termination/DAG failure")
             termination_checks += 1
 
+            production_components = strongly_connected_components(carrier, rel)
+            independent_components = mutual_reachability_components(carrier, rel)
+            if production_components != independent_components:
+                raise RuntimeError("UFT-GR-005 SCC partition disagrees with mutual reachability")
+            scc_partition_checks += 1
+
             sinks = sink_components(carrier, rel)
-            if not sinks:
-                raise RuntimeError("UFT-GR-005 missing sink SCC")
-            components = strongly_connected_components(carrier, rel)
-            owner = {v: i for i, comp in enumerate(components) for v in comp}
-            for comp in sinks:
-                comp_index = owner[next(iter(comp))]
-                if any(owner[a] == comp_index and owner[b] != comp_index for a, b in rel):
-                    raise RuntimeError("UFT-GR-005 invalid sink SCC")
+            expected_sinks = independent_sink_components(carrier, rel)
+            if sinks != expected_sinks or not sinks:
+                raise RuntimeError("UFT-GR-005 sink SCC disagreement")
             sink_scc_checks += 1
 
-            if not condensation_is_acyclic(carrier, rel):
-                raise RuntimeError("UFT-GR-006 condensation cycle")
+            production_condensation = condensation(carrier, rel)
+            independent_c = independent_condensation(carrier, rel)
+            if production_condensation != independent_c:
+                raise RuntimeError("UFT-GR-006 condensation quotient disagreement")
+            c_components, c_edges = independent_c
+            c_states = tuple(str(i) for i in range(len(c_components)))
+            c_string_edges = tuple((str(a), str(b)) for a, b in c_edges)
+            if not is_dag_kahn(c_states, c_string_edges):
+                raise RuntimeError("UFT-GR-006 independent condensation cycle")
             condensation_checks += 1
 
         relation_counts[f"Fin{n}"] = local
@@ -397,6 +499,7 @@ def exhaustive_cross_checks() -> dict[str, object]:
         "normal_state_checks": normal_state_checks,
         "reachability_source_checks": reachability_source_checks,
         "termination_checks": termination_checks,
+        "scc_partition_checks": scc_partition_checks,
         "sink_scc_checks": sink_scc_checks,
         "condensation_checks": condensation_checks,
     }
@@ -409,6 +512,7 @@ def run_suite() -> dict[str, object]:
         "normal_state_checks": 1570,
         "reachability_source_checks": 1570,
         "termination_checks": 530,
+        "scc_partition_checks": 530,
         "sink_scc_checks": 530,
         "condensation_checks": 530,
     }
@@ -418,7 +522,7 @@ def run_suite() -> dict[str, object]:
 
     return {
         "type": "uft-id-graph-realization-finite-conformance",
-        "schema_version": "1.0.0",
+        "schema_version": "1.0.1",
         "bounded_exhaustive_check": exhaustive,
         "positive_controls": {
             "tetrahedron_k4": tetrahedron_k4_fixture(),
