@@ -384,14 +384,18 @@ def module_inventory_counterexample() -> dict[str, object]:
 
 def drawing_counterexample() -> dict[str, object]:
     vertices = ("hub", "a", "b", "c")
-    edges = frozenset({("hub", "a"), ("hub", "b"), ("hub", "c")})
+    edges = undirected_edge_set(
+        vertices, (("hub", "a"), ("hub", "b"), ("hub", "c"))
+    )
     drawing_a = {"hub": [0, 0], "a": [0, 1], "b": [-1, -1], "c": [1, -1]}
     drawing_b = {"hub": [10, 10], "a": [12, 10], "b": [8, 13], "c": [8, 7]}
     if drawing_a == drawing_b:
         raise RuntimeError("drawing counterexample drift")
     return {
         "vertices": list(vertices),
-        "edges": [list(edge) for edge in sorted(edges)],
+        "graph": "K1,3",
+        "edge_semantics": "undirected",
+        "undirected_edges": [list(edge) for edge in sorted(edges)],
         "drawing_a": drawing_a,
         "drawing_b": drawing_b,
         "same_graph_distinct_coordinates": True,
