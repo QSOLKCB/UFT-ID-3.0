@@ -834,6 +834,19 @@ A later implementation slice may promote any Pettini-inspired abstraction only i
 
 **Status:** ROADMAP-ONLY POSITIVE-CONTROL / MODEL-DONOR PROGRAMME. It does not renumber PR #12-#18 and does not make physiology, virology, or neuroscience UFT-ID ontology.
 
+**Claim class:** `INTERPRETIVE` for every source-to-UFT-ID correspondence in this section until a later explicit BridgeCore record supplies source type, target type, source/target dynamics, preserved structure, lost structure, scope, and measurement/observation bridge. External source facts retain their own evidentiary status; the mapping into UFT-ID is not promoted above `INTERPRETIVE` here.
+
+| Donor mapping | Claim class |
+| --- | --- |
+| A. Wheatstone pressure transducer -> typed transduction / identifiability | `INTERPRETIVE` |
+| B. Haemoglobin oxygen curve -> context-dependent calibration | `INTERPRETIVE` |
+| C. Arterial baroreflex -> closed-loop identification | `INTERPRETIVE` |
+| D. Windkessel -> reduced-model boundary | `INTERPRETIVE` |
+| E. Hodgkin-Huxley -> hidden-state observation fibre | `INTERPRETIVE` |
+| F. Fick principle -> conservation-based inference | `INTERPRETIVE` |
+| G. HPV16 -> host-context / alternate-mechanism mapping | `INTERPRETIVE` |
+| H. FlyWire -> weighted/versioned structure-function mapping | `INTERPRETIVE` |
+
 ### Mission
 
 Use independently established physiological, biomedical, and connectomic systems as deliberately heterogeneous donor cases for the formal distinctions already emerging in UFT-ID. Similar mathematical structure across donors is evidence that an abstraction is reusable, not evidence that the donors share one physical mechanism.
@@ -842,6 +855,7 @@ Use independently established physiological, biomedical, and connectomic systems
 SHARED_FORMAL_PATTERN != SHARED_PHYSICAL_MECHANISM
 PHYSIOLOGY_POSITIVE_CONTROL != UFT_ID_ONTOLOGY
 BIOLOGICAL_NETWORK != FUNDAMENTAL_INFORMATION_NETWORK
+INTERPRETIVE_MAPPING != BRIDGE_THEOREM
 ```
 
 ### A. Wheatstone pressure transducer — typed K4, balance residual, transduction, and identifiability
@@ -1082,3 +1096,217 @@ A later implementation slice may promote a physiology/connectomics abstraction o
 - mutation tests against mechanism/ontology promotion;
 - empirical-positive-control status kept separate from abstract mathematical proof;
 - explicit confirmation that `SHARED_FORMAL_PATTERN != SHARED_PHYSICAL_MECHANISM`.
+
+---
+
+# Future fivefold assembly and rooted-representation donor programme — cardinality, asymmetry, interfaces, and coordinate charts
+
+**Status:** ROADMAP-ONLY MODEL-DONOR PROGRAMME. This section does not renumber PR #12-#18 and does not infer a universal significance for the number five.
+
+**Claim class:** `INTERPRETIVE` for every source-to-UFT-ID correspondence below. The empirical IgM findings remain external empirical evidence; the musical facts remain background/source facts; the UFT-ID abstractions are interpretive until explicit BridgeCore objects and independent mathematical fixtures are supplied.
+
+| Donor mapping | Claim class |
+| --- | --- |
+| IgM pentamer -> assembly/interface abstraction | `INTERPRETIVE` |
+| Pentatonic scale -> rooted/projection abstraction | `INTERPRETIVE` |
+| Guitar-position coordinate-chart analogy -> representation fixture | `INTERPRETIVE` |
+
+### Primary structural source: IgM pentamer
+
+Canonical empirical source:
+
+> Hiramoto, E., Tsutsumi, A., Suzuki, R. et al. *The IgM pentamer is an asymmetric pentagon with an open groove that binds the AIM protein.* Science Advances **4**, eaau1199 (2018). DOI `10.1126/sciadv.aau1199`.
+
+The source reports an asymmetric pentagonal IgM assembly with an approximately 50-degree open groove, revising the older symmetric-pentagon model. It also reports that a single AIM molecule occupies the groove and contacts the two sides through different interaction mechanisms. These observations motivate assembly/interface questions only; they do not establish a general UFT-ID law.
+
+```text
+CARDINALITY_5 != FIVEFOLD_SYMMETRY
+PENTAMER != REGULAR_PENTAGON != C5
+SYMMETRIC_MODEL != EMPIRICALLY_REALIZED_STRUCTURE
+```
+
+### A. Assembly and typed interface target
+
+Stage a future bounded object such as:
+
+```text
+AssemblySpec = (M, I, P, rho)
+```
+
+where `M` is a module inventory, `I` is typed incidence, `P` is a declared port/interface set, and `rho` is an optional geometric realization.
+
+The IgM gap motivates a distinction between absent adjacency and a geometrically/functionally meaningful interface:
+
+```text
+NONEDGE != INTERFACE
+INTERFACE != DEFECT
+GRAPH_NONEDGE != GEOMETRIC_GROOVE
+GEOMETRIC_GROOVE != BINDING_SITE
+```
+
+No abstract graph nonedge may be called a binding site without a separately supplied geometric/empirical bridge.
+
+### B. Same module count does not determine assembly
+
+The source reports pentameric, hexameric, tetrameric, asymmetric-pentamer and symmetric-like assembly outcomes under different J-chain / cysteine conditions. This motivates only the abstract non-uniqueness pattern:
+
+```text
+AVAILABLE_COMPONENTS + CARDINALITY != UNIQUE_ASSEMBLY
+SAME_MONOMER_TYPE != SAME_OLIGOMER
+SAME_PENTAMER_COUNT != SAME_GEOMETRY
+SAME_GEOMETRY_CLASS != SAME_INTERACTION_PATTERN
+```
+
+A future synthetic counterexample should prove the abstract statement independently of immunoglobulin biology.
+
+### C. Perturbation versus visual resemblance
+
+Targeted Cys414/Cys194 changes alter assembly or AIM binding in the source system. For assurance architecture, this motivates an evidence ladder in which controlled perturbation carries a different evidentiary role from shape similarity alone:
+
+```text
+STRUCTURAL_OBSERVATION != CAUSAL_IDENTIFICATION
+TARGETED_PERTURBATION_ADDS_CAUSAL_EVIDENCE
+CAUSAL_EVIDENCE != UNIVERSAL_MECHANISM
+VISUAL_RESEMBLANCE != INTERACTION_MECHANISM
+```
+
+### Musical background source: pentatonic scale
+
+Background reference only:
+
+- Wikipedia, *Pentatonic scale*: https://en.wikipedia.org/wiki/Pentatonic_scale
+
+This source is an orientation/background source rather than theorem or empirical authority. It records the ordinary definition of a pentatonic scale as five notes per octave, the common construction of a major pentatonic from scale degrees `1,2,3,5,6`, and the fact that A minor pentatonic uses the same tones as C major pentatonic with a different tonic/rooting.
+
+```text
+PENTAMER != PENTATONIC_SCALE
+SHARED_CARDINALITY != SHARED_MECHANISM
+```
+
+### D. Lossy projection target
+
+Use a synthetic seven-to-five pitch-set fixture to study declared projection:
+
+```text
+D7 -> P5
+```
+
+where two source elements are deliberately omitted. The formal target is representation loss, not a claim about musical cognition:
+
+```text
+PROJECTION != INVERSION
+REDUCED_REPRESENTATION != UNIQUE_RECONSTRUCTION
+SHARED_SUBSET != UNIQUE_SOURCE
+```
+
+### E. Rooted versus unrooted structure
+
+A major/minor relative pentatonic pair motivates a finite rooted-set fixture:
+
+```text
+RootedSpec = (S, r)
+```
+
+with one underlying carrier `S` and different distinguished roots `r1 != r2`.
+
+```text
+UNROOTED_SET_IDENTITY != ROOTED_STRUCTURE_IDENTITY
+SAME_ELEMENTS != SAME_ROLE_ASSIGNMENT
+CARRIER_IDENTITY != SEMANTIC_IDENTITY
+```
+
+The musical example motivates the abstraction; the theorem/counterexample must be supplied independently.
+
+### F. Coordinate-chart target
+
+Instrument-layout patterns may later be used only as synthetic coordinate realizations:
+
+```text
+rho_i : P -> F
+```
+
+where `P` is one abstract pitch structure and `F` is a fretboard coordinate space.
+
+```text
+CHART != OBJECT
+FRETBOARD_PATTERN != SCALE
+POSITION != MUSICAL_IDENTITY
+MULTIPLE_EMBEDDED_PATTERNS != MULTIPLE_ABSTRACT_OBJECTS
+```
+
+User-supplied diagrams are intuition aids and are not repository source authority.
+
+### G. Typed absence semantics
+
+Stage a future absence taxonomy rather than one overloaded Boolean notion:
+
+```text
+AbsenceType = {
+  projected-away,
+  forbidden,
+  unoccupied,
+  open-interface,
+  unknown,
+  structurally-impossible
+}
+```
+
+with boundaries:
+
+```text
+ABSENT != UNKNOWN
+ABSENT != FORBIDDEN
+ABSENT != PROJECTED_AWAY
+ABSENT != AVAILABLE_INTERFACE
+```
+
+This is a proposed UFT-ID definition target, not a statement extracted from IgM or music.
+
+### Cross-donor hierarchy
+
+The combined donor lesson is deliberately structural:
+
+```text
+CARDINALITY
+-> INCIDENCE
+-> ROOTING
+-> GEOMETRY
+-> INTERFACE
+-> FUNCTION
+```
+
+No arrow is automatic.
+
+```text
+CARDINALITY != CONNECTIVITY
+CONNECTIVITY != GEOMETRY
+GEOMETRY != FUNCTION
+UNROOTED_SET != ROOTED_STRUCTURE
+ROOTED_STRUCTURE != COORDINATE_CHART
+SAME_FIVE != SAME_STRUCTURE
+SAME_STRUCTURE != SAME_SEMANTICS
+```
+
+### Integration targets
+
+```text
+PR #12 BridgeCore
+PR #14 representation and congruence calculus
+PR #16 recovery / identifiability specializations
+formal assurance / perturbation evidence graphs
+PR #18 empirical falsification profiles
+```
+
+### Acceptance gate
+
+A later implementation slice may promote a fivefold/assembly abstraction only if it supplies:
+
+- exact source identity and source class;
+- `INTERPRETIVE` mapping status until an explicit bridge exists;
+- a typed `AssemblySpec`, `RootedSpec`, or equivalent object with clear semantics;
+- independent synthetic theorem/counterexample evidence;
+- explicit separation of cardinality, graph incidence, geometry, rooting, interface, and function;
+- source-derived facts separated from proposed UFT-ID definitions;
+- no use of user-supplied images as canonical evidence;
+- mutation tests rejecting `five -> universal symmetry/ontology` promotion;
+- explicit confirmation that `SHARED_CARDINALITY != SHARED_PHYSICAL_MECHANISM`.
