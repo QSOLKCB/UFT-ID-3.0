@@ -1,526 +1,339 @@
 # UFT-ID 3.0 Roadmap
 
-UFT-ID 3.0 is being developed as a **constraint-governed, observer-explicit theory of information dynamics** with reproducible adversarial tests. The project does not begin by assuming that information is a new substance, a universal physical field, or a hidden source of mass. It begins with typed state spaces, explicit information functionals, admissibility, observation, transport, and dynamics.
+UFT-ID 3.0 is a constraint-governed, observer-explicit formalization programme with reproducible adversarial tests.
 
-The goal is not to contradict Melvin Vopson rhetorically. The goal is to reconstruct the strongest published versions of his claims, determine the exact assumptions under which they hold, and test whether broader monotonicity claims survive counterexamples, representation changes, null models, and independent reproduction.
+The project no longer organizes work as one long checklist around the overloaded summary tuple. The merged historical-lineage work, cross-repository audit, Deep Research formalization mining, and author-supplied paper review all point to the same architectural change:
 
-`MATHS.md` is the staging area for mathematical ideas that are not yet frozen definitions or theorem statements. `theory/DEFINITIONS.md` and `theory/THEOREM_TARGETS.md` are authoritative once an idea graduates out of the staging area.
+```text
+COMPACT_SUMMARY != COMPLETE_FORMAL_TYPE_SYSTEM
+```
 
----
-
-## Phase 0 - Bootstrap, lineage, and claim firewall
-
-### Repository contract
-
-- [x] Establish Formal / Diagnostic / Empirical / Interpretive / Speculative authority layers.
-- [x] Establish canonical claim classes and require exactly one claim class per nontrivial claim.
-- [x] Add explicit non-claims.
-- [x] Add adversarial-review rules.
-- [x] Defer Lean until the mathematics is frozen.
-- [x] Add deterministic experiment and provenance expectations.
-- [x] Add cross-domain bridge obligations, including preserved **and lost** structure.
-
-### Research lineage
-
-- [x] Preserve the reusable constraint/admissibility/recovery machinery from UFT-ID 2.x without inheriting all ontology-specific interpretations.
-- [ ] Build a complete source registry from Academia, Zenodo, Authorea, Google Drive, GitHub, and archived paper copies.
-- [ ] Record DOI, date, version, licence, peer-review status, repository/release relation, and source hash where available.
-- [ ] Map every historical UFT-ID symbol to a canonical UFT-ID 3.0 symbol or mark it superseded.
-- [ ] Record conflicting historical definitions instead of silently reconciling them.
-- [ ] Classify each historical result as formal, computational, empirical, interpretive, or speculative.
-
-### Methodological inheritance worth preserving
-
-- [ ] Import the **canonical-source versus projection** distinction from the substrate work.
-- [ ] Import **receiver neutrality** and non-privileged projection discipline from ETQ-303.
-- [ ] Import **multi-scale invariant preservation** and deterministic receipts from QEC.
-- [ ] Import **dark-state / observer-inaccessible** diagnostics as an observer-relative specialization.
-- [ ] Import **calibration-locality** and provenance discipline from RES=RAG / CSNP.
-- [ ] Import the **formal theorem != runtime result != physical validation** evidence hierarchy from NEXUS-style formalization.
-- [ ] Import explicit machine-readable nonclaim surfaces from later deterministic research packages.
-
-**Exit criterion:** every reused idea has a source, a claim class, and a clear statement of what UFT-ID 3.0 does **not** inherit with it.
-
----
-
-## Phase 1 - Freeze the typed mathematical core
-
-### Canonical system
-
-Working abstract object:
+The compact notation remains useful:
 
 ```text
 U = (S, A, F, Pi_lex, O, T, I, C)
 ```
 
-- [ ] Freeze `S`: total state space.
-- [ ] Freeze `C`: constraint family.
-- [ ] Freeze `A`: admissible subset.
-- [ ] Freeze scalar residual `r` and separately typed vector residual `rho`.
-- [ ] Freeze scalar and vector tension specializations.
-- [ ] Freeze `F`: proposed evolution, with distinct discrete, continuous, and stochastic forms.
-- [ ] Freeze `Pi_lex`: deterministic recovery.
-- [ ] Freeze `O`: observation/coarse-graining map.
-- [ ] Freeze `T`: ambient regime-transport map.
-- [ ] Freeze `I`: declared information functional.
-- [ ] Freeze recovery events, impulses, thresholds, and constrained evolution.
-
-### Time-model discipline
-
-- [ ] Define continuous-time balance statements only under explicit regularity assumptions.
-- [ ] Define discrete finite-difference balance statements independently.
-- [ ] Define stochastic balance at the expectation/generator/martingale level as appropriate.
-- [ ] Ban notation that silently moves between these three time models.
-
-### Information-measure discipline
-
-For every result, declare which quantity is being used:
-
-- [ ] Shannon entropy.
-- [ ] relative entropy / KL divergence.
-- [ ] mutual information.
-- [ ] von Neumann entropy.
-- [ ] observational/coarse-grained entropy.
-- [ ] description length / algorithmic proxy.
-- [ ] domain-specific information quantity reconstructed from a target paper.
-
-**Exit criterion:** no theorem target contains an untyped symbol or an undefined derivative.
-
----
-
-## Phase 2 - Information fidelity, observation, and transport
-
-The central research question is not merely "does information go up or down?" It is:
-
-> **What structure survives an admissible transformation, and which apparent losses are caused by dynamics, recovery, transport, coarse-graining, or observation?**
-
-### Transformation fidelity
-
-- [ ] Define a generic structural defect for a declared structural observable.
-- [ ] Distinguish state change from invariant change.
-- [ ] Distinguish compression from loss of the declared invariant.
-- [ ] Define exact-preservation, approximate-preservation, and non-preservation cases.
-
-### Observation layer
-
-- [ ] Define observer-accessible state `O(s)`.
-- [ ] Define reconstruction map `R` where meaningful.
-- [ ] Define representation/mirror defect `delta_M`.
-- [ ] Define accessible and inaccessible components only where the chosen information measure permits it.
-- [ ] Characterize `ker(O)` or equivalent observationally dark subspaces where linear structure exists.
-- [ ] Do not identify observational inaccessibility with physical destruction.
-
-### Transport layer
-
-- [ ] Define ambient-domain transport `T_ab : D_ab -> S_b`.
-- [ ] Define source and target residuals.
-- [ ] Define target-admissibility and admissibility preservation.
-- [ ] Define structural transport shear using separately named invariant maps.
-- [ ] Define a **Bridge Obligation** record for every cross-domain mapping:
-  - source object;
-  - target object;
-  - map;
-  - preserved structure;
-  - lost structure;
-  - observable;
-  - evidence class;
-  - scope limits.
-
-### Representation robustness
-
-- [ ] Prove bijective relabeling invariance where appropriate.
-- [ ] Test partition dependence.
-- [ ] Test alphabet dependence.
-- [ ] Test reference-measure dependence.
-- [ ] Test coarse-graining dependence.
-- [ ] Test observation-map dependence.
-- [ ] Identify conditions under which `sign(Delta I)` is representation robust.
-
-**Exit criterion:** every monotonicity claim declares its observation, partition, measure, and representation contract.
-
----
-
-## Phase 3 - Canonical theorem and counterexample surface
-
-### Constraint/recovery theorems
-
-- [ ] Finite lexicographic recovery existence and uniqueness.
-- [ ] Recovery admissibility.
-- [ ] Residual characterization.
-- [ ] Tension reduction under compatible exact recovery.
-- [ ] Admissible fixed-point characterization.
-- [ ] Minimal cyclic counterexample showing fixed-point assumptions are necessary.
-
-### Information-balance theorems
-
-- [ ] Define exact continuous-time balance conditions.
-- [ ] Define exact discrete-time balance conditions.
-- [ ] Define stochastic expectation/generator specializations.
-- [ ] Derive proposal-versus-recovery information decomposition.
-- [ ] Separate information state, information flux, and entropy production.
-
-### Core monotonicity program
-
-- [ ] State a Restricted Infodynamic Monotonicity Theorem with explicit hypotheses.
-- [ ] Identify the weakest sufficient hypothesis set found.
-- [ ] Construct positive-change examples.
-- [ ] Construct zero-change examples.
-- [ ] Construct negative-change examples.
-- [ ] Construct examples where one monotone functional decreases while Shannon entropy increases.
-- [ ] Construct examples where structural fidelity is preserved while description length falls.
-- [ ] Construct examples where observation changes the apparent sign without changing underlying dynamics.
-
-### Adversarial theorem discipline
-
-- [x] Give every theorem target an adversarial companion question.
-- [ ] For each theorem, record the smallest known failure case when an assumption is removed.
-- [ ] Prefer finite exhaustive counterexamples where possible.
-
-**Exit criterion:** the project can exhibit at least one exact, auditable example for every permitted sign regime and every major failure mode.
-
----
-
-## Phase 4 - Build the Vopson scholarly target corpus
-
-Use Vopson's ORCID `0000-0002-8073-5538` as a bibliographic identity anchor only.
-
-Planned structure:
+but formal work is now split into typed satellites for residuals, recovery, observation, bridges, information, invariants, calibration, epistemics and assurance.
 
 ```text
-research/vopson/
-  AUTHOR.json
-  CORPUS.md
-  corpus.json
-  CLAIM_GRAPH.md
-  CLAIM_GRAPH.json
-  DEFINITIONS.md
-  REPRODUCTION_MATRIX.md
-  COUNTEREXAMPLE_MATRIX.md
-  RESPONSE_HISTORY.md
+NO_GIANT_FORMALIZATION_PR
 ```
 
-### Claim tracks
-
-Treat these as logically separate:
-
-- [ ] mass-energy-information equivalence;
-- [ ] genomic information entropy;
-- [ ] Second Law of Infodynamics;
-- [ ] 2023 cross-domain applications;
-- [ ] simulation-hypothesis inference;
-- [ ] information-theoretic gravity;
-- [ ] polygon symmetry;
-- [ ] language diversity;
-- [ ] later publications discovered through the author corpus.
-
-### Response history
-
-- [ ] Record published criticisms and replies.
-- [ ] Identify objections Vopson has already answered.
-- [ ] Avoid presenting an already-addressed objection as new.
-- [ ] Treat disagreement over definitions separately from algebraic or empirical failure.
-
-**Exit criterion:** every critique target has an exact source, equation/result identifier, and reproduction status.
+Each PR must have one bounded authority surface, executable negative tests, an exit criterion, and explicit deferrals.
 
 ---
 
-## Phase 5 - Reproduce Vopson before criticizing
+## Completed foundation
 
-### Locked next implementation: PR #6
+### Phase 0: lineage and provenance — COMPLETE
 
-**PR #6: Exact mass-energy-information reproduction and Landauer assumption audit**
+Merged PR #7 established:
 
-PR #6 begins only after PR #5 is merged. Its purpose is source-faithful reproduction, not rhetorical refutation.
+- bounded historical source registry across the requested source families;
+- exact source metadata and hash-scope rules;
+- historical symbol mapping;
+- preserved definition conflicts;
+- historical result classification;
+- methodological-inheritance contracts;
+- fail-closed validation and deterministic receipts.
 
-Required deliverables:
+The governing rule remains:
 
 ```text
-research/vopson/reproduction/2019-mei/SOURCE_MAP.md
-research/vopson/reproduction/2019-mei/DERIVATION.md
-research/vopson/reproduction/2019-mei/ASSUMPTION_GRAPH.json
-research/vopson/reproduction/2019-mei/DIMENSIONAL_AUDIT.md
-research/vopson/reproduction/2019-mei/CONTROL_MATRIX.md
-research/vopson/reproduction/2019-mei/result.json
-experiments/reproduction/vopson_2019_mei/run.py
-experiments/reproduction/vopson_2019_mei/fixtures.json
-tests/test_vopson_2019_mei.py
+HISTORICAL_SOURCE != CURRENT_ENDORSEMENT
+METHOD_INHERITANCE != ONTOLOGY_INHERITANCE
+CONFLICT != ERROR_TO_ERASE
 ```
 
-The source argument must be decomposed into separately typed steps. In particular, PR #6 must not silently identify these statements:
+### Cross-repository pattern mining — COMPLETE
+
+Merged PR #5 established the source/projection, calibration, replay, transport, receiver and evidence-boundary pattern layer plus finite results CR1–CR7.
+
+### 2019 MEI reproduction — COMPLETE
+
+Merged PR #6 reproduced Vopson's 2019 Eq. (6) arithmetic and separated:
 
 ```text
-LANDAUER_ERASURE_BOUND:
-minimum dissipated heat for logically irreversible erasure >= k_B T ln 2
-
-ADDITIONAL_PHYSICAL_IDENTIFICATION:
-intrinsic stored-bit energy = k_B T ln 2
-
-MASS_CONVERSION:
-m_bit = E_bit / c^2
+LANDAUER_ERASURE_BOUND
+!= INTRINSIC_STORED_BIT_ENERGY
 ```
 
-The arithmetic consequence
+The physical premise remains unresolved despite arithmetic reproduction.
+
+---
+
+# Formal grammar programme
+
+## PR #8 — Invariant calculus, assurance graph, and model obligations
+
+**Status:** active in this pull request.
+
+Implement:
+
+- canonical `InvSpec[X,Y]`;
+- exact / approximate / representation / transport / statistical / replay / epistemic / contract invariant kinds;
+- explicit hypotheses and known break conditions;
+- independent assurance dimensions rather than one promotion ladder;
+- forbidden automatic proof/runtime/replay/empirical promotions;
+- minimum definition obligations for theorem-facing mathematical objects;
+- claim-vs-implementation realization obligations for reversibility, dimensionality, dynamics and simulation;
+- `FalsificationSpec` scaffold;
+- finite exact/adversarial witnesses;
+- deterministic validation and receipt.
+
+PDF/research-bundle ideas imported here are methodological only:
+
+- claimed structure must be realized before stronger implementation claims are entitled;
+- continuum objects require domain, regularity, operators, boundary/initial conditions and well-posedness status before theorem use;
+- scientific falsifiability requires controlled perturbations, observables, predictions, null behavior and rejection conditions;
+- connection/gauge language may later motivate abstract bridge theory but no semantic/consciousness ontology is inherited.
+
+**Exit criterion:** every PR #8 invariant has a kind, hypotheses, break conditions, scope, claim class, source lineage and nonclaim; every assurance promotion is explicitly typed; every named theorem-facing object can be checked against a minimum declaration contract.
+
+---
+
+## PR #9 — Observation fibres, quotients, and reconstruction
+
+Add:
+
+\[
+x\sim_O y \iff O(x)=O(y),
+\]
+
+fibres `O^-1(y)`, `im(O)`, quotient semantics, injectivity/surjectivity and reconstruction obligations.
+
+Planned theorem family:
+
+- observation equivalence relation;
+- quotient/image correspondence;
+- exact left-inverse criterion;
+- linear kernel specialization only when `O` is linear;
+- GLUBALL uniform-floor trichotomy;
+- exact fibre-cardinality theorem.
+
+**Exit criterion:** observer-dark language works for arbitrary finite/nonlinear maps; `ker(O)` appears only under linear hypotheses.
+
+---
+
+## PR #10 — Recovery taxonomy
+
+Generalize recovery beyond `Pi_lex`.
+
+Introduce a generic partial recovery:
 
 ```text
-m_bit(T) = k_B T ln(2) / c^2
+K : Dom(K) -> Option(A)
 ```
 
-must be reproduced numerically from declared physical constants and temperatures, while the physical status of the additional identification is audited independently.
+with mechanism tags for:
 
-PR #6 must include:
+- lexicographic recovery;
+- metric projection;
+- decoder recovery;
+- contractive/reference-relative recovery.
 
-- [ ] exact source/equation/page locators for every reproduced step;
-- [ ] a line-by-line derivation map separating established external premises, source definitions, source assumptions, algebraic consequences, interpretive bridges, and empirical claims;
-- [ ] deterministic numerical reproduction at `T = 300 K` and a declared temperature sweep;
-- [ ] dimensional analysis for every intermediate quantity;
-- [ ] an audit of logical information versus ordinary stored energy;
-- [ ] an audit of minimum erasure cost versus intrinsic state energy;
-- [ ] state-function versus process/path-function distinctions where applicable;
-- [ ] matched-energy / different-logical-information control design;
-- [ ] matched-logical-information / different-energy control design;
-- [ ] exact result and source hashes plus retained CI evidence;
-- [ ] explicit nonclaims preventing correct arithmetic from being promoted into validation of intrinsic bit mass.
+Planned results:
 
-PR #6 promotion rule:
+- finite lexicographic existence/uniqueness;
+- recovery codomain/admissibility;
+- contractive disturbance bound;
+- recovery-does-not-imply-entropy-decrease counterexample.
+
+**Exit criterion:** no theorem uses the generic word `recovery` while depending silently on lexicographic assumptions.
+
+---
+
+## PR #11 — Transport taxonomy and epistemic bridges
+
+Split the overloaded `T` role into wrappers around a generic bridge:
+
+\[
+T^{state},\quad
+T^{repr},\quad
+T^{cal},\quad
+T^{epi},\quad
+T^{ver}.
+\]
+
+Every bridge records source, target, domain, preserved structure, lost structure, scope and authority behavior.
+
+Planned results:
+
+- admissibility preservation;
+- calibration-transfer failure conditions;
+- structural distortion bounds where justified;
+- explicitly authority-neutral evidence transport cannot create stronger entitlement.
+
+**Exit criterion:** every transport theorem names its role and proof obligations.
+
+---
+
+## PR #12 — Information-functional robustness
+
+Replace naked `I` claims with a typed `InfoSpec` carrying the comparison identity required by the chosen functional.
+
+Required fields, as applicable:
+
+- domain/state kind;
+- information family;
+- observer/partition/reference;
+- probability/measure model;
+- estimator;
+- log base;
+- normalization;
+- calibration profile;
+- scope.
+
+Canonical finite fixture:
+
+\[
+p_0=(0,0,\tfrac14,\tfrac34),\qquad
+p_1=(0,\tfrac12,0,\tfrac12),
+\]
+
+where fine Shannon entropy rises but different valid observation partitions yield opposite observed entropy signs.
+
+Planned results:
+
+- bijective relabelling invariance;
+- deterministic data-processing placement;
+- observer/partition sign reversal;
+- comparability rules for `Delta I`.
+
+**Exit criterion:** every information-direction claim identifies a comparable `InfoSpec`.
+
+---
+
+## PR #13 — Finite reference-model battery
+
+Consolidate ontology-free reference universes:
 
 ```text
-ARITHMETIC_REPRODUCED
-!= PREMISE_VALIDATED
-!= PHYSICAL_INTERPRETATION_VALIDATED
-!= EXPERIMENTALLY_CONFIRMED
+Fin 27
+Fin 3 × Fin 3 × Fin 3
+Fin 101 × Fin 3
+small finite probability simplices
+M_2(Q)
+arbitrary Fin(n) -> Fin(m) observation maps
 ```
 
-Legacy `QSOLKCB/info-mass-gravity` code may be used only as quarantined adversarial lineage for arithmetic comparison and assumption-injection tests. It is not source authority for the 2019 paper.
+Use LATTICE, ETQ, E8, GLUBALL, TFT and QNTOY only as donors of abstract finite structures or adversarial fixtures.
 
-### 2019 mass-energy-information equivalence
-
-- [ ] Reconstruct the derivation exactly. **Locked to PR #6.**
-- [ ] Separate logical information from ordinary stored energy. **Locked to PR #6.**
-- [ ] Audit temperature dependence. **Locked to PR #6.**
-- [ ] Audit Landauer-related assumptions. **Locked to PR #6.**
-- [ ] Audit state-function versus path-function reasoning. **Locked to PR #6.**
-- [ ] Reproduce experimental sensitivity estimates.
-- [ ] Design matched-energy / different-logical-information comparisons. **Locked to PR #6.**
-- [ ] Design matched-logical-information / different-energy comparisons. **Locked to PR #6.**
-
-### 2022 Second Law of Information Dynamics
-
-- [ ] Reproduce every reported example from the published definitions.
-- [ ] Reproduce data preprocessing exactly.
-- [ ] Reproduce entropy calculations numerically.
-- [ ] Record all coding, alphabet, partition, boundary, and window choices.
-- [ ] Test reversible/permutation examples.
-- [ ] Test open-system examples.
-- [ ] Test alternative valid partitions and alphabets.
-- [ ] Test whether sign conclusions survive receiver/representation changes.
-
-### 2023 cross-domain extension
-
-- [ ] Reproduce digital examples.
-- [ ] Reproduce genetics examples.
-- [ ] Reproduce atomic/Hund-rule examples.
-- [ ] Reproduce symmetry examples.
-- [ ] Reproduce cosmological examples.
-- [ ] Write a bridge-obligation record for every domain crossing.
-- [ ] Separate support for a measured entropy trend from support for simulation-hypothesis interpretation.
-
-### 2025 gravity
-
-- [ ] Re-derive every equation independently.
-- [ ] Run dimensional analysis line by line.
-- [ ] Track every geometric counting assumption.
-- [ ] Test whether inverse-square structure is genuinely derived or already encoded upstream.
-- [ ] Compare with established entropic-gravity derivations without assuming equivalence.
-- [ ] Identify any prediction that differs from Newtonian gravity / GR.
-- [ ] Test representation dependence of the information variables used in the derivation.
-
-### 2026 and later extensions
-
-- [ ] Reproduce polygon-symmetry entropy calculations.
-- [ ] Separate static combinatorial extrema from dynamical laws.
-- [ ] Reproduce language-diversity entropy calculations.
-- [ ] Compare with ordinary extinction/dominance/population-share models.
-- [ ] Require added predictive content beyond the null demographic model.
-
-**Exit criterion:** no public UFT-ID criticism depends on a calculation that has not either been reproduced or documented as unreproducible.
+**Exit criterion:** each major theorem has a smallest positive/negative finite witness where applicable.
 
 ---
 
-## Phase 6 - Deterministic adversarial experiment battery
+## PR #14 — Lean foundation and theorem-surface audit
 
-Build small, inspectable systems first.
+Lean starts only after PRs #8–#13 stabilize the types and theorem statements.
 
-### Finite systems
+Adopt UFF/NEXUS-style assurance architecture:
 
-- [ ] deterministic permutations;
-- [ ] finite Markov chains;
-- [ ] ternary control systems;
-- [ ] constrained recovery systems;
-- [ ] finite graph dynamics;
-- [ ] synchronous versus asynchronous update examples;
-- [ ] fixed points and cycles.
+- versioned advertised theorem manifest;
+- no `sorry`/`admit`;
+- project-axiom/constant audit;
+- explicit assumptions/nonclaims;
+- axiom report;
+- separate runtime-correspondence map.
 
-### Information sweeps
+Initial candidates:
 
-Measure multiple quantities on the same trajectory:
+- observation equivalence;
+- quotient/image theorem;
+- uniform-floor sampling;
+- coprime traversal;
+- finite lexicographic selection;
+- contractive residual bound;
+- small exact representation invariants.
 
-- [ ] Shannon entropy;
-- [ ] relative entropy;
-- [ ] mutual information;
-- [ ] residual;
-- [ ] tension;
-- [ ] structural invariant defect;
-- [ ] observer defect;
-- [ ] transport residual;
-- [ ] recovery shear;
-- [ ] description length where meaningful.
+```text
+LEAN_PROOF != RUNTIME_CONFORMANCE != EMPIRICAL_VALIDATION
+```
 
-### Representation sweeps
-
-- [ ] bijective relabelings;
-- [ ] partitions;
-- [ ] alphabets;
-- [ ] coarse-grainings;
-- [ ] window sizes;
-- [ ] reference measures;
-- [ ] observer maps;
-- [ ] boundaries.
-
-### Reproducibility
-
-- [ ] canonical JSON inputs;
-- [ ] deterministic seeds where randomness exists;
-- [ ] source hashes;
-- [ ] output hashes;
-- [ ] exact environment metadata;
-- [ ] replay-safe receipts;
-- [ ] negative-result storage;
-- [ ] no cherry-picked metric deletion after results are seen.
-
-**Exit criterion:** a third party can regenerate every headline figure/table from source data and a versioned command.
+**Exit criterion:** exact advertised theorem set compiles/audits with no proof holes and no runtime/physical overclaim.
 
 ---
 
-## Phase 7 - External theory and empirical cross-check
+## PR #15 — Representation and receiver robustness
 
-Use primary literature to position UFT-ID against established results rather than renaming them.
+Introduce explicit representation actions/equivalence and receiver contracts.
 
-- [ ] Shannon entropy and coding theory.
-- [ ] KL divergence and data processing.
-- [ ] Markov semigroup entropy contraction.
-- [ ] nonequilibrium stochastic thermodynamics.
-- [ ] entropy production and boundary flux in open systems.
-- [ ] Landauer principle and logical irreversibility.
-- [ ] information geometry.
-- [ ] transfer entropy and directed information.
-- [ ] observational entropy and coarse-graining.
-- [ ] algorithmic information / MDL.
-- [ ] quantum information and von Neumann entropy.
-- [ ] resource theories of thermodynamics/information.
-- [ ] fluctuation theorems.
-- [ ] constructor-theoretic information.
-- [ ] phase-space invariant preservation and symplectic numerics.
-- [ ] entropic gravity and critiques.
-- [ ] population-diversity entropy models.
-- [ ] biological null models for mutation/selection/bottleneck effects.
+Use TFT for basis-change examples, E8/ETQ for finite orbit/relabel fixtures, and SONIFICATION for source/receiver separation.
 
-**Exit criterion:** every claimed novelty is stated relative to the closest established theorem or method.
+Distinguish:
+
+```text
+byte identity
+content identity
+mathematical equivalence
+representation equivalence
+receiver equivalence
+semantic truth
+```
+
+**Exit criterion:** representation and receiver changes can be tested without modifying source ontology.
 
 ---
 
-## Phase 8 - Empirical and statistical hardening
+# Parallel scholarly reproduction programme
 
-- [ ] preregister primary endpoints before large replication runs;
-- [ ] use domain-appropriate null models;
-- [ ] use held-out data where possible;
-- [ ] quantify uncertainty;
-- [ ] correct for multiple comparisons;
-- [ ] run sensitivity analyses;
-- [ ] distinguish exploratory from confirmatory analysis;
-- [ ] test inter-rater reliability for diagnostic frameworks;
-- [ ] publish negative and null results;
-- [ ] invite independent reproduction before strong physical claims.
+The formal grammar programme does not replace the source-faithful Vopson programme.
 
-**Exit criterion:** the strongest empirical conclusions survive preprocessing, representation, and null-model sensitivity tests.
+## Next Vopson reproduction
 
----
+Reproduce the 2022 Second Law of Information Dynamics examples exactly:
 
-## Phase 9 - Paper and adversarial review package
+- source definitions;
+- preprocessing;
+- entropy calculations;
+- coding/alphabet/partition/window choices;
+- reversible/permutation controls;
+- alternative valid observations;
+- sign robustness.
 
-Working title:
+Then continue with:
 
-**UFT-ID 3.0: Constraint-Governed Information Dynamics, Observation, Transport, and the Limits of Universal Infodynamic Monotonicity**
+- 2023 cross-domain applications;
+- genomic examples;
+- atomic/Hund-rule examples;
+- symmetry/cosmology bridges;
+- 2025 gravity;
+- 2026 polygon/language extensions.
 
-Planned paper structure:
-
-- [ ] lineage and scope;
-- [ ] typed definitions;
-- [ ] information fidelity under transformation;
-- [ ] information-balance forms;
-- [ ] constraint and recovery theorems;
-- [ ] observer and transport dependence;
-- [ ] representation-invariance results;
-- [ ] minimal positive/zero/negative counterexamples;
-- [ ] exact Vopson reproduction matrix;
-- [ ] restricted monotonicity theorem or revised result if reproduction does not support that framing;
-- [ ] gravity/mass/genetics tracks kept logically separate;
-- [ ] limitations and nonclaims;
-- [ ] deterministic reproducibility appendix.
-
-Before formal verification:
-
-- [ ] hostile internal review;
-- [ ] external domain review where possible;
-- [ ] notation freeze;
-- [ ] theorem-statement freeze;
-- [ ] counterexample freeze.
+Every cross-domain step receives a bridge obligation and every scientific testable claim may receive a `FalsificationSpec` only after exact source reconstruction.
 
 ---
 
-## Phase 10 - Lean formal verification
+# Long-term empirical programme
 
-**Deferred until Phase 9 freeze.**
+After the typed grammar is stable:
 
-Planned order:
+- primary-literature comparison;
+- null-model design;
+- perturbation experiments;
+- calibration sensitivity;
+- preregistered rejection criteria;
+- negative-result retention;
+- independent replication.
 
-- [ ] finite state space and admissibility predicate;
-- [ ] finite candidate sets;
-- [ ] total tie-breaking order;
-- [ ] lexicographic recovery existence and uniqueness;
-- [ ] recovery admissibility;
-- [ ] residual lemmas;
-- [ ] scalar tension toy model;
-- [ ] threshold event semantics;
-- [ ] discrete balance identities;
-- [ ] restricted monotonicity theorem;
-- [ ] explicit finite counterexamples to over-broad monotonicity claims;
-- [ ] constrained fixed-point results where tractable;
-- [ ] theorem-ID correspondence between paper and Lean;
-- [ ] CI theorem inventory.
-
-Lean verifies theorem statements from assumptions. It does not verify that an ontology or physical interpretation is true.
+For continuum/PDE specializations, require the `continuum model` definition obligation before theorem or simulation claims.
 
 ---
 
-## Phase 11 - Release and archival record
+# Release criteria
 
-- [ ] final source tree;
-- [ ] deterministic release manifest;
-- [ ] source hashes;
-- [ ] bibliography and corpus graph;
-- [ ] executable experiment bundle;
-- [ ] machine-readable claim/theorem index;
-- [ ] paper PDF and source;
-- [ ] Lean package when complete;
-- [ ] Zenodo archive;
-- [ ] release notes separating established results from open conjectures and speculative extensions.
+UFT-ID 3.0 is release-ready only when:
 
----
+1. all public claims have one canonical claim class;
+2. reused ideas have provenance and non-inheritance boundaries;
+3. theorem-facing objects satisfy definition obligations;
+4. invariant claims name their transformation and hypotheses;
+5. observation, recovery, transport and information roles are separately typed;
+6. assurance dimensions cannot silently promote one another;
+7. headline source-specific calculations are reproduced or explicitly blocked;
+8. finite counterexamples exist for major failure modes;
+9. Lean theorem claims, when present, are exactly manifest-bound and audited;
+10. empirical claims have source data/protocol/calibration and do not borrow authority from proof or replay.
 
-## Success condition
-
-UFT-ID 3.0 succeeds even if some preferred conjectures fail.
-
-A scientifically successful outcome is a framework that tells us, with explicit assumptions, **when information increases, decreases, remains invariant, becomes inaccessible, is transported faithfully, is distorted by representation, or is genuinely lost according to a declared information measure**.
-
-If Vopson-style monotonicity survives only inside a restricted class, state that class precisely. If it survives broadly, report that. If it fails under a fair counterexample, publish the counterexample. The result must outrank the desired narrative.
+The desired endpoint is not a grander vocabulary. It is a smaller set of claims with stronger types, sharper falsifiers, and fewer places for hidden assumptions to hide.
