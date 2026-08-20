@@ -64,6 +64,54 @@ EXPECTED_HARD_RULES = {
     "lean_proof_may_be_claimed_in_relation_core",
 }
 
+EXPECTED_BOUNDARIES = [
+    "NORMAL != ADMISSIBLE != FIXED_POINT",
+    "REACHABLE != ADMISSIBLE != NORMAL != UNIQUE_REACHABLE_NORMAL",
+    "RIGHT_UNIQUE != TERMINATING",
+    "TERMINATION != CONFLUENCE",
+    "UNIQUE_REACHABLE_NORMAL_FORM != ALL_PATHS_NORMALIZE",
+    "WEAK_NORMALIZATION != STRONG_NORMALIZATION",
+    "FINITE_REACHABILITY != INFINITE_PATH_LIVENESS",
+    "PARAMETER != REALIZATION != INVARIANT != DISCRIMINANT != SELECTION",
+    "COMPATIBILITY != UNIQUE_SELECTION",
+    "GOLDEN_SPIRAL_PLACEMENT != GENUS_DERIVATION",
+    "MATHEMATICAL_PROOF != LEAN_PROOF",
+]
+
+EXPECTED_DEFERRALS = [
+    "Newman's lemma until a complete repository proof is supplied",
+    "deterministic selector specializations and selector iteration",
+    "observation-compatible quotient dynamics",
+    "schedule-independence theorems",
+    "trace/history semantics",
+    "infinite paths, fairness, and universal liveness",
+    "stochastic rewrite kernels",
+    "Lean proof objects",
+]
+
+EXPECTED_EXECUTION_LIMITS = {
+    "max_exhaustive_states": 3,
+    "exact_relation_count_through_fin3": 530,
+    "policy": (
+        "Routine exhaustive conformance enumerates every labelled binary relation on the fixed carriers "
+        "Fin1, Fin2, and Fin3 only; it does not quotient relations by carrier isomorphism."
+    ),
+}
+
+EXPECTED_CONTRACT = {
+    "type": "uft-id-relation-core-contract",
+    "schema_version": "1.0.1",
+    "snapshot_date": "2026-08-20",
+    "claim_class": "DEFINITION",
+    "scope": "Labelled binary endorelations on declared carriers, finite reachability witnesses, normal forms, joinability, confluence, termination, normalization, and selection non-uniqueness. Admissibility remains a separate predicate.",
+    "primary_types": EXPECTED_PRIMARY_TYPES,
+    "authorities": EXPECTED_AUTHORITIES,
+    "execution_limits": EXPECTED_EXECUTION_LIMITS,
+    "hard_rules": {key: False for key in EXPECTED_HARD_RULES},
+    "boundaries": EXPECTED_BOUNDARIES,
+    "explicit_deferrals": EXPECTED_DEFERRALS,
+}
+
 EXPECTED_THEOREM_IDS = {"UFT-RW-001", "UFT-RW-002", "UFT-RW-003", "UFT-RW-004", "UFT-SEL-001"}
 EXPECTED_CX_IDS = {"CX-RW-FORK3", "CX-RW-LOOP1", "CX-RW-EXIT2"}
 
@@ -91,6 +139,64 @@ EXPECTED_PROOF_REFS = {
     "UFT-SEL-001": "theory/RELATION_CALCULUS.md#uft-sel-001-distinct-reachable-normal-labels-refute-unique-selection",
 }
 
+EXPECTED_THEOREM_RECORDS = {
+    "UFT-RW-001": {
+        "id": "UFT-RW-001",
+        "lean_target_name": "UFT_RW_001_reach_preserves",
+        "name": "Branchwise invariant induction",
+        "claim_class": "PROVED",
+        "statement": EXPECTED_STATEMENTS["UFT-RW-001"],
+        "hypotheses": EXPECTED_HYPOTHESES["UFT-RW-001"],
+        "proof_reference": EXPECTED_PROOF_REFS["UFT-RW-001"],
+        "executable_evidence": ["experiments/relation/run.py", "tests/test_pr11_relation_core.py"],
+        "nonclaims": ["This does not prove termination, confluence, admissibility, or physical invariance."],
+    },
+    "UFT-RW-002": {
+        "id": "UFT-RW-002",
+        "lean_target_name": "UFT_RW_002_rightUnique_confluent",
+        "name": "Right-unique rewriting is confluent",
+        "claim_class": "PROVED",
+        "statement": EXPECTED_STATEMENTS["UFT-RW-002"],
+        "hypotheses": EXPECTED_HYPOTHESES["UFT-RW-002"],
+        "proof_reference": EXPECTED_PROOF_REFS["UFT-RW-002"],
+        "executable_evidence": ["experiments/relation/run.py", "tests/test_pr11_relation_core.py"],
+        "nonclaims": ["Right-uniqueness does not imply termination."],
+    },
+    "UFT-RW-003": {
+        "id": "UFT-RW-003",
+        "lean_target_name": "UFT_RW_003_confluent_reachableNormal_eq",
+        "name": "Confluence gives at most one reachable normal form",
+        "claim_class": "PROVED",
+        "statement": EXPECTED_STATEMENTS["UFT-RW-003"],
+        "hypotheses": EXPECTED_HYPOTHESES["UFT-RW-003"],
+        "proof_reference": EXPECTED_PROOF_REFS["UFT-RW-003"],
+        "executable_evidence": ["experiments/relation/run.py", "tests/test_pr11_relation_core.py"],
+        "nonclaims": ["Confluence alone does not establish existence of a normal form."],
+    },
+    "UFT-RW-004": {
+        "id": "UFT-RW-004",
+        "lean_target_name": "UFT_RW_004_terminating_reachesNormal",
+        "name": "Termination gives reachable normal-form existence",
+        "claim_class": "PROVED",
+        "statement": EXPECTED_STATEMENTS["UFT-RW-004"],
+        "hypotheses": EXPECTED_HYPOTHESES["UFT-RW-004"],
+        "proof_reference": EXPECTED_PROOF_REFS["UFT-RW-004"],
+        "executable_evidence": ["experiments/relation/run.py", "tests/test_pr11_relation_core.py"],
+        "nonclaims": ["Existential normalization is not an executable normalizer and does not imply confluence."],
+    },
+    "UFT-SEL-001": {
+        "id": "UFT-SEL-001",
+        "lean_target_name": "UFT_SEL_001_distinctNormalLabels_refuteUniqueSelection",
+        "name": "Distinct reachable normal labels refute unique selection",
+        "claim_class": "PROVED",
+        "statement": EXPECTED_STATEMENTS["UFT-SEL-001"],
+        "hypotheses": EXPECTED_HYPOTHESES["UFT-SEL-001"],
+        "proof_reference": EXPECTED_PROOF_REFS["UFT-SEL-001"],
+        "executable_evidence": ["experiments/relation/run.py", "tests/test_pr11_relation_core.py"],
+        "nonclaims": ["This theorem does not establish that any particular external scientific package has both branches; those premises must be sourced separately."],
+    },
+}
+
 EXPECTED_DERIVED_COROLLARY = {
     "name": "termination-and-confluence-give-exactly-one-reachable-normal-form",
     "statement": "If stepRel terminates and is confluent, then every x has exactly one reachable normal form.",
@@ -101,22 +207,57 @@ EXPECTED_DERIVED_HUMAN_MARKER = (
     "**Canonical derived corollary:** `If stepRel terminates and is confluent, then every x has exactly one reachable normal form.`"
 )
 
-EXPECTED_CX = {
+EXPECTED_CX_RECORDS = {
     "CX-RW-FORK3": {
+        "id": "CX-RW-FORK3",
+        "name": "Minimal terminating nonconfluent fork",
+        "claim_class": "COUNTEREXAMPLE",
         "states": ["a", "b", "c"],
         "edges": [["a", "b"], ["a", "c"]],
         "normal_states": ["b", "c"],
+        "minimality": "Three states are minimal for a terminating labelled relation with two distinct reachable normal forms.",
+        "kills": [
+            "BRANCHING != CONFLUENCE",
+            "TERMINATION != CONFLUENCE",
+            "TERMINATION != UNIQUE_NORMAL_FORM",
+            "ONE_SELECTOR_RESULT != RELATION_SEMANTICS",
+        ],
+        "evidence": ["experiments/relation/run.py", "tests/test_pr11_relation_core.py"],
+        "nonclaims": ["The fixture is an abstract rewriting counterexample, not a physical process."],
     },
     "CX-RW-LOOP1": {
+        "id": "CX-RW-LOOP1",
+        "name": "Minimal confluent nonterminating loop",
+        "claim_class": "COUNTEREXAMPLE",
         "states": ["a"],
         "edges": [["a", "a"]],
         "normal_states": [],
+        "minimality": "One state is minimal when self-loops are allowed.",
+        "kills": ["CONFLUENCE != TERMINATION", "CONFLUENCE != NORMAL_FORM_EXISTENCE"],
+        "evidence": ["experiments/relation/run.py", "tests/test_pr11_relation_core.py"],
+        "nonclaims": ["Irreflexive rewrite systems would require a two-state cycle instead."],
     },
     "CX-RW-EXIT2": {
+        "id": "CX-RW-EXIT2",
+        "name": "Unique reachable normal form with a nonterminating branch",
+        "claim_class": "COUNTEREXAMPLE",
         "states": ["a", "b"],
         "edges": [["a", "a"], ["a", "b"]],
         "normal_states": ["b"],
+        "minimality": "Two states are minimal for nontermination together with a unique reachable normal form when self-loops are allowed.",
+        "kills": [
+            "CONFLUENCE != RIGHT_UNIQUENESS",
+            "UNIQUE_REACHABLE_NORMAL_FORM != TERMINATION",
+            "UNIQUE_REACHABLE_NORMAL_FORM != ALL_PATHS_NORMALIZE",
+            "WEAK_NORMALIZATION != STRONG_NORMALIZATION",
+        ],
+        "evidence": ["experiments/relation/run.py", "tests/test_pr11_relation_core.py"],
+        "nonclaims": ["Finite reflexive-transitive reachability alone cannot express universal liveness over infinite paths."],
     },
+}
+EXPECTED_CX = {
+    rid: {key: value for key, value in record.items() if key in {"states", "edges", "normal_states"}}
+    for rid, record in EXPECTED_CX_RECORDS.items()
 }
 
 EXPECTED_CONTEXT_PATTERNS = {
@@ -155,7 +296,7 @@ EXPECTED_CONTEXT_PATTERNS = {
 EXPECTED_SELECTION = {
     "type": "uft-id-selection-stress-test",
     "schema_version": "1.0.1",
-    "snapshot_date": "2026-08-21",
+    "snapshot_date": "2026-08-20",
     "id": "SEL-STRESS-GENUS-10-30",
     "claim_class": "DIAGNOSTIC",
     "purpose": "Instantiate UFT-SEL-001 with two labelled closed orientable surface realizations to test whether shared decorative/compatibility machinery can uniquely select genus 10.",
@@ -236,6 +377,36 @@ EXPECTED_ROADMAP_SEQUENCE = [
     (18, "empirical-falsification-profile", "planned"),
 ]
 
+EXPECTED_ROADMAP_STATE = {
+    "type": "uft-id-roadmap-state",
+    "schema_version": "1.0.0",
+    "snapshot_date": "2026-08-20",
+    "basis_commit": "091405c136fd8dc936e6bd3a544ab22433d04782",
+    "completed": [5, 6, 7, 8, 9],
+    "active_planned_surface": 11,
+    "deferred": [10],
+    "sequence": [
+        {"planned_pr": 9, "surface": "deterministic-observation-calculus", "status": "complete"},
+        {"planned_pr": 10, "surface": "lean-observation-foundation", "status": "deferred-independent-formal-proof-track"},
+        {"planned_pr": 11, "surface": "relation-first-recovery-core", "status": "active-implemented-in-current-change"},
+        {"planned_pr": 12, "surface": "bridge-core", "status": "planned"},
+        {"planned_pr": 13, "surface": "epistemic-bridge-specialization", "status": "planned"},
+        {"planned_pr": 14, "surface": "representation-and-congruence-calculus", "status": "planned"},
+        {"planned_pr": 15, "surface": "information-comparability-core", "status": "planned"},
+        {"planned_pr": 16, "surface": "recovery-specializations", "status": "planned"},
+        {"planned_pr": 17, "surface": "continuum-stochastic-prevalence-obligations", "status": "planned"},
+        {"planned_pr": 18, "surface": "empirical-falsification-profile", "status": "planned"},
+    ],
+    "compatibility_note": "machine/formalization_contract.json retains the PR9-era roadmap_rebase snapshot for PR8/PR9 receipt and validator compatibility. This file is the live post-PR9 schedule authority.",
+    "fixture_policy": "Minimal fixtures travel with the theorem or counterexample that requires them.",
+    "rules": [
+        "NO_GIANT_FORMALIZATION_PR",
+        "NO_STANDALONE_FINITE_FIXTURE_ZOO",
+        "Lean deferral does not prevent repository-contained mathematical proofs, finite conformance witnesses, or later theorem targets from being frozen.",
+        "A unique-selection claim requires an actual discriminating theorem or uniqueness proof, not compatibility or one successful construction.",
+    ],
+}
+
 EXPECTED_HEADINGS = [
     (9, "Deterministic observation calculus"),
     (10, "Lean observation foundation"),
@@ -247,6 +418,21 @@ EXPECTED_HEADINGS = [
     (16, "Recovery specializations"),
     (17, "Continuum, stochastic, and prevalence obligations"),
     (18, "Empirical falsification profile"),
+]
+
+XIN_ROADMAP_ANCHORS = [
+    "**Status:** ROADMAP-ONLY RESEARCH TARGET. Not part of the current PR #11 theorem authority",
+    "The paper is treated as a **primary empirical source**",
+    "It is not a theorem premise for the current relation calculus.",
+    "PAPER_EVIDENCE != COMMENTARY != UFT_ID_DERIVED_RESULT",
+    "FERROELECTRIC_RESULT != COSMOLOGICAL_VALIDATION",
+    "E(y) < E(x)",
+    "DOES NOT GENERALLY IMPLY",
+    "tau(y) = tau(x)",
+    "The theorem or counterexample must stand on UFT-ID's own mathematics.",
+    "the experiment must not be used as proof of the general statement.",
+    "This positive control must not be promoted into genus, E8, quantum-field, cosmological, or universal-ontology claims.",
+    "explicit nonclaims blocking transfer from ferroelectric materials to cosmology or fundamental physics.",
 ]
 
 PRIVATE_TOKENS = (
@@ -368,13 +554,16 @@ def validate_documents(
     if not isinstance(claim_classes_raw, list):
         errors.append("base project claim_classes must be a list")
         claim_classes: set[str] = set()
+    elif not all(isinstance(value, str) and value.strip() for value in claim_classes_raw):
+        errors.append("base project claim_classes must contain non-empty strings only")
+        claim_classes = {value for value in claim_classes_raw if isinstance(value, str) and value.strip()}
     else:
-        claim_classes = {value for value in claim_classes_raw if isinstance(value, str)}
-        if len(claim_classes) != len(claim_classes_raw):
-            errors.append("base project claim_classes must contain strings only")
+        claim_classes = set(claim_classes_raw)
 
     if contract.get("type") != "uft-id-relation-core-contract" or contract.get("schema_version") != "1.0.1":
         errors.append("relation contract shape mismatch")
+    if contract.get("snapshot_date") != "2026-08-20":
+        errors.append("relation contract UTC snapshot drift")
     if contract.get("claim_class") != "DEFINITION" or "DEFINITION" not in claim_classes:
         errors.append("relation contract claim class must be DEFINITION")
     if contract.get("authorities") != EXPECTED_AUTHORITIES:
@@ -382,38 +571,35 @@ def validate_documents(
     elif check_paths:
         for key, path in EXPECTED_AUTHORITIES.items():
             repo_file(path, f"authority.{key}", errors)
-
-    primary = contract.get("primary_types")
-    if primary != EXPECTED_PRIMARY_TYPES:
+    if contract.get("primary_types") != EXPECTED_PRIMARY_TYPES:
         errors.append("primary_types canonical mapping drift")
-
     hard = contract.get("hard_rules")
     if not isinstance(hard, dict) or set(hard) != EXPECTED_HARD_RULES:
         errors.append("relation hard_rules must contain the exact expected key set")
     elif any(value is not False for value in hard.values()):
         errors.append("all relation hard_rules must remain false")
-
-    limits = contract.get("execution_limits")
-    expected_policy = (
-        "Routine exhaustive conformance enumerates every labelled binary relation on the fixed carriers "
-        "Fin1, Fin2, and Fin3 only; it does not quotient relations by carrier isomorphism."
-    )
-    if not isinstance(limits, dict) or limits != {
-        "max_exhaustive_states": 3,
-        "exact_relation_count_through_fin3": 530,
-        "policy": expected_policy,
-    }:
+    if contract.get("execution_limits") != EXPECTED_EXECUTION_LIMITS:
         errors.append("bounded labelled-relation enumeration contract drift")
-
     deferred = " ".join(string_list(contract.get("explicit_deferrals"), "explicit_deferrals", errors, required=True)).casefold()
     for phrase in ("newman", "selector", "schedule", "infinite paths", "lean"):
         if phrase not in deferred:
             errors.append(f"explicit deferral missing: {phrase}")
+    if contract.get("scope") != EXPECTED_CONTRACT["scope"]:
+        errors.append("relation contract scope drift")
+    if contract.get("boundaries") != EXPECTED_BOUNDARIES:
+        errors.append("relation contract boundaries drift")
+    if contract != EXPECTED_CONTRACT:
+        errors.append("relation contract canonical payload drift")
 
     records = theorems.get("records")
-    if theorems.get("type") != "uft-id-relation-theorem-registry" or theorems.get("schema_version") != "1.0.1" or not isinstance(records, list):
-        errors.append("relation theorem registry shape mismatch")
-        records = []
+    if (
+        theorems.get("type") != "uft-id-relation-theorem-registry"
+        or theorems.get("schema_version") != "1.0.1"
+        or theorems.get("snapshot_date") != "2026-08-20"
+        or not isinstance(records, list)
+    ):
+        errors.append("relation theorem registry shape/snapshot mismatch")
+        records = [] if not isinstance(records, list) else records
     ids: set[str] = set()
     required_fields = {"id", "lean_target_name", "name", "claim_class", "statement", "hypotheses", "proof_reference", "executable_evidence", "nonclaims"}
     for i, record in enumerate(records):
@@ -450,6 +636,9 @@ def validate_documents(
             for path in evidence:
                 repo_file(path, f"{rid}.executable_evidence", errors)
         string_list(record.get("nonclaims"), f"{rid}.nonclaims", errors, required=True)
+        expected_record = EXPECTED_THEOREM_RECORDS.get(rid)
+        if expected_record is None or record != expected_record:
+            errors.append(f"{rid} theorem canonical payload drift")
 
         section = theorem_section(human, rid)
         if not section:
@@ -480,13 +669,22 @@ def validate_documents(
         target = deferred_targets[0]
         if not isinstance(target, dict):
             errors.append("deferred theorem target must be an object")
-        elif target.get("name") != "Newman's lemma" or target.get("status") != "deferred" or not nonempty(target.get("reason")):
+        elif target != {
+            "name": "Newman's lemma",
+            "status": "deferred",
+            "reason": "Requires a complete repository well-founded-induction proof before advertisement.",
+        }:
             errors.append("Newman's lemma must remain deferred from the advertised theorem surface")
 
     cx_records = counterexamples.get("records")
-    if counterexamples.get("type") != "uft-id-relation-counterexample-registry" or not isinstance(cx_records, list):
-        errors.append("relation counterexample registry shape mismatch")
-        cx_records = []
+    if (
+        counterexamples.get("type") != "uft-id-relation-counterexample-registry"
+        or counterexamples.get("schema_version") != "1.0.1"
+        or counterexamples.get("snapshot_date") != "2026-08-20"
+        or not isinstance(cx_records, list)
+    ):
+        errors.append("relation counterexample registry shape/snapshot mismatch")
+        cx_records = [] if not isinstance(cx_records, list) else cx_records
     cx_ids: set[str] = set()
     for i, record in enumerate(cx_records):
         if not isinstance(record, dict):
@@ -515,6 +713,9 @@ def validate_documents(
             for path in evidence:
                 repo_file(path, f"{rid}.evidence", errors)
         string_list(record.get("nonclaims"), f"{rid}.nonclaims", errors, required=True)
+        expected_record = EXPECTED_CX_RECORDS.get(rid)
+        if expected_record is None or record != expected_record:
+            errors.append(f"{rid} counterexample canonical payload drift")
     if cx_ids != EXPECTED_CX_IDS:
         errors.append("counterexample IDs must be exactly FORK3, LOOP1, and EXIT2")
 
@@ -536,10 +737,6 @@ def validate_documents(
         elif actual != expected:
             errors.append(f"{pattern_id} canonical payload drift from verified selection context")
 
-    if roadmap_state.get("type") != "uft-id-roadmap-state" or roadmap_state.get("schema_version") != "1.0.0":
-        errors.append("live roadmap state shape mismatch")
-    if roadmap_state.get("basis_commit") != "091405c136fd8dc936e6bd3a544ab22433d04782":
-        errors.append("roadmap state must bind the merged PR9 basis commit")
     if roadmap_state.get("active_planned_surface") != 11:
         errors.append("live roadmap active planned surface must be PR11")
     if roadmap_state.get("completed") != [5, 6, 7, 8, 9]:
@@ -552,6 +749,8 @@ def validate_documents(
                 actual_sequence.append((item.get("planned_pr"), item.get("surface"), item.get("status")))
     if actual_sequence != EXPECTED_ROADMAP_SEQUENCE:
         errors.append("live roadmap sequence/status drift")
+    if roadmap_state != EXPECTED_ROADMAP_STATE:
+        errors.append("live roadmap state canonical payload drift")
 
     if roadmap_headings(roadmap) != EXPECTED_HEADINGS:
         errors.append("ROADMAP current formal grammar heading order drift")
@@ -575,6 +774,9 @@ def validate_documents(
     for anchor in roadmap_anchors:
         if anchor not in roadmap:
             errors.append(f"ROADMAP missing relation-program anchor: {anchor}")
+    for anchor in XIN_ROADMAP_ANCHORS:
+        if anchor not in roadmap:
+            errors.append(f"ROADMAP Xin positive-control boundary drift: {anchor}")
 
     legacy = [
         "PR #8 — Invariant calculus, assurance graph, and model obligations",
@@ -602,6 +804,7 @@ def validate_documents(
         no_private_locators(value, label, errors)
 
     human_anchors = [
+        "**Snapshot:** 2026-08-20.",
         "NORMAL != ADMISSIBLE != FIXED_POINT",
         "stepRel:X",
         "UFT-RW-001 Branchwise invariant induction",
