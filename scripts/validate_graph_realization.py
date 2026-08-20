@@ -52,53 +52,79 @@ EXPECTED_RESULT_IDS = {
 }
 
 EXPECTED_RESULT_EVIDENCE = {
-    "UFT-GR-001": ("executable_evidence", ("experiments/graph_realization/run.py", "tests/test_graph_realization.py")),
-    "UFT-GR-002": ("executable_evidence", ("experiments/graph_realization/run.py", "tests/test_graph_realization.py")),
-    "UFT-GR-003": ("executable_evidence", ("experiments/graph_realization/run.py", "tests/test_graph_realization.py")),
-    "UFT-GR-004": ("executable_evidence", ("experiments/graph_realization/run.py", "tests/test_graph_realization.py")),
-    "UFT-GR-005": ("executable_evidence", ("experiments/graph_realization/run.py", "tests/test_graph_realization.py")),
-    "UFT-GR-006": ("executable_evidence", ("experiments/graph_realization/run.py", "tests/test_graph_realization.py")),
-    "CX-GR-001": ("evidence", ("experiments/graph_realization/run.py", "tests/test_graph_realization.py")),
-    "CX-GR-002": ("evidence", ("experiments/graph_realization/run.py", "tests/test_graph_realization.py")),
-    "CX-GR-003": ("evidence", ("experiments/graph_realization/run.py", "tests/test_graph_realization.py")),
+    result_id: (
+        "executable_evidence" if result_id.startswith("UFT-GR-") else "evidence",
+        ("experiments/graph_realization/run.py", "tests/test_graph_realization.py"),
+    )
+    for result_id in EXPECTED_RESULT_IDS
 }
 
 EXPECTED_PROVED_RESULT_BINDINGS = {
     "UFT-GR-001": {
         "statement": "For a finite labelled carrier X, G_step=(X,A_step) with (x,y) in A_step iff stepRel(x,y) preserves the one-step relation exactly.",
+        "hypotheses": ("X is finite and labelled", "stepRel:X->X->Prop"),
         "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-001-finite-relation--digraph-identity",
         "human_heading": "### UFT-GR-001 Finite relation ↔ digraph identity",
         "human_content_anchor": "For finite labelled `X`, the map from `stepRel` to `G_step` defined above is exact at the one-step level.",
     },
     "UFT-GR-002": {
         "statement": "In G_step, Normal_stepRel(x) iff outdegree(x)=0.",
+        "hypotheses": ("G_step is the exact graph realization of stepRel",),
         "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-002-normality--zero-outdegree",
         "human_heading": "### UFT-GR-002 Normality ↔ zero outdegree",
         "human_content_anchor": "\\deg^+_{G_{\\mathrm{step}}}(x)=0.",
     },
     "UFT-GR-003": {
         "statement": "For finite G_step, y is reflexive-transitively reachable from x iff there is a directed walk from x to y; when x!=y a directed path may be chosen.",
+        "hypotheses": ("G_step is the exact graph realization of stepRel",),
         "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-003-reachability--directed-walkpath-existence",
         "human_heading": "### UFT-GR-003 Reachability ↔ directed walk/path existence",
         "human_content_anchor": "iff there is a directed walk from `x` to `y` in `G_step`. When `x != y`, repeated vertices may be removed from a finite walk to obtain a directed path.",
     },
     "UFT-GR-004": {
         "statement": "On a finite carrier, forward termination of stepRel is equivalent to absence of directed cycles in G_step.",
+        "hypotheses": ("X is finite", "G_step is the exact graph realization of stepRel"),
         "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-004-finite-termination--dag-acyclicity",
         "human_heading": "### UFT-GR-004 Finite termination ↔ DAG acyclicity",
         "human_content_anchor": "G_{\\mathrm{step}}\\text{ has no directed cycle}.",
     },
     "UFT-GR-005": {
         "statement": "Every nonempty finite directed graph has at least one sink strongly connected component.",
+        "hypotheses": ("finite nonempty directed graph",),
         "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-005-finite-sink-scc-existence",
         "human_heading": "### UFT-GR-005 Finite sink-SCC existence",
         "human_content_anchor": "Every nonempty finite directed graph has at least one sink SCC.",
     },
     "UFT-GR-006": {
         "statement": "The condensation graph obtained by collapsing strongly connected components of a finite directed graph is acyclic.",
+        "hypotheses": ("finite directed graph", "vertices of condensation are SCCs"),
         "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-006-scc-condensation-is-acyclic",
         "human_heading": "### UFT-GR-006 SCC condensation is acyclic",
         "human_content_anchor": "`Cond(G)` has no directed cycle.",
+    },
+}
+
+EXPECTED_COUNTEREXAMPLE_BINDINGS = {
+    "CX-GR-001": {
+        "statement": "Two distinct rich directed multigraph records can collapse to the same simple endpoint-adjacency relation.",
+        "fixture": "parallel labelled arcs u->v versus one unlabelled arc u->v",
+        "kills": ("LOSSY_PROJECTION_IMPLIES_STRUCTURAL_EQUIVALENCE", "SIMPLE_ADJACENCY_DETERMINES_RICH_INCIDENCE"),
+        "human_heading": "### CX-GR-001 Rich-to-simple projection loses arc identity",
+        "human_content_anchor": "The projection from rich arc records to simple endpoint adjacency is non-injective in general.",
+    },
+    "CX-GR-002": {
+        "statement": "The same labelled module set can support distinct typed incidence relations.",
+        "fixture": "M={a,b,c}: chain a-b-c versus triangle a-b-c-a",
+        "kills": ("MODULE_INVENTORY_DETERMINES_GLOBAL_NETWORK",),
+        "human_heading": "### CX-GR-002 Module inventory does not determine incidence",
+        "human_content_anchor": "The inventory is identical while the global connectivity differs.",
+    },
+    "CX-GR-003": {
+        "statement": "One abstract graph admits multiple coordinate drawings with identical adjacency.",
+        "fixture": "K1,3 drawn with different coordinates",
+        "kills": ("DRAWING_COORDINATES_ARE_GRAPH_IDENTITY", "VISUAL_RESEMBLANCE_IMPLIES_PHYSICAL_EQUIVALENCE"),
+        "human_heading": "### CX-GR-003 Multiple drawings, one graph",
+        "human_content_anchor": "The drawings differ while the abstract labelled adjacency is unchanged.",
     },
 }
 
@@ -146,7 +172,6 @@ PRIVATE_PATTERNS = (
     "mail.google.com", "gmail", "thread_id", "attachment_id", "x_attachment_id",
     "deefiveothree", "connector_", "private-user-images",
 )
-
 SEMANTIC_PROMOTION_PATTERNS = (
     "this proves a universal physical ontology",
     "every sink scc is a physical fixed point",
@@ -222,9 +247,7 @@ EXPECTED_EVIDENCE_BUNDLE_LINES = (
     "python scripts/validate_relation_core.py --json > artifacts/pr11-relation-validation.json 2> artifacts/pr11-relation-validation.stderr.txt || true",
     "python experiments/relation/run.py --json > artifacts/pr11-relation-witness.json 2> artifacts/pr11-relation-witness.stderr.txt || true",
     "python experiments/run_pr11.py --json > artifacts/pr11-relation-receipt.json 2> artifacts/pr11-relation-receipt.stderr.txt || true",
-    GRAPH_ARTIFACT_COMMANDS[0],
-    GRAPH_ARTIFACT_COMMANDS[1],
-    GRAPH_ARTIFACT_COMMANDS[2],
+    GRAPH_ARTIFACT_COMMANDS[0], GRAPH_ARTIFACT_COMMANDS[1], GRAPH_ARTIFACT_COMMANDS[2],
     "python scripts/validate_reproducibility.py --json > artifacts/reproducibility-validation.json 2> artifacts/reproducibility-validation.stderr.txt || true",
 )
 
@@ -308,6 +331,21 @@ EXPECTED_GRINBERG_CITATION = (
     "> Darij Grinberg, *An introduction to graph theory*, arXiv:2308.04512v3, "
     "Spring 2025 edition, version dated 8 June 2025. DOI `10.48550/arXiv.2308.04512`."
 )
+EXPECTED_EVERS = {
+    "source_id": "EVERS-2015-SIS2",
+    "authors": ["Jürgen Evers", "Peter Mayer", "Leonhard Möckl", "Gilbert Oehlinger", "Ralf Köppe", "Hansgeorg Schnöckel"],
+    "doi": "10.1021/ic501825r",
+    "issue": 4,
+    "journal": "Inorganic Chemistry",
+    "kind": "peer-reviewed-empirical-source",
+    "pages": "1240-1253",
+    "title": "Two High-Pressure Phases of SiS2 as Missing Links between the Extremes of Only Edge-Sharing and Only Corner-Sharing Tetrahedra",
+    "volume": 54,
+    "year": 2015,
+}
+EXPECTED_EVERS_CITATION = (
+    "> Jürgen Evers, Peter Mayer, Leonhard Möckl, Gilbert Oehlinger, Ralf Köppe, and Hansgeorg Schnöckel, “Two High-Pressure Phases of SiS2 as Missing Links between the Extremes of Only Edge-Sharing and Only Corner-Sharing Tetrahedra,” *Inorganic Chemistry* **54**(4), 1240–1253 (2015). DOI `10.1021/ic501825r`."
+)
 
 RECEIPT_SCHEMA_BINDING = '"schema_version": registered_receipt_version(),'
 SHELL_CONTROL_PREFIXES = (
@@ -315,9 +353,7 @@ SHELL_CONTROL_PREFIXES = (
     "source ", ". ", "eval ",
 )
 SHELL_CONTROL_WORDS = {"then", "else", "fi", "do", "done", "esac", "{", "}"}
-SHELL_EARLY_TERMINATION_RE = re.compile(
-    r"(?:^|[;&|]\s*)(?:exit|return|exec)(?:\s|$)", re.IGNORECASE
-)
+SHELL_EARLY_TERMINATION_RE = re.compile(r"(?:^|[;&|]\s*)(?:exit|return|exec)(?:\s|$)", re.IGNORECASE)
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -325,8 +361,7 @@ def sha256_bytes(data: bytes) -> str:
 
 
 def git_blob_sha(data: bytes) -> str:
-    header = f"blob {len(data)}\0".encode("ascii")
-    return hashlib.sha1(header + data).hexdigest()
+    return hashlib.sha1(f"blob {len(data)}\0".encode("ascii") + data).hexdigest()
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -469,9 +504,8 @@ def has_shell_control_flow(lines: tuple[str, ...]) -> bool:
 
 def roadmap_reproducibility_gate_lines(text: str) -> tuple[str, ...]:
     lines = text.splitlines()
-    heading = "# Reproducibility gate"
     for index, line in enumerate(lines):
-        if line.strip() != heading:
+        if line.strip() != "# Reproducibility gate":
             continue
         fence_index = None
         for probe in range(index + 1, len(lines)):
@@ -507,13 +541,9 @@ def validate() -> dict[str, object]:
     base_contract = load_json(PATHS["base_contract"])
     relation_contract = load_json(PATHS["relation_contract"])
     cross_repo = load_json(PATHS["cross_repo_patterns"])
-    texts = {
-        name: PATHS[name].read_text(encoding="utf-8")
-        for name in (
-            "sources", "human", "claims", "nonclaims", "readme4ai",
-            "reproducibility", "roadmap", "workflow", "receipt",
-        )
-    }
+    texts = {name: PATHS[name].read_text(encoding="utf-8") for name in (
+        "sources", "human", "claims", "nonclaims", "readme4ai", "reproducibility", "roadmap", "workflow", "receipt"
+    )}
 
     for name in ("contract", "results", "sources", "human"):
         if sha256_bytes(PATHS[name].read_bytes()) != EXPECTED_SHA256[name]:
@@ -522,61 +552,40 @@ def validate() -> dict[str, object]:
         if git_blob_sha(PATHS[name].read_bytes()) != expected_blob:
             errors.append(f"{name} canonical human authority blob drift")
 
-    if contract.get("type") != "uft-id-graph-realization-contract":
-        errors.append("graph contract type drift")
-    if contract.get("schema_version") != "1.0.0":
-        errors.append("graph contract schema drift")
-    if contract.get("snapshot_date") != "2026-08-20":
-        errors.append("graph contract UTC snapshot drift")
-    if contract.get("claim_class") != "DEFINITION":
-        errors.append("graph contract claim class drift")
-    if set(contract.get("hard_boundaries", [])) != EXPECTED_BOUNDARIES:
-        errors.append("graph contract hard-boundary set drift")
+    if contract.get("type") != "uft-id-graph-realization-contract": errors.append("graph contract type drift")
+    if contract.get("schema_version") != "1.0.0": errors.append("graph contract schema drift")
+    if contract.get("snapshot_date") != "2026-08-20": errors.append("graph contract UTC snapshot drift")
+    if contract.get("claim_class") != "DEFINITION": errors.append("graph contract claim class drift")
+    if set(contract.get("hard_boundaries", [])) != EXPECTED_BOUNDARIES: errors.append("graph contract hard-boundary set drift")
 
-    if results.get("type") != "uft-id-graph-realization-results":
-        errors.append("graph results type drift")
-    if results.get("schema_version") != "1.0.0":
-        errors.append("graph results schema drift")
-    if results.get("snapshot_date") != "2026-08-20":
-        errors.append("graph results UTC snapshot drift")
+    if results.get("type") != "uft-id-graph-realization-results": errors.append("graph results type drift")
+    if results.get("schema_version") != "1.0.0": errors.append("graph results schema drift")
+    if results.get("snapshot_date") != "2026-08-20": errors.append("graph results UTC snapshot drift")
 
     central = base_contract.get("graph_realization_authority")
     if central != EXPECTED_CENTRAL_AUTHORITY:
         errors.append("central graph_realization_authority payload drift")
     elif isinstance(central, dict):
-        for field in (
-            "human", "machine_contract", "machine_results", "source_map", "validator",
-            "experiment", "tests", "receipt_runner", "base_relation_authority",
-        ):
+        for field in ("human", "machine_contract", "machine_results", "source_map", "validator", "experiment", "tests", "receipt_runner", "base_relation_authority"):
             safe_repo_path(central.get(field), errors, f"central graph authority {field}")
 
     library = base_contract.get("experiment_library")
-    if not isinstance(library, dict):
-        errors.append("base experiment_library must be an object")
+    if not isinstance(library, dict): errors.append("base experiment_library must be an object")
     else:
-        if library.get("graph_realization_receipt_runner") != "experiments/run_graph_realization.py":
-            errors.append("central graph receipt runner registration drift")
-        if library.get("graph_realization_receipt_version") != "1.0.0":
-            errors.append("central graph receipt version registration drift")
+        if library.get("graph_realization_receipt_runner") != "experiments/run_graph_realization.py": errors.append("central graph receipt runner registration drift")
+        if library.get("graph_realization_receipt_version") != "1.0.0": errors.append("central graph receipt version registration drift")
 
     reads = base_contract.get("required_agent_reads")
-    if not isinstance(reads, list) or any(not isinstance(x, str) or not x for x in reads):
-        errors.append("base required_agent_reads must be a list of non-empty strings")
-    elif not EXPECTED_AGENT_READS.issubset(set(reads)):
-        errors.append("central required_agent_reads missing graph authority surface")
+    if not isinstance(reads, list) or any(not isinstance(x, str) or not x for x in reads): errors.append("base required_agent_reads must be a list of non-empty strings")
+    elif not EXPECTED_AGENT_READS.issubset(set(reads)): errors.append("central required_agent_reads missing graph authority surface")
 
     bridge = contract.get("relation_bridge")
-    if not isinstance(bridge, dict):
-        errors.append("relation_bridge must be an object")
+    if not isinstance(bridge, dict): errors.append("relation_bridge must be an object")
     else:
-        if bridge.get("relation") != "stepRel:X->X->Prop":
-            errors.append("graph bridge must preserve stepRel:X->X->Prop")
-        if bridge.get("arc_definition") != "(x,y) in A_step iff stepRel(x,y)":
-            errors.append("graph bridge adjacency biconditional drift")
-        if bridge.get("lost_structure") != []:
-            errors.append("exact finite relation/digraph bridge must declare no lost one-step structure")
-    if relation_contract.get("primary_types", {}).get("rewrite_relation") != "stepRel:X->X->Prop":
-        errors.append("base relation authority no longer exposes canonical stepRel type")
+        if bridge.get("relation") != "stepRel:X->X->Prop": errors.append("graph bridge must preserve stepRel:X->X->Prop")
+        if bridge.get("arc_definition") != "(x,y) in A_step iff stepRel(x,y)": errors.append("graph bridge adjacency biconditional drift")
+        if bridge.get("lost_structure") != []: errors.append("exact finite relation/digraph bridge must declare no lost one-step structure")
+    if relation_contract.get("primary_types", {}).get("rewrite_relation") != "stepRel:X->X->Prop": errors.append("base relation authority no longer exposes canonical stepRel type")
 
     records = results.get("records")
     ids: set[str] = set()
@@ -591,45 +600,47 @@ def validate() -> dict[str, object]:
         if not isinstance(result_id, str) or not result_id:
             errors.append(f"graph result {index} has invalid id")
             continue
-        if result_id in ids:
-            errors.append(f"duplicate graph result id: {result_id}")
+        if result_id in ids: errors.append(f"duplicate graph result id: {result_id}")
         ids.add(result_id)
 
         claim_class = record.get("claim_class")
         if result_id.startswith("UFT-GR-"):
-            if claim_class != "PROVED":
-                errors.append(f"{result_id} must remain PROVED")
+            if claim_class != "PROVED": errors.append(f"{result_id} must remain PROVED")
             expected = EXPECTED_PROVED_RESULT_BINDINGS.get(result_id)
             if expected is None:
                 errors.append(f"{result_id} missing canonical theorem binding")
             else:
-                if record.get("statement") != expected["statement"]:
-                    errors.append(f"{result_id} machine theorem statement drift from frozen human proof")
-                if record.get("proof_reference") != expected["proof_reference"]:
-                    errors.append(f"{result_id} proof_reference drift from frozen human proof")
+                if record.get("statement") != expected["statement"]: errors.append(f"{result_id} machine theorem statement drift from frozen human proof")
+                hypotheses = record.get("hypotheses")
+                if not isinstance(hypotheses, list) or tuple(hypotheses) != expected["hypotheses"]: errors.append(f"{result_id} theorem hypotheses drift from frozen human proof")
+                if record.get("proof_reference") != expected["proof_reference"]: errors.append(f"{result_id} proof_reference drift from frozen human proof")
                 section = markdown_section(texts["human"], expected["human_heading"])
-                if section is None:
-                    errors.append(f"{result_id} frozen human theorem heading missing")
-                elif expected["human_content_anchor"] not in section:
-                    errors.append(f"{result_id} frozen human theorem content drift")
+                if section is None: errors.append(f"{result_id} frozen human theorem heading missing")
+                elif expected["human_content_anchor"] not in section: errors.append(f"{result_id} frozen human theorem content drift")
         elif result_id.startswith("CX-GR-"):
-            if claim_class != "COUNTEREXAMPLE":
-                errors.append(f"{result_id} must remain COUNTEREXAMPLE")
+            if claim_class != "COUNTEREXAMPLE": errors.append(f"{result_id} must remain COUNTEREXAMPLE")
+            expected = EXPECTED_COUNTEREXAMPLE_BINDINGS.get(result_id)
+            if expected is None:
+                errors.append(f"{result_id} missing canonical counterexample binding")
+            else:
+                if record.get("statement") != expected["statement"]: errors.append(f"{result_id} counterexample statement drift")
+                if record.get("fixture") != expected["fixture"]: errors.append(f"{result_id} counterexample fixture drift")
+                kills = record.get("kills")
+                if not isinstance(kills, list) or tuple(kills) != expected["kills"]: errors.append(f"{result_id} counterexample kills drift")
+                section = markdown_section(texts["human"], expected["human_heading"])
+                if section is None: errors.append(f"{result_id} frozen human counterexample heading missing")
+                elif expected["human_content_anchor"] not in section: errors.append(f"{result_id} frozen human counterexample content drift")
 
         evidence_spec = EXPECTED_RESULT_EVIDENCE.get(result_id)
-        if evidence_spec is None:
-            errors.append(f"{result_id} missing canonical evidence binding")
+        if evidence_spec is None: errors.append(f"{result_id} missing canonical evidence binding")
         else:
-            evidence_field, expected_paths = evidence_spec
-            evidence = record.get(evidence_field)
-            if not isinstance(evidence, list) or tuple(evidence) != expected_paths:
-                errors.append(f"{result_id} executable evidence set drift")
+            field, expected_paths = evidence_spec
+            evidence = record.get(field)
+            if not isinstance(evidence, list) or tuple(evidence) != expected_paths: errors.append(f"{result_id} executable evidence set drift")
             else:
-                for path in evidence:
-                    safe_repo_path(path, errors, f"{result_id} evidence")
+                for path in evidence: safe_repo_path(path, errors, f"{result_id} evidence")
 
-    if ids != EXPECTED_RESULT_IDS:
-        errors.append("graph result identity set drift")
+    if ids != EXPECTED_RESULT_IDS: errors.append("graph result identity set drift")
 
     source_records = contract.get("sources")
     if not isinstance(source_records, list) or len(source_records) != 2:
@@ -638,27 +649,22 @@ def validate() -> dict[str, object]:
     by_id = {item.get("source_id"): item for item in source_records if isinstance(item, dict)}
     grinberg = by_id.get("GRINBERG-2025-GRAPH-THEORY")
     evers = by_id.get("EVERS-2015-SIS2")
-    if not isinstance(grinberg, dict):
-        errors.append("Grinberg source identity drift")
+    if not isinstance(grinberg, dict): errors.append("Grinberg source identity drift")
     else:
         for key, expected_value in EXPECTED_GRINBERG.items():
-            if grinberg.get(key) != expected_value:
-                errors.append(f"Grinberg source {key} drift")
-    if EXPECTED_GRINBERG_CITATION not in texts["sources"]:
-        errors.append("Grinberg human source citation/version drift")
+            if grinberg.get(key) != expected_value: errors.append(f"Grinberg source {key} drift")
+    if EXPECTED_GRINBERG_CITATION not in texts["sources"]: errors.append("Grinberg human source citation/version drift")
 
-    if not isinstance(evers, dict) or evers.get("doi") != "10.1021/ic501825r":
-        errors.append("Evers SiS2 source identity drift")
-    if isinstance(evers, dict) and evers.get("kind") != "peer-reviewed-empirical-source":
-        errors.append("Evers source status drift")
+    if not isinstance(evers, dict): errors.append("Evers SiS2 source identity drift")
+    else:
+        for key, expected_value in EXPECTED_EVERS.items():
+            if evers.get(key) != expected_value: errors.append(f"Evers source {key} drift")
+    if EXPECTED_EVERS_CITATION not in texts["sources"]: errors.append("Evers human source citation drift")
 
     patterns = cross_repo.get("patterns")
-    pattern_ids = {
-        item.get("pattern_id") for item in patterns if isinstance(item, dict)
-    } if isinstance(patterns, list) else set()
+    pattern_ids = {item.get("pattern_id") for item in patterns if isinstance(item, dict)} if isinstance(patterns, list) else set()
     for pattern_id in ("XR-P17", "XR-P18"):
-        if pattern_id not in pattern_ids:
-            errors.append(f"missing existing public context record: {pattern_id}")
+        if pattern_id not in pattern_ids: errors.append(f"missing existing public context record: {pattern_id}")
 
     combined = texts["sources"] + "\n" + texts["human"]
     for anchor in (
@@ -669,8 +675,7 @@ def validate() -> dict[str, object]:
         "FINITE_GRAPH_CONFORMANCE != GENERAL_PROOF",
         "No decorative “sacred geometry” image is used as source authority",
     ):
-        if anchor not in combined:
-            errors.append(f"human graph authority missing semantic anchor: {anchor}")
+        if anchor not in combined: errors.append(f"human graph authority missing semantic anchor: {anchor}")
 
     require_anchors(texts["claims"], CLAIMS_ANCHORS, "docs/CLAIMS.md graph registration", errors)
     require_anchors(texts["readme4ai"], README_ANCHORS, "README4AI graph registration", errors)
@@ -678,37 +683,19 @@ def validate() -> dict[str, object]:
 
     roadmap_gate = roadmap_reproducibility_gate_lines(texts["roadmap"])
     for command in ROADMAP_GRAPH_COMMANDS:
-        if command not in roadmap_gate:
-            errors.append(f"ROADMAP graph validation gate missing executable command: {command}")
+        if command not in roadmap_gate: errors.append(f"ROADMAP graph validation gate missing executable command: {command}")
 
     artifact_lines = workflow_step_shell_lines(texts["workflow"], "Generate deterministic evidence bundle")
-    if has_shell_control_flow(artifact_lines):
-        errors.append(
-            "finite-adversarial graph artifact step may not contain shell control flow or early termination that can disable retained graph evidence"
-        )
-    if artifact_lines != EXPECTED_EVIDENCE_BUNDLE_LINES:
-        errors.append("finite-adversarial deterministic evidence bundle command surface drift")
+    if has_shell_control_flow(artifact_lines): errors.append("finite-adversarial graph artifact step may not contain shell control flow or early termination that can disable retained graph evidence")
+    if artifact_lines != EXPECTED_EVIDENCE_BUNDLE_LINES: errors.append("finite-adversarial deterministic evidence bundle command surface drift")
     for command in GRAPH_ARTIFACT_COMMANDS:
-        if command not in artifact_lines:
-            errors.append(f"finite-adversarial graph artifact retention missing executable command: {command}")
+        if command not in artifact_lines: errors.append(f"finite-adversarial graph artifact retention missing executable command: {command}")
 
     verify_lines = workflow_step_shell_lines(texts["workflow"], "Verify retained graph evidence")
-    if verify_lines != (GRAPH_ARTIFACT_VERIFY_COMMAND,):
-        errors.append("finite-adversarial retained graph evidence verification step drift")
-    if not workflow_step_has_always(texts["workflow"], "Verify retained graph evidence"):
-        errors.append("finite-adversarial retained graph evidence verification must use always()")
-    verifier_trigger_count = sum(
-        1 for line in texts["workflow"].splitlines()
-        if line.strip() == '- "scripts/verify_graph_artifacts.py"'
-    )
-    if verifier_trigger_count != 2:
-        errors.append("finite-adversarial must trigger on scripts/verify_graph_artifacts.py for PR and main push")
-    nonclaims_trigger_count = sum(
-        1 for line in texts["workflow"].splitlines()
-        if line.strip() == '- "docs/NONCLAIMS.md"'
-    )
-    if nonclaims_trigger_count != 2:
-        errors.append("finite-adversarial must trigger on docs/NONCLAIMS.md for PR and main push")
+    if verify_lines != (GRAPH_ARTIFACT_VERIFY_COMMAND,): errors.append("finite-adversarial retained graph evidence verification step drift")
+    if not workflow_step_has_always(texts["workflow"], "Verify retained graph evidence"): errors.append("finite-adversarial retained graph evidence verification must use always()")
+    if sum(1 for line in texts["workflow"].splitlines() if line.strip() == '- "scripts/verify_graph_artifacts.py"') != 2: errors.append("finite-adversarial must trigger on scripts/verify_graph_artifacts.py for PR and main push")
+    if sum(1 for line in texts["workflow"].splitlines() if line.strip() == '- "docs/NONCLAIMS.md"') != 2: errors.append("finite-adversarial must trigger on docs/NONCLAIMS.md for PR and main push")
 
     pettini_index = texts["roadmap"].find(PETTINI_START)
     if pettini_index < 0:
@@ -718,18 +705,11 @@ def validate() -> dict[str, object]:
         pettini = texts["roadmap"][pettini_index:]
         require_anchors(pettini, PETTINI_ANCHORS, "ROADMAP Pettini model-donor programme", errors)
         citation = first_blockquote_after_heading(pettini, "### Primary model source")
-        if citation != EXPECTED_PETTINI_PRIMARY_CITATION:
-            errors.append("ROADMAP Pettini primary citation/version drift: expected arXiv:2606.12457v2")
-        pettini_lower = pettini.casefold()
-        for forbidden in (
-            "**status:** current graph theorem authority",
-            "this section is current graph theorem authority",
-            "pettini is current graph theorem authority",
-        ):
-            if forbidden in pettini_lower:
-                errors.append("ROADMAP Pettini model donor must remain outside current graph theorem authority")
-        if "extra-time physics is adopted by uft-id" in pettini_lower:
-            errors.append("ROADMAP Pettini model donor illegally promotes extra-time ontology")
+        if citation != EXPECTED_PETTINI_PRIMARY_CITATION: errors.append("ROADMAP Pettini primary citation/version drift: expected arXiv:2606.12457v2")
+        lower = pettini.casefold()
+        for forbidden in ("**status:** current graph theorem authority", "this section is current graph theorem authority", "pettini is current graph theorem authority"):
+            if forbidden in lower: errors.append("ROADMAP Pettini model donor must remain outside current graph theorem authority")
+        if "extra-time physics is adopted by uft-id" in lower: errors.append("ROADMAP Pettini model donor illegally promotes extra-time ontology")
 
     physiology_index = texts["roadmap"].find(PHYSIOLOGY_START)
     if physiology_index < 0:
@@ -737,12 +717,7 @@ def validate() -> dict[str, object]:
         physiology = ""
     else:
         physiology = texts["roadmap"][physiology_index:]
-        require_anchors(
-            physiology,
-            PHYSIOLOGY_ANCHORS,
-            "ROADMAP physiology/connectomics positive-control programme",
-            errors,
-        )
+        require_anchors(physiology, PHYSIOLOGY_ANCHORS, "ROADMAP physiology/connectomics positive-control programme", errors)
 
     fivefold_index = texts["roadmap"].find(FIVEFOLD_START)
     if fivefold_index < 0:
@@ -752,29 +727,20 @@ def validate() -> dict[str, object]:
         fivefold = texts["roadmap"][fivefold_index:]
         require_anchors(fivefold, FIVEFOLD_ANCHORS, "ROADMAP fivefold donor programme", errors)
 
-    if RECEIPT_SCHEMA_BINDING not in texts["receipt"]:
-        errors.append("graph receipt schema version must be derived from canonical registry")
+    if RECEIPT_SCHEMA_BINDING not in texts["receipt"]: errors.append("graph receipt schema version must be derived from canonical registry")
 
     for label, value in (
-        ("graph contract", contract),
-        ("graph results", results),
+        ("graph contract", contract), ("graph results", results),
         ("central graph authority", central if isinstance(central, dict) else {}),
-        ("graph source map", texts["sources"]),
-        ("graph human theory", texts["human"]),
+        ("graph source map", texts["sources"]), ("graph human theory", texts["human"]),
     ):
         no_private_locators(value, label, errors)
     for label, value in (
-        ("graph contract", contract),
-        ("graph results", results),
-        ("graph source map", texts["sources"]),
-        ("graph human theory", texts["human"]),
-        ("claims graph registration", texts["claims"]),
-        ("nonclaims authority", texts["nonclaims"]),
-        ("README4AI graph registration", texts["readme4ai"]),
-        ("reproducibility graph registration", texts["reproducibility"]),
-        ("ROADMAP Pettini model donor", pettini),
-        ("ROADMAP physiology donor programme", physiology),
-        ("ROADMAP fivefold donor programme", fivefold),
+        ("graph contract", contract), ("graph results", results), ("graph source map", texts["sources"]),
+        ("graph human theory", texts["human"]), ("claims graph registration", texts["claims"]),
+        ("nonclaims authority", texts["nonclaims"]), ("README4AI graph registration", texts["readme4ai"]),
+        ("reproducibility graph registration", texts["reproducibility"]), ("ROADMAP Pettini model donor", pettini),
+        ("ROADMAP physiology donor programme", physiology), ("ROADMAP fivefold donor programme", fivefold),
     ):
         no_semantic_promotion(value, label, errors)
 
@@ -795,13 +761,9 @@ def main() -> int:
     if args.json:
         print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
     elif result["status"] == "ok":
-        print(
-            f"graph realization authority: ok ({result['result_count']} results, "
-            f"{result['source_count']} sources, {result['boundary_count']} hard boundaries)"
-        )
+        print(f"graph realization authority: ok ({result['result_count']} results, {result['source_count']} sources, {result['boundary_count']} hard boundaries)")
     else:
-        for error in result["errors"]:
-            print(error)
+        for error in result["errors"]: print(error)
     return 0 if result["status"] == "ok" else 1
 
 
