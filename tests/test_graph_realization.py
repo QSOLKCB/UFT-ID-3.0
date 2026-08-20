@@ -193,7 +193,7 @@ class GraphRealizationTests(unittest.TestCase):
             lambda text: text.replace("10.1021/ic501825r", "10.0000/not-real", 1),
             rebind_digest="contract",
         )
-        self.assert_dedicated_error(result, "Evers SiS2 source identity drift")
+        self.assert_dedicated_error(result, "Evers source doi drift")
         self.assertNotIn("contract canonical payload drift", result["errors"])
 
     def test_paraphrased_pettini_ontology_promotion_is_rejected_by_closed_roadmap_blob(self):
