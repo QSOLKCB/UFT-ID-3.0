@@ -22,6 +22,7 @@ CORE_FILES = [
     "machine/relation_counterexamples.json",
     "machine/genus_selection_specimen.json",
     "machine/cross_repo_patterns.json",
+    "research/CROSS_REPO_PATTERN_ATLAS.md",
     "theory/RELATION_CALCULUS.md",
     "scripts/validate_relation_core.py",
     "experiments/relation/run.py",
