@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -47,11 +48,62 @@ EXPECTED_HARD_RULES = {
     "lean_proof_may_be_claimed_in_pr9",
 }
 
+EXPECTED_EXECUTION_LIMITS = {
+    "max_floor_dimension": 10000,
+    "policy": "Fail before allocating or enumerating floor-sampling ranges when L or R exceeds the declared fixture ceiling.",
+}
+
 EXPECTED_SPEC_FIELDS = [
     "id", "name", "source_type", "target_type", "kind", "domain",
     "map_ref", "scope", "claim_class", "nonclaims",
 ]
-EXPECTED_SPEC_IDS = {"OBS-SPEC-001", "OBS-SPEC-002", "OBS-SPEC-003"}
+EXPECTED_SPEC_RECORDS = {
+    "OBS-SPEC-001": {
+        "id": "OBS-SPEC-001",
+        "name": "Generic deterministic observation",
+        "source_type": "S",
+        "target_type": "Y",
+        "kind": "deterministic-total",
+        "domain": "all declared states in S",
+        "map_ref": "O:S->Y",
+        "scope": "set-theoretic deterministic observation only",
+        "claim_class": "DEFINITION",
+        "nonclaims": [
+            "O need not be injective or surjective.",
+            "O is not assumed linear, measurable, stochastic, physical, or ontologically privileged.",
+        ],
+    },
+    "OBS-SPEC-002": {
+        "id": "OBS-SPEC-002",
+        "name": "Constant two-state observation",
+        "source_type": "Fin2",
+        "target_type": "Fin1",
+        "kind": "deterministic-total",
+        "domain": "{0,1}",
+        "map_ref": "O_const(0)=0; O_const(1)=0",
+        "scope": "minimal noninjective exact-reconstruction counterexample",
+        "claim_class": "DEFINITION",
+        "nonclaims": [
+            "This finite map is a logical fixture, not a model of a physical observer.",
+        ],
+    },
+    "OBS-SPEC-003": {
+        "id": "OBS-SPEC-003",
+        "name": "Uniform floor sampler family",
+        "source_type": "Fin(R)",
+        "target_type": "Fin(L)",
+        "kind": "deterministic-total",
+        "domain": "positive integers L,R with i in {0,...,R-1}",
+        "map_ref": "floor_sample(L,R,i)=floor(i*L/R)",
+        "scope": "exact finite sampling fixture for injective/surjective/fibre analysis",
+        "claim_class": "DEFINITION",
+        "nonclaims": [
+            "This sampling map is not the definition of observation in UFT-ID.",
+            "Sampling geometry does not confer truth or physical authority.",
+        ],
+    },
+}
+EXPECTED_SPEC_IDS = set(EXPECTED_SPEC_RECORDS)
 EXPECTED_THEOREM_IDS = {f"UFT-OBS-{i:03d}" for i in range(1, 6)}
 EXPECTED_CX_IDS = {f"CX-OBS-{i:03d}" for i in range(1, 4)}
 EXPECTED_THEOREM_STATEMENTS = {
@@ -68,6 +120,13 @@ EXPECTED_THEOREM_HYPOTHESES = {
     "UFT-OBS-004": ["O is a total deterministic function S->Y", "O is noninjective"],
     "UFT-OBS-005": ["L and R are positive integers", "i ranges over {0,...,R-1}", "j ranges over {0,...,L-1}"],
 }
+EXPECTED_PROOF_REFERENCES = {
+    "UFT-OBS-001": "theory/OBSERVATION_CALCULUS.md#uft-obs-001-observational-equivalence",
+    "UFT-OBS-002": "theory/OBSERVATION_CALCULUS.md#uft-obs-002-quotient-to-image-correspondence",
+    "UFT-OBS-003": "theory/OBSERVATION_CALCULUS.md#uft-obs-003-image-scoped-exact-reconstruction",
+    "UFT-OBS-004": "theory/OBSERVATION_CALCULUS.md#uft-obs-004-noninjective-observation-blocks-global-exact-reconstruction",
+    "UFT-OBS-005": "theory/OBSERVATION_CALCULUS.md#uft-obs-005-uniform-floor-sampling",
+}
 EXPECTED_ROADMAP_SEQUENCE = [
     {"planned_pr": 9, "surface": "deterministic-observation-calculus"},
     {"planned_pr": 10, "surface": "lean-observation-foundation"},
@@ -79,6 +138,18 @@ EXPECTED_ROADMAP_SEQUENCE = [
     {"planned_pr": 16, "surface": "recovery-specializations"},
     {"planned_pr": 17, "surface": "continuum-stochastic-prevalence-obligations"},
     {"planned_pr": 18, "surface": "empirical-falsification-profile"},
+]
+EXPECTED_ROADMAP_HEADINGS = [
+    (9, "Deterministic observation calculus"),
+    (10, "Lean observation foundation"),
+    (11, "Relation-first recovery core"),
+    (12, "BridgeCore"),
+    (13, "Epistemic bridge specialization"),
+    (14, "Representation and congruence calculus"),
+    (15, "Information comparability core"),
+    (16, "Recovery specializations"),
+    (17, "Continuum, stochastic, and prevalence obligations"),
+    (18, "Empirical falsification profile"),
 ]
 EXPECTED_ROADMAP_REBASE = {
     "authority": "ROADMAP.md",
@@ -167,6 +238,36 @@ def canonical_human_line(section: str, label: str) -> str | None:
     return None
 
 
+def markdown_heading_slug(title: str) -> str:
+    value = title.strip().casefold()
+    value = re.sub(r"[^\w\s-]", "", value)
+    value = re.sub(r"\s+", "-", value)
+    return value
+
+
+def markdown_fragment_exists(text: str, fragment: str) -> bool:
+    for line in text.splitlines():
+        if line.startswith("#"):
+            title = line.lstrip("#").strip()
+            if markdown_heading_slug(title) == fragment:
+                return True
+    return False
+
+
+def roadmap_current_headings(roadmap: str) -> list[tuple[int, str]]:
+    start_marker = "# Current formal grammar programme"
+    end_marker = "\n# Formal fixture policy"
+    start = roadmap.find(start_marker)
+    if start < 0:
+        return []
+    end = roadmap.find(end_marker, start)
+    if end < 0:
+        return []
+    section = roadmap[start:end]
+    matches = re.findall(r"^## PR #(\d+) — (.+)$", section, flags=re.MULTILINE)
+    return [(int(number), title.strip()) for number, title in matches]
+
+
 def validate_documents(
     contract: dict[str, Any],
     specs: dict[str, Any],
@@ -183,7 +284,7 @@ def validate_documents(
 
     if contract.get("type") != "uft-id-observation-contract":
         errors.append("observation contract type mismatch")
-    if contract.get("schema_version") != "1.0.1":
+    if contract.get("schema_version") != "1.0.2":
         errors.append("observation contract schema mismatch")
     if contract.get("claim_class") != "DEFINITION":
         errors.append("observation contract must have canonical claim class DEFINITION")
@@ -198,6 +299,9 @@ def validate_documents(
         errors.append("observation hard_rules must contain the exact expected key set")
     elif any(value is not False for value in hard.values()):
         errors.append("all observation hard_rules must remain false")
+
+    if contract.get("execution_limits") != EXPECTED_EXECUTION_LIMITS:
+        errors.append("observation execution_limits must match the exact bounded fixture policy")
 
     kinds = set(string_list(contract.get("allowed_observation_kinds"), "allowed_observation_kinds", errors, required=True))
     if kinds != {"deterministic-total"}:
@@ -246,14 +350,12 @@ def validate_documents(
         if rid in spec_ids:
             errors.append(f"duplicate observation spec id {rid}")
         spec_ids.add(rid)
-        for field in ("name", "source_type", "target_type", "domain", "map_ref", "scope"):
-            if not nonempty(record.get(field)):
-                errors.append(f"{rid}.{field} required")
+        if record != EXPECTED_SPEC_RECORDS.get(rid):
+            errors.append(f"{rid} observation spec canonical payload drift")
         if record.get("kind") not in kinds:
             errors.append(f"{rid}.kind unsupported in PR9")
         if record.get("claim_class") != "DEFINITION":
             errors.append(f"{rid}.claim_class must be DEFINITION")
-        string_list(record.get("nonclaims"), f"{rid}.nonclaims", errors, required=True)
     if spec_ids != EXPECTED_SPEC_IDS:
         errors.append("observation spec IDs must match canonical set exactly")
 
@@ -289,8 +391,16 @@ def validate_documents(
         hypotheses = string_list(record.get("hypotheses"), f"{rid}.hypotheses", errors, required=True)
         if hypotheses != EXPECTED_THEOREM_HYPOTHESES.get(rid):
             errors.append(f"{rid} theorem hypotheses drift")
-        if not nonempty(record.get("proof_reference")):
-            errors.append(f"{rid}.proof_reference required")
+
+        proof_reference = record.get("proof_reference")
+        if proof_reference != EXPECTED_PROOF_REFERENCES.get(rid):
+            errors.append(f"{rid} proof reference drift")
+        elif check_paths:
+            proof_path, fragment = str(proof_reference).split("#", 1)
+            repo_file(proof_path, f"{rid}.proof_reference", errors)
+            if proof_path == "theory/OBSERVATION_CALCULUS.md" and not markdown_fragment_exists(human, fragment):
+                errors.append(f"{rid} proof reference fragment does not exist")
+
         evidence = string_list(record.get("executable_evidence"), f"{rid}.executable_evidence", errors, required=True)
         if check_paths:
             for rel in evidence:
@@ -369,21 +479,9 @@ def validate_documents(
         if anchor not in human:
             errors.append(f"observation human authority missing semantic anchor: {anchor}")
 
-    roadmap_anchors = [
-        "PR #9 — Deterministic observation calculus",
-        "PR #10 — Lean observation foundation",
-        "PR #11 — Relation-first recovery core",
-        "PR #12 — BridgeCore",
-        "PR #13 — Epistemic bridge specialization",
-        "PR #14 — Representation and congruence calculus",
-        "PR #15 — Information comparability core",
-        "PR #16 — Recovery specializations",
-        "PR #17 — Continuum, stochastic, and prevalence obligations",
-        "PR #18 — Empirical falsification profile",
-        "NO_STANDALONE_FINITE_FIXTURE_ZOO",
-        "GENIES_REQUIRED_FOR_GENOMIC_BRANCH_ONLY",
-    ]
-    for anchor in roadmap_anchors:
+    if roadmap_current_headings(roadmap) != EXPECTED_ROADMAP_HEADINGS:
+        errors.append("roadmap current formal grammar PR-to-surface order drift")
+    for anchor in ("NO_STANDALONE_FINITE_FIXTURE_ZOO", "GENIES_REQUIRED_FOR_GENOMIC_BRANCH_ONLY"):
         if anchor not in roadmap:
             errors.append(f"roadmap missing post-audit anchor: {anchor}")
 
