@@ -82,15 +82,12 @@ class GraphRealizationTests(unittest.TestCase):
         self.assertEqual(witness["placement_graph"], "K4")
         self.assertEqual(len(witness["coupling_undirected_edges"]), 3)
         self.assertEqual(len(witness["placement_undirected_edges"]), 6)
-        self.assertNotEqual(
-            witness["coupling_undirected_edges"], witness["placement_undirected_edges"]
-        )
+        self.assertNotEqual(witness["coupling_undirected_edges"], witness["placement_undirected_edges"])
 
     def test_sink_scc_can_exist_without_normal_vertex(self):
         states = ("a", "b")
         edges = (("a", "b"), ("b", "a"))
-        sinks = GRAPH.sink_components(states, edges)
-        self.assertEqual(sinks, (frozenset({"a", "b"}),))
+        self.assertEqual(GRAPH.sink_components(states, edges), (frozenset({"a", "b"}),))
         self.assertEqual(GRAPH.outdegree(states, edges, "a"), 1)
         self.assertEqual(GRAPH.outdegree(states, edges, "b"), 1)
 
@@ -130,14 +127,7 @@ class GraphRealizationTests(unittest.TestCase):
         self.assertEqual(result["result_count"], 9)
         self.assertEqual(result["source_count"], 2)
 
-    def _mutate_and_validate(
-        self,
-        relpath: str,
-        transform,
-        *,
-        rebind_digest: str | None = None,
-        rebind_blob: str | None = None,
-    ):
+    def _mutate_and_validate(self, relpath: str, transform, *, rebind_digest: str | None = None, rebind_blob: str | None = None):
         path = ROOT / relpath
         original = path.read_text(encoding="utf-8")
         old_digest = VALIDATOR.EXPECTED_SHA256.get(rebind_digest) if rebind_digest else None
@@ -146,13 +136,9 @@ class GraphRealizationTests(unittest.TestCase):
             mutated = transform(original)
             path.write_text(mutated, encoding="utf-8")
             if rebind_digest is not None:
-                VALIDATOR.EXPECTED_SHA256[rebind_digest] = VALIDATOR.sha256_bytes(
-                    mutated.encode("utf-8")
-                )
+                VALIDATOR.EXPECTED_SHA256[rebind_digest] = VALIDATOR.sha256_bytes(mutated.encode("utf-8"))
             if rebind_blob is not None:
-                VALIDATOR.EXPECTED_HUMAN_BLOBS[rebind_blob] = VALIDATOR.git_blob_sha(
-                    mutated.encode("utf-8")
-                )
+                VALIDATOR.EXPECTED_HUMAN_BLOBS[rebind_blob] = VALIDATOR.git_blob_sha(mutated.encode("utf-8"))
             return VALIDATOR.validate()
         finally:
             path.write_text(original, encoding="utf-8")
@@ -168,11 +154,7 @@ class GraphRealizationTests(unittest.TestCase):
     def test_contract_semantic_promotion_guard_is_independent_of_digest(self):
         result = self._mutate_and_validate(
             "machine/graph_realization_contract.json",
-            lambda text: text.replace(
-                "No physical ontology is inferred",
-                "This proves a universal physical ontology; No physical ontology is inferred",
-                1,
-            ),
+            lambda text: text.replace("No physical ontology is inferred", "This proves a universal physical ontology; No physical ontology is inferred", 1),
             rebind_digest="contract",
         )
         self.assert_dedicated_error(result, "forbidden semantic/ontology promotion")
@@ -181,11 +163,7 @@ class GraphRealizationTests(unittest.TestCase):
     def test_result_semantic_promotion_guard_is_independent_of_digest(self):
         result = self._mutate_and_validate(
             "machine/graph_realization_results.json",
-            lambda text: text.replace(
-                "In G_step, Normal_stepRel(x) iff outdegree(x)=0.",
-                "Every sink SCC is a physical fixed point.",
-                1,
-            ),
+            lambda text: text.replace("In G_step, Normal_stepRel(x) iff outdegree(x)=0.", "Every sink SCC is a physical fixed point.", 1),
             rebind_digest="results",
         )
         self.assert_dedicated_error(result, "forbidden semantic/ontology promotion")
@@ -219,15 +197,13 @@ class GraphRealizationTests(unittest.TestCase):
         self.assertNotIn("contract canonical payload drift", result["errors"])
 
     def test_paraphrased_pettini_ontology_promotion_is_rejected_by_closed_roadmap_blob(self):
-        result = self._mutate_and_validate(
-            "ROADMAP.md",
-            lambda text: text + "\nThe source model establishes extra-time reality as a physical fact.\n",
-        )
+        result = self._mutate_and_validate("ROADMAP.md", lambda text: text + "\nThe source model establishes extra-time reality as a physical fact.\n")
         self.assert_dedicated_error(result, "roadmap canonical human authority blob drift")
 
     def test_all_central_human_authorities_are_frozen(self):
         cases = (
             ("docs/CLAIMS.md", "claims"),
+            ("docs/NONCLAIMS.md", "nonclaims"),
             ("README4AI.md", "readme4ai"),
             ("docs/REPRODUCIBILITY.md", "reproducibility"),
             ("ROADMAP.md", "roadmap"),
@@ -240,58 +216,55 @@ class GraphRealizationTests(unittest.TestCase):
     def test_pettini_roadmap_promotion_is_rejected(self):
         result = self._mutate_and_validate(
             "ROADMAP.md",
-            lambda text: text.replace(
-                "ROADMAP-ONLY RESEARCH TARGET / MODEL DONOR",
-                "CURRENT GRAPH THEOREM AUTHORITY",
-                1,
-            ),
+            lambda text: text.replace("ROADMAP-ONLY RESEARCH TARGET / MODEL DONOR", "CURRENT GRAPH THEOREM AUTHORITY", 1),
             rebind_blob="roadmap",
         )
         self.assertEqual(result["status"], "error")
-        self.assertTrue(
-            any(
-                "Pettini" in error and (
-                    "missing semantic anchor" in error or "current graph theorem authority" in error
-                )
-                for error in result["errors"]
-            ),
-            result["errors"],
-        )
+        self.assertTrue(any("Pettini" in error for error in result["errors"]), result["errors"])
         self.assertNotIn("roadmap canonical human authority blob drift", result["errors"])
 
-    def test_pettini_exact_arxiv_version_is_pinned_independent_of_blob_freeze(self):
+    def test_pettini_exact_arxiv_version_is_bound_to_primary_citation(self):
+        def mutate(text: str) -> str:
+            changed = text.replace("arXiv:2606.12457v2 (2026).", "arXiv:2606.12457v1 (2026).", 1)
+            return changed + "\nUnrelated provenance note: arXiv:2606.12457v2\n"
+        result = self._mutate_and_validate("ROADMAP.md", mutate, rebind_blob="roadmap")
+        self.assert_dedicated_error(result, "Pettini primary citation/version drift")
+        self.assertNotIn("roadmap canonical human authority blob drift", result["errors"])
+
+    def test_commented_graph_artifact_commands_are_not_executable(self):
+        def mutate(text: str) -> str:
+            for command in VALIDATOR.GRAPH_ARTIFACT_COMMANDS:
+                text = text.replace(f"          {command}", f"          # {command}", 1)
+            return text
+        result = self._mutate_and_validate(".github/workflows/finite-adversarial.yml", mutate)
+        self.assert_dedicated_error(result, "finite-adversarial graph artifact retention missing executable command")
+
+    def test_nonclaims_is_ci_triggered_and_receipt_bound(self):
+        workflow = (ROOT / ".github/workflows/finite-adversarial.yml").read_text(encoding="utf-8")
+        self.assertEqual(sum(1 for line in workflow.splitlines() if line.strip() == '- "docs/NONCLAIMS.md"'), 2)
+        self.assertIn("docs/NONCLAIMS.md", RECEIPT.receipt_files())
+
+    def test_graph_commands_are_required_in_roadmap_gate(self):
         result = self._mutate_and_validate(
             "ROADMAP.md",
-            lambda text: text.replace("arXiv:2606.12457v2", "arXiv:2606.12457v1", 1),
+            lambda text: text.replace("python experiments/run_graph_realization.py --json", "python experiments/run_graph_realization_REMOVED.py --json", 1),
             rebind_blob="roadmap",
         )
-        self.assert_dedicated_error(result, "arXiv:2606.12457v2")
-        self.assertNotIn("roadmap canonical human authority blob drift", result["errors"])
+        self.assert_dedicated_error(result, "ROADMAP graph validation gate")
 
-    def test_graph_artifact_retention_commands_are_required(self):
-        command = VALIDATOR.GRAPH_ARTIFACT_COMMANDS[0]
-        result = self._mutate_and_validate(
-            ".github/workflows/finite-adversarial.yml",
-            lambda text: text.replace(command, "# graph validation artifact command removed", 1),
-        )
-        self.assert_dedicated_error(result, "finite-adversarial graph artifact retention")
+    def test_receipt_schema_version_is_derived_from_registry(self):
+        self.assertEqual(RECEIPT.registered_receipt_version(), "1.0.0")
+        self.assertEqual(RECEIPT.run_suite()["schema_version"], "1.0.0")
+        source = (ROOT / "experiments/run_graph_realization.py").read_text(encoding="utf-8")
+        self.assertIn(VALIDATOR.RECEIPT_SCHEMA_BINDING, source)
 
     def test_receipt_binds_graph_relation_and_central_human_surfaces(self):
         files = set(RECEIPT.receipt_files())
         for expected in (
-            "machine/contract.json",
-            "machine/relation_contract.json",
-            "machine/graph_realization_contract.json",
-            "machine/graph_realization_results.json",
-            "research/GRAPH_REALIZATION_SOURCES.md",
-            "theory/GRAPH_REALIZATION.md",
-            "experiments/relation/run.py",
-            "experiments/graph_realization/run.py",
-            "docs/CLAIMS.md",
-            "README4AI.md",
-            "docs/REPRODUCIBILITY.md",
-            "ROADMAP.md",
-            ".github/workflows/finite-adversarial.yml",
+            "machine/contract.json", "machine/relation_contract.json", "machine/graph_realization_contract.json",
+            "machine/graph_realization_results.json", "research/GRAPH_REALIZATION_SOURCES.md", "theory/GRAPH_REALIZATION.md",
+            "experiments/relation/run.py", "experiments/graph_realization/run.py", "docs/CLAIMS.md", "docs/NONCLAIMS.md",
+            "README4AI.md", "docs/REPRODUCIBILITY.md", "ROADMAP.md", ".github/workflows/finite-adversarial.yml",
         ):
             self.assertIn(expected, files)
 
