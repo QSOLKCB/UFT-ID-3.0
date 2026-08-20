@@ -1,7 +1,7 @@
 {
   "type": "uft-id-cross-repo-pattern-registry",
   "schema_version": "1.0.2",
-  "snapshot_date": "2026-08-21",
+  "snapshot_date": "2026-08-20",
   "snapshot_basis": "UTC verification date of the pinned source files used to create or extend this registry",
   "scope": "public merged-main QSOLKCB repositories with reusable formal, evidentiary, representation, calibration, replay, or adversarial patterns",
   "selection_policy": [
