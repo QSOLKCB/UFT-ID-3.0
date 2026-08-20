@@ -30,6 +30,7 @@ def canonical_documents():
         "theorems": json.loads((ROOT / "machine/observation_theorems.json").read_text()),
         "counterexamples": json.loads((ROOT / "machine/observation_counterexamples.json").read_text()),
         "base_contract": json.loads((ROOT / "machine/contract.json").read_text()),
+        "formalization_contract": json.loads((ROOT / "machine/formalization_contract.json").read_text()),
         "human": (ROOT / "theory/OBSERVATION_CALCULUS.md").read_text(),
         "roadmap": (ROOT / "ROADMAP.md").read_text(),
     }
@@ -42,6 +43,7 @@ def validate_docs(value):
         value["theorems"],
         value["counterexamples"],
         value["base_contract"],
+        value["formalization_contract"],
         value["human"],
         value["roadmap"],
         check_paths=False,
@@ -90,14 +92,30 @@ class PR9ObservationTests(unittest.TestCase):
                 observed = {key: len(value) for key, value in case["fibres"].items()}
                 self.assertEqual(observed, case["fibre_formula"])
 
-    def test_receipt_is_deterministic_and_binds_base_contract(self):
+    def test_floor_case_rejects_nonpositive_dimensions_before_enumeration(self):
+        for L, R in ((0, 0), (0, 2), (2, 0), (-1, 2), (2, -1)):
+            with self.assertRaises(ValueError):
+                E.floor_case(L, R)
+
+    def test_receipt_is_deterministic_and_binds_declared_authority(self):
         first = R.run_suite()
         second = R.run_suite()
         self.assertEqual(first["suite_fingerprint_sha256"], second["suite_fingerprint_sha256"])
         self.assertEqual(first["result_sha256"], second["result_sha256"])
         self.assertEqual(len(first["suite_fingerprint_sha256"]), 64)
         self.assertIn("machine/contract.json", first["source_sha256"])
+        self.assertIn("machine/formalization_contract.json", first["source_sha256"])
         self.assertIn("ROADMAP.md", first["source_sha256"])
+        for path in first["declared_evidence_paths"]:
+            self.assertIn(path, first["source_sha256"])
+
+    def test_receipt_dependency_extraction_follows_authority_records(self):
+        docs = canonical_documents()
+        theorem = copy.deepcopy(docs["theorems"])
+        counterexamples = copy.deepcopy(docs["counterexamples"])
+        theorem["records"][0]["executable_evidence"].append("README.md")
+        paths = R.evidence_paths_from_records(theorem, counterexamples)
+        self.assertIn("README.md", paths)
 
 
 class PR9ObservationMutationTests(unittest.TestCase):
@@ -127,11 +145,37 @@ class PR9ObservationMutationTests(unittest.TestCase):
         theorem["statement"] = "Every observation has an exact reconstruction."
         self.assert_error_contains(value, "UFT-OBS-003 theorem statement drift")
 
+    def test_rejects_theorem_hypothesis_broadening(self):
+        value = canonical_documents()
+        theorem = next(x for x in value["theorems"]["records"] if x["id"] == "UFT-OBS-005")
+        theorem["hypotheses"] = [
+            "L and R are nonnegative integers",
+            "i ranges over arbitrary integers",
+            "j ranges over arbitrary integers",
+        ]
+        self.assert_error_contains(value, "UFT-OBS-005 theorem hypotheses drift")
+
     def test_rejects_quotient_to_full_codomain_mutation(self):
         value = canonical_documents()
         theorem = next(x for x in value["theorems"]["records"] if x["id"] == "UFT-OBS-002")
         theorem["statement"] = "For any O:S->Y, S/~_O is canonically bijective with Y."
         self.assert_error_contains(value, "UFT-OBS-002 theorem statement drift")
+
+    def test_rejects_human_canonical_statement_drift(self):
+        value = canonical_documents()
+        value["human"] = value["human"].replace(
+            "**Canonical statement:** `For any function O:S->Y, the quotient S/~_O is canonically bijective with im(O), via [x] |-> O(x).`",
+            "**Canonical statement:** `For any function O:S->Y, the quotient S/~_O is canonically bijective with Y.`",
+        )
+        self.assert_error_contains(value, "UFT-OBS-002 human canonical statement drift")
+
+    def test_rejects_human_canonical_hypothesis_drift(self):
+        value = canonical_documents()
+        value["human"] = value["human"].replace(
+            "**Canonical hypotheses:** `[\"L and R are positive integers\", \"i ranges over {0,...,R-1}\", \"j ranges over {0,...,L-1}\"]`",
+            "**Canonical hypotheses:** `[\"L and R are nonnegative integers\"]`",
+        )
+        self.assert_error_contains(value, "UFT-OBS-005 human canonical hypotheses drift")
 
     def test_rejects_theorem_without_proof_reference(self):
         value = canonical_documents()
@@ -166,6 +210,16 @@ class PR9ObservationMutationTests(unittest.TestCase):
             "PR #15 — mystery",
         )
         self.assert_error_contains(value, "roadmap missing post-audit anchor")
+
+    def test_rejects_machine_roadmap_rebase_drift(self):
+        value = canonical_documents()
+        value["formalization_contract"]["roadmap_rebase"]["current_sequence"][1]["surface"] = "mystery"
+        self.assert_error_contains(value, "exact post-audit schedule authority")
+
+    def test_rejects_deleted_machine_roadmap_rebase(self):
+        value = canonical_documents()
+        value["formalization_contract"].pop("roadmap_rebase")
+        self.assert_error_contains(value, "exact post-audit schedule authority")
 
     def test_rejects_duplicate_theorem_id(self):
         value = canonical_documents()
