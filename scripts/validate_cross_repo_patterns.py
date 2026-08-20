@@ -53,6 +53,33 @@ REQUIRED_BOUNDARIES = {
     "ADJACENT_TRUTH != INHERITED_TRUTH",
 }
 
+EXPECTED_ATLAS_SECTIONS = {
+    "XR-P17": """### XR-P17 — SONIFICATION finite triality compatibility context
+
+Canonical source: `QSOLKCB/SONIFICATION`, `docs/MATHEMATICAL_MODEL.md`, blob `0e8f986dd5ca191c1eded726dd6e276c1f856613`.
+
+Reusable pattern: ETQ-101 supplies a finite authored compatibility context with 33 mutually exclusive triality/qutrit blocks plus two fixed singlets, the local `D3=diag(1,-2,1)` operator, the `theta=pi/2` phase-kick convention, and the exact local identity `F3^3=I3`. The source itself keeps those algebraic labels separate from physical E8 ontology.
+
+UFT-ID implication: finite compatibility machinery can be sufficient to decorate several distinct candidate constructions. Compatibility, block count, phase closure, or E8-derived labels do not thereby select a unique genus or establish a physical topology.
+
+```text
+FINITE_COMPATIBILITY != UNIQUE_SELECTION
+DECORATIVE_BLOCK_COUNT != TOPOLOGY_DERIVATION
+```""",
+    "XR-P18": """### XR-P18 — SPECTRAL placement geometry context
+
+Canonical source: `QSOLKCB/SPECTRAL`, `E8/APP/README.md`, blob `4855bfff69d89c4920a2b2daf59c38b875a617ec`.
+
+Reusable pattern: the E8 Geometry Studio exposes Triality Spiral, qutrit/ternary controls, phi-scaled geometry, and E8-derived control paths as explicit sonification/composition mappings rather than physical E8 measurements.
+
+UFT-ID implication: a spiral, phi-scaled ordering, qutrit control path, or other placement geometry may organize labelled sectors while remaining independent of the topology those labels decorate.
+
+```text
+PLACEMENT_GEOMETRY != TOPOLOGY_DERIVATION
+CONTROL_GEOMETRY != PHYSICAL_MEASUREMENT
+```""",
+}
+
 
 def load_json(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
@@ -107,6 +134,20 @@ def parse_human_results(path: Path) -> tuple[dict[str, dict[str, str]], list[str
             "scope": scope or "",
         }
     return parsed, errors
+
+
+def extract_atlas_section(atlas: str, pattern_id: str) -> str | None:
+    lines = atlas.splitlines()
+    heading = f"### {pattern_id} "
+    start = next((i for i, line in enumerate(lines) if line.startswith(heading)), None)
+    if start is None:
+        return None
+    end = len(lines)
+    for i in range(start + 1, len(lines)):
+        if lines[i].startswith("### ") or lines[i].startswith("## "):
+            end = i
+            break
+    return "\n".join(lines[start:end]).strip()
 
 
 def validate_source_entry(entry: object, *, expected_kind: str, seen_ids: set[str], errors: list[str]) -> None:
@@ -224,9 +265,14 @@ def validate(root: Path = ROOT) -> dict[str, object]:
             errors.append("cross-repo results experiment path mismatch")
 
         claim_classes = contract.get("claim_classes")
-        allowed_claims = set(claim_classes) if isinstance(claim_classes, list) else set()
         if not isinstance(claim_classes, list):
             errors.append("machine contract claim_classes must be a list")
+            allowed_claims: set[str] = set()
+        elif not all(isinstance(item, str) and bool(item.strip()) for item in claim_classes):
+            errors.append("machine contract claim_classes members must be non-empty strings")
+            allowed_claims = {item for item in claim_classes if isinstance(item, str) and item.strip()}
+        else:
+            allowed_claims = set(claim_classes)
 
         result_entries = results.get("results")
         if not isinstance(result_entries, list) or not result_entries:
@@ -292,10 +338,12 @@ def validate(root: Path = ROOT) -> dict[str, object]:
 
         if HUMAN_ATLAS_PATH.is_file():
             atlas = HUMAN_ATLAS_PATH.read_text(encoding="utf-8")
-            for pattern_id in ("XR-P17", "XR-P18"):
-                heading = f"### {pattern_id} "
-                if not any(line.startswith(heading) for line in atlas.splitlines()):
+            for pattern_id, expected_section in EXPECTED_ATLAS_SECTIONS.items():
+                actual_section = extract_atlas_section(atlas, pattern_id)
+                if actual_section is None:
                     errors.append(f"human cross-repo atlas missing canonical context pattern: {pattern_id}")
+                elif actual_section != expected_section:
+                    errors.append(f"human cross-repo atlas canonical context payload drift: {pattern_id}")
         else:
             errors.append("required cross-repo authority file missing: research/CROSS_REPO_PATTERN_ATLAS.md")
 
