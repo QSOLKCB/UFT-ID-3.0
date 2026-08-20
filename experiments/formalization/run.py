@@ -4,19 +4,33 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
+import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from experiments.lib.information import coarse_grain, require, shannon_entropy
+from experiments.lib.information import (
+    apply_row_stochastic,
+    coarse_grain,
+    require,
+    shannon_entropy,
+)
 
 P0 = (0.0, 0.0, 0.25, 0.75)
-P1 = (0.0, 0.5, 0.0, 0.5)
+EXPECTED_P1 = (0.0, 0.5, 0.0, 0.5)
+FINE_TRANSITION = (
+    (1.0, 0.0, 0.0, 0.0),
+    (0.0, 1.0, 0.0, 0.0),
+    (0.0, 1.0, 0.0, 0.0),
+    (0.0, 1.0 / 3.0, 0.0, 2.0 / 3.0),
+)
 PARTITION_NEG = ((0, 2), (1, 3))
 PARTITION_POS = ((0, 1), (2, 3))
+RELATION_RE = re.compile(r"^q\(1\)\s*(<=|>=|==|=|<|>)\s*q\(0\)$")
 
 
 def sqnorm(v: tuple[int, int]) -> int:
@@ -33,6 +47,31 @@ def scale2(v: tuple[int, int]) -> tuple[int, int]:
 
 def entropy_delta(before: tuple[float, ...], after: tuple[float, ...]) -> float:
     return shannon_entropy(after) - shannon_entropy(before)
+
+
+def evaluate_relation(expression: str, q0: float, q1: float) -> bool:
+    """Evaluate the tiny relation language used by the synthetic machine fixture."""
+    match = RELATION_RE.fullmatch(expression.strip())
+    if match is None:
+        raise ValueError(f"unsupported synthetic relation: {expression!r}")
+    op = match.group(1)
+    if op == "<":
+        return q1 < q0
+    if op == ">":
+        return q1 > q0
+    if op == "<=":
+        return q1 <= q0
+    if op == ">=":
+        return q1 >= q0
+    return q1 == q0
+
+
+def load_falsification_fixture() -> dict[str, object]:
+    payload = json.loads((ROOT / "machine/falsification_contract.json").read_text(encoding="utf-8"))
+    fixture = payload.get("synthetic_conformance_example")
+    if not isinstance(fixture, dict):
+        raise ValueError("machine falsification contract missing synthetic_conformance_example")
+    return fixture
 
 
 def run_suite() -> dict[str, object]:
@@ -58,12 +97,17 @@ def run_suite() -> dict[str, object]:
     }
     require(scaling["preserved"] is False, "scale2 must break nonzero squared-norm invariance")
 
+    p1 = apply_row_stochastic(P0, FINE_TRANSITION)
+    require(
+        all(math.isclose(a, b, rel_tol=0.0, abs_tol=1e-12) for a, b in zip(p1, EXPECTED_P1)),
+        "declared fine-state kernel must derive the canonical p1 endpoint",
+    )
     q0_neg = coarse_grain(P0, PARTITION_NEG)
-    q1_neg = coarse_grain(P1, PARTITION_NEG)
+    q1_neg = coarse_grain(p1, PARTITION_NEG)
     q0_pos = coarse_grain(P0, PARTITION_POS)
-    q1_pos = coarse_grain(P1, PARTITION_POS)
+    q1_pos = coarse_grain(p1, PARTITION_POS)
 
-    fine_delta = entropy_delta(P0, P1)
+    fine_delta = entropy_delta(P0, p1)
     neg_delta = entropy_delta(q0_neg, q1_neg)
     pos_delta = entropy_delta(q0_pos, q1_pos)
 
@@ -74,11 +118,16 @@ def run_suite() -> dict[str, object]:
     entropy = {
         "fine": {
             "p0": list(P0),
-            "p1": list(P1),
+            "p1": list(p1),
             "h0": shannon_entropy(P0),
-            "h1": shannon_entropy(P1),
+            "h1": shannon_entropy(p1),
             "delta": fine_delta,
             "sign": 1,
+        },
+        "fine_dynamics": {
+            "type": "row-stochastic-discrete-update",
+            "kernel": [list(row) for row in FINE_TRANSITION],
+            "p1_derived_from_p0": True,
         },
         "observer_negative": {
             "partition": [list(block) for block in PARTITION_NEG],
@@ -102,7 +151,6 @@ def run_suite() -> dict[str, object]:
         "same_information_functional": "Shannon entropy base 2",
     }
 
-    # Claim-realization witness: a map from two states to one state cannot be injective.
     irreversible_map = {"a": 0, "b": 0}
     reversible_claim = {
         "domain": ["a", "b"],
@@ -115,21 +163,36 @@ def run_suite() -> dict[str, object]:
     require(reversible_claim["injective"] is False, "many-to-one fixture must be non-injective")
     require(reversible_claim["claim_supported"] is False, "reversibility claim must fail on many-to-one fixture")
 
-    # Synthetic falsification-contract witness.
-    q0, q1 = 1.0, 2.0
+    fixture = load_falsification_fixture()
+    values = fixture.get("fixture_values")
+    predictions = fixture.get("predictions")
+    rejections = fixture.get("rejection_conditions")
+    require(isinstance(values, dict), "machine falsification fixture_values must be an object")
+    require(isinstance(predictions, list) and len(predictions) == 1, "synthetic fixture must have one prediction")
+    require(isinstance(rejections, list) and len(rejections) == 1, "synthetic fixture must have one rejection condition")
+    q0 = float(values.get("q0"))
+    q1 = float(values.get("q1"))
+    require(math.isfinite(q0) and math.isfinite(q1), "synthetic q values must be finite")
+    prediction = str(predictions[0])
+    rejection = str(rejections[0])
+    prediction_met = evaluate_relation(prediction, q0, q1)
+    rejection_met = evaluate_relation(rejection, q0, q1)
     falsification = {
-        "hypothesis_id": "FALS-SYN-001",
-        "prediction": "q(1) < q(0)",
+        "hypothesis_id": fixture.get("hypothesis_id"),
+        "prediction": prediction,
+        "rejection_condition": rejection,
         "q0": q0,
         "q1": q1,
-        "rejection_condition_met": q1 >= q0,
-        "status": "synthetic-rejected",
+        "prediction_met": prediction_met,
+        "rejection_condition_met": rejection_met,
+        "status": "synthetic-rejected" if rejection_met else "synthetic-not-rejected",
+        "machine_authority": "machine/falsification_contract.json",
     }
     require(falsification["rejection_condition_met"] is True, "synthetic rejection condition must trigger")
 
     return {
         "type": "uft-id-pr8-formalization-witness",
-        "schema_version": "1.0.0",
+        "schema_version": "1.0.1",
         "rotation_norm_exact": rotation,
         "scaling_norm_counterexample": scaling,
         "observer_entropy_sign_counterexample": entropy,
