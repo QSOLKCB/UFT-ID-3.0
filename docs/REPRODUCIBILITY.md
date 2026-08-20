@@ -39,6 +39,9 @@ python scripts/validate_vopson_corpus.py
 python scripts/validate_cross_repo_patterns.py
 python scripts/validate_vopson_2019_mei.py
 python scripts/validate_reproducibility.py
+python scripts/validate_graph_realization.py
+python experiments/graph_realization/run.py --json
+python experiments/run_graph_realization.py --json
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 python experiments/run_pr2.py --json
@@ -71,11 +74,39 @@ requires it and the difference is documented explicitly.
 `experiments/run_pr2.py` records the finite entropy/polygon evidence surface.
 `experiments/run_cross_repo.py` records the cross-repository finite formal-pattern
 surface. `experiments/run_pr6.py` records the VOP-2019-MEI source-specific
-reproduction package.
+reproduction package. `experiments/run_graph_realization.py` records the finite
+graph-realization and typed-incidence authority surface.
 
 All receipt families bind deterministic repository files and canonical result
 payloads while keeping runtime metadata separate from the portable suite
 fingerprint.
+
+For the graph-realization suite, the deterministic source set includes at least:
+
+```text
+machine/contract.json
+machine/relation_contract.json
+machine/graph_realization_contract.json
+machine/graph_realization_results.json
+machine/cross_repo_patterns.json
+docs/CLAIMS.md
+README4AI.md
+docs/REPRODUCIBILITY.md
+ROADMAP.md
+research/GRAPH_REALIZATION_SOURCES.md
+theory/RELATION_CALCULUS.md
+theory/GRAPH_REALIZATION.md
+scripts/validate_graph_realization.py
+experiments/relation/run.py
+experiments/graph_realization/run.py
+tests/test_graph_realization.py
+experiments/run_graph_realization.py
+```
+
+The graph receipt therefore changes when a claim-bearing graph authority,
+central registration, AI read-chain description, reproducibility declaration,
+roadmap boundary, validator, witness, or declared executable evidence changes.
+Runtime metadata is excluded from its portable fingerprint.
 
 For the cross-repository suite, the deterministic source set includes:
 
@@ -116,6 +147,29 @@ DOI_AND_LOCATOR_IDENTITY != SOURCE_PDF_BYTE_HASH
 
 Runtime metadata is descriptive. A suite fingerprint identifies the declared
 source-and-result bundle; it does not establish semantic truth.
+
+## Graph-realization conformance boundary
+
+The graph suite exhaustively cross-checks every labelled binary relation on
+`Fin1`, `Fin2`, and `Fin3`, for exactly 530 relations. The executable compares
+relation adjacency, normality, reachability, finite termination, SCC partition,
+sink SCC classification, and condensation against independently implemented
+graph procedures where applicable.
+
+The production SCC implementation must be recursion-safe for ordinary finite
+inputs, while the bounded exhaustive claim remains restricted to the declared
+`Fin1..Fin3` conformance surface.
+
+```text
+FINITE_GRAPH_CONFORMANCE != GENERAL_PROOF
+ABSTRACT_GRAPH_RESULT != PHYSICAL_ONTOLOGY
+GRAPH_DRAWING != GRAPH_IDENTITY
+```
+
+The mathematical proofs and theorem statements in `theory/GRAPH_REALIZATION.md`
+are the positive mathematical authority. CI shows that the declared executable
+cross-checks pass; it does not turn SiS2, ETQ/SPECTRAL, tetrahedral geometry, or
+another structural example into physical evidence for UFT-ID.
 
 ## VOP-2019-MEI reproduction boundary
 
@@ -184,6 +238,9 @@ vopson-2019-mei-receipt.json
 vopson-2019-mei-validation.json
 cross-repo-pattern-validation.json
 cross-repo-receipt.json
+graph-realization-validation.json
+graph-realization-witness.json
+graph-realization-receipt.json
 vopson-corpus-validation.json
 vopson-doc-sync.json
 reproducibility-validation.json
@@ -211,6 +268,10 @@ available through `analytic_extrema(total, parts)`.
 The cross-repository minimum-basis fixture is finite and exhaustive over a tiny
 sealed candidate family. It is evidence for CR5's declared finite hypotheses,
 not a claim that arbitrary minimum-cover problems are computationally cheap.
+
+The graph-realization battery is separately exhaustive only over all labelled
+binary relations on fixed carriers `Fin1`, `Fin2`, and `Fin3`; it does not
+establish universality by enumeration.
 
 ## Human and machine synchronization
 
@@ -248,6 +309,12 @@ The cross-repository pattern atlas is a human diagnostic explanation of
 validator checks identifiers, source classes, privacy/open-PR exclusions, claim
 classes, and result dependencies.
 
+The graph layer is synchronized across `machine/graph_realization_contract.json`,
+`machine/graph_realization_results.json`, `theory/GRAPH_REALIZATION.md`,
+`research/GRAPH_REALIZATION_SOURCES.md`, `docs/CLAIMS.md`, `README4AI.md`,
+`docs/REPRODUCIBILITY.md`, central `machine/contract.json` registration, and the
+receipt-bound `ROADMAP.md` boundaries.
+
 ## Nonclaims
 
 This contract does not claim that deterministic output proves a physical law,
@@ -256,4 +323,5 @@ physical premise, that a synchronized reproduction promotion proves the source
 hypothesis, that a public software invariant is a physical law, that a pinned
 source blob proves live remote freshness, that a complete bibliography is a
 completed reproduction, that two Python versions constitute universal
-portability, or that CI can replace independent scientific review.
+portability, that finite graph conformance proves unrestricted mathematics or
+physical ontology, or that CI can replace independent scientific review.
