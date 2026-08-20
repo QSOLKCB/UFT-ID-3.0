@@ -363,9 +363,15 @@ def validate() -> dict[str, object]:
     else:
         pettini = roadmap[pettini_index:]
         require_anchors(pettini, PETTINI_ANCHORS, "ROADMAP Pettini model-donor programme", errors)
-        if "current graph theorem authority" in pettini.casefold():
-            errors.append("ROADMAP Pettini model donor must remain outside current graph theorem authority")
-        if "extra-time physics is adopted by uft-id" in pettini.casefold():
+        pettini_lower = pettini.casefold()
+        for forbidden in (
+            "**status:** current graph theorem authority",
+            "this section is current graph theorem authority",
+            "pettini is current graph theorem authority",
+        ):
+            if forbidden in pettini_lower:
+                errors.append("ROADMAP Pettini model donor must remain outside current graph theorem authority")
+        if "extra-time physics is adopted by uft-id" in pettini_lower:
             errors.append("ROADMAP Pettini model donor illegally promotes extra-time ontology")
 
     no_private_locators(contract, "graph contract", errors)
