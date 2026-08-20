@@ -14,10 +14,10 @@ Edge = tuple[State, State]
 
 def _states(states: Iterable[State]) -> tuple[State, ...]:
     out = tuple(states)
-    if len(out) != len(set(out)):
-        raise ValueError("states must be unique")
     if any(not isinstance(x, str) or not x for x in out):
         raise ValueError("states must be non-empty strings")
+    if len(out) != len(set(out)):
+        raise ValueError("states must be unique")
     return out
 
 
