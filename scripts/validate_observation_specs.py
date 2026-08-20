@@ -14,6 +14,7 @@ PATHS = {
     "specs": ROOT / "machine/observation_specs.json",
     "theorems": ROOT / "machine/observation_theorems.json",
     "counterexamples": ROOT / "machine/observation_counterexamples.json",
+    "formalization_contract": ROOT / "machine/formalization_contract.json",
     "human": ROOT / "theory/OBSERVATION_CALCULUS.md",
     "experiment": ROOT / "experiments/observation/run.py",
     "tests": ROOT / "tests/test_pr9_observation.py",
@@ -26,6 +27,7 @@ EXPECTED_AUTHORITIES = {
     "specs": "machine/observation_specs.json",
     "theorems": "machine/observation_theorems.json",
     "counterexamples": "machine/observation_counterexamples.json",
+    "formalization_contract": "machine/formalization_contract.json",
     "human": "theory/OBSERVATION_CALCULUS.md",
     "experiment": "experiments/observation/run.py",
     "validator": "scripts/validate_observation_specs.py",
@@ -58,6 +60,34 @@ EXPECTED_THEOREM_STATEMENTS = {
     "UFT-OBS-003": "For any function O:S->Y, O is injective iff there exists R:im(O)->S such that R(O(x))=x for every x in S.",
     "UFT-OBS-004": "If O:S->Y is noninjective, no function R:Y->S can satisfy R(O(x))=x for every x in S.",
     "UFT-OBS-005": "For positive integers L,R and f(i)=floor(iL/R) on i=0,...,R-1: if R<L then f is injective and not surjective; if R=L then f is the identity and bijective; if R>L then f is surjective and not injective. For j=0,...,L-1, |f^{-1}(j)|=ceil((j+1)R/L)-ceil(jR/L).",
+}
+EXPECTED_THEOREM_HYPOTHESES = {
+    "UFT-OBS-001": ["O is a total deterministic function S->Y"],
+    "UFT-OBS-002": ["O is a total deterministic function S->Y"],
+    "UFT-OBS-003": ["O is a total deterministic function S->Y", "Reconstruction is scoped to im(O)"],
+    "UFT-OBS-004": ["O is a total deterministic function S->Y", "O is noninjective"],
+    "UFT-OBS-005": ["L and R are positive integers", "i ranges over {0,...,R-1}", "j ranges over {0,...,L-1}"],
+}
+EXPECTED_ROADMAP_SEQUENCE = [
+    {"planned_pr": 9, "surface": "deterministic-observation-calculus"},
+    {"planned_pr": 10, "surface": "lean-observation-foundation"},
+    {"planned_pr": 11, "surface": "relation-first-recovery-core"},
+    {"planned_pr": 12, "surface": "bridge-core"},
+    {"planned_pr": 13, "surface": "epistemic-bridge-specialization"},
+    {"planned_pr": 14, "surface": "representation-and-congruence-calculus"},
+    {"planned_pr": 15, "surface": "information-comparability-core"},
+    {"planned_pr": 16, "surface": "recovery-specializations"},
+    {"planned_pr": 17, "surface": "continuum-stochastic-prevalence-obligations"},
+    {"planned_pr": 18, "surface": "empirical-falsification-profile"},
+]
+EXPECTED_ROADMAP_REBASE = {
+    "authority": "ROADMAP.md",
+    "basis": "Post-PR8 four-pass mathematical audit and hostile verification",
+    "active_pr": 9,
+    "legacy_deferred_surfaces_semantics": "The deferred_surfaces array above is the PR8-era planning baseline retained for PR8 validator and receipt compatibility; it is not the current scheduling authority.",
+    "current_sequence": EXPECTED_ROADMAP_SEQUENCE,
+    "dropped_standalone_surface": "finite-reference-model-battery",
+    "fixture_policy": "Minimal fixtures travel with the theorem or counterexample that requires them.",
 }
 PRIVATE_LOCATOR_TOKENS = (
     "/mnt/data/", "file_000", "file-secret", "gmail:", "gdrive:",
@@ -118,12 +148,32 @@ def no_private_locators(value: object, label: str, errors: list[str]) -> None:
             errors.append(f"{label} contains forbidden private locator token: {token}")
 
 
+def theorem_section(human: str, rid: str) -> str:
+    marker = f"## {rid} "
+    start = human.find(marker)
+    if start < 0:
+        return ""
+    next_heading = human.find("\n## ", start + len(marker))
+    if next_heading < 0:
+        return human[start:]
+    return human[start:next_heading]
+
+
+def canonical_human_line(section: str, label: str) -> str | None:
+    prefix = f"**{label}:** `"
+    for line in section.splitlines():
+        if line.startswith(prefix) and line.endswith("`"):
+            return line[len(prefix):-1]
+    return None
+
+
 def validate_documents(
     contract: dict[str, Any],
     specs: dict[str, Any],
     theorems: dict[str, Any],
     counterexamples: dict[str, Any],
     base_contract: dict[str, Any],
+    formalization_contract: dict[str, Any],
     human: str,
     roadmap: str,
     *,
@@ -133,7 +183,7 @@ def validate_documents(
 
     if contract.get("type") != "uft-id-observation-contract":
         errors.append("observation contract type mismatch")
-    if contract.get("schema_version") != "1.0.0":
+    if contract.get("schema_version") != "1.0.1":
         errors.append("observation contract schema mismatch")
     if contract.get("claim_class") != "DEFINITION":
         errors.append("observation contract must have canonical claim class DEFINITION")
@@ -163,6 +213,13 @@ def validate_documents(
     claim_classes = set(base_contract.get("claim_classes", []))
     if not claim_classes:
         errors.append("base project claim_classes missing")
+
+    if formalization_contract.get("type") != "uft-id-formalization-contract":
+        errors.append("formalization contract type mismatch")
+    if formalization_contract.get("schema_version") != "1.0.2":
+        errors.append("formalization contract schema mismatch for PR9 roadmap rebase")
+    if formalization_contract.get("roadmap_rebase") != EXPECTED_ROADMAP_REBASE:
+        errors.append("formalization roadmap_rebase must match the exact post-audit schedule authority")
 
     if specs.get("type") != "uft-id-observation-spec-registry" or specs.get("schema_version") != "1.0.0":
         errors.append("observation spec registry shape mismatch")
@@ -229,7 +286,9 @@ def validate_documents(
             errors.append(f"{rid} must retain claim class PROVED")
         if record.get("statement") != EXPECTED_THEOREM_STATEMENTS.get(rid):
             errors.append(f"{rid} theorem statement drift")
-        string_list(record.get("hypotheses"), f"{rid}.hypotheses", errors, required=True)
+        hypotheses = string_list(record.get("hypotheses"), f"{rid}.hypotheses", errors, required=True)
+        if hypotheses != EXPECTED_THEOREM_HYPOTHESES.get(rid):
+            errors.append(f"{rid} theorem hypotheses drift")
         if not nonempty(record.get("proof_reference")):
             errors.append(f"{rid}.proof_reference required")
         evidence = string_list(record.get("executable_evidence"), f"{rid}.executable_evidence", errors, required=True)
@@ -237,6 +296,21 @@ def validate_documents(
             for rel in evidence:
                 repo_file(rel, f"{rid}.executable_evidence", errors)
         string_list(record.get("nonclaims"), f"{rid}.nonclaims", errors, required=True)
+
+        section = theorem_section(human, rid)
+        if not section:
+            errors.append(f"human theorem section missing for {rid}")
+        else:
+            human_statement = canonical_human_line(section, "Canonical statement")
+            human_hypotheses_raw = canonical_human_line(section, "Canonical hypotheses")
+            if human_statement != EXPECTED_THEOREM_STATEMENTS.get(rid):
+                errors.append(f"{rid} human canonical statement drift")
+            try:
+                human_hypotheses = json.loads(human_hypotheses_raw) if human_hypotheses_raw is not None else None
+            except json.JSONDecodeError:
+                human_hypotheses = None
+            if human_hypotheses != EXPECTED_THEOREM_HYPOTHESES.get(rid):
+                errors.append(f"{rid} human canonical hypotheses drift")
     if theorem_ids != EXPECTED_THEOREM_IDS:
         errors.append("observation theorem IDs must match UFT-OBS-001 through UFT-OBS-005 exactly")
 
@@ -338,6 +412,7 @@ def validate() -> dict[str, Any]:
         load(PATHS["theorems"]),
         load(PATHS["counterexamples"]),
         load(PATHS["base_contract"]),
+        load(PATHS["formalization_contract"]),
         PATHS["human"].read_text(encoding="utf-8"),
         PATHS["roadmap"].read_text(encoding="utf-8"),
         check_paths=True,
