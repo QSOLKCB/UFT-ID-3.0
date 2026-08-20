@@ -3,26 +3,28 @@
 **Authority:** canonical human mathematical surface for the planned PR #11 relation-first recovery core.  
 **Snapshot:** 2026-08-21.
 
-This surface replaces an overstrong direct-recovery carrier with the smallest general abstract-rewriting object needed for multi-step recovery:
+This surface uses a general rewrite relation
 
 \[
-r:X\to X\to\mathsf{Prop}.
+\mathrm{stepRel}:X\to X\to\mathsf{Prop}
 \]
 
-Admissibility is separate:
+with admissibility kept separately as
 
 \[
 A:X\to\mathsf{Prop}.
 \]
 
-The distinction is mandatory. A relation `K subseteq X x A` is suitable for a direct one-step recovery relation whose targets are already admissible. It is not a general carrier for procedures that may pass through intermediate inadmissible states, cycles, or normalization sequences.
+The name `stepRel` is deliberate. UFT-ID already reserves `r:S->R_{>=0}` for the scalar residual, so the rewrite relation must not reuse `r` with an incompatible type.
+
+A relation `K subseteq X x A` remains suitable for a direct one-step recovery specialization whose targets are already admissible. It is not the generic carrier for multi-step procedures that may pass through intermediate inadmissible states, cycles, or normalization sequences.
 
 ```text
 NORMAL != ADMISSIBLE != FIXED_POINT
 REACHABLE != ADMISSIBLE != NORMAL != UNIQUE_REACHABLE_NORMAL
 ```
 
-No physical ontology is attached to `X`, `r`, or `A`.
+No physical ontology is attached to `X`, `stepRel`, or `A`.
 
 ## 1. Core definitions
 
@@ -31,134 +33,106 @@ No physical ontology is attached to `X`, `r`, or `A`.
 Write
 
 \[
-x\to^\ast_r y
+x\to^\ast_{\mathrm{stepRel}}y
 \]
 
-for the reflexive-transitive closure of `r`.
-
-Equivalently,
-
-\[
-\operatorname{Reach}_r(x,y)\iff r^\ast(x,y).
-\]
-
-Reflexivity matters: every state reaches itself in zero steps.
+for the reflexive-transitive closure of `stepRel`.
 
 Planned Lean carrier:
 
 ```lean
-abbrev Reach (r : X → X → Prop) :=
-  Relation.ReflTransGen r
+abbrev Reach (stepRel : X → X → Prop) :=
+  Relation.ReflTransGen stepRel
 ```
 
-This is a theorem target for the later Lean track. This PR does not claim a repository Lean proof.
+This PR does not claim a repository Lean proof.
 
 ### Normal form
 
 \[
-\operatorname{Normal}_r(x)
+\operatorname{Normal}_{\mathrm{stepRel}}(x)
 \iff
-\neg\exists y,\ r(x,y).
+\neg\exists y,\ \mathrm{stepRel}(x,y).
 \]
 
-`Normal` means only "no outgoing rewrite step."
-
-It does not mean admissible, recovered, physically stable, correct, true, or a fixed point of some separately declared function.
+`Normal` means only that no outgoing rewrite step exists. It does not mean admissible, physically stable, correct, true, or a fixed point of another map.
 
 ### Admissibility
 
-\[
-A(x)
-\]
-
-is an independently declared predicate. Neither implication
+`A(x)` is independently declared. Neither implication
 
 \[
-\operatorname{Normal}_r(x)\Rightarrow A(x)
+\operatorname{Normal}_{\mathrm{stepRel}}(x)\Rightarrow A(x)
 \]
 
 nor
 
 \[
-A(x)\Rightarrow\operatorname{Normal}_r(x)
+A(x)\Rightarrow\operatorname{Normal}_{\mathrm{stepRel}}(x)
 \]
 
 is generic.
 
 ### Fixed point
 
-For a separately declared function \(F:X\to X\),
+For a separately declared function `F:X->X`,
 
 \[
 \operatorname{Fixed}_F(x)\iff F(x)=x.
 \]
 
-A fixed point is not definitionally a normal form of `r`.
+A fixed point is not definitionally a normal form of `stepRel`.
 
-### Joinability
+### Joinability and confluence
 
 \[
-\operatorname{Joinable}_r(x,y)
+\operatorname{Joinable}_{\mathrm{stepRel}}(x,y)
 \iff
-\exists z,\ x\to^\ast_r z\land y\to^\ast_r z.
+\exists z,\ x\to^\ast z\land y\to^\ast z.
 \]
 
-### Confluence
-
 \[
-\operatorname{Confluent}(r)
+\operatorname{Confluent}(\mathrm{stepRel})
 \iff
-\forall a,b,c,\ 
-a\to^\ast_r b\land a\to^\ast_r c
-\Longrightarrow
-\operatorname{Joinable}_r(b,c).
+\forall a,b,c,
+\ a\to^\ast b\land a\to^\ast c
+\Rightarrow
+\operatorname{Joinable}_{\mathrm{stepRel}}(b,c).
 \]
 
 ### Termination
 
-Forward rewriting is terminating when no infinite chain
+Forward rewriting terminates when no infinite chain
 
 \[
 x_0\to x_1\to x_2\to\cdots
 \]
 
-exists.
-
-For the planned Lean orientation:
+exists. The planned Lean orientation is
 
 ```lean
-def Terminating (r : X → X → Prop) : Prop :=
-  WellFounded (Function.swap r)
+def Terminating (stepRel : X → X → Prop) : Prop :=
+  WellFounded (Function.swap stepRel)
 ```
 
-The swap is not cosmetic. Lean's `WellFounded q` is oriented against infinite predecessor chains, so forward rewrite notation must be translated deliberately.
+because Lean's `WellFounded` orientation is opposite the displayed forward rewrite direction.
 
 ### Normalization predicates
 
 \[
-\operatorname{NormalizesFrom}(r,x)
+\operatorname{NormalizesFrom}(\mathrm{stepRel},x)
 \iff
-\exists n,\ x\to^\ast_r n\land\operatorname{Normal}_r(n).
+\exists n,\ x\to^\ast n\land\operatorname{Normal}(n).
 \]
 
 \[
-\operatorname{AtMostOneReachableNormalFrom}(r,x)
-\iff
-\forall n_1,n_2,\ 
-\begin{aligned}
-&x\to^\ast_r n_1\land x\to^\ast_r n_2\\
-&{}\land\operatorname{Normal}_r(n_1)
-\land\operatorname{Normal}_r(n_2)
-\end{aligned}
-\Longrightarrow n_1=n_2.
+\operatorname{AtMostOneReachableNormalFrom}(\mathrm{stepRel},x)
 \]
 
-Their conjunction supplies exactly one reachable normal form.
+means any two normal forms reachable from `x` are equal.
 
 ```text
-NORMALIZES_FROM
-!=
-AT_MOST_ONE_REACHABLE_NORMAL_FROM
+NORMALIZES_FROM != AT_MOST_ONE_REACHABLE_NORMAL_FROM
 ```
 
 Existence and uniqueness are separate obligations.
@@ -167,71 +141,36 @@ Existence and uniqueness are separate obligations.
 
 ## UFT-RW-001 Branchwise invariant induction
 
-**Canonical statement:** `If P(x) and every r-step preserves P, then every state reachable from x by reflexive-transitive closure satisfies P.`
+**Canonical statement:** `If P(x) and every stepRel-step preserves P, then every state reachable from x by reflexive-transitive closure satisfies P.`
 
-**Canonical hypotheses:** `["r:X->X->Prop", "P:X->Prop", "P(x)", "for all u,v, P(u) and r(u,v) imply P(v)"]`
+**Canonical hypotheses:** `["stepRel:X->X->Prop", "P:X->Prop", "P(x)", "for all u,v, P(u) and stepRel(u,v) imply P(v)"]`
 
 **Claim class:** `PROVED`.
 
 ### Proof
 
-Proceed by induction on a finite derivation witnessing \(x\to^\ast_r y\).
-
-For the reflexive case \(y=x\), the conclusion is the hypothesis \(P(x)\).
-
-For a derivation ending in one further rewrite \(u\to_r v\), the induction hypothesis gives \(P(u)\). Step preservation then gives \(P(v)\).
-
-Therefore every finitely reachable state satisfies `P`.
-
-The executable finite suite checks this surrounding relation machinery but is not the proof of the general theorem.
+Induct on the finite derivation witnessing reachability. The reflexive case is exactly the assumption `P(x)`. For a derivation ending with `stepRel(u,v)`, the induction hypothesis gives `P(u)` and step preservation gives `P(v)`. Therefore every finitely reachable state satisfies `P`.
 
 ```text
-STEPWISE_PRESERVATION
-+ INITIAL_PROPERTY
+STEPWISE_PRESERVATION + INITIAL_PROPERTY
 => REACHABILITY_PRESERVATION
 
-REACHABILITY_PRESERVATION
-!= TERMINATION
-!= CONFLUENCE
+REACHABILITY_PRESERVATION != TERMINATION != CONFLUENCE
 ```
 
 ---
 
 ## UFT-RW-002 Right-unique rewriting is confluent
 
-**Canonical statement:** `If r is right-unique, then r is confluent.`
+**Canonical statement:** `If stepRel is right-unique, then stepRel is confluent.`
 
-**Canonical hypotheses:** `["r:X->X->Prop", "for all x,y,z, r(x,y) and r(x,z) imply y=z"]`
+**Canonical hypotheses:** `["stepRel:X->X->Prop", "for all x,y,z, stepRel(x,y) and stepRel(x,z) imply y=z"]`
 
 **Claim class:** `PROVED`.
 
 ### Proof
 
-Assume `r` is right-unique. Consider two finite reductions from the same source:
-
-\[
-a=x_0\to x_1\to\cdots\to x_m=b
-\]
-
-and
-
-\[
-a=y_0\to y_1\to\cdots\to y_n=c.
-\]
-
-Right-uniqueness forces \(x_1=y_1\) whenever both first steps exist. Applying the same argument repeatedly shows that the two sequences agree at every depth common to both.
-
-If \(m\le n\), then \(b=x_m=y_m\) and the remaining suffix of the second reduction witnesses
-
-\[
-b\to^\ast_r c.
-\]
-
-Thus `c` is a common descendant of `b` and `c`. The case \(n\le m\) is symmetric.
-
-Hence every peak is joinable, so `r` is confluent.
-
-A deterministic relation may still loop forever:
+Consider two finite reductions from the same source. Right-uniqueness forces their first successors to agree whenever both exist. Repeating the argument forces agreement at every shared depth. The shorter reduction therefore ends on the longer reduction, so the two endpoints are joinable. Hence every peak is joinable and `stepRel` is confluent.
 
 ```text
 RIGHT_UNIQUE != TERMINATING
@@ -241,128 +180,70 @@ RIGHT_UNIQUE != TERMINATING
 
 ## UFT-RW-003 Confluence gives at most one reachable normal form
 
-**Canonical statement:** `If r is confluent, then from any common source x, any two reachable normal forms are equal.`
+**Canonical statement:** `If stepRel is confluent, then from any common source x, any two reachable normal forms are equal.`
 
-**Canonical hypotheses:** `["r:X->X->Prop", "r is confluent", "x reaches n1", "x reaches n2", "n1 is normal", "n2 is normal"]`
+**Canonical hypotheses:** `["stepRel:X->X->Prop", "stepRel is confluent", "x reaches n1", "x reaches n2", "n1 is normal", "n2 is normal"]`
 
 **Claim class:** `PROVED`.
 
 ### Proof
 
-Let \(n_1,n_2\) be normal forms reachable from the same source `x`.
+Let `n1` and `n2` be normal forms reachable from `x`. Confluence supplies a common descendant `d`. A normal form has no nontrivial outgoing step, so every descendant reachable from it is itself. Hence `d=n1` and `d=n2`, therefore `n1=n2`.
 
-Confluence supplies a common descendant `d`:
-
-\[
-n_1\to^\ast_r d,
-\qquad
-n_2\to^\ast_r d.
-\]
-
-Because \(n_1\) is normal, it has no nontrivial outgoing rewrite. Therefore the only reachable descendant of \(n_1\) is itself, so \(d=n_1\). The same reasoning gives \(d=n_2\).
-
-Hence
-
-\[
-n_1=n_2.
-\]
-
-This theorem proves **at most one** reachable normal form. It does not prove existence.
+This proves at most one reachable normal form, not existence.
 
 ---
 
 ## UFT-RW-004 Termination gives reachable normal-form existence
 
-**Canonical statement:** `If the forward rewrite relation r terminates, every state x reaches at least one normal form.`
+**Canonical statement:** `If the forward rewrite relation stepRel terminates, every state x reaches at least one normal form.`
 
-**Canonical hypotheses:** `["r:X->X->Prop", "forward rewriting is terminating, equivalently the swapped relation is well-founded"]`
+**Canonical hypotheses:** `["stepRel:X->X->Prop", "forward rewriting is terminating, equivalently the swapped relation is well-founded"]`
 
 **Claim class:** `PROVED`.
 
 ### Proof
 
-Use well-founded induction with respect to forward reduction.
+Use well-founded induction in the forward-rewrite orientation. For `x`, either no successor exists, in which case `x` is normal and reaches itself, or choose a successor `y`. By the induction hypothesis `y` reaches a normal form `n`; prepend the step `x->y`. Thus `x` reaches a normal form.
 
-Fix `x`. Either there is no `y` with \(x\to_r y\), in which case `x` is normal and reaches itself reflexively.
-
-Otherwise choose a successor `y` with \(x\to_r y\). By the induction hypothesis, `y` reaches some normal form `n`. Prepending \(x\to_r y\) gives
-
-\[
-x\to^\ast_r n.
-\]
-
-Thus every state reaches at least one normal form.
-
-The proof is existential. Selecting an arbitrary successor inside a proof does not automatically provide a computable normalization algorithm.
+The proof is existential. It does not automatically provide a computable normalizer.
 
 ```text
-EXISTENTIAL_NORMALIZATION_PROOF
-!= COMPUTABLE_NORMALIZATION_ALGORITHM
+EXISTENTIAL_NORMALIZATION_PROOF != COMPUTABLE_NORMALIZATION_ALGORITHM
 ```
 
 ### Derived corollary
 
-Combining UFT-RW-003 and UFT-RW-004:
+UFT-RW-003 plus UFT-RW-004 gives:
 
 \[
-\operatorname{Terminating}(r)
+\operatorname{Terminating}(\mathrm{stepRel})
 \land
-\operatorname{Confluent}(r)
-\Longrightarrow
-\exists!n,\
-x\to^\ast_r n
-\land
-\operatorname{Normal}_r(n).
+\operatorname{Confluent}(\mathrm{stepRel})
+\Rightarrow
+\exists!n,\ x\to^\ast n\land\operatorname{Normal}(n).
 \]
 
-This is a derived corollary, not another independently advertised theorem ID.
+This remains a derived corollary rather than another headline theorem ID.
 
 ---
 
 ## UFT-SEL-001 Distinct reachable normal labels refute unique selection
 
-**Canonical statement:** `If x reaches normal forms n1 and n2 and a label map lambda gives lambda(n1) != lambda(n2), then x does not have at most one reachable normal form; therefore r alone cannot justify a unique-selection claim over lambda.`
+**Canonical statement:** `If x reaches normal forms n1 and n2 and a label map lambda gives lambda(n1) != lambda(n2), then x does not have at most one reachable normal form; therefore stepRel alone cannot justify a unique-selection claim over lambda.`
 
-**Canonical hypotheses:** `["r:X->X->Prop", "lambda:X->L", "x reaches n1", "x reaches n2", "n1 is normal", "n2 is normal", "lambda(n1) != lambda(n2)"]`
+**Canonical hypotheses:** `["stepRel:X->X->Prop", "lambda:X->L", "x reaches n1", "x reaches n2", "n1 is normal", "n2 is normal", "lambda(n1) != lambda(n2)"]`
 
 **Claim class:** `PROVED`.
 
 ### Proof
 
-Assume for contradiction
+Assume `AtMostOneReachableNormalFrom(stepRel,x)`. Since `n1` and `n2` are both reachable normal forms, uniqueness gives `n1=n2`. Applying `lambda` to equal arguments gives `lambda(n1)=lambda(n2)`, contradicting the distinct-label hypothesis. Therefore at-most-one reachable normal form fails, so the declared relation alone cannot justify unique selection over `lambda`.
 
-\[
-\operatorname{AtMostOneReachableNormalFrom}(r,x).
-\]
-
-Since \(n_1\) and \(n_2\) are both reachable normal forms, the definition gives
-
-\[
-n_1=n_2.
-\]
-
-Applying the function \(\lambda\) to equal arguments gives
-
-\[
-\lambda(n_1)=\lambda(n_2),
-\]
-
-contradicting the hypothesis that the labels differ.
-
-Therefore
-
-\[
-\neg\operatorname{AtMostOneReachableNormalFrom}(r,x).
-\]
-
-A unique-selection claim over `lambda` cannot be obtained from the declared relation alone.
-
-The theorem is intentionally generic. Establishing its premises for a particular scientific paper, program, or physical model requires separately sourced evidence.
+The theorem is generic. A source-specific scientific application must separately establish the premises.
 
 ```text
-COMPATIBILITY
-!= REALIZATION
-!= UNIQUE_SELECTION
+COMPATIBILITY != REALIZATION != UNIQUE_SELECTION
 ```
 
 ---
@@ -376,11 +257,7 @@ a -> b
 a -> c
 ```
 
-with `b` and `c` normal.
-
-This relation terminates but is not confluent, and `a` has two reachable normal forms.
-
-It establishes:
+with `b,c` normal. It terminates but is not confluent, and `a` has two reachable normal forms.
 
 ```text
 BRANCHING != CONFLUENCE
@@ -389,7 +266,7 @@ TERMINATION != UNIQUE_NORMAL_FORM
 ONE_SELECTOR_RESULT != RELATION_SEMANTICS
 ```
 
-Three states are minimal for a terminating unlabelled relation with two distinct reachable normal forms.
+Three states are minimal for a terminating labelled relation with two distinct reachable normal forms.
 
 ### CX-RW-LOOP1
 
@@ -397,14 +274,12 @@ Three states are minimal for a terminating unlabelled relation with two distinct
 a -> a
 ```
 
-There is only one reachable state, so confluence holds. The self-loop gives nontermination and no normal form.
+The relation is confluent, nonterminating, and has no normal form.
 
 ```text
 CONFLUENCE != TERMINATION
 CONFLUENCE != NORMAL_FORM_EXISTENCE
 ```
-
-If a later specialization requires irreflexive rules, use a two-state cycle. Do not impose irreflexivity merely to hide the smaller counterexample.
 
 ### CX-RW-EXIT2
 
@@ -413,17 +288,7 @@ a -> a
 a -> b
 ```
 
-with `b` normal.
-
-`b` is the unique reachable normal form from `a`, but the infinite branch
-
-```text
-a -> a -> a -> ...
-```
-
-never reaches it.
-
-Therefore:
+with `b` normal. `b` is the unique reachable normal form from `a`, but the infinite self-loop branch never reaches it.
 
 ```text
 CONFLUENCE != RIGHT_UNIQUENESS
@@ -432,38 +297,25 @@ UNIQUE_REACHABLE_NORMAL_FORM != ALL_PATHS_NORMALIZE
 WEAK_NORMALIZATION != STRONG_NORMALIZATION
 ```
 
-This also shows why finite reachability alone cannot define a property such as `all_branches_eventually_admissible`. Universal liveness over infinite paths requires path objects and, where relevant, an explicit fairness contract.
+Universal liveness over infinite paths requires path objects and, where relevant, an explicit fairness contract.
 
 ---
 
 ## 8. Exhaustive finite conformance boundary
 
-`experiments/relation/run.py` exhaustively enumerates every unlabelled binary relation on `Fin 1`, `Fin 2`, and `Fin 3`:
+`experiments/relation/run.py` exhaustively enumerates every labelled binary relation on each fixed carrier `Fin 1`, `Fin 2`, and `Fin 3`. It does **not** quotient by permutations or graph isomorphism.
 
 \[
-2^{1^2}+2^{2^2}+2^{3^2}
-=
-2+16+512
-=
-530.
+2^{1^2}+2^{2^2}+2^{3^2}=2+16+512=530.
 \]
 
-The suite checks the finite instances of:
-
-- branchwise invariant induction for every predicate subset of each finite carrier;
-- right-unique implies confluent;
-- confluent implies at most one reachable normal form from each source;
-- terminating implies normalization from every source;
-- terminating plus confluent implies exactly one reachable normal form from every source;
-- the minimality boundaries for `FORK3`, `LOOP1`, and `EXIT2`.
-
-This is bounded implementation conformance and counterexample minimization evidence.
+The suite checks finite instances of the four foundational implications, the derived unique-normal corollary, fixture properties, and stated minimality boundaries.
 
 ```text
 FINITE_CONFORMANCE != GENERAL_PROOF
 ```
 
-The general theorems above stand on their mathematical proofs.
+The mathematical proofs above are the authority for the general theorems.
 
 ---
 
@@ -474,56 +326,34 @@ The general theorems above stand on their mathematical proofs.
 Let
 
 \[
-\Sigma_g=\#_{h=1}^g T^2.
-\]
-
-Then
-
-\[
+\Sigma_g=\#_{h=1}^{g}T^2,
+\qquad
 \chi(\Sigma_g)=2-2g,
 \qquad
 \operatorname{rank}H_1(\Sigma_g;\mathbb Z)=2g.
 \]
 
-For the two fixtures:
+Therefore:
+
+```text
+Sigma_10: chi=-18, rank H1=20
+Sigma_30: chi=-58, rank H1=60
+```
+
+The source provenance is not duplicated here. The canonical cross-repository registry owns it:
+
+- `XR-P17` pins `QSOLKCB/SONIFICATION` `docs/MATHEMATICAL_MODEL.md`, supplying compatibility context for 33 mutually exclusive triality/qutrit blocks plus two singlets, `D3=diag(1,-2,1)`, the `theta=pi/2` kick, and `F3^3=I3`.
+- `XR-P18` pins `QSOLKCB/SPECTRAL` `E8/APP/README.md`, supplying placement context for Triality Spiral, qutrit/ternary controls, phi-scaled geometry, and explicit control-geometry boundaries.
+
+The genus specimen references only those canonical XR IDs. These structures may decorate or order labelled handle sectors; they do not construct the surfaces or derive their genus.
+
+An optional placement rule such as
 
 \[
-\chi(\Sigma_{10})=-18,
-\qquad
-\operatorname{rank}H_1(\Sigma_{10})=20,
+\vartheta_h=\frac{2\pi h}{\phi^2}
 \]
 
-and
-
-\[
-\chi(\Sigma_{30})=-58,
-\qquad
-\operatorname{rank}H_1(\Sigma_{30})=60.
-\]
-
-The public SONIFICATION ETQ-101 specification supplies compatibility context containing 33 complete mutually exclusive triality/qutrit blocks plus two singlets, the local operator
-
-\[
-D_3=\operatorname{diag}(1,-2,1),
-\]
-
-the \(\theta=\pi/2\) phase kick, and the exact local identity
-
-\[
-F_3^3=I_3.
-\]
-
-Thus one may allocate 10 such blocks to 10 labelled handle sectors or 30 blocks to 30 labelled handle sectors while leaving the topology itself defined independently.
-
-The public SPECTRAL E8 Geometry Studio supplies separate placement/composition context including a `Triality Spiral`, qutrit/ternary controls, and \(\phi\)-scaled geometry. An optional ordering rule may therefore be declared, for example,
-
-\[
-\vartheta_h=\frac{2\pi h}{\phi^2},
-\]
-
-without pretending that the spiral derives the genus.
-
-The source pins are machine-recorded as **compatibility context only**. They are not premises of UFT-SEL-001 and they do not import E8, qutrit, cosmological, or physical ontology into UFT-ID.
+is therefore an ordering convention, not a topological theorem.
 
 ```text
 E8_TRIALITY_COMPATIBILITY != UNIQUE_GENUS
@@ -532,25 +362,20 @@ LABELLED_HANDLE_DECORATION != TOPOLOGY_CONSTRUCTION
 PARAMETER != REALIZATION != INVARIANT != DISCRIMINANT != SELECTION
 ```
 
-The executable fork is:
+The executable fixture is:
 
 ```text
 common -> M10
 common -> M30
-```
-
-with both endpoints normal in the declared fixture and with labels
-
-```text
 lambda(M10) = 10
 lambda(M30) = 30
 ```
 
-so UFT-SEL-001 applies immediately.
+with both endpoints normal in the fixture, so UFT-SEL-001 applies immediately.
 
 ### External-target boundary
 
-This repository record does **not** claim that a specific external Genus-10 paper or code package has been refuted. No such external package is pinned by this record. A future source-specific audit may promote the internal stress test into a source-directed counterexample only after the exact source claims and implementation are reproducibly identified.
+This record does **not** claim that a specific external Genus-10 paper or code package has been refuted. A future source-specific audit may promote the internal stress test into a source-directed counterexample only after exact external claims and implementation are reproducibly identified.
 
 ```text
 INTERNAL_STRESS_TEST != EXTERNAL_PAPER_REFUTATION
@@ -560,35 +385,35 @@ INTERNAL_STRESS_TEST != EXTERNAL_PAPER_REFUTATION
 
 ## 10. What is deliberately deferred
 
-The following do not belong on this core surface yet:
+The following remain outside this core surface:
 
 - Newman's lemma;
 - selector soundness/completeness and executable normalization;
 - observation-compatible quotient dynamics;
 - schedule independence;
-- trace or history semantics;
+- trace/history semantics;
 - finite-search assurance as a theorem family;
 - infinite-path liveness and fairness;
 - stochastic rewriting;
 - Lean proof objects.
 
-Newman's lemma remains a valid later theorem target:
+Newman's lemma remains a later target:
 
 \[
-\operatorname{Terminating}(r)
+\operatorname{Terminating}(\mathrm{stepRel})
 \land
-\operatorname{LocallyConfluent}(r)
-\Longrightarrow
-\operatorname{Confluent}(r),
+\operatorname{LocallyConfluent}(\mathrm{stepRel})
+\Rightarrow
+\operatorname{Confluent}(\mathrm{stepRel}),
 \]
 
-but it will not be advertised as repository-proved until a complete checked proof is supplied.
+but it is not repository-proved on this surface.
 
 ---
 
 ## 11. Selection discipline
 
-The relation core adds a reusable epistemic type ladder:
+The reusable epistemic ladder is:
 
 ```text
 LABEL
@@ -599,7 +424,7 @@ LABEL
 -> SELECTION THEOREM
 ```
 
-and an independent reachability ladder:
+An independent reachability ladder is:
 
 ```text
 REACHABLE
@@ -608,18 +433,14 @@ REACHABLE
 -> UNIQUE REACHABLE NORMAL
 ```
 
-No arrow is automatic.
-
-A successful construction proves existence or compatibility at most. A quantity that varies with a parameter is not automatically a discriminant. A diagnostic equal to one for every candidate cannot select among them. A unique-selection claim must ultimately discharge a uniqueness obligation.
-
-That is the reusable UFT-ID result:
+No arrow is automatic. A successful construction proves existence or compatibility at most. A quantity that varies with a parameter is not automatically a discriminant. A diagnostic equal across competing candidates has no selection power over those candidates. A unique-selection claim must discharge an actual uniqueness obligation.
 
 \[
 \boxed{
 \text{SAME DECLARED INGREDIENTS}
 +
-\text{DISTINCT ADMISSIBLE NORMAL REALIZATIONS}
+\text{DISTINCT NORMAL REALIZATIONS WITH DISTINCT LABELS}
 \Rightarrow
-\text{NO UNIQUE SELECTION WITHOUT AN EXTRA HYPOTHESIS}.
+\text{NO UNIQUE SELECTION FROM THE DECLARED RELATION ALONE}.
 }
 \]
