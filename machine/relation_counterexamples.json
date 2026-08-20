@@ -1,6 +1,6 @@
 {
   "type": "uft-id-relation-counterexample-registry",
-  "schema_version": "1.0.0",
+  "schema_version": "1.0.1",
   "snapshot_date": "2026-08-21",
   "records": [
     {
@@ -10,7 +10,7 @@
       "states": ["a", "b", "c"],
       "edges": [["a", "b"], ["a", "c"]],
       "normal_states": ["b", "c"],
-      "minimality": "Three states are minimal for a terminating unlabelled relation with two distinct reachable normal forms.",
+      "minimality": "Three states are minimal for a terminating labelled relation with two distinct reachable normal forms.",
       "kills": [
         "BRANCHING != CONFLUENCE",
         "TERMINATION != CONFLUENCE",
