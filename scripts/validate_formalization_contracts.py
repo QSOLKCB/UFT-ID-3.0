@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 PATHS = {
     "contract": ROOT / "machine/formalization_contract.json",
+    "base_contract": ROOT / "machine/contract.json",
     "invariants": ROOT / "machine/invariant_specs.json",
     "assurance": ROOT / "machine/assurance_graph.json",
     "obligations": ROOT / "machine/definition_obligations.json",
@@ -44,7 +45,6 @@ EXPECTED_AUTHORITIES = {
     "tests": "tests/test_pr8_formalization.py",
     "roadmap": "ROADMAP.md",
 }
-
 EXPECTED_HARD_RULES = {
     "implemented_pattern_implies_universal_theorem",
     "formal_proof_implies_runtime_conformance",
@@ -60,33 +60,38 @@ EXPECTED_HARD_RULES = {
     "private_attachment_identifier_may_be_published",
     "paper_specific_ontology_is_inherited_by_methodological_reuse",
 }
-
-EXPECTED_CROSS_REPO_REFS = {"XR-P03", "XR-P06", "XR-P10", "XR-P15"}
+EXPECTED_CROSS_REPO_REFS = {"XR-P03", "XR-P06", "XR-P15"}
+EXPECTED_INTERNAL_LINEAGE = {
+    "UFTID3-INTERNAL-UI-INV-002",
+    "UFTID3-INTERNAL-UI-INV-003",
+}
 EXPECTED_PRIVATE_SOURCE_IDS = {"PR8-INPUT-DEEP-RESEARCH", "PR8-INPUT-PAPER-BUNDLE"}
 PRIVATE_SOURCE_KEYS = {"source_id", "source_class", "scope", "preserved_structure", "not_inherited"}
+PRIVATE_LOCATOR_PATTERNS = (
+    re.compile(r"\bfile[_-][A-Za-z0-9-]{3,}\b", re.IGNORECASE),
+    re.compile(r"https?://", re.IGNORECASE),
+    re.compile(r"\b(?:gmail|gdrive|sandbox):", re.IGNORECASE),
+    re.compile(r"(?:drive\.google\.com|docs\.google\.com|private-user-images\.githubusercontent\.com)", re.IGNORECASE),
+    re.compile(r"/mnt/data(?:/|\b)", re.IGNORECASE),
+)
 EXPECTED_INV_FIELDS = [
     "id", "name", "domain", "codomain", "transformation", "hypotheses", "property",
     "break_conditions", "kind", "scope", "status", "claim_class", "source_lineage", "nonclaims",
 ]
-EXPECTED_DEF_TERMS = {
-    "DEF-OBL-STATE": "state",
-    "DEF-OBL-OPERATOR": "operator",
-    "DEF-OBL-EIGENMODE": "eigenmode",
-    "DEF-OBL-ENTROPY": "entropy",
-    "DEF-OBL-PROBABILITY": "probability",
-    "DEF-OBL-METRIC": "metric",
-    "DEF-OBL-MEASURE": "measure",
-    "DEF-OBL-DERIVATIVE": "derivative",
-    "DEF-OBL-PROJECTION": "projection",
-    "DEF-OBL-TRANSPORT": "transport",
-    "DEF-OBL-INFORMATION": "information functional",
-    "DEF-OBL-CONTINUUM": "continuum model",
+CLAIM_CLASSES = {
+    "DEFINITION", "THEOREM_TARGET", "PROVED", "COUNTEREXAMPLE", "DIAGNOSTIC",
+    "EMPIRICAL", "INTERPRETIVE", "SPECULATIVE", "NONCLAIM",
 }
-EXPECTED_MODEL_CLAIMS = {
-    "MODEL-OBL-REVERSIBLE": "reversible/invertible map",
-    "MODEL-OBL-DIMENSION": "n-dimensional implemented structure",
-    "MODEL-OBL-DYNAMICS": "implemented dynamics/time evolution",
-    "MODEL-OBL-SIMULATION": "scientific simulation",
+EXPECTED_SUPPORT_EDGES = {
+    ("STATEMENT", "FORMAL_ENCODING", "encoded_as", "encoding-only"),
+    ("FORMAL_ENCODING", "PROOF_OBJECT", "proved_in", "formal-proposition-only"),
+    ("PROOF_OBJECT", "PROOF_AUDIT", "audited_by", "audit-of-declared-proof-surface"),
+    ("FORMAL_ENCODING", "RUNTIME_CORRESPONDENCE", "mapped_to_runtime_by", "correspondence-claim-only"),
+    ("REFERENCE_IMPLEMENTATION", "CONFORMANCE_RESULT", "tested_by", "declared-test-scope-only"),
+    ("REFERENCE_IMPLEMENTATION", "DETERMINISTIC_REPLAY", "replayed_by", "frozen-runtime-scope-only"),
+    ("EMPIRICAL_HYPOTHESIS", "EXPERIMENT", "tested_by", "protocol-scope-only"),
+    ("EXPERIMENT", "MEASUREMENT", "produces", "measurement-provenance-only"),
+    ("MEASUREMENT", "SCIENTIFIC_INTERPRETATION", "may_support", "requires-explicit-inference"),
 }
 EXPECTED_FORBIDDEN_PAIRS = {
     ("PROOF_OBJECT", "CONFORMANCE_RESULT"),
@@ -97,11 +102,119 @@ EXPECTED_FORBIDDEN_PAIRS = {
     ("STATEMENT", "PROOF_OBJECT"),
     ("MODEL_OUTPUT", "EXECUTION_EVIDENCE"),
 }
-CLAIM_CLASSES = {
-    "DEFINITION", "THEOREM_TARGET", "PROVED", "COUNTEREXAMPLE", "DIAGNOSTIC",
-    "EMPIRICAL", "INTERPRETIVE", "SPECULATIVE", "NONCLAIM",
+EXPECTED_FALSIFICATION_FIELDS = [
+    "hypothesis_id", "claim_class", "independent_variables", "perturbations", "observables",
+    "predictions", "null_model", "rejection_conditions", "evidence_required", "scope_limits", "status",
+]
+EXPECTED_DEF_PAYLOADS = {
+    "DEF-OBL-STATE": {
+        "term": "state",
+        "minimum": ("carrier/type", "equality/identity relation", "any additional structure actually used"),
+        "conditional": (),
+        "nonclaim": "Naming a state does not supply metric, probability, topology or physics.",
+    },
+    "DEF-OBL-OPERATOR": {
+        "term": "operator",
+        "minimum": ("domain", "codomain", "action/map"),
+        "conditional": ("linearity only if claimed", "boundedness only if claimed", "self-adjointness only if claimed"),
+        "nonclaim": "Operator notation does not imply linearity or a Hamiltonian.",
+    },
+    "DEF-OBL-EIGENMODE": {
+        "term": "eigenmode",
+        "minimum": ("carrier/function space", "operator or operator pair", "eigen-equation", "domain", "boundary conditions"),
+        "conditional": ("regularity class where required",),
+        "nonclaim": "A label such as L39 is not an eigenmode until the eigenproblem is defined.",
+    },
+    "DEF-OBL-ENTROPY": {
+        "term": "entropy",
+        "minimum": ("entropy family", "state/distribution being measured", "logarithm base or convention", "normalization/reference", "observer/partition when relevant", "scope"),
+        "conditional": (),
+        "nonclaim": "Different entropy families are not interchangeable.",
+    },
+    "DEF-OBL-PROBABILITY": {
+        "term": "probability",
+        "minimum": ("sample space or finite analogue", "events/state outcomes", "probability measure/distribution", "random variable/process where used"),
+        "conditional": (),
+        "nonclaim": "Frequency-like numbers are not a probability model without normalization and semantics.",
+    },
+    "DEF-OBL-METRIC": {
+        "term": "metric",
+        "minimum": ("carrier", "distance map", "metric axioms or explicit declaration that it is only a pseudometric/divergence"),
+        "conditional": (),
+        "nonclaim": "A distance-like score need not be a metric.",
+    },
+    "DEF-OBL-MEASURE": {
+        "term": "measure",
+        "minimum": ("measurable carrier/finite analogue", "measure", "reference measure when densities/divergences are used"),
+        "conditional": (),
+        "nonclaim": "A count or weight is not automatically a measure in every theorem context.",
+    },
+    "DEF-OBL-DERIVATIVE": {
+        "term": "derivative",
+        "minimum": ("independent variable/time model", "domain", "codomain", "differentiability notion"),
+        "conditional": (),
+        "nonclaim": "Continuous derivative notation may not be used for a merely discrete update rule.",
+    },
+    "DEF-OBL-PROJECTION": {
+        "term": "projection",
+        "minimum": ("domain", "codomain", "map", "meaning of projection"),
+        "conditional": ("idempotence if projection is claimed in the algebraic sense",),
+        "nonclaim": "A receiver or visualization map is not automatically an idempotent mathematical projection.",
+    },
+    "DEF-OBL-TRANSPORT": {
+        "term": "transport",
+        "minimum": ("source type", "target type", "domain of definition", "map", "preserved structure", "lost structure", "scope"),
+        "conditional": (),
+        "nonclaim": "Transport does not confer authority or physical equivalence.",
+    },
+    "DEF-OBL-INFORMATION": {
+        "term": "information functional",
+        "minimum": ("domain", "functional family", "codomain", "observer/partition/reference where relevant", "estimator/convention", "scope"),
+        "conditional": (),
+        "nonclaim": "A scalar diagnostic is not thereby Shannon, thermodynamic or von Neumann entropy.",
+    },
+    "DEF-OBL-CONTINUUM": {
+        "term": "continuum model",
+        "minimum": ("carrier/domain", "state type", "regularity class", "governing operator/equations", "boundary conditions", "initial conditions or explicit not-applicable", "metric/measure actually used", "singularity policy", "regularization policy", "existence status", "uniqueness status", "approximation regime"),
+        "conditional": (),
+        "nonclaim": "Writing a PDE-like expression does not establish well-posedness or physical validity.",
+    },
 }
-RELATION_RE = re.compile(r"^q\(1\)\s*(<=|>=|==|=|<|>)\s*q\(0\)$")
+EXPECTED_MODEL_PAYLOADS = {
+    "MODEL-OBL-REVERSIBLE": {
+        "claim": "reversible/invertible map",
+        "failure": "UNSUPPORTED_REVERSIBILITY_CLAIM",
+        "evidence": ("declared domain", "declared codomain", "inverse construction or bijectivity proof/test", "round-trip properties appropriate to the claim"),
+    },
+    "MODEL-OBL-DIMENSION": {
+        "claim": "n-dimensional implemented structure",
+        "failure": "DIMENSIONALITY_ONLY_IN_PROSE",
+        "evidence": ("declared carrier dimension", "actual represented object of that dimension", "operations/tests acting on that carrier"),
+    },
+    "MODEL-OBL-DYNAMICS": {
+        "claim": "implemented dynamics/time evolution",
+        "failure": "DYNAMICS_ONLY_IN_PROSE",
+        "evidence": ("state", "time/index model", "evolution/update law", "at least one nontrivial trajectory or execution witness"),
+    },
+    "MODEL-OBL-SIMULATION": {
+        "claim": "scientific simulation",
+        "failure": "COMPUTATIONAL_SCAFFOLD_NOT_VALIDATED_SIMULATION",
+        "evidence": ("declared governing model/equations", "initial/boundary conditions where applicable", "numerical/analytic method", "observable outputs", "validation/comparison target", "limitations"),
+    },
+}
+EXPECTED_PROVED_UI_INV_002 = {
+    "domain": "Z^2",
+    "codomain": "Z^2",
+    "transformation": "rot90(x,y)=(-y,x)",
+    "hypotheses": ["x and y are integers"],
+    "property": "sqnorm(rot90(v)) = sqnorm(v)",
+    "claim_class": "PROVED",
+    "status": "proved",
+    "proof": "For arbitrary integers x,y: sqnorm(rot90(x,y))=(-y)^2+x^2=y^2+x^2=x^2+y^2=sqnorm(x,y).",
+    "source_lineage": ["UFTID3-INTERNAL-UI-INV-002"],
+}
+RELATION_RE = re.compile(r"^q\(1\)\s*(<=|>=|==|=|!=|<|>)\s*q\(0\)$")
+RELATION_COMPLEMENT = {"<": ">=", ">": "<=", "<=": ">", ">=": "<", "=": "!=", "==": "!=", "!=": "=="}
 
 
 def load(path: Path) -> dict[str, Any]:
@@ -169,8 +282,31 @@ def one_claim_class(text: str, label: str, expected: str, errors: list[str]) -> 
         errors.append(f"{label} canonical claim class must be exactly {expected}")
 
 
+def iter_strings(value: object):
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, list):
+        for item in value:
+            yield from iter_strings(item)
+    elif isinstance(value, dict):
+        for item in value.values():
+            yield from iter_strings(item)
+
+
+def contains_private_locator(value: object) -> bool:
+    return any(pattern.search(text) for text in iter_strings(value) for pattern in PRIVATE_LOCATOR_PATTERNS)
+
+
+def relation_operator(value: object) -> str | None:
+    if not isinstance(value, str):
+        return None
+    match = RELATION_RE.fullmatch(value.strip())
+    return match.group(1) if match else None
+
+
 def validate_documents(
     contract: dict[str, Any],
+    base_contract: dict[str, Any],
     invariants: dict[str, Any],
     assurance: dict[str, Any],
     obligations: dict[str, Any],
@@ -184,11 +320,18 @@ def validate_documents(
 
     if contract.get("type") != "uft-id-formalization-contract":
         errors.append("formalization contract type mismatch")
-    if contract.get("schema_version") != "1.0.1":
+    if contract.get("schema_version") != "1.0.2":
         errors.append("formalization contract schema mismatch")
     snapshot = contract.get("snapshot_date")
     if not nonempty(snapshot):
         errors.append("formalization contract snapshot_date required")
+
+    if contract.get("base_project_contract_schema") != base_contract.get("schema_version"):
+        errors.append("base_project_contract_schema must equal machine/contract.json schema_version")
+    if set(base_contract.get("claim_classes", [])) != CLAIM_CLASSES:
+        errors.append("base project claim_classes differ from PR8 canonical claim classes")
+    if base_contract.get("hard_rules", {}).get("one_claim_class_per_claim") is not True:
+        errors.append("base project must require one_claim_class_per_claim")
 
     if contract.get("authorities") != EXPECTED_AUTHORITIES:
         errors.append("formalization contract authorities must match canonical mapping exactly")
@@ -208,8 +351,11 @@ def validate_documents(
     kinds = set(string_list(contract.get("invariant_kinds"), "contract.invariant_kinds", errors, required=True))
     statuses = set(string_list(contract.get("invariant_statuses"), "contract.invariant_statuses", errors, required=True))
     dimensions = set(string_list(contract.get("assurance_dimensions"), "contract.assurance_dimensions", errors, required=True))
+    internal_lineage = set(string_list(contract.get("internal_lineage_ids"), "contract.internal_lineage_ids", errors, required=True))
+    if internal_lineage != EXPECTED_INTERNAL_LINEAGE:
+        errors.append("internal_lineage_ids must match the exact PR8 internal result set")
 
-    require_shape(invariants, "uft-id-invariant-spec-registry", snapshot, "invariants", "1.0.1", errors)
+    require_shape(invariants, "uft-id-invariant-spec-registry", snapshot, "invariants", "1.0.2", errors)
     require_shape(assurance, "uft-id-assurance-graph", snapshot, "assurance", "1.0.1", errors)
     require_shape(obligations, "uft-id-definition-and-model-obligation-registry", snapshot, "obligations", "1.0.0", errors)
     require_shape(falsification, "uft-id-falsification-contract", snapshot, "falsification", "1.0.1", errors)
@@ -253,6 +399,8 @@ def validate_documents(
             errors.append(f"{sid}.scope required")
         string_list(source.get("preserved_structure"), f"{sid}.preserved_structure", errors, required=True)
         string_list(source.get("not_inherited"), f"{sid}.not_inherited", errors, required=True)
+        if contains_private_locator(source):
+            errors.append(f"{sid} contains a private attachment/connector locator in an allow-listed value")
     if source_ids != EXPECTED_PRIVATE_SOURCE_IDS:
         errors.append("private source_inputs must contain exactly the two redacted PR8 design inputs")
 
@@ -265,13 +413,14 @@ def validate_documents(
         if not nonempty(generic.get("name")) or not nonempty(generic.get("validity")):
             errors.append("invariants.generic_form requires name and validity")
 
-    allowed_lineage = source_ids | refs
+    allowed_lineage = source_ids | refs | internal_lineage
     required_inv = set(EXPECTED_INV_FIELDS)
     inv_ids: set[str] = set()
     records = invariants.get("records")
     if not isinstance(records, list) or not records:
         errors.append("invariant records must be non-empty list")
         records = []
+    proved_record: dict[str, Any] | None = None
     for i, record in enumerate(records):
         if not isinstance(record, dict):
             errors.append(f"invariants.records[{i}] must be object")
@@ -300,7 +449,7 @@ def validate_documents(
         string_list(record.get("break_conditions"), f"{rid}.break_conditions", errors, required=True)
         lineage = string_list(record.get("source_lineage"), f"{rid}.source_lineage", errors, required=True)
         if set(lineage) - allowed_lineage:
-            errors.append(f"{rid} references source lineage outside canonical/private PR8 authorities")
+            errors.append(f"{rid} references source lineage outside canonical/private/internal PR8 authorities")
         string_list(record.get("nonclaims"), f"{rid}.nonclaims", errors, required=True)
         evidence = record.get("evidence")
         if evidence is not None:
@@ -309,12 +458,22 @@ def validate_documents(
                 for path in paths:
                     repo_file(path, f"{rid}.evidence", errors)
         if record.get("claim_class") == "PROVED":
-            if not nonempty(record.get("proof")):
-                errors.append(f"{rid} PROVED claim requires an explicit proof field")
+            if rid != "UI-INV-002":
+                errors.append(f"{rid} is an unexpected PROVED record on the PR8 surface")
+            proved_record = record
             if not isinstance(evidence, list) or not evidence:
                 errors.append(f"{rid} PROVED claim requires retained evidence paths")
     if inv_ids != {f"UI-INV-{i:03d}" for i in range(1, 7)}:
         errors.append("invariant registry must contain UI-INV-001 through UI-INV-006 exactly")
+    if proved_record is None:
+        errors.append("UI-INV-002 proved record is required")
+    else:
+        for key, expected in EXPECTED_PROVED_UI_INV_002.items():
+            if proved_record.get(key) != expected:
+                errors.append(f"UI-INV-002 {key} differs from the canonical retained proof semantics")
+        expected_evidence = {"theory/INVARIANT_CALCULUS.md", "experiments/formalization/run.py", "tests/test_pr8_formalization.py"}
+        if set(proved_record.get("evidence", [])) != expected_evidence:
+            errors.append("UI-INV-002 evidence paths must match the retained proof/conformance surfaces exactly")
 
     node_ids: set[str] = set()
     nodes = assurance.get("nodes")
@@ -339,6 +498,7 @@ def validate_documents(
         errors.append("assurance nodes must exactly match contract assurance_dimensions")
 
     support_pairs: set[tuple[str, str]] = set()
+    support_tuples: set[tuple[str, str, str, str]] = set()
     supports = assurance.get("support_edges")
     if not isinstance(supports, list) or not supports:
         errors.append("assurance.support_edges must be non-empty list")
@@ -352,12 +512,16 @@ def validate_documents(
             errors.append(f"assurance.support_edges[{i}] has dangling endpoint")
         if src == dst:
             errors.append(f"assurance.support_edges[{i}] self edge forbidden")
-        if not nonempty(edge.get("relation")) or not nonempty(edge.get("entitlement")):
+        relation, entitlement = edge.get("relation"), edge.get("entitlement")
+        if not nonempty(relation) or not nonempty(entitlement):
             errors.append(f"assurance.support_edges[{i}] requires relation and entitlement")
         pair = (str(src), str(dst))
         if pair in support_pairs:
             errors.append(f"duplicate assurance support edge {pair}")
         support_pairs.add(pair)
+        support_tuples.add((str(src), str(dst), str(relation), str(entitlement)))
+    if support_tuples != EXPECTED_SUPPORT_EDGES:
+        errors.append("assurance support edges must exactly match the canonical PR8 graph semantics")
 
     forbidden_pairs: set[tuple[str, str]] = set()
     forbidden = assurance.get("forbidden_automatic_promotions")
@@ -401,14 +565,22 @@ def validate_documents(
         if oid in def_ids:
             errors.append(f"duplicate definition obligation {oid}")
         def_ids.add(oid)
-        if item.get("term") != EXPECTED_DEF_TERMS.get(oid):
-            errors.append(f"{oid} term does not match canonical obligation identity")
-        if not nonempty(item.get("nonclaim")):
-            errors.append(f"{oid} requires nonclaim")
-        string_list(item.get("minimum_declarations"), f"{oid}.minimum_declarations", errors, required=True)
-        if item.get("conditional_declarations") is not None:
-            string_list(item.get("conditional_declarations"), f"{oid}.conditional_declarations", errors)
-    if def_ids != set(EXPECTED_DEF_TERMS):
+        expected = EXPECTED_DEF_PAYLOADS.get(oid)
+        if expected is None:
+            errors.append(f"unknown definition obligation {oid}")
+            continue
+        actual_min = tuple(string_list(item.get("minimum_declarations"), f"{oid}.minimum_declarations", errors, required=True))
+        conditional_value = item.get("conditional_declarations", [])
+        actual_conditional = tuple(string_list(conditional_value, f"{oid}.conditional_declarations", errors)) if conditional_value is not None else ()
+        if item.get("term") != expected["term"]:
+            errors.append(f"{oid} term differs from canonical payload")
+        if actual_min != expected["minimum"]:
+            errors.append(f"{oid} minimum_declarations differ from canonical payload")
+        if actual_conditional != expected["conditional"]:
+            errors.append(f"{oid} conditional_declarations differ from canonical payload")
+        if item.get("nonclaim") != expected["nonclaim"]:
+            errors.append(f"{oid} nonclaim differs from canonical payload")
+    if def_ids != set(EXPECTED_DEF_PAYLOADS):
         errors.append("definition obligation IDs must exactly match the canonical set")
 
     model_ids: set[str] = set()
@@ -428,36 +600,47 @@ def validate_documents(
         if oid in model_ids:
             errors.append(f"duplicate model obligation {oid}")
         model_ids.add(oid)
-        if item.get("claim") != EXPECTED_MODEL_CLAIMS.get(oid):
-            errors.append(f"{oid} claim does not match canonical model obligation identity")
-        if not nonempty(item.get("failure_state")):
-            errors.append(f"{oid} requires failure_state")
-        string_list(item.get("required_evidence"), f"{oid}.required_evidence", errors, required=True)
-    if model_ids != set(EXPECTED_MODEL_CLAIMS):
+        expected = EXPECTED_MODEL_PAYLOADS.get(oid)
+        if expected is None:
+            errors.append(f"unknown model obligation {oid}")
+            continue
+        actual_evidence = tuple(string_list(item.get("required_evidence"), f"{oid}.required_evidence", errors, required=True))
+        if item.get("claim") != expected["claim"]:
+            errors.append(f"{oid} claim differs from canonical payload")
+        if item.get("failure_state") != expected["failure"]:
+            errors.append(f"{oid} failure_state differs from canonical payload")
+        if actual_evidence != expected["evidence"]:
+            errors.append(f"{oid} required_evidence differs from canonical payload")
+    if model_ids != set(EXPECTED_MODEL_PAYLOADS):
         errors.append("model obligation IDs must exactly match the canonical set")
 
     proxy = obligations.get("proxy_rule")
-    if not isinstance(proxy, dict):
-        errors.append("proxy_rule required")
-    else:
-        for key in ("source_object", "proxy_object", "prohibited"):
-            if not nonempty(proxy.get(key)):
-                errors.append(f"proxy_rule.{key} required")
+    expected_proxy = {
+        "source_object": "must retain its unresolved/undefined status",
+        "proxy_object": "must receive a new identity and a complete declaration",
+        "prohibited": "silently treating the proxy as if the source had defined it",
+    }
+    if proxy != expected_proxy:
+        errors.append("proxy_rule must exactly match the canonical source/proxy boundary")
 
     required_fields = string_list(falsification.get("required_fields"), "falsification.required_fields", errors, required=True)
+    if required_fields != EXPECTED_FALSIFICATION_FIELDS:
+        errors.append("falsification.required_fields must exactly match the canonical FalsificationSpec schema")
     example = falsification.get("synthetic_conformance_example")
     fals_count = 0
     if not isinstance(example, dict):
         errors.append("synthetic_conformance_example required")
     else:
         fals_count = 1
-        missing = set(required_fields) - set(example)
-        if missing:
-            errors.append(f"synthetic falsification example missing fields: {sorted(missing)}")
+        allowed_example_fields = set(EXPECTED_FALSIFICATION_FIELDS) | {"fixture_values"}
+        if set(example) != allowed_example_fields:
+            errors.append("synthetic falsification example fields must exactly match canonical schema plus fixture_values")
         if example.get("hypothesis_id") != "FALS-SYN-001":
             errors.append("synthetic falsification hypothesis_id must remain FALS-SYN-001")
-        if example.get("claim_class") not in CLAIM_CLASSES:
-            errors.append("synthetic falsification claim_class unsupported")
+        if example.get("claim_class") != "DIAGNOSTIC":
+            errors.append("synthetic falsification claim_class must remain DIAGNOSTIC")
+        if example.get("status") != "synthetic-conformance":
+            errors.append("synthetic falsification status must remain synthetic-conformance")
         for field in (
             "independent_variables", "perturbations", "observables", "predictions",
             "null_model", "rejection_conditions", "evidence_required", "scope_limits",
@@ -473,17 +656,33 @@ def validate_documents(
                     errors.append(f"synthetic fixture_values.{key} must be a finite real number")
         predictions = example.get("predictions")
         rejections = example.get("rejection_conditions")
-        if not isinstance(predictions, list) or len(predictions) != 1 or RELATION_RE.fullmatch(str(predictions[0]).strip()) is None:
+        pred_op = relation_operator(predictions[0]) if isinstance(predictions, list) and len(predictions) == 1 else None
+        reject_op = relation_operator(rejections[0]) if isinstance(rejections, list) and len(rejections) == 1 else None
+        if pred_op is None:
             errors.append("synthetic prediction must be exactly one supported q(1) relation to q(0)")
-        if not isinstance(rejections, list) or len(rejections) != 1 or RELATION_RE.fullmatch(str(rejections[0]).strip()) is None:
+        if reject_op is None:
             errors.append("synthetic rejection condition must be exactly one supported q(1) relation to q(0)")
+        if pred_op is not None and reject_op is not None:
+            if RELATION_COMPLEMENT.get(pred_op) != reject_op:
+                errors.append("synthetic rejection condition must be the mutually exclusive logical complement of the prediction")
+        if example.get("null_model") != ["q(1) = q(0)"]:
+            errors.append("synthetic null_model must remain the canonical equality control")
     string_list(falsification.get("nonclaims"), "falsification.nonclaims", errors, required=True)
 
-    one_claim_class(human_docs.get("assurance_human", ""), "assurance_human", "DEFINITION", errors)
-    one_claim_class(human_docs.get("falsification_human", ""), "falsification_human", "DEFINITION", errors)
+    for key in ("invariant_human", "assurance_human", "obligations_human", "falsification_human"):
+        one_claim_class(human_docs.get(key, ""), key, "DEFINITION", errors)
+
+    invariant_text = human_docs.get("invariant_human", "")
+    for phrase in (
+        "For arbitrary integers `x,y`",
+        "This algebraic derivation is the proof of the universally quantified `Z^2` claim.",
+        "p_1=p_0K",
+    ):
+        if phrase not in invariant_text:
+            errors.append(f"invariant_human missing retained proof/dynamics anchor: {phrase}")
 
     anchors = {
-        "invariant_human": ["INVARIANT_UNDER_F != UNIVERSAL_INVARIANT", "UI-INV-004", "CLAIMED_STRUCTURE", "IMPLEMENTED_STRUCTURE", "p_1=p_0K"],
+        "invariant_human": ["INVARIANT_UNDER_F != UNIVERSAL_INVARIANT", "UI-INV-004", "CLAIMED_STRUCTURE", "IMPLEMENTED_STRUCTURE"],
         "assurance_human": ["Formal Assurance Graph", "FORMAL_SYNTAX != PROOF", "MODEL_OUTPUT != EXECUTION_EVIDENCE"],
         "obligations_human": ["NAMED_OBJECT != WELL_DEFINED_MATHEMATICAL_OBJECT", "MODEL-OBL-REVERSIBLE", "SOFTWARE_SCAFFOLD != VALIDATED_SCIENTIFIC_SIMULATION"],
         "falsification_human": ["FalsificationSpec", "FALS-SYN-001", "FALSIFIABLE_SCHEMA != EMPIRICAL_VALIDATION"],
@@ -559,6 +758,7 @@ def validate() -> dict[str, Any]:
     }
     return validate_documents(
         load(PATHS["contract"]),
+        load(PATHS["base_contract"]),
         load(PATHS["invariants"]),
         load(PATHS["assurance"]),
         load(PATHS["obligations"]),
