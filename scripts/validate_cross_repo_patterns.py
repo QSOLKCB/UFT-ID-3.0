@@ -3,7 +3,7 @@
 
 This validator checks repository-local registry structure, pinned source
 identities, bridge obligations, and synchronization between the machine result
-registry and the canonical metadata carried by the human result surface.
+registry and the canonical human authority surfaces.
 
 It deliberately does not fetch remote repositories during CI, so a successful
 run does not assert that a remote main branch has not advanced since the
@@ -23,6 +23,7 @@ PATTERNS_PATH = ROOT / "machine/cross_repo_patterns.json"
 RESULTS_PATH = ROOT / "machine/cross_repo_results.json"
 CONTRACT_PATH = ROOT / "machine/contract.json"
 HUMAN_RESULTS_PATH = ROOT / "theory/CROSS_REPO_RESULTS.md"
+HUMAN_ATLAS_PATH = ROOT / "research/CROSS_REPO_PATTERN_ATLAS.md"
 SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
 PATTERN_RE = re.compile(r"^XR-P\d{2}$")
 QUARANTINE_RE = re.compile(r"^XR-Q\d{2}$")
@@ -65,16 +66,11 @@ def nonempty_string(value: object) -> bool:
 
 
 def nonempty_string_list(value: object) -> bool:
-    return (
-        isinstance(value, list)
-        and bool(value)
-        and all(nonempty_string(item) for item in value)
-    )
+    return isinstance(value, list) and bool(value) and all(nonempty_string(item) for item in value)
 
 
 def parse_human_results(path: Path) -> tuple[dict[str, dict[str, str]], list[str]]:
     """Parse canonical CR id/title/class/qualifier/scope metadata from Markdown."""
-
     errors: list[str] = []
     lines = path.read_text(encoding="utf-8").splitlines()
     starts: list[tuple[int, str, str]] = []
@@ -113,13 +109,7 @@ def parse_human_results(path: Path) -> tuple[dict[str, dict[str, str]], list[str
     return parsed, errors
 
 
-def validate_source_entry(
-    entry: object,
-    *,
-    expected_kind: str,
-    seen_ids: set[str],
-    errors: list[str],
-) -> None:
+def validate_source_entry(entry: object, *, expected_kind: str, seen_ids: set[str], errors: list[str]) -> None:
     if not isinstance(entry, dict):
         errors.append(f"{expected_kind} entry must be an object")
         return
@@ -177,13 +167,14 @@ def validate_source_entry(
 
 
 def validate(root: Path = ROOT) -> dict[str, object]:
-    global ROOT, PATTERNS_PATH, RESULTS_PATH, CONTRACT_PATH, HUMAN_RESULTS_PATH
-    original = (ROOT, PATTERNS_PATH, RESULTS_PATH, CONTRACT_PATH, HUMAN_RESULTS_PATH)
+    global ROOT, PATTERNS_PATH, RESULTS_PATH, CONTRACT_PATH, HUMAN_RESULTS_PATH, HUMAN_ATLAS_PATH
+    original = (ROOT, PATTERNS_PATH, RESULTS_PATH, CONTRACT_PATH, HUMAN_RESULTS_PATH, HUMAN_ATLAS_PATH)
     ROOT = root.resolve()
     PATTERNS_PATH = ROOT / "machine/cross_repo_patterns.json"
     RESULTS_PATH = ROOT / "machine/cross_repo_results.json"
     CONTRACT_PATH = ROOT / "machine/contract.json"
     HUMAN_RESULTS_PATH = ROOT / "theory/CROSS_REPO_RESULTS.md"
+    HUMAN_ATLAS_PATH = ROOT / "research/CROSS_REPO_PATTERN_ATLAS.md"
     errors: list[str] = []
     try:
         patterns = load_json(PATTERNS_PATH)
@@ -194,10 +185,10 @@ def validate(root: Path = ROOT) -> dict[str, object]:
             errors.append("cross-repo pattern registry type mismatch")
         if patterns.get("schema_version") != "1.0.2":
             errors.append("cross-repo pattern registry schema_version must be 1.0.2")
-        if patterns.get("snapshot_date") != "2026-08-21":
+        if patterns.get("snapshot_date") != "2026-08-20":
             errors.append("cross-repo pattern registry snapshot_date mismatch")
-        if not nonempty_string(patterns.get("snapshot_basis")):
-            errors.append("cross-repo pattern registry requires snapshot_basis")
+        if patterns.get("snapshot_basis") != "UTC verification date of the pinned source files used to create or extend this registry":
+            errors.append("cross-repo pattern registry snapshot_basis mismatch")
         if set(patterns.get("global_boundaries", [])) != REQUIRED_BOUNDARIES:
             errors.append("cross-repo pattern registry boundary contract mismatch")
         if not nonempty_string_list(patterns.get("selection_policy")):
@@ -232,7 +223,11 @@ def validate(root: Path = ROOT) -> dict[str, object]:
         if results.get("experiment") != "experiments/cross_repo/run.py":
             errors.append("cross-repo results experiment path mismatch")
 
-        allowed_claims = set(contract.get("claim_classes", []))
+        claim_classes = contract.get("claim_classes")
+        allowed_claims = set(claim_classes) if isinstance(claim_classes, list) else set()
+        if not isinstance(claim_classes, list):
+            errors.append("machine contract claim_classes must be a list")
+
         result_entries = results.get("results")
         if not isinstance(result_entries, list) or not result_entries:
             errors.append("cross-repo results requires non-empty results")
@@ -295,6 +290,14 @@ def validate(root: Path = ROOT) -> dict[str, object]:
         else:
             errors.append("required cross-repo authority file missing: theory/CROSS_REPO_RESULTS.md")
 
+        if HUMAN_ATLAS_PATH.is_file():
+            atlas = HUMAN_ATLAS_PATH.read_text(encoding="utf-8")
+            for pattern_id in ("XR-P17", "XR-P18"):
+                if pattern_id not in atlas:
+                    errors.append(f"human cross-repo atlas missing canonical context pattern: {pattern_id}")
+        else:
+            errors.append("required cross-repo authority file missing: research/CROSS_REPO_PATTERN_ATLAS.md")
+
         authority = contract.get("cross_repo_pattern_authority")
         if isinstance(authority, dict):
             expected = {
@@ -336,10 +339,11 @@ def validate(root: Path = ROOT) -> dict[str, object]:
                 "remote_freshness_checked": False,
                 "snapshot_date": patterns.get("snapshot_date"),
                 "human_result_sync_checked": True,
+                "human_pattern_atlas_sync_checked": True,
             },
         }
     finally:
-        ROOT, PATTERNS_PATH, RESULTS_PATH, CONTRACT_PATH, HUMAN_RESULTS_PATH = original
+        ROOT, PATTERNS_PATH, RESULTS_PATH, CONTRACT_PATH, HUMAN_RESULTS_PATH, HUMAN_ATLAS_PATH = original
 
 
 def main() -> None:
@@ -357,6 +361,7 @@ def main() -> None:
             f"{summary['results']} finite results"
         )
         print("human result metadata synchronized: yes")
+        print("human pattern atlas synchronized for current context records: yes")
         print("remote freshness checked: no (registry pins are snapshot provenance)")
         for error in report["errors"]:
             print(f"error: {error}")
