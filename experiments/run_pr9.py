@@ -14,8 +14,9 @@ ROOT = Path(__file__).resolve().parents[1]
 VALIDATOR = ROOT / "scripts/validate_observation_specs.py"
 EXPERIMENT = ROOT / "experiments/observation/run.py"
 
-FILES = [
+CORE_FILES = [
     "machine/contract.json",
+    "machine/formalization_contract.json",
     "machine/observation_contract.json",
     "machine/observation_specs.json",
     "machine/observation_theorems.json",
@@ -48,6 +49,62 @@ def load_module(name: str, path: Path):
     return module
 
 
+def safe_repo_file(path: str) -> str:
+    rel = Path(path)
+    if rel.is_absolute() or ".." in rel.parts:
+        raise RuntimeError(f"receipt dependency must remain repository-relative: {path}")
+    resolved = (ROOT / rel).resolve()
+    try:
+        resolved.relative_to(ROOT.resolve())
+    except ValueError as exc:
+        raise RuntimeError(f"receipt dependency escapes repository: {path}") from exc
+    if not resolved.is_file():
+        raise RuntimeError(f"receipt dependency does not exist: {path}")
+    return path
+
+
+def evidence_paths_from_records(
+    theorems: dict[str, object], counterexamples: dict[str, object]
+) -> set[str]:
+    paths: set[str] = set()
+    theorem_records = theorems.get("records", [])
+    counterexample_records = counterexamples.get("records", [])
+    if not isinstance(theorem_records, list) or not isinstance(counterexample_records, list):
+        raise RuntimeError("observation evidence registries must contain record lists")
+    for record in theorem_records:
+        if not isinstance(record, dict):
+            raise RuntimeError("observation theorem evidence record must be an object")
+        evidence = record.get("executable_evidence", [])
+        if not isinstance(evidence, list):
+            raise RuntimeError("observation theorem executable_evidence must be a list")
+        for path in evidence:
+            if not isinstance(path, str) or not path:
+                raise RuntimeError("observation theorem evidence path must be a non-empty string")
+            paths.add(path)
+    for record in counterexample_records:
+        if not isinstance(record, dict):
+            raise RuntimeError("observation counterexample evidence record must be an object")
+        evidence = record.get("evidence", [])
+        if not isinstance(evidence, list):
+            raise RuntimeError("observation counterexample evidence must be a list")
+        for path in evidence:
+            if not isinstance(path, str) or not path:
+                raise RuntimeError("observation counterexample evidence path must be a non-empty string")
+            paths.add(path)
+    return paths
+
+
+def declared_evidence_paths() -> set[str]:
+    theorems = json.loads((ROOT / "machine/observation_theorems.json").read_text(encoding="utf-8"))
+    counterexamples = json.loads((ROOT / "machine/observation_counterexamples.json").read_text(encoding="utf-8"))
+    return evidence_paths_from_records(theorems, counterexamples)
+
+
+def receipt_files() -> list[str]:
+    paths = set(CORE_FILES) | declared_evidence_paths()
+    return sorted(safe_repo_file(path) for path in paths)
+
+
 def run_suite() -> dict[str, object]:
     validator = load_module("pr9_observation_validator", VALIDATOR)
     experiment = load_module("pr9_observation_experiment", EXPERIMENT)
@@ -57,11 +114,13 @@ def run_suite() -> dict[str, object]:
         raise RuntimeError("; ".join(validation["errors"]))
 
     result = experiment.run_suite()
-    source_hashes = {path: sha256_bytes((ROOT / path).read_bytes()) for path in sorted(FILES)}
+    files = receipt_files()
+    source_hashes = {path: sha256_bytes((ROOT / path).read_bytes()) for path in files}
     identity = {
         "type": "uft-id-pr9-observation-receipt",
-        "schema_version": "1.0.0",
+        "schema_version": "1.0.1",
         "source_sha256": source_hashes,
+        "declared_evidence_paths": sorted(declared_evidence_paths()),
         "result_sha256": sha256_bytes(canonical_bytes(result)),
         "summary": {
             "spec_count": validation["spec_count"],
