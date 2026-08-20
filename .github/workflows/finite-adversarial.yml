@@ -8,17 +8,23 @@ on:
       - "scripts/validate_cross_repo_patterns.py"
       - "scripts/validate_vopson_2019_mei.py"
       - "scripts/validate_historical_lineage.py"
+      - "scripts/validate_formalization_contracts.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
       - "theory/FINITE_RESULTS.md"
       - "theory/AUXILIARY_CONTRACTS.md"
       - "theory/CROSS_REPO_RESULTS.md"
+      - "theory/INVARIANT_CALCULUS.md"
+      - "theory/ASSURANCE.md"
+      - "theory/DEFINITION_OBLIGATIONS.md"
+      - "theory/FALSIFICATION_CONTRACTS.md"
       - "research/CROSS_REPO_PATTERN_ATLAS.md"
       - "research/HISTORICAL_LINEAGE.md"
       - "research/vopson/**"
       - "machine/**"
       - "docs/REPRODUCIBILITY.md"
+      - "ROADMAP.md"
       - ".github/workflows/**"
   push:
     branches: [main]
@@ -28,17 +34,23 @@ on:
       - "scripts/validate_cross_repo_patterns.py"
       - "scripts/validate_vopson_2019_mei.py"
       - "scripts/validate_historical_lineage.py"
+      - "scripts/validate_formalization_contracts.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
       - "theory/FINITE_RESULTS.md"
       - "theory/AUXILIARY_CONTRACTS.md"
       - "theory/CROSS_REPO_RESULTS.md"
+      - "theory/INVARIANT_CALCULUS.md"
+      - "theory/ASSURANCE.md"
+      - "theory/DEFINITION_OBLIGATIONS.md"
+      - "theory/FALSIFICATION_CONTRACTS.md"
       - "research/CROSS_REPO_PATTERN_ATLAS.md"
       - "research/HISTORICAL_LINEAGE.md"
       - "research/vopson/**"
       - "machine/**"
       - "docs/REPRODUCIBILITY.md"
+      - "ROADMAP.md"
       - ".github/workflows/**"
 
 permissions:
@@ -73,6 +85,14 @@ jobs:
       - name: Validate historical lineage authority surface
         run: python scripts/validate_historical_lineage.py
 
+      - name: Validate PR8 formalization authority surface
+        run: python scripts/validate_formalization_contracts.py
+
+      - name: Run PR8 formalization witnesses
+        run: |
+          python experiments/formalization/run.py --json > /tmp/pr8-formalization.json
+          python experiments/run_pr8.py --hash-only > /tmp/pr8-formalization-receipt.json
+
       - name: Validate Vopson 2019 MEI authority surface
         run: python scripts/validate_vopson_2019_mei.py
 
@@ -102,6 +122,9 @@ jobs:
           python experiments/run_cross_repo.py --json > artifacts/cross-repo-receipt.json 2> artifacts/cross-repo-receipt.stderr.txt || true
           python scripts/validate_historical_lineage.py --json > artifacts/historical-lineage-validation.json 2> artifacts/historical-lineage-validation.stderr.txt || true
           python experiments/run_lineage.py --json > artifacts/historical-lineage-receipt.json 2> artifacts/historical-lineage-receipt.stderr.txt || true
+          python scripts/validate_formalization_contracts.py --json > artifacts/pr8-formalization-validation.json 2> artifacts/pr8-formalization-validation.stderr.txt || true
+          python experiments/formalization/run.py --json > artifacts/pr8-formalization-witness.json 2> artifacts/pr8-formalization-witness.stderr.txt || true
+          python experiments/run_pr8.py --json > artifacts/pr8-formalization-receipt.json 2> artifacts/pr8-formalization-receipt.stderr.txt || true
           python scripts/validate_reproducibility.py --json > artifacts/reproducibility-validation.json 2> artifacts/reproducibility-validation.stderr.txt || true
 
       - name: Retain finite evidence bundle

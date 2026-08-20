@@ -1,0 +1,45 @@
+{
+  "nonclaims": [
+    "A FalsificationSpec makes a claim testable; it does not make the claim true.",
+    "A failed synthetic fixture does not validate or refute any external scientific theory.",
+    "Controlled perturbation structure imported from author-supplied research does not import the paper's consciousness or physical ontology."
+  ],
+  "required_fields": [
+    "hypothesis_id",
+    "claim_class",
+    "independent_variables",
+    "perturbations",
+    "observables",
+    "predictions",
+    "null_model",
+    "rejection_conditions",
+    "evidence_required",
+    "scope_limits",
+    "status"
+  ],
+  "schema_version": "1.0.1",
+  "semantics": {
+    "evidence_required": "The data/measurement/provenance needed before evaluating the condition.",
+    "null_model": "A separately declared model of behavior absent the claimed mechanism.",
+    "perturbation": "A declared controlled change, not an interpretive label.",
+    "prediction": "A direction/range/relation fixed before observing the target outcome.",
+    "rejection_condition": "An observable result that counts against the scoped hypothesis."
+  },
+  "snapshot_date": "2026-08-20",
+  "status": "scaffold-active",
+  "synthetic_conformance_example": {
+    "claim_class": "DIAGNOSTIC",
+    "evidence_required": ["both q(0) and q(1) from the declared synthetic fixture"],
+    "fixture_values": {"q0": 1.0, "q1": 2.0},
+    "hypothesis_id": "FALS-SYN-001",
+    "independent_variables": ["alpha in {0,1}"],
+    "null_model": ["q(1) = q(0)"],
+    "observables": ["q(alpha)"],
+    "perturbations": ["set alpha from 0 to 1"],
+    "predictions": ["q(1) < q(0)"],
+    "rejection_conditions": ["q(1) >= q(0)"],
+    "scope_limits": ["schema semantics only", "not an empirical scientific hypothesis"],
+    "status": "synthetic-conformance"
+  },
+  "type": "uft-id-falsification-contract"
+}

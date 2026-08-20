@@ -1,0 +1,96 @@
+{
+  "assurance_dimensions": [
+    "STATEMENT",
+    "FORMAL_ENCODING",
+    "PROOF_OBJECT",
+    "PROOF_AUDIT",
+    "REFERENCE_IMPLEMENTATION",
+    "RUNTIME_CORRESPONDENCE",
+    "CONFORMANCE_RESULT",
+    "DETERMINISTIC_REPLAY",
+    "MODEL_OUTPUT",
+    "EXECUTION_EVIDENCE",
+    "EMPIRICAL_HYPOTHESIS",
+    "EXPERIMENT",
+    "MEASUREMENT",
+    "SCIENTIFIC_INTERPRETATION"
+  ],
+  "authorities": {
+    "assurance_graph": "machine/assurance_graph.json",
+    "assurance_human": "theory/ASSURANCE.md",
+    "cross_repo_patterns": "machine/cross_repo_patterns.json",
+    "definition_obligations": "machine/definition_obligations.json",
+    "experiment": "experiments/formalization/run.py",
+    "falsification_contract": "machine/falsification_contract.json",
+    "falsification_human": "theory/FALSIFICATION_CONTRACTS.md",
+    "invariant_human": "theory/INVARIANT_CALCULUS.md",
+    "invariant_specs": "machine/invariant_specs.json",
+    "obligations_human": "theory/DEFINITION_OBLIGATIONS.md",
+    "receipt": "experiments/run_pr8.py",
+    "roadmap": "ROADMAP.md",
+    "tests": "tests/test_pr8_formalization.py",
+    "validator": "scripts/validate_formalization_contracts.py"
+  },
+  "base_project_contract_schema": "1.5.1",
+  "cross_repo_pattern_refs": ["XR-P03", "XR-P06", "XR-P15"],
+  "internal_lineage_ids": [
+    "UFTID3-INTERNAL-UI-INV-002",
+    "UFTID3-INTERNAL-UI-INV-003"
+  ],
+  "deferred_surfaces": [
+    {"planned_pr": 9, "surface": "observation-fibres-and-quotients"},
+    {"planned_pr": 10, "surface": "recovery-taxonomy"},
+    {"planned_pr": 11, "surface": "transport-taxonomy-and-epistemic-bridges"},
+    {"planned_pr": 12, "surface": "information-functional-contract"},
+    {"planned_pr": 13, "surface": "finite-reference-model-battery"},
+    {"planned_pr": 14, "surface": "lean-foundation-and-audit"},
+    {"planned_pr": 15, "surface": "representation-and-receiver-robustness"}
+  ],
+  "design_rules": [
+    "The compact U=(S,A,F,Pi_lex,O,T,I,C) notation remains a summary, not a license to overload distinct mechanism types.",
+    "Every invariant names domain/codomain, transformation, hypotheses, predicate/property, break conditions, kind, scope, status, claim class, lineage and nonclaims.",
+    "Assurance dimensions are independent typed records. No transitive promotion is inferred merely because nodes are connected.",
+    "A named mathematical object must satisfy its type-specific minimum declaration before it may appear in a theorem premise.",
+    "A scientific hypothesis that claims falsifiability must name perturbation/control variables, observables, predictions, null behavior, rejection conditions, evidence requirements and scope.",
+    "Private author-supplied papers may motivate generic design patterns but are not published as source-byte authority.",
+    "Public donor authority is inherited only through IDs already registered in machine/cross_repo_patterns.json.",
+    "Internally proved UFT-ID results use explicit internal-lineage IDs rather than unrelated donor records."
+  ],
+  "hard_rules": {
+    "claim_label_implies_implemented_structure": false,
+    "claimed_reversibility_without_inverse_or_bijectivity_evidence": false,
+    "content_identity_implies_semantic_truth": false,
+    "deterministic_replay_implies_scientific_confirmation": false,
+    "falsifiable_claim_may_omit_rejection_condition": false,
+    "formal_proof_implies_runtime_conformance": false,
+    "implemented_pattern_implies_universal_theorem": false,
+    "model_output_implies_execution_evidence": false,
+    "named_object_implies_well_defined_object": false,
+    "paper_specific_ontology_is_inherited_by_methodological_reuse": false,
+    "private_attachment_identifier_may_be_published": false,
+    "proxy_may_silently_replace_source_object": false,
+    "runtime_conformance_implies_empirical_validation": false
+  },
+  "invariant_kinds": ["exact", "approximate", "representation", "transport", "statistical", "replay", "epistemic-non-promotion", "contract"],
+  "invariant_statuses": ["definition", "theorem-target", "proved", "proved-finite-specialization", "counterexample", "nonclaim"],
+  "schema_version": "1.0.2",
+  "snapshot_date": "2026-08-20",
+  "source_inputs": [
+    {
+      "not_inherited": ["report conclusions as theorem authority", "uncorroborated donor claims", "private attachment identity"],
+      "preserved_structure": ["typed invariant calculus proposal", "assurance DAG rather than promotion ladder", "observation/entropy sign-reversal finite witness", "bounded PR sequence and Lean-readiness map"],
+      "scope": "Private conversation research report used only to identify generic formalization patterns. Attachment identifiers and bytes are not published.",
+      "source_class": "author-supplied-design-input",
+      "source_id": "PR8-INPUT-DEEP-RESEARCH"
+    },
+    {
+      "not_inherited": ["paper-specific consciousness ontology", "semantic gauge ontology", "physical interpretation of identity mass", "unvalidated continuum or cosmological claims"],
+      "preserved_structure": ["claim-vs-implementation obligation checks", "continuum-model well-definedness checklist", "controlled perturbation and falsification contract", "abstract connection/parallel-transport motivation without semantic ontology"],
+      "scope": "Private conversation attachment used only to identify generic formalization patterns. Attachment identifiers and bytes are not published.",
+      "source_class": "author-supplied-design-input",
+      "source_id": "PR8-INPUT-PAPER-BUNDLE"
+    }
+  ],
+  "status": "pr8-invariant-assurance-model-obligations-hardened-v2",
+  "type": "uft-id-formalization-contract"
+}

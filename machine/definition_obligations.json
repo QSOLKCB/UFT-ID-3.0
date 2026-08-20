@@ -1,0 +1,214 @@
+{
+  "claim_realization_obligations": [
+    {
+      "claim": "reversible/invertible map",
+      "failure_state": "UNSUPPORTED_REVERSIBILITY_CLAIM",
+      "id": "MODEL-OBL-REVERSIBLE",
+      "required_evidence": [
+        "declared domain",
+        "declared codomain",
+        "inverse construction or bijectivity proof/test",
+        "round-trip properties appropriate to the claim"
+      ]
+    },
+    {
+      "claim": "n-dimensional implemented structure",
+      "failure_state": "DIMENSIONALITY_ONLY_IN_PROSE",
+      "id": "MODEL-OBL-DIMENSION",
+      "required_evidence": [
+        "declared carrier dimension",
+        "actual represented object of that dimension",
+        "operations/tests acting on that carrier"
+      ]
+    },
+    {
+      "claim": "implemented dynamics/time evolution",
+      "failure_state": "DYNAMICS_ONLY_IN_PROSE",
+      "id": "MODEL-OBL-DYNAMICS",
+      "required_evidence": [
+        "state",
+        "time/index model",
+        "evolution/update law",
+        "at least one nontrivial trajectory or execution witness"
+      ]
+    },
+    {
+      "claim": "scientific simulation",
+      "failure_state": "COMPUTATIONAL_SCAFFOLD_NOT_VALIDATED_SIMULATION",
+      "id": "MODEL-OBL-SIMULATION",
+      "required_evidence": [
+        "declared governing model/equations",
+        "initial/boundary conditions where applicable",
+        "numerical/analytic method",
+        "observable outputs",
+        "validation/comparison target",
+        "limitations"
+      ]
+    }
+  ],
+  "definition_obligations": [
+    {
+      "id": "DEF-OBL-STATE",
+      "minimum_declarations": [
+        "carrier/type",
+        "equality/identity relation",
+        "any additional structure actually used"
+      ],
+      "nonclaim": "Naming a state does not supply metric, probability, topology or physics.",
+      "term": "state"
+    },
+    {
+      "conditional_declarations": [
+        "linearity only if claimed",
+        "boundedness only if claimed",
+        "self-adjointness only if claimed"
+      ],
+      "id": "DEF-OBL-OPERATOR",
+      "minimum_declarations": [
+        "domain",
+        "codomain",
+        "action/map"
+      ],
+      "nonclaim": "Operator notation does not imply linearity or a Hamiltonian.",
+      "term": "operator"
+    },
+    {
+      "conditional_declarations": [
+        "regularity class where required"
+      ],
+      "id": "DEF-OBL-EIGENMODE",
+      "minimum_declarations": [
+        "carrier/function space",
+        "operator or operator pair",
+        "eigen-equation",
+        "domain",
+        "boundary conditions"
+      ],
+      "nonclaim": "A label such as L39 is not an eigenmode until the eigenproblem is defined.",
+      "term": "eigenmode"
+    },
+    {
+      "id": "DEF-OBL-ENTROPY",
+      "minimum_declarations": [
+        "entropy family",
+        "state/distribution being measured",
+        "logarithm base or convention",
+        "normalization/reference",
+        "observer/partition when relevant",
+        "scope"
+      ],
+      "nonclaim": "Different entropy families are not interchangeable.",
+      "term": "entropy"
+    },
+    {
+      "id": "DEF-OBL-PROBABILITY",
+      "minimum_declarations": [
+        "sample space or finite analogue",
+        "events/state outcomes",
+        "probability measure/distribution",
+        "random variable/process where used"
+      ],
+      "nonclaim": "Frequency-like numbers are not a probability model without normalization and semantics.",
+      "term": "probability"
+    },
+    {
+      "id": "DEF-OBL-METRIC",
+      "minimum_declarations": [
+        "carrier",
+        "distance map",
+        "metric axioms or explicit declaration that it is only a pseudometric/divergence"
+      ],
+      "nonclaim": "A distance-like score need not be a metric.",
+      "term": "metric"
+    },
+    {
+      "id": "DEF-OBL-MEASURE",
+      "minimum_declarations": [
+        "measurable carrier/finite analogue",
+        "measure",
+        "reference measure when densities/divergences are used"
+      ],
+      "nonclaim": "A count or weight is not automatically a measure in every theorem context.",
+      "term": "measure"
+    },
+    {
+      "id": "DEF-OBL-DERIVATIVE",
+      "minimum_declarations": [
+        "independent variable/time model",
+        "domain",
+        "codomain",
+        "differentiability notion"
+      ],
+      "nonclaim": "Continuous derivative notation may not be used for a merely discrete update rule.",
+      "term": "derivative"
+    },
+    {
+      "conditional_declarations": [
+        "idempotence if projection is claimed in the algebraic sense"
+      ],
+      "id": "DEF-OBL-PROJECTION",
+      "minimum_declarations": [
+        "domain",
+        "codomain",
+        "map",
+        "meaning of projection"
+      ],
+      "nonclaim": "A receiver or visualization map is not automatically an idempotent mathematical projection.",
+      "term": "projection"
+    },
+    {
+      "id": "DEF-OBL-TRANSPORT",
+      "minimum_declarations": [
+        "source type",
+        "target type",
+        "domain of definition",
+        "map",
+        "preserved structure",
+        "lost structure",
+        "scope"
+      ],
+      "nonclaim": "Transport does not confer authority or physical equivalence.",
+      "term": "transport"
+    },
+    {
+      "id": "DEF-OBL-INFORMATION",
+      "minimum_declarations": [
+        "domain",
+        "functional family",
+        "codomain",
+        "observer/partition/reference where relevant",
+        "estimator/convention",
+        "scope"
+      ],
+      "nonclaim": "A scalar diagnostic is not thereby Shannon, thermodynamic or von Neumann entropy.",
+      "term": "information functional"
+    },
+    {
+      "id": "DEF-OBL-CONTINUUM",
+      "minimum_declarations": [
+        "carrier/domain",
+        "state type",
+        "regularity class",
+        "governing operator/equations",
+        "boundary conditions",
+        "initial conditions or explicit not-applicable",
+        "metric/measure actually used",
+        "singularity policy",
+        "regularization policy",
+        "existence status",
+        "uniqueness status",
+        "approximation regime"
+      ],
+      "nonclaim": "Writing a PDE-like expression does not establish well-posedness or physical validity.",
+      "term": "continuum model"
+    }
+  ],
+  "proxy_rule": {
+    "prohibited": "silently treating the proxy as if the source had defined it",
+    "proxy_object": "must receive a new identity and a complete declaration",
+    "source_object": "must retain its unresolved/undefined status"
+  },
+  "schema_version": "1.0.0",
+  "snapshot_date": "2026-08-20",
+  "type": "uft-id-definition-and-model-obligation-registry"
+}
