@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -55,31 +56,37 @@ EXPECTED_PROVED_RESULT_BINDINGS = {
         "statement": "For a finite labelled carrier X, G_step=(X,A_step) with (x,y) in A_step iff stepRel(x,y) preserves the one-step relation exactly.",
         "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-001-finite-relation--digraph-identity",
         "human_heading": "### UFT-GR-001 Finite relation ↔ digraph identity",
+        "human_content_anchor": "For finite labelled `X`, the map from `stepRel` to `G_step` defined above is exact at the one-step level.",
     },
     "UFT-GR-002": {
         "statement": "In G_step, Normal_stepRel(x) iff outdegree(x)=0.",
         "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-002-normality--zero-outdegree",
         "human_heading": "### UFT-GR-002 Normality ↔ zero outdegree",
+        "human_content_anchor": "\\deg^+_{G_{\\mathrm{step}}}(x)=0.",
     },
     "UFT-GR-003": {
         "statement": "For finite G_step, y is reflexive-transitively reachable from x iff there is a directed walk from x to y; when x!=y a directed path may be chosen.",
         "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-003-reachability--directed-walkpath-existence",
         "human_heading": "### UFT-GR-003 Reachability ↔ directed walk/path existence",
+        "human_content_anchor": "iff there is a directed walk from `x` to `y` in `G_step`. When `x != y`, repeated vertices may be removed from a finite walk to obtain a directed path.",
     },
     "UFT-GR-004": {
         "statement": "On a finite carrier, forward termination of stepRel is equivalent to absence of directed cycles in G_step.",
         "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-004-finite-termination--dag-acyclicity",
         "human_heading": "### UFT-GR-004 Finite termination ↔ DAG acyclicity",
+        "human_content_anchor": "G_{\\mathrm{step}}\\text{ has no directed cycle}.",
     },
     "UFT-GR-005": {
         "statement": "Every nonempty finite directed graph has at least one sink strongly connected component.",
         "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-005-finite-sink-scc-existence",
         "human_heading": "### UFT-GR-005 Finite sink-SCC existence",
+        "human_content_anchor": "Every nonempty finite directed graph has at least one sink SCC.",
     },
     "UFT-GR-006": {
         "statement": "The condensation graph obtained by collapsing strongly connected components of a finite directed graph is acyclic.",
         "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-006-scc-condensation-is-acyclic",
         "human_heading": "### UFT-GR-006 SCC condensation is acyclic",
+        "human_content_anchor": "`Cond(G)` has no directed cycle.",
     },
 }
 
@@ -258,6 +265,9 @@ SHELL_CONTROL_PREFIXES = (
     "if ", "elif ", "for ", "while ", "until ", "case ", "select ", "function ",
 )
 SHELL_CONTROL_WORDS = {"then", "else", "fi", "do", "done", "esac", "{", "}"}
+SHELL_EARLY_TERMINATION_RE = re.compile(
+    r"(?:^|[;&|]\s*)(?:exit|return|exec)(?:\s|$)", re.IGNORECASE
+)
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -364,6 +374,8 @@ def has_shell_control_flow(lines: tuple[str, ...]) -> bool:
         if lowered in SHELL_CONTROL_WORDS:
             return True
         if any(lowered.startswith(prefix) for prefix in SHELL_CONTROL_PREFIXES):
+            return True
+        if SHELL_EARLY_TERMINATION_RE.search(line):
             return True
     return False
 
@@ -495,6 +507,8 @@ def validate() -> dict[str, object]:
                     errors.append(f"{result_id} proof_reference drift from frozen human proof")
                 if expected["human_heading"] not in texts["human"]:
                     errors.append(f"{result_id} frozen human theorem heading missing")
+                if expected["human_content_anchor"] not in texts["human"]:
+                    errors.append(f"{result_id} frozen human theorem content drift")
         if result_id.startswith("CX-GR-") and claim_class != "COUNTEREXAMPLE":
             errors.append(f"{result_id} must remain COUNTEREXAMPLE")
         evidence = record.get("executable_evidence", record.get("evidence", []))
@@ -549,7 +563,7 @@ def validate() -> dict[str, object]:
 
     artifact_lines = workflow_step_shell_lines(texts["workflow"], "Generate deterministic evidence bundle")
     if has_shell_control_flow(artifact_lines):
-        errors.append("finite-adversarial graph artifact step may not contain shell control flow that can disable retained graph evidence")
+        errors.append("finite-adversarial graph artifact step may not contain shell control flow or early termination that can disable retained graph evidence")
     for command in GRAPH_ARTIFACT_COMMANDS:
         if command not in artifact_lines:
             errors.append(f"finite-adversarial graph artifact retention missing executable command: {command}")
