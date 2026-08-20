@@ -21,6 +21,7 @@ CORE_FILES = [
     "machine/relation_theorems.json",
     "machine/relation_counterexamples.json",
     "machine/genus_selection_specimen.json",
+    "machine/cross_repo_patterns.json",
     "theory/RELATION_CALCULUS.md",
     "scripts/validate_relation_core.py",
     "experiments/relation/run.py",
@@ -131,14 +132,14 @@ def run_suite() -> dict[str, object]:
     source_hashes = {path: sha256_bytes((ROOT / path).read_bytes()) for path in files}
     identity = {
         "type": "uft-id-pr11-relation-selection-receipt",
-        "schema_version": "1.0.0",
+        "schema_version": "1.0.1",
         "source_sha256": source_hashes,
         "declared_evidence_paths": sorted(declared_evidence_paths()),
         "result_sha256": sha256_bytes(canonical_bytes(result)),
         "summary": {
             "theorem_count": validation["theorem_count"],
             "counterexample_count": validation["counterexample_count"],
-            "public_context_pin_count": validation["public_context_pin_count"],
+            "public_context_ref_count": validation["public_context_ref_count"],
             "exhaustive_relation_count": result["bounded_exhaustive_check"]["total_relations"],
         },
     }
