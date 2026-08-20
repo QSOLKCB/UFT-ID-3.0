@@ -32,7 +32,7 @@
       "nonclaims": ["This record shape is not itself a physical invariant.", "Break-condition metadata does not replace proof of P."],
       "property": "P(x,f(x))",
       "scope": "meta-formalization",
-      "source_lineage": ["XR-P10", "PR8-INPUT-DEEP-RESEARCH"],
+      "source_lineage": ["PR8-INPUT-DEEP-RESEARCH"],
       "status": "definition",
       "transformation": "f : X -> Y"
     },
@@ -50,7 +50,7 @@
       "proof": "For arbitrary integers x,y: sqnorm(rot90(x,y))=(-y)^2+x^2=y^2+x^2=x^2+y^2=sqnorm(x,y).",
       "property": "sqnorm(rot90(v)) = sqnorm(v)",
       "scope": "all integer pairs Z^2; executable fixture is a conformance witness, not the universal proof",
-      "source_lineage": ["XR-P10"],
+      "source_lineage": ["UFTID3-INTERNAL-UI-INV-002"],
       "status": "proved",
       "transformation": "rot90(x,y)=(-y,x)"
     },
@@ -67,7 +67,7 @@
       "nonclaims": ["Failure under scale2 does not refute invariance under the narrower rotation action."],
       "property": "sqnorm(scale2(v)) != sqnorm(v)",
       "scope": "exact adversarial contrast to UI-INV-002",
-      "source_lineage": ["XR-P10"],
+      "source_lineage": ["UFTID3-INTERNAL-UI-INV-003"],
       "status": "counterexample",
       "transformation": "scale2(x,y)=(2x,2y)"
     },
@@ -121,7 +121,7 @@
       "transformation": "Record a successful deterministic replay"
     }
   ],
-  "schema_version": "1.0.1",
+  "schema_version": "1.0.2",
   "snapshot_date": "2026-08-20",
   "type": "uft-id-invariant-spec-registry"
 }
