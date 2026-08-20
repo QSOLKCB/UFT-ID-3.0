@@ -32,12 +32,7 @@
     "validator": "scripts/validate_formalization_contracts.py"
   },
   "base_project_contract_schema": "1.5.1",
-  "cross_repo_pattern_refs": [
-    "XR-P03",
-    "XR-P06",
-    "XR-P10",
-    "XR-P15"
-  ],
+  "cross_repo_pattern_refs": ["XR-P03", "XR-P06", "XR-P10", "XR-P15"],
   "deferred_surfaces": [
     {"planned_pr": 9, "surface": "observation-fibres-and-quotients"},
     {"planned_pr": 10, "surface": "recovery-taxonomy"},
@@ -71,55 +66,21 @@
     "proxy_may_silently_replace_source_object": false,
     "runtime_conformance_implies_empirical_validation": false
   },
-  "invariant_kinds": [
-    "exact",
-    "approximate",
-    "representation",
-    "transport",
-    "statistical",
-    "replay",
-    "epistemic-non-promotion",
-    "contract"
-  ],
-  "invariant_statuses": [
-    "definition",
-    "theorem-target",
-    "proved-finite-specialization",
-    "counterexample",
-    "nonclaim"
-  ],
+  "invariant_kinds": ["exact", "approximate", "representation", "transport", "statistical", "replay", "epistemic-non-promotion", "contract"],
+  "invariant_statuses": ["definition", "theorem-target", "proved", "proved-finite-specialization", "counterexample", "nonclaim"],
   "schema_version": "1.0.1",
   "snapshot_date": "2026-08-20",
   "source_inputs": [
     {
-      "not_inherited": [
-        "report conclusions as theorem authority",
-        "uncorroborated donor claims",
-        "private attachment identity"
-      ],
-      "preserved_structure": [
-        "typed invariant calculus proposal",
-        "assurance DAG rather than promotion ladder",
-        "observation/entropy sign-reversal finite witness",
-        "bounded PR sequence and Lean-readiness map"
-      ],
+      "not_inherited": ["report conclusions as theorem authority", "uncorroborated donor claims", "private attachment identity"],
+      "preserved_structure": ["typed invariant calculus proposal", "assurance DAG rather than promotion ladder", "observation/entropy sign-reversal finite witness", "bounded PR sequence and Lean-readiness map"],
       "scope": "Private conversation research report used only to identify generic formalization patterns. Attachment identifiers and bytes are not published.",
       "source_class": "author-supplied-design-input",
       "source_id": "PR8-INPUT-DEEP-RESEARCH"
     },
     {
-      "not_inherited": [
-        "paper-specific consciousness ontology",
-        "semantic gauge ontology",
-        "physical interpretation of identity mass",
-        "unvalidated continuum or cosmological claims"
-      ],
-      "preserved_structure": [
-        "claim-vs-implementation obligation checks",
-        "continuum-model well-definedness checklist",
-        "controlled perturbation and falsification contract",
-        "abstract connection/parallel-transport motivation without semantic ontology"
-      ],
+      "not_inherited": ["paper-specific consciousness ontology", "semantic gauge ontology", "physical interpretation of identity mass", "unvalidated continuum or cosmological claims"],
+      "preserved_structure": ["claim-vs-implementation obligation checks", "continuum-model well-definedness checklist", "controlled perturbation and falsification contract", "abstract connection/parallel-transport motivation without semantic ontology"],
       "scope": "Private conversation attachment used only to identify generic formalization patterns. Attachment identifiers and bytes are not published.",
       "source_class": "author-supplied-design-input",
       "source_id": "PR8-INPUT-PAPER-BUNDLE"
