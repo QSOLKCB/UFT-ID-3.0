@@ -1,7 +1,7 @@
 # Formal Assurance Graph
 
 **Status:** PR #8 canonical assurance design.  
-**Claim class:** `DEFINITION` / `NONCLAIM`.
+**Claim class:** `DEFINITION`.
 
 UFT-ID does not use one maturity scalar that runs from “idea” to “physical truth”.
 
@@ -17,6 +17,8 @@ reference implementation
 runtime correspondence
 conformance
 deterministic replay
+model output
+execution evidence
 
 empirical hypothesis
 experiment
@@ -61,21 +63,17 @@ None of those arrows grants arbitrary transitive authority.
 
 PR #8 makes the following forbidden automatic promotions machine-readable:
 
-\[
-\text{PROOF\_OBJECT}\nRightarrow\text{CONFORMANCE\_RESULT},
-\]
+```text
+PROOF_OBJECT -/-> CONFORMANCE_RESULT
+PROOF_OBJECT -/-> MEASUREMENT
+CONFORMANCE_RESULT -/-> MEASUREMENT
+DETERMINISTIC_REPLAY -/-> MEASUREMENT
+DETERMINISTIC_REPLAY -/-> SCIENTIFIC_INTERPRETATION
+STATEMENT -/-> PROOF_OBJECT
+MODEL_OUTPUT -/-> EXECUTION_EVIDENCE
+```
 
-\[
-\text{PROOF\_OBJECT}\nRightarrow\text{MEASUREMENT},
-\]
-
-\[
-\text{CONFORMANCE\_RESULT}\nRightarrow\text{MEASUREMENT},
-\]
-
-\[
-\text{DETERMINISTIC\_REPLAY}\nRightarrow\text{SCIENTIFIC\_INTERPRETATION}.
-\]
+The last pair is intentionally explicit in the machine authority. A model may describe an execution, predict a result, or claim that a tool ran without that output becoming execution evidence.
 
 Likewise:
 
@@ -85,11 +83,13 @@ MODEL_OUTPUT != EXECUTION_EVIDENCE
 CONTENT_IDENTITY != SEMANTIC_TRUTH
 ```
 
+These are scoped nonclaims under this `DEFINITION` surface; they are not a second canonical claim class for the document.
+
 ## Future Lean boundary
 
 Lean remains deferred.
 
-When the Lean phase begins, the project should adopt the formal-assurance architecture demonstrated independently by UFF and NEXUS:
+When the Lean phase begins, the project should adopt the theorem-surface discipline already represented by canonical cross-repository patterns such as NEXUS authority separation and HARNESS execution-evidence gating:
 
 - finite advertised theorem surface;
 - exact theorem-surface/version identity;
@@ -114,6 +114,8 @@ A future assertion record may contain:
   "runtime_correspondence": {},
   "conformance": {},
   "replay": {},
+  "model_output": {},
+  "execution_evidence": {},
   "experiment": {},
   "measurement": {},
   "interpretation": {}
