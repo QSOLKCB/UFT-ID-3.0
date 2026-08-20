@@ -1,0 +1,57 @@
+{
+  "type": "uft-id-observation-theorem-registry",
+  "schema_version": "1.0.0",
+  "snapshot_date": "2026-08-20",
+  "records": [
+    {
+      "id": "UFT-OBS-001",
+      "name": "Observational equivalence",
+      "claim_class": "PROVED",
+      "statement": "For any function O:S->Y, define x~_O y iff O(x)=O(y). Then ~_O is an equivalence relation on S, and the equivalence class of x equals the fibre O^{-1}({O(x)}).",
+      "hypotheses": ["O is a total deterministic function S->Y"],
+      "proof_reference": "theory/OBSERVATION_CALCULUS.md#uft-obs-001-observational-equivalence",
+      "executable_evidence": ["experiments/observation/run.py", "tests/test_pr9_observation.py"],
+      "nonclaims": ["Observational equivalence is not physical identity."]
+    },
+    {
+      "id": "UFT-OBS-002",
+      "name": "Quotient-to-image correspondence",
+      "claim_class": "PROVED",
+      "statement": "For any function O:S->Y, the quotient S/~_O is canonically bijective with im(O), via [x] |-> O(x).",
+      "hypotheses": ["O is a total deterministic function S->Y"],
+      "proof_reference": "theory/OBSERVATION_CALCULUS.md#uft-obs-002-quotient-to-image-correspondence",
+      "executable_evidence": ["experiments/observation/run.py", "tests/test_pr9_observation.py"],
+      "nonclaims": ["The quotient is not canonically the full codomain Y unless O is surjective."]
+    },
+    {
+      "id": "UFT-OBS-003",
+      "name": "Image-scoped exact reconstruction iff injective",
+      "claim_class": "PROVED",
+      "statement": "For any function O:S->Y, O is injective iff there exists R:im(O)->S such that R(O(x))=x for every x in S.",
+      "hypotheses": ["O is a total deterministic function S->Y", "Reconstruction is scoped to im(O)"],
+      "proof_reference": "theory/OBSERVATION_CALCULUS.md#uft-obs-003-image-scoped-exact-reconstruction",
+      "executable_evidence": ["experiments/observation/run.py", "tests/test_pr9_observation.py"],
+      "nonclaims": ["Exact mathematical reconstruction does not establish that an original physical state persisted or was observed directly."]
+    },
+    {
+      "id": "UFT-OBS-004",
+      "name": "Noninjective observation blocks global exact reconstruction",
+      "claim_class": "PROVED",
+      "statement": "If O:S->Y is noninjective, no function R:Y->S can satisfy R(O(x))=x for every x in S.",
+      "hypotheses": ["O is a total deterministic function S->Y", "O is noninjective"],
+      "proof_reference": "theory/OBSERVATION_CALCULUS.md#uft-obs-004-noninjective-observation-blocks-global-exact-reconstruction",
+      "executable_evidence": ["experiments/observation/run.py", "tests/test_pr9_observation.py"],
+      "nonclaims": ["Noninjectivity does not forbid partial, representative, probabilistic, or task-specific reconstruction."]
+    },
+    {
+      "id": "UFT-OBS-005",
+      "name": "Uniform floor-sampling trichotomy and fibre cardinality",
+      "claim_class": "PROVED",
+      "statement": "For positive integers L,R and f(i)=floor(iL/R) on i=0,...,R-1: if R<L then f is injective and not surjective; if R=L then f is the identity and bijective; if R>L then f is surjective and not injective. For j=0,...,L-1, |f^{-1}(j)|=ceil((j+1)R/L)-ceil(jR/L).",
+      "hypotheses": ["L and R are positive integers", "i ranges over {0,...,R-1}", "j ranges over {0,...,L-1}"],
+      "proof_reference": "theory/OBSERVATION_CALCULUS.md#uft-obs-005-uniform-floor-sampling",
+      "executable_evidence": ["experiments/observation/run.py", "tests/test_pr9_observation.py"],
+      "nonclaims": ["The floor sampler is a finite reference model, not a universal observation mechanism."]
+    }
+  ]
+}

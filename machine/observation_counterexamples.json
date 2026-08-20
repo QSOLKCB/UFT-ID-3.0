@@ -1,0 +1,44 @@
+{
+  "type": "uft-id-observation-counterexample-registry",
+  "schema_version": "1.0.0",
+  "snapshot_date": "2026-08-20",
+  "records": [
+    {
+      "id": "CX-OBS-001",
+      "name": "Constant Fin2 to Fin1 observation",
+      "claim_class": "COUNTEREXAMPLE",
+      "fixture": "O(0)=0; O(1)=0",
+      "kills": [
+        "Every deterministic observation is injective.",
+        "Every deterministic observation admits global exact reconstruction."
+      ],
+      "witness": "0 != 1 but O(0)=O(1)=0",
+      "evidence": ["experiments/observation/run.py", "tests/test_pr9_observation.py"],
+      "nonclaims": ["The fixture does not prohibit weaker reconstruction notions."]
+    },
+    {
+      "id": "CX-OBS-002",
+      "name": "Quotient does not equal unused codomain",
+      "claim_class": "COUNTEREXAMPLE",
+      "fixture": "O:Fin1->Fin2 with O(0)=0",
+      "kills": [
+        "S/~_O is canonically bijective with the entire codomain Y without surjectivity."
+      ],
+      "witness": "im(O)={0} while Y={0,1}",
+      "evidence": ["experiments/observation/run.py", "tests/test_pr9_observation.py"],
+      "nonclaims": ["The quotient-to-image correspondence remains valid."]
+    },
+    {
+      "id": "CX-OBS-003",
+      "name": "Floor sampler collision when R exceeds L",
+      "claim_class": "COUNTEREXAMPLE",
+      "fixture": "L=3,R=5,f(i)=floor(3i/5)",
+      "kills": [
+        "Uniform floor sampling is injective for all positive L,R."
+      ],
+      "witness": "f(0)=f(1)=0",
+      "evidence": ["experiments/observation/run.py", "tests/test_pr9_observation.py"],
+      "nonclaims": ["The same family is injective in the R<L regime."]
+    }
+  ]
+}

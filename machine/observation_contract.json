@@ -1,0 +1,63 @@
+{
+  "type": "uft-id-observation-contract",
+  "schema_version": "1.0.2",
+  "snapshot_date": "2026-08-20",
+  "claim_class": "DEFINITION",
+  "scope": "Deterministic set-theoretic observation, fibres, observational equivalence, image-scoped exact reconstruction, and exact floor-sampling fixtures.",
+  "authorities": {
+    "specs": "machine/observation_specs.json",
+    "theorems": "machine/observation_theorems.json",
+    "counterexamples": "machine/observation_counterexamples.json",
+    "formalization_contract": "machine/formalization_contract.json",
+    "human": "theory/OBSERVATION_CALCULUS.md",
+    "experiment": "experiments/observation/run.py",
+    "validator": "scripts/validate_observation_specs.py",
+    "tests": "tests/test_pr9_observation.py",
+    "receipt": "experiments/run_pr9.py",
+    "roadmap": "ROADMAP.md"
+  },
+  "allowed_observation_kinds": [
+    "deterministic-total"
+  ],
+  "derived_not_stored_as_independent_authority": [
+    "fibres",
+    "image",
+    "observational-equivalence",
+    "injectivity",
+    "surjectivity",
+    "quotient"
+  ],
+  "execution_limits": {
+    "max_floor_dimension": 10000,
+    "policy": "Fail before allocating or enumerating floor-sampling ranges when L or R exceeds the declared fixture ceiling."
+  },
+  "hard_rules": {
+    "observation_equivalence_implies_physical_identity": false,
+    "noninjective_observation_has_global_exact_left_inverse": false,
+    "quotient_equals_full_codomain_without_surjectivity": false,
+    "generic_observation_kernel_implies_linear_kernel": false,
+    "successful_reconstruction_implies_physical_state_survival": false,
+    "derived_observation_property_may_be_declared_without_evidence": false,
+    "stochastic_kernel_may_enter_pr9": false,
+    "lean_proof_may_be_claimed_in_pr9": false
+  },
+  "boundaries": [
+    "OBSERVATIONAL_EQUIVALENCE != PHYSICAL_IDENTITY",
+    "FIBRE != LINEAR_KERNEL",
+    "INJECTIVE != SURJECTIVE",
+    "EXACT_RECONSTRUCTION != PHYSICAL_STATE_SURVIVAL",
+    "QUOTIENT_TO_IMAGE != QUOTIENT_TO_FULL_CODOMAIN",
+    "MATHEMATICALLY_LEAN_READY != REPOSITORY_LEAN_PROVED"
+  ],
+  "explicit_deferrals": [
+    "Lean toolchain and proof objects",
+    "stochastic observations and Markov kernels",
+    "Blackwell comparison and statistical sufficiency",
+    "sigma-algebra refinement",
+    "RecoverySpec",
+    "BridgeCore and epistemic transport",
+    "InfoSpec comparability",
+    "representation/congruence calculus",
+    "physical observer interpretation"
+  ]
+}

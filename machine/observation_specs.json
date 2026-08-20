@@ -1,0 +1,67 @@
+{
+  "type": "uft-id-observation-spec-registry",
+  "schema_version": "1.0.0",
+  "snapshot_date": "2026-08-20",
+  "generic_form": {
+    "name": "ObservationSpec",
+    "fields": [
+      "id",
+      "name",
+      "source_type",
+      "target_type",
+      "kind",
+      "domain",
+      "map_ref",
+      "scope",
+      "claim_class",
+      "nonclaims"
+    ],
+    "rule": "For PR9, an observation is a total deterministic map O:S->Y. Fibres, image, observational equivalence, injectivity, surjectivity and quotient structure are derived from the map rather than stored as independent truth."
+  },
+  "records": [
+    {
+      "id": "OBS-SPEC-001",
+      "name": "Generic deterministic observation",
+      "source_type": "S",
+      "target_type": "Y",
+      "kind": "deterministic-total",
+      "domain": "all declared states in S",
+      "map_ref": "O:S->Y",
+      "scope": "set-theoretic deterministic observation only",
+      "claim_class": "DEFINITION",
+      "nonclaims": [
+        "O need not be injective or surjective.",
+        "O is not assumed linear, measurable, stochastic, physical, or ontologically privileged."
+      ]
+    },
+    {
+      "id": "OBS-SPEC-002",
+      "name": "Constant two-state observation",
+      "source_type": "Fin2",
+      "target_type": "Fin1",
+      "kind": "deterministic-total",
+      "domain": "{0,1}",
+      "map_ref": "O_const(0)=0; O_const(1)=0",
+      "scope": "minimal noninjective exact-reconstruction counterexample",
+      "claim_class": "DEFINITION",
+      "nonclaims": [
+        "This finite map is a logical fixture, not a model of a physical observer."
+      ]
+    },
+    {
+      "id": "OBS-SPEC-003",
+      "name": "Uniform floor sampler family",
+      "source_type": "Fin(R)",
+      "target_type": "Fin(L)",
+      "kind": "deterministic-total",
+      "domain": "positive integers L,R with i in {0,...,R-1}",
+      "map_ref": "floor_sample(L,R,i)=floor(i*L/R)",
+      "scope": "exact finite sampling fixture for injective/surjective/fibre analysis",
+      "claim_class": "DEFINITION",
+      "nonclaims": [
+        "This sampling map is not the definition of observation in UFT-ID.",
+        "Sampling geometry does not confer truth or physical authority."
+      ]
+    }
+  ]
+}
