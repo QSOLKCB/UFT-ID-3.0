@@ -54,6 +54,12 @@ def map_properties(mapping: dict[int, int], codomain: tuple[int, ...]) -> dict[s
 
 
 def floor_case(L: int, R: int) -> dict[str, object]:
+    # Validate before constructing ranges. Otherwise malformed non-positive
+    # dimensions can produce empty comprehensions and bypass the checks inside
+    # floor_sample/floor_fibre_formula.
+    positive_int(L, "L")
+    positive_int(R, "R")
+
     mapping = {i: floor_sample(L, R, i) for i in range(R)}
     props = map_properties(mapping, tuple(range(L)))
     formula = {str(j): floor_fibre_formula(L, R, j) for j in range(L)}
@@ -100,7 +106,7 @@ def run_suite() -> dict[str, object]:
 
     return {
         "type": "uft-id-pr9-observation-witness",
-        "schema_version": "1.0.0",
+        "schema_version": "1.0.1",
         "constant_observation": {
             "source": [0, 1],
             "codomain": [0],
