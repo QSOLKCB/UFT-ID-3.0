@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import copy
-import importlib.util
 import json
+import importlib.util
 import unittest
 from pathlib import Path
 
@@ -137,28 +136,57 @@ class PR11RelationMutationTests(unittest.TestCase):
     def test_rejects_recovery_carrier_forced_into_admissible_codomain(self):
         value = canonical_documents()
         value["contract"]["primary_types"]["rewrite_relation"] = "K subseteq X x A"
-        self.assert_error_contains(value, "general rewrite carrier")
+        self.assert_error_contains(value, "primary_types canonical mapping drift")
 
     def test_rejects_residual_symbol_reintroduced_as_rewrite_relation(self):
         value = canonical_documents()
         value["contract"]["primary_types"]["rewrite_relation"] = "r:X->X->Prop"
-        self.assert_error_contains(value, "stepRel:X->X->Prop")
+        self.assert_error_contains(value, "primary_types canonical mapping drift")
 
     def test_rejects_admissibility_conflated_with_normality(self):
         value = canonical_documents()
         value["contract"]["primary_types"]["admissibility"] = "A(x) iff Normal_stepRel(x)"
-        self.assert_error_contains(value, "admissibility must remain a separate predicate")
+        self.assert_error_contains(value, "primary_types canonical mapping drift")
+
+    def test_rejects_other_primary_type_drift(self):
+        for field in ("reachability", "normal", "joinable", "termination_orientation"):
+            with self.subTest(field=field):
+                value = canonical_documents()
+                value["contract"]["primary_types"][field] = "drifted"
+                self.assert_error_contains(value, "primary_types canonical mapping drift")
 
     def test_rejects_hard_rule_promotion(self):
         value = canonical_documents()
         value["contract"]["hard_rules"]["confluence_implies_termination"] = True
         self.assert_error_contains(value, "hard_rules must remain false")
 
+    def test_rejects_malformed_claim_class_authority_without_crashing(self):
+        for malformed in (None, 7, True, {"DEFINITION": True}):
+            with self.subTest(malformed=malformed):
+                value = canonical_documents()
+                value["base_contract"]["claim_classes"] = malformed
+                self.assert_error_contains(value, "base project claim_classes must be a list")
+
     def test_rejects_theorem_statement_broadening(self):
         value = canonical_documents()
         record = next(r for r in value["theorems"]["records"] if r["id"] == "UFT-RW-003")
         record["statement"] = "Confluence makes every state normalize uniquely."
         self.assert_error_contains(value, "UFT-RW-003 theorem statement drift")
+
+    def test_rejects_derived_corollary_statement_broadening(self):
+        value = canonical_documents()
+        value["theorems"]["derived_corollaries"][0]["statement"] = "Termination alone gives exactly one reachable normal form."
+        self.assert_error_contains(value, "derived corollary canonical payload drift")
+
+    def test_rejects_derived_corollary_name_drift(self):
+        value = canonical_documents()
+        value["theorems"]["derived_corollaries"][0]["name"] = "termination-alone-unique-normal"
+        self.assert_error_contains(value, "derived corollary canonical payload drift")
+
+    def test_rejects_human_derived_corollary_drift(self):
+        value = canonical_documents()
+        value["human"] = value["human"].replace(V.EXPECTED_DERIVED_HUMAN_MARKER, "**Canonical derived corollary:** `Termination alone suffices.`")
+        self.assert_error_contains(value, "human derived corollary canonical statement drift")
 
     def test_rejects_newman_promoted_to_headline_theorem(self):
         value = canonical_documents()
@@ -225,7 +253,16 @@ class PR11RelationMutationTests(unittest.TestCase):
         value = canonical_documents()
         record = next(r for r in value["cross_repo_patterns"]["patterns"] if r["pattern_id"] == "XR-P17")
         record["source_blob_sha"] = "0" * 40
-        self.assert_error_contains(value, "XR-P17.source_blob_sha drift")
+        self.assert_error_contains(value, "XR-P17 canonical payload drift")
+
+    def test_rejects_canonical_context_semantic_promotion(self):
+        for pattern_id in ("XR-P17", "XR-P18"):
+            for field in ("source_contract", "prohibited_inference", "abstraction"):
+                with self.subTest(pattern_id=pattern_id, field=field):
+                    value = canonical_documents()
+                    record = next(r for r in value["cross_repo_patterns"]["patterns"] if r["pattern_id"] == pattern_id)
+                    record[field] = "This machinery uniquely selects genus 10 and proves physical topology."
+                    self.assert_error_contains(value, f"{pattern_id} canonical payload drift")
 
     def test_rejects_external_target_promotion(self):
         value = canonical_documents()
