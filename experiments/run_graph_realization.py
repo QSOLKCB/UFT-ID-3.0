@@ -24,6 +24,7 @@ CORE_FILES = [
     "README4AI.md",
     "docs/REPRODUCIBILITY.md",
     "ROADMAP.md",
+    ".github/workflows/finite-adversarial.yml",
     "research/GRAPH_REALIZATION_SOURCES.md",
     "theory/RELATION_CALCULUS.md",
     "theory/GRAPH_REALIZATION.md",
