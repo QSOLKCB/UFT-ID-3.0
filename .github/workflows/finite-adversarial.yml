@@ -9,6 +9,7 @@ on:
       - "scripts/validate_vopson_2019_mei.py"
       - "scripts/validate_historical_lineage.py"
       - "scripts/validate_formalization_contracts.py"
+      - "scripts/validate_observation_specs.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -19,6 +20,7 @@ on:
       - "theory/ASSURANCE.md"
       - "theory/DEFINITION_OBLIGATIONS.md"
       - "theory/FALSIFICATION_CONTRACTS.md"
+      - "theory/OBSERVATION_CALCULUS.md"
       - "research/CROSS_REPO_PATTERN_ATLAS.md"
       - "research/HISTORICAL_LINEAGE.md"
       - "research/vopson/**"
@@ -35,6 +37,7 @@ on:
       - "scripts/validate_vopson_2019_mei.py"
       - "scripts/validate_historical_lineage.py"
       - "scripts/validate_formalization_contracts.py"
+      - "scripts/validate_observation_specs.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -45,6 +48,7 @@ on:
       - "theory/ASSURANCE.md"
       - "theory/DEFINITION_OBLIGATIONS.md"
       - "theory/FALSIFICATION_CONTRACTS.md"
+      - "theory/OBSERVATION_CALCULUS.md"
       - "research/CROSS_REPO_PATTERN_ATLAS.md"
       - "research/HISTORICAL_LINEAGE.md"
       - "research/vopson/**"
@@ -93,6 +97,14 @@ jobs:
           python experiments/formalization/run.py --json > /tmp/pr8-formalization.json
           python experiments/run_pr8.py --hash-only > /tmp/pr8-formalization-receipt.json
 
+      - name: Validate PR9 observation authority surface
+        run: python scripts/validate_observation_specs.py
+
+      - name: Run PR9 observation witnesses
+        run: |
+          python experiments/observation/run.py --json > /tmp/pr9-observation.json
+          python experiments/run_pr9.py --hash-only > /tmp/pr9-observation-receipt.json
+
       - name: Validate Vopson 2019 MEI authority surface
         run: python scripts/validate_vopson_2019_mei.py
 
@@ -125,6 +137,9 @@ jobs:
           python scripts/validate_formalization_contracts.py --json > artifacts/pr8-formalization-validation.json 2> artifacts/pr8-formalization-validation.stderr.txt || true
           python experiments/formalization/run.py --json > artifacts/pr8-formalization-witness.json 2> artifacts/pr8-formalization-witness.stderr.txt || true
           python experiments/run_pr8.py --json > artifacts/pr8-formalization-receipt.json 2> artifacts/pr8-formalization-receipt.stderr.txt || true
+          python scripts/validate_observation_specs.py --json > artifacts/pr9-observation-validation.json 2> artifacts/pr9-observation-validation.stderr.txt || true
+          python experiments/observation/run.py --json > artifacts/pr9-observation-witness.json 2> artifacts/pr9-observation-witness.stderr.txt || true
+          python experiments/run_pr9.py --json > artifacts/pr9-observation-receipt.json 2> artifacts/pr9-observation-receipt.stderr.txt || true
           python scripts/validate_reproducibility.py --json > artifacts/reproducibility-validation.json 2> artifacts/reproducibility-validation.stderr.txt || true
 
       - name: Retain finite evidence bundle
