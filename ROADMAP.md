@@ -580,13 +580,16 @@ python scripts/validate_historical_lineage.py
 python scripts/validate_formalization_contracts.py
 python scripts/validate_observation_specs.py
 python scripts/validate_relation_core.py
+python scripts/validate_graph_realization.py
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 python experiments/relation/run.py --json
 python experiments/run_pr11.py --json
+python experiments/graph_realization/run.py --json
+python experiments/run_graph_realization.py --json
 ```
 
-The relation suite is standard-library Python and bounded to the declared 530 labelled-relation conformance surface in routine CI.
+The relation suite and graph-realization suite are standard-library Python. Routine graph conformance is bounded to the declared 530 labelled relations on `Fin1`, `Fin2`, and `Fin3`.
 
 ```text
 GREEN_CI != PHYSICAL_TRUTH
@@ -824,3 +827,258 @@ A later implementation slice may promote any Pettini-inspired abstraction only i
 - mutation tests blocking ontology promotion;
 - deterministic receipts for any executable authority;
 - explicit confirmation that `PAPER_MODEL != UFT_ID_PHYSICAL_ONTOLOGY`.
+
+---
+
+# Future physiology and connectomics positive-control programme — typed transduction, feedback, hidden state, alternate mechanisms, and structure/function boundaries
+
+**Status:** ROADMAP-ONLY POSITIVE-CONTROL / MODEL-DONOR PROGRAMME. It does not renumber PR #12-#18 and does not make physiology, virology, or neuroscience UFT-ID ontology.
+
+### Mission
+
+Use independently established physiological, biomedical, and connectomic systems as deliberately heterogeneous donor cases for the formal distinctions already emerging in UFT-ID. Similar mathematical structure across donors is evidence that an abstraction is reusable, not evidence that the donors share one physical mechanism.
+
+```text
+SHARED_FORMAL_PATTERN != SHARED_PHYSICAL_MECHANISM
+PHYSIOLOGY_POSITIVE_CONTROL != UFT_ID_ONTOLOGY
+BIOLOGICAL_NETWORK != FUNDAMENTAL_INFORMATION_NETWORK
+```
+
+### A. Wheatstone pressure transducer — typed K4, balance residual, transduction, and identifiability
+
+Educational/clinical engineering source:
+
+- Deranged Physiology, *Wheatstone bridge pressure transducer*: https://derangedphysiology.com/main/required-reading/intensive-care-procedures/Chapter-216/wheatstone-bridge-pressure-transducer
+
+Treat the four bridge junctions as an abstract graph only after edge semantics are declared. Including the four resistive arms, detector diagonal, and excitation diagonal gives an untyped `K4`, but the typed circuit is not a tetrahedron and does not inherit geometric meaning from the isomorphism.
+
+For the balanced bridge relation, stage the residual:
+
+```text
+Delta_B = R1*Rx - R2*R3
+BALANCED iff Delta_B = 0
+```
+
+and the typed transduction chain:
+
+```text
+physical pressure
+-> strain-gauge state Rx
+-> bridge imbalance Delta_B
+-> electrical output
+-> calibrated pressure estimate
+```
+
+Candidate boundaries:
+
+```text
+UNTYPED_K4 != TYPED_WHEATSTONE_BRIDGE
+SAME_K4 != SAME_SEMANTICS
+ZERO_OBSERVABLE != ZERO_INTERNAL_STATE
+BALANCE_CONSTRAINT != UNIQUE_REALIZATION
+CONSTRAINT + KNOWN_CONTEXT MAY ENABLE IDENTIFIABILITY
+TRANSDUCTION != IDENTITY
+RAW_SIGNAL != CALIBRATED_QUANTITY
+```
+
+### B. Haemoglobin oxygen-dissociation curve — context-dependent calibration
+
+Public source:
+
+- *Relating oxygen partial pressure, saturation and content: the haemoglobin–oxygen dissociation curve*, PMCID `PMC4666443`: https://pmc.ncbi.nlm.nih.gov/articles/PMC4666443/
+
+Stage a context-indexed map rather than a context-free lookup:
+
+```text
+S_O2 = F(P_O2 ; pH, P_CO2, temperature, 2,3-BPG, ...)
+```
+
+The reusable target is calibration/context dependence, not respiratory ontology.
+
+```text
+SAME_P_O2 != SAME_SATURATION_UNDER_CHANGED_CONTEXT
+MEASUREMENT != CONTEXT_FREE_STATE
+CALIBRATION_PROFILE_IS_PART_OF_INTERPRETATION
+```
+
+### C. Arterial baroreflex — closed-loop observation versus open-loop identification
+
+Public source:
+
+- *Systems physiology of the baroreflex during orthostatic stress: from animals to humans*, PMCID `PMC4086024`: https://pmc.ncbi.nlm.nih.gov/articles/PMC4086024/
+
+Use the baroreflex as a control-systems donor where arterial pressure affects the controller and the controller feeds back into arterial pressure. The formal target is that causal transfer characteristics inferred under an opened loop are not automatically recoverable from ordinary closed-loop correlation.
+
+```text
+CLOSED_LOOP_OBSERVATION != OPEN_LOOP_IDENTIFICATION
+FEEDBACK_EDGE != FEEDFORWARD_EDGE
+CORRELATION_IN_LOOP != FORWARD_CAUSAL_GAIN
+```
+
+### D. Arterial Windkessel — useful reduced model versus distributed realization
+
+Canonical review source:
+
+- Westerhof, N., Lankhaar, J.-W., Westerhof, B.E. *The arterial Windkessel.* Med Biol Eng Comput 47, 131-141 (2009). DOI `10.1007/s11517-008-0359-2`.
+
+Use the Windkessel as a positive control for a lumped model that captures declared global behaviour while omitting spatially distributed wave phenomena.
+
+```text
+LUMPED_MODEL != DISTRIBUTED_SYSTEM
+MODEL_SUFFICIENCY_FOR_Q != STRUCTURAL_IDENTITY
+PREDICTS_DECLARED_OBSERVABLE != COMPLETE_MECHANISM
+```
+
+### E. Hodgkin-Huxley — hidden state and observation fibres
+
+Primary mathematical-physiology source:
+
+- Hodgkin, A.L. & Huxley, A.F. *A quantitative description of membrane current and its application to conduction and excitation in nerve.* J Physiol 117, 500-544 (1952). DOI `10.1113/jphysiol.1952.sp004764`.
+
+Use the classical state shape:
+
+```text
+x = (V, m, h, n)
+O(x) = V
+```
+
+as a positive control for hidden-state ambiguity. Equal observed membrane potential need not identify equal gating state.
+
+```text
+SAME_VOLTAGE != SAME_HIDDEN_STATE
+OBSERVATION_FIBRE != PHYSICAL_IDENTITY
+MODEL_STATE != SINGLE_OBSERVABLE
+```
+
+### F. Fick cardiac-output principle — conservation-based inference and assumption sensitivity
+
+Public methodological source:
+
+- *Methods in pharmacology: measurement of cardiac output*, PMCID `PMC3045542`: https://pmc.ncbi.nlm.nih.gov/articles/PMC3045542/
+
+Stage the inference:
+
+```text
+CO = V_O2 / (C_aO2 - C_vO2)
+```
+
+as a donor for balance-law identification when the required measurements and assumptions are supplied.
+
+```text
+INFERENCE_FORMULA != DIRECT_MEASUREMENT
+BALANCE_LAW + MEASURED_CONTEXT MAY IDENTIFY UNKNOWN
+FORMULA_VALIDITY != INPUT_ACCURACY
+```
+
+### G. HPV16 — host-context dependence and alternate routes to similar downstream classes
+
+Public sources:
+
+- *Manipulation of Epithelial Differentiation by HPV Oncoproteins*, PMCID `PMC6549445`: https://pmc.ncbi.nlm.nih.gov/articles/PMC6549445/
+- *IGF axis and other factors in HPV-related and HPV-unrelated carcinogenesis*, PMCID `PMC4240475`: https://pmc.ncbi.nlm.nih.gov/articles/PMC4240475/
+
+Use HPV16 only as a bounded donor for typed molecular interactions, dependence of viral expression/replication on host epithelial state, and the existence of routes that do not require a single canonical integration mechanism.
+
+A future abstraction may use:
+
+```text
+X_hat = X_virus x X_host x H_differentiation
+```
+
+and a typed relation vocabulary such as:
+
+```text
+binds
+degrades
+activates
+represses
+requires
+maintains
+```
+
+Candidate boundaries:
+
+```text
+GENOME_IDENTITY != EXPRESSION_STATE
+EXPRESSION_STATE != CELL_STATE != TISSUE_CONTEXT
+ONE_SUFFICIENT_PATHWAY != NECESSARY_PATHWAY
+SAME_DOWNSTREAM_CLASS != UNIQUE_UPSTREAM_MECHANISM
+UNTYPED_BIOLOGICAL_EDGE != MECHANISTIC_EQUIVALENCE
+```
+
+No viral or cancer mechanism is promoted into a UFT-ID universal mechanism.
+
+### H. FlyWire adult Drosophila connectome — weighted directed structure, threshold projection, SCCs, versioning, and structure/function separation
+
+Primary/companion sources:
+
+- Dorkenwald, S. et al. *Neuronal wiring diagram of an adult brain.* Nature 634, 124-138 (2024). DOI `10.1038/s41586-024-07558-y`.
+- Shiu, P.K. et al. *Network statistics of the whole-brain connectome of Drosophila.* Nature 634 (2024). DOI `10.1038/s41586-024-07968-y`.
+
+Stage the connectome as a versioned directed weighted graph:
+
+```text
+G = (V, E, w, lambda, dataset_version)
+```
+
+where edge existence, synapse-count weight, cell-type labels, confidence/threshold rules, and dataset release are distinct fields. A thresholded projection must retain its threshold in provenance.
+
+```text
+CONNECTOME != EFFECTOME
+CHEMICAL_SYNAPSE_GRAPH != COMPLETE_NEURAL_DYNAMICS
+ANATOMICAL_EDGE != FUNCTIONAL_CAUSATION
+EDGE_EXISTS != EDGE_WEIGHT != EDGE_TYPE
+THRESHOLDED_GRAPH != ORIGINAL_WEIGHTED_GRAPH
+SCC_MEMBERSHIP != FUNCTIONAL_EQUIVALENCE
+CELL_TYPE != GRAPH_POSITION
+DATASET_VERSION != INCIDENTAL_METADATA
+STRUCTURAL_CONNECTIVITY != FUNCTIONAL_DYNAMICS != BEHAVIOUR
+```
+
+The FlyWire SCC and threshold machinery may later serve as a real-data positive control for graph algorithms, but no empirical connectome statistic may be promoted into a general theorem.
+
+### Cross-donor formal targets
+
+These heterogeneous cases motivate future theorem/counterexample and BridgeCore targets such as:
+
+```text
+SAME_ABSTRACT_GRAPH != SAME_SEMANTICS
+ZERO_OBSERVABLE != ZERO_STATE
+CONSTRAINT_SATISFACTION != UNIQUE_IDENTIFICATION
+CLOSED_LOOP_OBSERVATION != OPEN_LOOP_CAUSAL_IDENTIFICATION
+REDUCED_MODEL_FIT != STRUCTURAL_IDENTITY
+SAME_OBSERVABLE != SAME_HIDDEN_STATE
+SAME_ENDPOINT != UNIQUE_MECHANISM
+CONNECTIVITY != FUNCTION
+THRESHOLD_PROJECTION != ORIGINAL_GRAPH
+SOURCE_VERSION != INCIDENTAL_METADATA
+```
+
+Potential finite fixtures should be synthetic and minimal. The physiological or biological sources motivate the formal question and later provide positive controls; they are not proofs of the abstract theorem.
+
+### Integration targets
+
+This donor programme should feed later work rather than expand current PR #11 theorem authority:
+
+```text
+PR #12 BridgeCore
+PR #14 representation and congruence calculus
+PR #16 recovery specializations / identifiability
+formal assurance and assumption graphs
+PR #18 empirical falsification profiles
+```
+
+### Acceptance gate
+
+A later implementation slice may promote a physiology/connectomics abstraction only if it supplies:
+
+- exact public source identity and source class;
+- a typed map/relation with explicit domain and codomain;
+- explicit preserved and lost structure for projections;
+- calibration/context variables where interpretation depends on them;
+- version and threshold provenance for data-derived graphs;
+- independent synthetic theorem or counterexample evidence;
+- a declared distinction between measured, inferred, modelled, and latent state;
+- mutation tests against mechanism/ontology promotion;
+- empirical-positive-control status kept separate from abstract mathematical proof;
+- explicit confirmation that `SHARED_FORMAL_PATTERN != SHARED_PHYSICAL_MECHANISM`.
