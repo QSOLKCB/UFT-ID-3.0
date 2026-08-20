@@ -36,6 +36,7 @@ CORE_FILES = [
     "experiments/graph_realization/run.py",
     "tests/test_graph_realization.py",
     "tests/test_pr11_codex_final4.py",
+    "tests/test_pr11_codex_final2.py",
     "experiments/run_graph_realization.py",
 ]
 
