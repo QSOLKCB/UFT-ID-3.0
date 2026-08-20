@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -195,6 +196,14 @@ EXPECTED_THEOREM_RECORDS = {
         "executable_evidence": ["experiments/relation/run.py", "tests/test_pr11_relation_core.py"],
         "nonclaims": ["This theorem does not establish that any particular external scientific package has both branches; those premises must be sourced separately."],
     },
+}
+
+EXPECTED_HUMAN_THEOREM_SECTION_SHA256 = {
+    "UFT-RW-001": "35ecf66bc3a688c0a650f4941a84de83a14d06695c2265baf01818e912167520",
+    "UFT-RW-002": "62b7434a973e0e1aa3dcc0a2082762b49edfe32916d4af1926a6d700c7adda0c",
+    "UFT-RW-003": "00277b71bfa56b0c87c5a2b617c8359439a6a91f2629daef85b5bcf1ea9079ef",
+    "UFT-RW-004": "eb3f725e10d407f401ed4e0373d2b8e194c1987581d0c62861f5b87a8b4728fe",
+    "UFT-SEL-001": "b5d56e8b41c06e64543f0f757cbcaa8a31a03377122624d973c3b7dab821de94",
 }
 
 EXPECTED_DERIVED_COROLLARY = {
@@ -434,6 +443,9 @@ XIN_ROADMAP_ANCHORS = [
     "This positive control must not be promoted into genus, E8, quantum-field, cosmological, or universal-ontology claims.",
     "explicit nonclaims blocking transfer from ferroelectric materials to cosmology or fundamental physics.",
 ]
+XIN_ROADMAP_START = "# Future positive-control programme — history-dependent topological metastability"
+XIN_ROADMAP_END = "\n---\n\n# Formal fixture policy"
+EXPECTED_XIN_ROADMAP_SECTION_SHA256 = "06b06bfd70e595d7b84e36af78a64877ba17dbe34dc8fe745d785be473cfc3be"
 
 PRIVATE_TOKENS = (
     "/mnt/data/", "file_000", "gmail:", "gdrive:", "drive.google.com",
@@ -450,6 +462,20 @@ def load(path: Path) -> dict[str, Any]:
 
 def nonempty(value: object) -> bool:
     return isinstance(value, str) and bool(value.strip())
+
+
+def sha256_text(value: str) -> str:
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def extract_section(text: str, start_marker: str, end_marker: str) -> str | None:
+    start = text.find(start_marker)
+    if start < 0:
+        return None
+    end = text.find(end_marker, start)
+    if end < 0:
+        return None
+    return text[start:end]
 
 
 def repo_file(value: object, label: str, errors: list[str]) -> None:
@@ -521,6 +547,14 @@ def canonical_line(section: str, label: str) -> str | None:
     for line in section.splitlines():
         if line.startswith(prefix) and line.endswith("`"):
             return line[len(prefix):-1]
+    return None
+
+
+def human_claim_class(section: str) -> str | None:
+    for line in section.splitlines():
+        match = re.fullmatch(r"\*\*Claim class:\*\* `([^`]+)`\.?", line)
+        if match:
+            return match.group(1)
     return None
 
 
@@ -653,6 +687,11 @@ def validate_documents(
                 human_hypotheses = None
             if human_hypotheses != EXPECTED_HYPOTHESES.get(rid):
                 errors.append(f"{rid} human canonical hypotheses drift")
+            if human_claim_class(section) != record.get("claim_class"):
+                errors.append(f"{rid} human claim class drift")
+            expected_section_hash = EXPECTED_HUMAN_THEOREM_SECTION_SHA256.get(rid)
+            if expected_section_hash is None or sha256_text(section) != expected_section_hash:
+                errors.append(f"{rid} human theorem canonical payload drift")
     if ids != EXPECTED_THEOREM_IDS:
         errors.append("relation theorem IDs must match the four foundational RW theorems plus UFT-SEL-001 exactly")
 
@@ -777,6 +816,9 @@ def validate_documents(
     for anchor in XIN_ROADMAP_ANCHORS:
         if anchor not in roadmap:
             errors.append(f"ROADMAP Xin positive-control boundary drift: {anchor}")
+    xin_section = extract_section(roadmap, XIN_ROADMAP_START, XIN_ROADMAP_END)
+    if xin_section is None or sha256_text(xin_section) != EXPECTED_XIN_ROADMAP_SECTION_SHA256:
+        errors.append("ROADMAP Xin positive-control canonical section drift")
 
     legacy = [
         "PR #8 — Invariant calculus, assurance graph, and model obligations",
