@@ -22,6 +22,8 @@ machine/observation_theorems.json
 machine/observation_counterexamples.json
 ```
 
+Each proved theorem section below contains a **Canonical statement** and **Canonical hypotheses** line. Those two lines are the synchronized human theorem authority and are validated exactly against `machine/observation_theorems.json`. The surrounding proof and explanation may clarify the theorem but may not enlarge its scope.
+
 ## ObservationSpec
 
 For this PR an observation is a total deterministic map
@@ -77,6 +79,10 @@ LINEAR_KERNEL_REQUIRES_LINEAR_STRUCTURE
 
 **Claim class:** `PROVED`
 
+**Canonical statement:** `For any function O:S->Y, define x~_O y iff O(x)=O(y). Then ~_O is an equivalence relation on S, and the equivalence class of x equals the fibre O^{-1}({O(x)}).`
+
+**Canonical hypotheses:** `["O is a total deterministic function S->Y"]`
+
 For any total deterministic function `O:S->Y`, the relation
 
 \[
@@ -100,6 +106,10 @@ So the equivalence classes are precisely the nonempty fibres.
 ## UFT-OBS-002 Quotient-to-image correspondence
 
 **Claim class:** `PROVED`
+
+**Canonical statement:** `For any function O:S->Y, the quotient S/~_O is canonically bijective with im(O), via [x] |-> O(x).`
+
+**Canonical hypotheses:** `["O is a total deterministic function S->Y"]`
 
 For any total deterministic `O:S->Y`, there is a canonical bijection
 
@@ -141,6 +151,10 @@ The generic word `reconstruction` does not imply exact inversion.
 
 **Claim class:** `PROVED`
 
+**Canonical statement:** `For any function O:S->Y, O is injective iff there exists R:im(O)->S such that R(O(x))=x for every x in S.`
+
+**Canonical hypotheses:** `["O is a total deterministic function S->Y", "Reconstruction is scoped to im(O)"]`
+
 For a total deterministic function `O:S->Y`, the following are equivalent:
 
 1. `O` is injective;
@@ -171,6 +185,10 @@ Because the reconstruction domain is `im(O)`, no extra nonemptiness assumption o
 ## UFT-OBS-004 Noninjective observation blocks global exact reconstruction
 
 **Claim class:** `PROVED`
+
+**Canonical statement:** `If O:S->Y is noninjective, no function R:Y->S can satisfy R(O(x))=x for every x in S.`
+
+**Canonical hypotheses:** `["O is a total deterministic function S->Y", "O is noninjective"]`
 
 If `O:S->Y` is noninjective, there is no function `R:Y->S` satisfying
 
@@ -205,6 +223,10 @@ This does **not** prohibit weaker reconstruction notions. A noninjective observa
 ## UFT-OBS-005 Uniform floor sampling
 
 **Claim class:** `PROVED`
+
+**Canonical statement:** `For positive integers L,R and f(i)=floor(iL/R) on i=0,...,R-1: if R<L then f is injective and not surjective; if R=L then f is the identity and bijective; if R>L then f is surjective and not injective. For j=0,...,L-1, |f^{-1}(j)|=ceil((j+1)R/L)-ceil(jR/L).`
+
+**Canonical hypotheses:** `["L and R are positive integers", "i ranges over {0,...,R-1}", "j ranges over {0,...,L-1}"]`
 
 For positive integers `L,R`, define
 
