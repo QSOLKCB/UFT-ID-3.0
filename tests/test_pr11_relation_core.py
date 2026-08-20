@@ -29,6 +29,7 @@ def canonical_documents():
         "theorems": json.loads((ROOT / "machine/relation_theorems.json").read_text()),
         "counterexamples": json.loads((ROOT / "machine/relation_counterexamples.json").read_text()),
         "selection": json.loads((ROOT / "machine/genus_selection_specimen.json").read_text()),
+        "cross_repo_patterns": json.loads((ROOT / "machine/cross_repo_patterns.json").read_text()),
         "roadmap_state": json.loads((ROOT / "machine/roadmap_state.json").read_text()),
         "base_contract": json.loads((ROOT / "machine/contract.json").read_text()),
         "human": (ROOT / "theory/RELATION_CALCULUS.md").read_text(),
@@ -42,6 +43,7 @@ def validate_docs(value):
         value["theorems"],
         value["counterexamples"],
         value["selection"],
+        value["cross_repo_patterns"],
         value["roadmap_state"],
         value["base_contract"],
         value["human"],
@@ -56,7 +58,7 @@ class PR11RelationCoreTests(unittest.TestCase):
         self.assertEqual(result["status"], "ok", result["errors"])
         self.assertEqual(result["theorem_count"], 5)
         self.assertEqual(result["counterexample_count"], 3)
-        self.assertEqual(result["public_context_pin_count"], 2)
+        self.assertEqual(result["public_context_ref_count"], 2)
 
     def test_exhaustive_relation_cardinality_is_exact(self):
         result = E.exhaustive_theorem_checks()
@@ -122,6 +124,7 @@ class PR11RelationCoreTests(unittest.TestCase):
         self.assertEqual(len(first["suite_fingerprint_sha256"]), 64)
         self.assertIn("machine/relation_contract.json", first["source_sha256"])
         self.assertIn("machine/genus_selection_specimen.json", first["source_sha256"])
+        self.assertIn("machine/cross_repo_patterns.json", first["source_sha256"])
         self.assertIn("ROADMAP.md", first["source_sha256"])
 
 
@@ -136,9 +139,14 @@ class PR11RelationMutationTests(unittest.TestCase):
         value["contract"]["primary_types"]["rewrite_relation"] = "K subseteq X x A"
         self.assert_error_contains(value, "general rewrite carrier")
 
+    def test_rejects_residual_symbol_reintroduced_as_rewrite_relation(self):
+        value = canonical_documents()
+        value["contract"]["primary_types"]["rewrite_relation"] = "r:X->X->Prop"
+        self.assert_error_contains(value, "stepRel:X->X->Prop")
+
     def test_rejects_admissibility_conflated_with_normality(self):
         value = canonical_documents()
-        value["contract"]["primary_types"]["admissibility"] = "A(x) iff Normal_r(x)"
+        value["contract"]["primary_types"]["admissibility"] = "A(x) iff Normal_stepRel(x)"
         self.assert_error_contains(value, "admissibility must remain a separate predicate")
 
     def test_rejects_hard_rule_promotion(self):
@@ -160,12 +168,17 @@ class PR11RelationMutationTests(unittest.TestCase):
             "name": "Newman",
             "claim_class": "PROVED",
             "statement": "Termination plus local confluence implies confluence.",
-            "hypotheses": ["r terminates", "r is locally confluent"],
+            "hypotheses": ["stepRel terminates", "stepRel is locally confluent"],
             "proof_reference": "theory/RELATION_CALCULUS.md#what-is-deliberately-deferred",
             "executable_evidence": ["experiments/relation/run.py"],
             "nonclaims": ["mutation fixture"],
         })
         self.assert_error_contains(value, "relation theorem IDs")
+
+    def test_rejects_malformed_deferred_theorem_entry_without_crashing(self):
+        value = canonical_documents()
+        value["theorems"]["deferred_theorem_targets"] = ["bad"]
+        self.assert_error_contains(value, "deferred theorem target must be an object")
 
     def test_rejects_fork3_edge_drift(self):
         value = canonical_documents()
@@ -176,17 +189,48 @@ class PR11RelationMutationTests(unittest.TestCase):
     def test_rejects_genus_label_collapse(self):
         value = canonical_documents()
         value["selection"]["logical_fixture"]["branches"][1]["label"]["value"] = 10
-        self.assert_error_contains(value, "distinct 10/30 normal labels")
+        self.assert_error_contains(value, "genus selection specimen canonical payload drift")
 
-    def test_rejects_public_context_pin_drift(self):
+    def test_rejects_selection_schema_drift(self):
         value = canonical_documents()
-        value["selection"]["public_context_pins"][0]["source_blob_sha"] = "0" * 40
-        self.assert_error_contains(value, "public construction-context pins drift")
+        value["selection"]["schema_version"] = "9.9.9"
+        self.assert_error_contains(value, "genus selection specimen canonical payload drift")
+
+    def test_rejects_selection_source_drift(self):
+        value = canonical_documents()
+        value["selection"]["logical_fixture"]["source"] = "different-source"
+        self.assert_error_contains(value, "genus selection specimen canonical payload drift")
+
+    def test_rejects_selection_result_claim_drift(self):
+        value = canonical_documents()
+        value["selection"]["logical_fixture"]["result"] = "Genus 10 is uniquely selected."
+        self.assert_error_contains(value, "genus selection specimen canonical payload drift")
+
+    def test_rejects_surface_description_drift(self):
+        value = canonical_documents()
+        value["selection"]["surface_constructions"]["M10"]["surface"] = "mystery"
+        self.assert_error_contains(value, "genus selection specimen canonical payload drift")
+
+    def test_rejects_selection_evidence_drift(self):
+        value = canonical_documents()
+        value["selection"]["evidence"] = ["README.md"]
+        self.assert_error_contains(value, "genus selection specimen canonical payload drift")
+
+    def test_rejects_noncanonical_context_reference(self):
+        value = canonical_documents()
+        value["selection"]["public_context_pattern_refs"][0]["pattern_id"] = "XR-P99"
+        self.assert_error_contains(value, "genus selection specimen canonical payload drift")
+
+    def test_rejects_canonical_context_source_pin_drift(self):
+        value = canonical_documents()
+        record = next(r for r in value["cross_repo_patterns"]["patterns"] if r["pattern_id"] == "XR-P17")
+        record["source_blob_sha"] = "0" * 40
+        self.assert_error_contains(value, "XR-P17.source_blob_sha drift")
 
     def test_rejects_external_target_promotion(self):
         value = canonical_documents()
         value["selection"]["external_target_boundary"]["status"] = "refuted"
-        self.assert_error_contains(value, "not-assessed-by-this-record")
+        self.assert_error_contains(value, "genus selection specimen canonical payload drift")
 
     def test_rejects_live_roadmap_active_surface_drift(self):
         value = canonical_documents()
