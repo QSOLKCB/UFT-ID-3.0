@@ -43,7 +43,7 @@ EXPECTED_HUMAN_BLOBS = {
     "nonclaims": "fae4dc92a8356e309a0502cd82d5df2af29c26ac",
     "readme4ai": "3518fa11fd2bba6fa57b89b6279a271f1d654d29",
     "reproducibility": "9fce9ae1a3ae5a867f79faa90f5309c908c7d071",
-    "roadmap": "abce8e80da40f81dae4d7bb56db967cce79abc1e",
+    "roadmap": "71fc504ab6cbe377255f9a5c73695180749fb69d",
 }
 
 EXPECTED_RESULT_IDS = {
@@ -57,6 +57,18 @@ EXPECTED_RESULT_EVIDENCE = {
         ("experiments/graph_realization/run.py", "tests/test_graph_realization.py"),
     )
     for result_id in EXPECTED_RESULT_IDS
+}
+
+EXPECTED_RESULT_NONCLAIMS = {
+    "UFT-GR-001": ("This representation theorem does not attach geometry or physical ontology to the graph.",),
+    "UFT-GR-002": ("Zero outdegree does not imply admissibility, fixed-point status, truth, or physical stability.",),
+    "UFT-GR-003": ("Finite reachability does not establish infinite-path liveness.",),
+    "UFT-GR-004": ("The finite DAG criterion is not a general proof of well-foundedness for arbitrary infinite carriers.",),
+    "UFT-GR-005": ("A sink SCC need not contain a normal vertex and is not a fixed point or termination claim.",),
+    "UFT-GR-006": ("Acyclic class-level progression does not imply state-level termination inside an SCC.",),
+    "CX-GR-001": ("This is a representation-loss counterexample, not a physical information-destruction claim.",),
+    "CX-GR-002": ("Shared module count or local motif does not select a unique global topology.",),
+    "CX-GR-003": ("A visual embedding may still be useful when its role is explicitly declared.",),
 }
 
 EXPECTED_PROVED_RESULT_BINDINGS = {
@@ -127,6 +139,28 @@ EXPECTED_COUNTEREXAMPLE_BINDINGS = {
         "human_content_anchor": "The drawings differ while the abstract labelled adjacency is unchanged.",
     },
 }
+
+EXPECTED_POSITIVE_CONTROLS = [
+    {
+        "boundary": "TETRAHEDRAL_1_SKELETON_K4 != SIS4_CHEMICAL_BOND_GRAPH",
+        "claim_class": "DEFINITION",
+        "id": "PC-GR-TETRA-K4",
+        "statement": "The 1-skeleton of a geometric tetrahedron is the complete graph K4 on its four corner vertices.",
+    },
+    {
+        "boundary": "SAME_LOCAL_COORDINATION_MOTIF != SAME_GLOBAL_CONNECTIVITY",
+        "claim_class": "EMPIRICAL",
+        "id": "PC-GR-SIS2",
+        "statement": "The cited SiS2 source reports phases built from SiS4 tetrahedral coordination units with different edge-sharing and corner-sharing connectivity patterns.",
+    },
+    {
+        "boundary": "ALGEBRA != GRAPH != EMBEDDING != PHYSICS",
+        "claim_class": "DIAGNOSTIC",
+        "context_refs": ["XR-P17", "XR-P18"],
+        "id": "PC-GR-ETQ-INVENTORY",
+        "statement": "XR-P17/XR-P18 may motivate separate module-inventory, coupling-graph, placement-graph, and embedding layers; no such layer is promoted into topology or physics without an explicit bridge.",
+    },
+]
 
 EXPECTED_BOUNDARIES = {
     "ALGEBRA != GRAPH != EMBEDDING != PHYSICS",
@@ -320,9 +354,31 @@ FIVEFOLD_ANCHORS = (
     "SHARED_CARDINALITY != SHARED_PHYSICAL_MECHANISM",
 )
 
+NUMEROSITY_START = "# Future 3-4-5 finite numerosity and semantic-lifting stress programme"
+NUMEROSITY_ANCHORS = (
+    "**Claim class:** `INTERPRETIVE` for every source-to-UFT-ID correspondence in this section",
+    "NumberSpec = (n, role, carrier, structure, semantics, scope)",
+    "NUMBER != ROLE",
+    "CARDINALITY_3 != ARITY_3 != DIMENSION_3 != RADIX_3",
+    "FIN3 != C3 != TRIANGLE != QUTRIT",
+    "FINITE_ITERATION != LIMIT_OBJECT",
+    "TETRAHEDRAL_HEURISTIC != GEOMETRIC_TETRAHEDRON",
+    "FIXED_TOTAL_INTERVAL != UNIQUE_INTERVAL_DECOMPOSITION",
+    "MUSICAL_GENUS != TOPOLOGICAL_GENUS",
+    "TETRABENAZINE != TETRACYCLIC_ANTIDEPRESSANT",
+    "CARDINALITY_5 != FIVEFOLD_SYMMETRY",
+    "3^2 + 4^2 = 5^2",
+    "ARITHMETIC_RELATION != STRUCTURAL_BRIDGE",
+    "NUMERIC_RELATION + LABEL_ASSIGNMENT != STRUCTURAL_THEOREM",
+    "NO_SEMANTIC_LIFTING_WITHOUT_A_BRIDGE",
+    "NUMBER != ROLE != STRUCTURE != MECHANISM != ONTOLOGY",
+)
+
 EXPECTED_GRINBERG = {
+    "author": "Darij Grinberg",
     "doi": "10.48550/arXiv.2308.04512",
     "identifier": "arXiv:2308.04512v3",
+    "kind": "public-mathematical-source",
     "version_date": "2025-06-08",
     "source_status": "arXiv-course-notes-preprint",
     "title": "An introduction to graph theory",
@@ -557,6 +613,7 @@ def validate() -> dict[str, object]:
     if contract.get("snapshot_date") != "2026-08-20": errors.append("graph contract UTC snapshot drift")
     if contract.get("claim_class") != "DEFINITION": errors.append("graph contract claim class drift")
     if set(contract.get("hard_boundaries", [])) != EXPECTED_BOUNDARIES: errors.append("graph contract hard-boundary set drift")
+    if contract.get("positive_controls") != EXPECTED_POSITIVE_CONTROLS: errors.append("graph positive-control authority payload drift")
 
     if results.get("type") != "uft-id-graph-realization-results": errors.append("graph results type drift")
     if results.get("schema_version") != "1.0.0": errors.append("graph results schema drift")
@@ -602,6 +659,13 @@ def validate() -> dict[str, object]:
             continue
         if result_id in ids: errors.append(f"duplicate graph result id: {result_id}")
         ids.add(result_id)
+
+        expected_nonclaims = EXPECTED_RESULT_NONCLAIMS.get(result_id)
+        nonclaims = record.get("nonclaims")
+        if expected_nonclaims is None:
+            errors.append(f"{result_id} missing canonical nonclaim binding")
+        elif not isinstance(nonclaims, list) or tuple(nonclaims) != expected_nonclaims:
+            errors.append(f"{result_id} theorem/counterexample nonclaims drift")
 
         claim_class = record.get("claim_class")
         if result_id.startswith("UFT-GR-"):
@@ -727,6 +791,14 @@ def validate() -> dict[str, object]:
         fivefold = texts["roadmap"][fivefold_index:]
         require_anchors(fivefold, FIVEFOLD_ANCHORS, "ROADMAP fivefold donor programme", errors)
 
+    numerosity_index = texts["roadmap"].find(NUMEROSITY_START)
+    if numerosity_index < 0:
+        errors.append("ROADMAP missing 3-4-5 numerosity/semantic-lifting programme")
+        numerosity = ""
+    else:
+        numerosity = texts["roadmap"][numerosity_index:]
+        require_anchors(numerosity, NUMEROSITY_ANCHORS, "ROADMAP 3-4-5 numerosity programme", errors)
+
     if RECEIPT_SCHEMA_BINDING not in texts["receipt"]: errors.append("graph receipt schema version must be derived from canonical registry")
 
     for label, value in (
@@ -741,6 +813,7 @@ def validate() -> dict[str, object]:
         ("nonclaims authority", texts["nonclaims"]), ("README4AI graph registration", texts["readme4ai"]),
         ("reproducibility graph registration", texts["reproducibility"]), ("ROADMAP Pettini model donor", pettini),
         ("ROADMAP physiology donor programme", physiology), ("ROADMAP fivefold donor programme", fivefold),
+        ("ROADMAP 3-4-5 numerosity programme", numerosity),
     ):
         no_semantic_promotion(value, label, errors)
 
