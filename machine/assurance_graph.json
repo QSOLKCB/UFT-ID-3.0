@@ -1,156 +1,42 @@
 {
   "forbidden_automatic_promotions": [
-    {
-      "from": "PROOF_OBJECT",
-      "reason": "Formal proof does not establish implementation conformance.",
-      "to": "CONFORMANCE_RESULT"
-    },
-    {
-      "from": "PROOF_OBJECT",
-      "reason": "Formal proof does not execute an empirical experiment.",
-      "to": "MEASUREMENT"
-    },
-    {
-      "from": "CONFORMANCE_RESULT",
-      "reason": "Software conformance is not empirical validation.",
-      "to": "MEASUREMENT"
-    },
-    {
-      "from": "DETERMINISTIC_REPLAY",
-      "reason": "Replay is computational assurance, not a new measurement.",
-      "to": "MEASUREMENT"
-    },
-    {
-      "from": "DETERMINISTIC_REPLAY",
-      "reason": "Replay does not establish physical truth.",
-      "to": "SCIENTIFIC_INTERPRETATION"
-    },
-    {
-      "from": "STATEMENT",
-      "reason": "Formal-looking syntax is not proof.",
-      "to": "PROOF_OBJECT"
-    }
+    {"from":"PROOF_OBJECT","reason":"Formal proof does not establish implementation conformance.","to":"CONFORMANCE_RESULT"},
+    {"from":"PROOF_OBJECT","reason":"Formal proof does not execute an empirical experiment.","to":"MEASUREMENT"},
+    {"from":"CONFORMANCE_RESULT","reason":"Software conformance is not empirical validation.","to":"MEASUREMENT"},
+    {"from":"DETERMINISTIC_REPLAY","reason":"Replay is computational assurance, not a new measurement.","to":"MEASUREMENT"},
+    {"from":"DETERMINISTIC_REPLAY","reason":"Replay does not establish physical truth.","to":"SCIENTIFIC_INTERPRETATION"},
+    {"from":"STATEMENT","reason":"Formal-looking syntax is not proof.","to":"PROOF_OBJECT"},
+    {"from":"MODEL_OUTPUT","reason":"A model saying, predicting, or describing that work was executed is not evidence that execution occurred.","to":"EXECUTION_EVIDENCE"}
   ],
   "nodes": [
-    {
-      "axis": "formal",
-      "id": "STATEMENT",
-      "meaning": "Human/machine statement with versioned identity"
-    },
-    {
-      "axis": "formal",
-      "id": "FORMAL_ENCODING",
-      "meaning": "Encoding of a statement in a formal language"
-    },
-    {
-      "axis": "formal",
-      "id": "PROOF_OBJECT",
-      "meaning": "Proof accepted by the declared formal environment"
-    },
-    {
-      "axis": "formal",
-      "id": "PROOF_AUDIT",
-      "meaning": "Audit of theorem surface, proof holes, axioms and toolchain identity"
-    },
-    {
-      "axis": "runtime",
-      "id": "REFERENCE_IMPLEMENTATION",
-      "meaning": "Declared implementation intended to realize selected semantics"
-    },
-    {
-      "axis": "runtime",
-      "id": "RUNTIME_CORRESPONDENCE",
-      "meaning": "Explicit mapping between formal objects and runtime surfaces"
-    },
-    {
-      "axis": "runtime",
-      "id": "CONFORMANCE_RESULT",
-      "meaning": "Observed test result under a declared conformance contract"
-    },
-    {
-      "axis": "runtime",
-      "id": "DETERMINISTIC_REPLAY",
-      "meaning": "Replay result under frozen deterministic execution identity"
-    },
-    {
-      "axis": "empirical",
-      "id": "EMPIRICAL_HYPOTHESIS",
-      "meaning": "Scientific hypothesis with declared empirical target"
-    },
-    {
-      "axis": "empirical",
-      "id": "EXPERIMENT",
-      "meaning": "Executed empirical protocol"
-    },
-    {
-      "axis": "empirical",
-      "id": "MEASUREMENT",
-      "meaning": "Observed measurement with provenance/calibration"
-    },
-    {
-      "axis": "interpretive",
-      "id": "SCIENTIFIC_INTERPRETATION",
-      "meaning": "Scientific interpretation supported by separately identified evidence"
-    }
+    {"axis":"formal","id":"STATEMENT","meaning":"Human/machine statement with versioned identity"},
+    {"axis":"formal","id":"FORMAL_ENCODING","meaning":"Encoding of a statement in a formal language"},
+    {"axis":"formal","id":"PROOF_OBJECT","meaning":"Proof accepted by the declared formal environment"},
+    {"axis":"formal","id":"PROOF_AUDIT","meaning":"Audit of theorem surface, proof holes, axioms and toolchain identity"},
+    {"axis":"runtime","id":"REFERENCE_IMPLEMENTATION","meaning":"Declared implementation intended to realize selected semantics"},
+    {"axis":"runtime","id":"RUNTIME_CORRESPONDENCE","meaning":"Explicit mapping between formal objects and runtime surfaces"},
+    {"axis":"runtime","id":"CONFORMANCE_RESULT","meaning":"Observed test result under a declared conformance contract"},
+    {"axis":"runtime","id":"DETERMINISTIC_REPLAY","meaning":"Replay result under frozen deterministic execution identity"},
+    {"axis":"runtime","id":"MODEL_OUTPUT","meaning":"Generated model content, treated as untrusted input unless separately evidenced"},
+    {"axis":"runtime-evidence","id":"EXECUTION_EVIDENCE","meaning":"Independent retained evidence that a declared execution actually occurred"},
+    {"axis":"empirical","id":"EMPIRICAL_HYPOTHESIS","meaning":"Scientific hypothesis with declared empirical target"},
+    {"axis":"empirical","id":"EXPERIMENT","meaning":"Executed empirical protocol"},
+    {"axis":"empirical","id":"MEASUREMENT","meaning":"Observed measurement with provenance/calibration"},
+    {"axis":"interpretive","id":"SCIENTIFIC_INTERPRETATION","meaning":"Scientific interpretation supported by separately identified evidence"}
   ],
-  "rule": "Only an explicitly named support edge establishes the declared relation. No transitive promotion across edge types is inferred.",
-  "schema_version": "1.0.0",
+  "rule": "Only an explicitly named support edge establishes the declared relation. No transitive promotion across edge types is inferred. A pair cannot be both supported and forbidden.",
+  "schema_version": "1.0.1",
   "snapshot_date": "2026-08-20",
   "support_edges": [
-    {
-      "entitlement": "encoding-only",
-      "from": "STATEMENT",
-      "relation": "encoded_as",
-      "to": "FORMAL_ENCODING"
-    },
-    {
-      "entitlement": "formal-proposition-only",
-      "from": "FORMAL_ENCODING",
-      "relation": "proved_in",
-      "to": "PROOF_OBJECT"
-    },
-    {
-      "entitlement": "audit-of-declared-proof-surface",
-      "from": "PROOF_OBJECT",
-      "relation": "audited_by",
-      "to": "PROOF_AUDIT"
-    },
-    {
-      "entitlement": "correspondence-claim-only",
-      "from": "FORMAL_ENCODING",
-      "relation": "mapped_to_runtime_by",
-      "to": "RUNTIME_CORRESPONDENCE"
-    },
-    {
-      "entitlement": "declared-test-scope-only",
-      "from": "REFERENCE_IMPLEMENTATION",
-      "relation": "tested_by",
-      "to": "CONFORMANCE_RESULT"
-    },
-    {
-      "entitlement": "frozen-runtime-scope-only",
-      "from": "REFERENCE_IMPLEMENTATION",
-      "relation": "replayed_by",
-      "to": "DETERMINISTIC_REPLAY"
-    },
-    {
-      "entitlement": "protocol-scope-only",
-      "from": "EMPIRICAL_HYPOTHESIS",
-      "relation": "tested_by",
-      "to": "EXPERIMENT"
-    },
-    {
-      "entitlement": "measurement-provenance-only",
-      "from": "EXPERIMENT",
-      "relation": "produces",
-      "to": "MEASUREMENT"
-    },
-    {
-      "entitlement": "requires-explicit-inference",
-      "from": "MEASUREMENT",
-      "relation": "may_support",
-      "to": "SCIENTIFIC_INTERPRETATION"
-    }
+    {"entitlement":"encoding-only","from":"STATEMENT","relation":"encoded_as","to":"FORMAL_ENCODING"},
+    {"entitlement":"formal-proposition-only","from":"FORMAL_ENCODING","relation":"proved_in","to":"PROOF_OBJECT"},
+    {"entitlement":"audit-of-declared-proof-surface","from":"PROOF_OBJECT","relation":"audited_by","to":"PROOF_AUDIT"},
+    {"entitlement":"correspondence-claim-only","from":"FORMAL_ENCODING","relation":"mapped_to_runtime_by","to":"RUNTIME_CORRESPONDENCE"},
+    {"entitlement":"declared-test-scope-only","from":"REFERENCE_IMPLEMENTATION","relation":"tested_by","to":"CONFORMANCE_RESULT"},
+    {"entitlement":"frozen-runtime-scope-only","from":"REFERENCE_IMPLEMENTATION","relation":"replayed_by","to":"DETERMINISTIC_REPLAY"},
+    {"entitlement":"protocol-scope-only","from":"EMPIRICAL_HYPOTHESIS","relation":"tested_by","to":"EXPERIMENT"},
+    {"entitlement":"measurement-provenance-only","from":"EXPERIMENT","relation":"produces","to":"MEASUREMENT"},
+    {"entitlement":"requires-explicit-inference","from":"MEASUREMENT","relation":"may_support","to":"SCIENTIFIC_INTERPRETATION"}
   ],
   "type": "uft-id-assurance-graph"
 }
