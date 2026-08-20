@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 import importlib.util
 import unittest
@@ -124,7 +125,27 @@ class PR11RelationCoreTests(unittest.TestCase):
         self.assertIn("machine/relation_contract.json", first["source_sha256"])
         self.assertIn("machine/genus_selection_specimen.json", first["source_sha256"])
         self.assertIn("machine/cross_repo_patterns.json", first["source_sha256"])
+        self.assertIn("research/CROSS_REPO_PATTERN_ATLAS.md", first["source_sha256"])
         self.assertIn("ROADMAP.md", first["source_sha256"])
+
+    def test_atlas_source_hash_mutation_changes_receipt_fingerprint(self):
+        receipt = R.run_suite()
+        atlas = "research/CROSS_REPO_PATTERN_ATLAS.md"
+        original_bytes = (ROOT / atlas).read_bytes()
+        mutated_hash = R.sha256_bytes(original_bytes + b"\nsynthetic atlas mutation\n")
+        self.assertNotEqual(mutated_hash, receipt["source_sha256"][atlas])
+
+        identity = {
+            "type": receipt["type"],
+            "schema_version": receipt["schema_version"],
+            "source_sha256": copy.deepcopy(receipt["source_sha256"]),
+            "declared_evidence_paths": receipt["declared_evidence_paths"],
+            "result_sha256": receipt["result_sha256"],
+            "summary": receipt["summary"],
+        }
+        identity["source_sha256"][atlas] = mutated_hash
+        mutated_fingerprint = R.sha256_bytes(R.canonical_bytes(identity))
+        self.assertNotEqual(mutated_fingerprint, receipt["suite_fingerprint_sha256"])
 
 
 class PR11RelationMutationTests(unittest.TestCase):
@@ -160,6 +181,16 @@ class PR11RelationMutationTests(unittest.TestCase):
         value["contract"]["hard_rules"]["confluence_implies_termination"] = True
         self.assert_error_contains(value, "hard_rules must remain false")
 
+    def test_rejects_contract_scope_promotion(self):
+        value = canonical_documents()
+        value["contract"]["scope"] = "Universal physical law selecting a unique cosmic topology."
+        self.assert_error_contains(value, "relation contract scope drift")
+
+    def test_rejects_contract_boundary_promotion(self):
+        value = canonical_documents()
+        value["contract"]["boundaries"] = ["COMPATIBILITY => UNIQUE_PHYSICAL_SELECTION"]
+        self.assert_error_contains(value, "relation contract boundaries drift")
+
     def test_rejects_malformed_claim_class_authority_without_crashing(self):
         for malformed in (None, 7, True, {"DEFINITION": True}):
             with self.subTest(malformed=malformed):
@@ -167,11 +198,46 @@ class PR11RelationMutationTests(unittest.TestCase):
                 value["base_contract"]["claim_classes"] = malformed
                 self.assert_error_contains(value, "base project claim_classes must be a list")
 
+    def test_rejects_malformed_claim_class_member_without_crashing(self):
+        for malformed in ({"bad": True}, ["bad"], 7, True, None):
+            with self.subTest(malformed=malformed):
+                value = canonical_documents()
+                value["base_contract"]["claim_classes"] = ["DEFINITION", malformed]
+                self.assert_error_contains(value, "claim_classes must contain non-empty strings only")
+
+    def test_rejects_pr11_future_utc_snapshot_dates(self):
+        targets = (
+            ("contract", None),
+            ("theorems", None),
+            ("counterexamples", None),
+            ("selection", None),
+            ("roadmap_state", None),
+        )
+        for key, _ in targets:
+            with self.subTest(key=key):
+                value = canonical_documents()
+                value[key]["snapshot_date"] = "2026-08-21"
+                self.assert_error_contains(value, "snapshot")
+
     def test_rejects_theorem_statement_broadening(self):
         value = canonical_documents()
         record = next(r for r in value["theorems"]["records"] if r["id"] == "UFT-RW-003")
         record["statement"] = "Confluence makes every state normalize uniquely."
         self.assert_error_contains(value, "UFT-RW-003 theorem statement drift")
+
+    def test_rejects_theorem_full_payload_drift(self):
+        mutations = {
+            "lean_target_name": "UFT_RW_003_ALREADY_LEAN_PROVED",
+            "name": "Universal physical confluence theorem",
+            "executable_evidence": ["README.md"],
+            "nonclaims": ["This proves physical ontology."],
+        }
+        for field, replacement in mutations.items():
+            with self.subTest(field=field):
+                value = canonical_documents()
+                record = next(r for r in value["theorems"]["records"] if r["id"] == "UFT-RW-003")
+                record[field] = replacement
+                self.assert_error_contains(value, "UFT-RW-003 theorem canonical payload drift")
 
     def test_rejects_derived_corollary_statement_broadening(self):
         value = canonical_documents()
@@ -213,6 +279,20 @@ class PR11RelationMutationTests(unittest.TestCase):
         record = next(r for r in value["counterexamples"]["records"] if r["id"] == "CX-RW-FORK3")
         record["edges"] = [["a", "b"]]
         self.assert_error_contains(value, "CX-RW-FORK3.edges drift")
+
+    def test_rejects_counterexample_full_payload_drift(self):
+        mutations = {
+            "name": "Universal one-state physical refutation",
+            "minimality": "One state is universally minimal in all systems.",
+            "kills": ["ALL_PHYSICAL_THEORIES"],
+            "nonclaims": ["This refutes a specific external paper and proves cosmology."],
+        }
+        for field, replacement in mutations.items():
+            with self.subTest(field=field):
+                value = canonical_documents()
+                record = next(r for r in value["counterexamples"]["records"] if r["id"] == "CX-RW-FORK3")
+                record[field] = replacement
+                self.assert_error_contains(value, "CX-RW-FORK3 counterexample canonical payload drift")
 
     def test_rejects_genus_label_collapse(self):
         value = canonical_documents()
@@ -273,6 +353,35 @@ class PR11RelationMutationTests(unittest.TestCase):
         value = canonical_documents()
         value["roadmap_state"]["active_planned_surface"] = 10
         self.assert_error_contains(value, "active planned surface must be PR11")
+
+    def test_rejects_complete_roadmap_state_semantic_drift(self):
+        mutations = {
+            "deferred": [],
+            "compatibility_note": "PR8 and PR9 authority is obsolete.",
+            "fixture_policy": "Any decorative example is sufficient proof.",
+            "rules": ["COMPATIBILITY => UNIQUE_PHYSICAL_SELECTION"],
+        }
+        for field, replacement in mutations.items():
+            with self.subTest(field=field):
+                value = canonical_documents()
+                value["roadmap_state"][field] = replacement
+                self.assert_error_contains(value, "live roadmap state canonical payload drift")
+
+    def test_rejects_xin_programme_promotion_to_pr11_authority(self):
+        value = canonical_documents()
+        value["roadmap"] = value["roadmap"].replace(
+            "**Status:** ROADMAP-ONLY RESEARCH TARGET. Not part of the current PR #11 theorem authority",
+            "**Status:** CURRENT PR #11 THEOREM AUTHORITY",
+        )
+        self.assert_error_contains(value, "ROADMAP Xin positive-control boundary drift")
+
+    def test_rejects_xin_programme_as_cosmological_proof(self):
+        value = canonical_documents()
+        value["roadmap"] = value["roadmap"].replace(
+            "The theorem or counterexample must stand on UFT-ID's own mathematics.",
+            "The Xin experiment proves general cosmological E8 topology.",
+        )
+        self.assert_error_contains(value, "ROADMAP Xin positive-control boundary drift")
 
     def test_rejects_reintroduced_infinite_liveness_claim(self):
         value = canonical_documents()
