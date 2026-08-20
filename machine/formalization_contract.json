@@ -32,7 +32,11 @@
     "validator": "scripts/validate_formalization_contracts.py"
   },
   "base_project_contract_schema": "1.5.1",
-  "cross_repo_pattern_refs": ["XR-P03", "XR-P06", "XR-P10", "XR-P15"],
+  "cross_repo_pattern_refs": ["XR-P03", "XR-P06", "XR-P15"],
+  "internal_lineage_ids": [
+    "UFTID3-INTERNAL-UI-INV-002",
+    "UFTID3-INTERNAL-UI-INV-003"
+  ],
   "deferred_surfaces": [
     {"planned_pr": 9, "surface": "observation-fibres-and-quotients"},
     {"planned_pr": 10, "surface": "recovery-taxonomy"},
@@ -49,7 +53,8 @@
     "A named mathematical object must satisfy its type-specific minimum declaration before it may appear in a theorem premise.",
     "A scientific hypothesis that claims falsifiability must name perturbation/control variables, observables, predictions, null behavior, rejection conditions, evidence requirements and scope.",
     "Private author-supplied papers may motivate generic design patterns but are not published as source-byte authority.",
-    "Public donor authority is inherited only through IDs already registered in machine/cross_repo_patterns.json."
+    "Public donor authority is inherited only through IDs already registered in machine/cross_repo_patterns.json.",
+    "Internally proved UFT-ID results use explicit internal-lineage IDs rather than unrelated donor records."
   ],
   "hard_rules": {
     "claim_label_implies_implemented_structure": false,
@@ -68,7 +73,7 @@
   },
   "invariant_kinds": ["exact", "approximate", "representation", "transport", "statistical", "replay", "epistemic-non-promotion", "contract"],
   "invariant_statuses": ["definition", "theorem-target", "proved", "proved-finite-specialization", "counterexample", "nonclaim"],
-  "schema_version": "1.0.1",
+  "schema_version": "1.0.2",
   "snapshot_date": "2026-08-20",
   "source_inputs": [
     {
@@ -86,6 +91,6 @@
       "source_id": "PR8-INPUT-PAPER-BUNDLE"
     }
   ],
-  "status": "pr8-invariant-assurance-model-obligations-hardened",
+  "status": "pr8-invariant-assurance-model-obligations-hardened-v2",
   "type": "uft-id-formalization-contract"
 }
