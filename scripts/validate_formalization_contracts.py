@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,7 @@ PATHS = {
     "assurance": ROOT / "machine/assurance_graph.json",
     "obligations": ROOT / "machine/definition_obligations.json",
     "falsification": ROOT / "machine/falsification_contract.json",
+    "cross_repo_patterns": ROOT / "machine/cross_repo_patterns.json",
     "invariant_human": ROOT / "theory/INVARIANT_CALCULUS.md",
     "assurance_human": ROOT / "theory/ASSURANCE.md",
     "obligations_human": ROOT / "theory/DEFINITION_OBLIGATIONS.md",
@@ -29,6 +31,7 @@ PATHS = {
 EXPECTED_AUTHORITIES = {
     "invariant_specs": "machine/invariant_specs.json",
     "assurance_graph": "machine/assurance_graph.json",
+    "cross_repo_patterns": "machine/cross_repo_patterns.json",
     "definition_obligations": "machine/definition_obligations.json",
     "falsification_contract": "machine/falsification_contract.json",
     "invariant_human": "theory/INVARIANT_CALCULUS.md",
@@ -48,6 +51,7 @@ EXPECTED_HARD_RULES = {
     "runtime_conformance_implies_empirical_validation",
     "deterministic_replay_implies_scientific_confirmation",
     "content_identity_implies_semantic_truth",
+    "model_output_implies_execution_evidence",
     "named_object_implies_well_defined_object",
     "proxy_may_silently_replace_source_object",
     "claim_label_implies_implemented_structure",
@@ -57,11 +61,47 @@ EXPECTED_HARD_RULES = {
     "paper_specific_ontology_is_inherited_by_methodological_reuse",
 }
 
+EXPECTED_CROSS_REPO_REFS = {"XR-P03", "XR-P06", "XR-P10", "XR-P15"}
+EXPECTED_PRIVATE_SOURCE_IDS = {"PR8-INPUT-DEEP-RESEARCH", "PR8-INPUT-PAPER-BUNDLE"}
+PRIVATE_SOURCE_KEYS = {"source_id", "source_class", "scope", "preserved_structure", "not_inherited"}
+EXPECTED_INV_FIELDS = [
+    "id", "name", "domain", "codomain", "transformation", "hypotheses", "property",
+    "break_conditions", "kind", "scope", "status", "claim_class", "source_lineage", "nonclaims",
+]
+EXPECTED_DEF_TERMS = {
+    "DEF-OBL-STATE": "state",
+    "DEF-OBL-OPERATOR": "operator",
+    "DEF-OBL-EIGENMODE": "eigenmode",
+    "DEF-OBL-ENTROPY": "entropy",
+    "DEF-OBL-PROBABILITY": "probability",
+    "DEF-OBL-METRIC": "metric",
+    "DEF-OBL-MEASURE": "measure",
+    "DEF-OBL-DERIVATIVE": "derivative",
+    "DEF-OBL-PROJECTION": "projection",
+    "DEF-OBL-TRANSPORT": "transport",
+    "DEF-OBL-INFORMATION": "information functional",
+    "DEF-OBL-CONTINUUM": "continuum model",
+}
+EXPECTED_MODEL_CLAIMS = {
+    "MODEL-OBL-REVERSIBLE": "reversible/invertible map",
+    "MODEL-OBL-DIMENSION": "n-dimensional implemented structure",
+    "MODEL-OBL-DYNAMICS": "implemented dynamics/time evolution",
+    "MODEL-OBL-SIMULATION": "scientific simulation",
+}
+EXPECTED_FORBIDDEN_PAIRS = {
+    ("PROOF_OBJECT", "CONFORMANCE_RESULT"),
+    ("PROOF_OBJECT", "MEASUREMENT"),
+    ("CONFORMANCE_RESULT", "MEASUREMENT"),
+    ("DETERMINISTIC_REPLAY", "MEASUREMENT"),
+    ("DETERMINISTIC_REPLAY", "SCIENTIFIC_INTERPRETATION"),
+    ("STATEMENT", "PROOF_OBJECT"),
+    ("MODEL_OUTPUT", "EXECUTION_EVIDENCE"),
+}
 CLAIM_CLASSES = {
     "DEFINITION", "THEOREM_TARGET", "PROVED", "COUNTEREXAMPLE", "DIAGNOSTIC",
     "EMPIRICAL", "INTERPRETIVE", "SPECULATIVE", "NONCLAIM",
 }
-SHA40 = re.compile(r"^[0-9a-f]{40}$")
+RELATION_RE = re.compile(r"^q\(1\)\s*(<=|>=|==|=|<|>)\s*q\(0\)$")
 
 
 def load(path: Path) -> dict[str, Any]:
@@ -110,13 +150,23 @@ def repo_file(value: object, label: str, errors: list[str]) -> None:
         errors.append(f"{label} does not exist: {value}")
 
 
-def require_shape(doc: dict[str, Any], doc_type: str, snapshot: object, label: str, errors: list[str]) -> None:
+def require_shape(doc: dict[str, Any], doc_type: str, snapshot: object, label: str, version: str, errors: list[str]) -> None:
     if doc.get("type") != doc_type:
         errors.append(f"{label} type mismatch")
-    if doc.get("schema_version") != "1.0.0":
+    if doc.get("schema_version") != version:
         errors.append(f"{label} schema mismatch")
     if doc.get("snapshot_date") != snapshot:
         errors.append(f"{label} snapshot_date must equal formalization contract snapshot")
+
+
+def one_claim_class(text: str, label: str, expected: str, errors: list[str]) -> None:
+    lines = [line for line in text.splitlines() if line.startswith("**Claim class:**")]
+    if len(lines) != 1:
+        errors.append(f"{label} must contain exactly one canonical Claim class header")
+        return
+    classes = re.findall(r"`([A-Z_]+)`", lines[0])
+    if classes != [expected]:
+        errors.append(f"{label} canonical claim class must be exactly {expected}")
 
 
 def validate_documents(
@@ -125,6 +175,7 @@ def validate_documents(
     assurance: dict[str, Any],
     obligations: dict[str, Any],
     falsification: dict[str, Any],
+    cross_repo_patterns: dict[str, Any],
     human_docs: dict[str, str],
     *,
     check_paths: bool = True,
@@ -133,7 +184,7 @@ def validate_documents(
 
     if contract.get("type") != "uft-id-formalization-contract":
         errors.append("formalization contract type mismatch")
-    if contract.get("schema_version") != "1.0.0":
+    if contract.get("schema_version") != "1.0.1":
         errors.append("formalization contract schema mismatch")
     snapshot = contract.get("snapshot_date")
     if not nonempty(snapshot):
@@ -158,10 +209,24 @@ def validate_documents(
     statuses = set(string_list(contract.get("invariant_statuses"), "contract.invariant_statuses", errors, required=True))
     dimensions = set(string_list(contract.get("assurance_dimensions"), "contract.assurance_dimensions", errors, required=True))
 
-    require_shape(invariants, "uft-id-invariant-spec-registry", snapshot, "invariants", errors)
-    require_shape(assurance, "uft-id-assurance-graph", snapshot, "assurance", errors)
-    require_shape(obligations, "uft-id-definition-and-model-obligation-registry", snapshot, "obligations", errors)
-    require_shape(falsification, "uft-id-falsification-contract", snapshot, "falsification", errors)
+    require_shape(invariants, "uft-id-invariant-spec-registry", snapshot, "invariants", "1.0.1", errors)
+    require_shape(assurance, "uft-id-assurance-graph", snapshot, "assurance", "1.0.1", errors)
+    require_shape(obligations, "uft-id-definition-and-model-obligation-registry", snapshot, "obligations", "1.0.0", errors)
+    require_shape(falsification, "uft-id-falsification-contract", snapshot, "falsification", "1.0.1", errors)
+
+    positive_patterns = cross_repo_patterns.get("patterns")
+    if not isinstance(positive_patterns, list):
+        errors.append("canonical cross-repo patterns must contain patterns list")
+        positive_patterns = []
+    canonical_pattern_ids = {
+        item.get("pattern_id") for item in positive_patterns
+        if isinstance(item, dict) and nonempty(item.get("pattern_id"))
+    }
+    refs = set(string_list(contract.get("cross_repo_pattern_refs"), "contract.cross_repo_pattern_refs", errors, required=True))
+    if refs != EXPECTED_CROSS_REPO_REFS:
+        errors.append("cross_repo_pattern_refs must match the exact PR8 canonical donor pattern set")
+    if refs - canonical_pattern_ids:
+        errors.append(f"cross_repo_pattern_refs contain unknown/non-positive IDs: {sorted(refs - canonical_pattern_ids)}")
 
     source_ids: set[str] = set()
     sources = contract.get("source_inputs")
@@ -172,6 +237,8 @@ def validate_documents(
         if not isinstance(source, dict):
             errors.append(f"source_inputs[{i}] must be object")
             continue
+        if set(source) != PRIVATE_SOURCE_KEYS:
+            errors.append(f"source_inputs[{i}] private design input must use exact allow-listed keys")
         sid = source.get("source_id")
         if not nonempty(sid):
             errors.append(f"source_inputs[{i}].source_id required")
@@ -180,31 +247,26 @@ def validate_documents(
         if sid in source_ids:
             errors.append(f"duplicate source_id {sid}")
         source_ids.add(sid)
-        cls = source.get("source_class")
-        if cls in {"methodological-donor", "formal-assurance-donor"}:
-            for key in ("repository", "ref", "path", "blob_sha"):
-                if not nonempty(source.get(key)):
-                    errors.append(f"{sid}.{key} required for public donor")
-            if source.get("ref") != "main":
-                errors.append(f"{sid}.ref must be main")
-            sha = source.get("blob_sha")
-            if not isinstance(sha, str) or not SHA40.fullmatch(sha):
-                errors.append(f"{sid}.blob_sha must be exact 40-char Git blob SHA")
-        elif cls == "author-supplied-design-input":
-            serialized = json.dumps(source, sort_keys=True)
-            if any(token in serialized for token in ("file_000", "gmail:", "gdrive:", "docs.google.com", "drive.google.com")):
-                errors.append(f"{sid} leaks private attachment/connector identifier")
-            if source.get("public_locator") is not None or source.get("source_hash") is not None:
-                errors.append(f"{sid} private design input must not invent public locator/hash")
-        else:
-            errors.append(f"{sid}.source_class unsupported")
+        if source.get("source_class") != "author-supplied-design-input":
+            errors.append(f"{sid}.source_class must be author-supplied-design-input")
+        if not nonempty(source.get("scope")):
+            errors.append(f"{sid}.scope required")
         string_list(source.get("preserved_structure"), f"{sid}.preserved_structure", errors, required=True)
         string_list(source.get("not_inherited"), f"{sid}.not_inherited", errors, required=True)
+    if source_ids != EXPECTED_PRIVATE_SOURCE_IDS:
+        errors.append("private source_inputs must contain exactly the two redacted PR8 design inputs")
 
-    required_inv = {
-        "id", "name", "domain", "codomain", "transformation", "hypotheses", "property",
-        "break_conditions", "kind", "scope", "status", "claim_class", "source_lineage", "nonclaims",
-    }
+    generic = invariants.get("generic_form")
+    if not isinstance(generic, dict):
+        errors.append("invariants.generic_form required")
+    else:
+        if generic.get("fields") != EXPECTED_INV_FIELDS:
+            errors.append("invariants.generic_form.fields must exactly match executable InvSpec fields")
+        if not nonempty(generic.get("name")) or not nonempty(generic.get("validity")):
+            errors.append("invariants.generic_form requires name and validity")
+
+    allowed_lineage = source_ids | refs
+    required_inv = set(EXPECTED_INV_FIELDS)
     inv_ids: set[str] = set()
     records = invariants.get("records")
     if not isinstance(records, list) or not records:
@@ -236,9 +298,9 @@ def validate_documents(
             errors.append(f"{rid}.claim_class unsupported")
         string_list(record.get("hypotheses"), f"{rid}.hypotheses", errors, required=True)
         string_list(record.get("break_conditions"), f"{rid}.break_conditions", errors, required=True)
-        refs = string_list(record.get("source_lineage"), f"{rid}.source_lineage", errors, required=True)
-        if set(refs) - source_ids:
-            errors.append(f"{rid} references unknown source lineage")
+        lineage = string_list(record.get("source_lineage"), f"{rid}.source_lineage", errors, required=True)
+        if set(lineage) - allowed_lineage:
+            errors.append(f"{rid} references source lineage outside canonical/private PR8 authorities")
         string_list(record.get("nonclaims"), f"{rid}.nonclaims", errors, required=True)
         evidence = record.get("evidence")
         if evidence is not None:
@@ -246,6 +308,11 @@ def validate_documents(
             if check_paths:
                 for path in paths:
                     repo_file(path, f"{rid}.evidence", errors)
+        if record.get("claim_class") == "PROVED":
+            if not nonempty(record.get("proof")):
+                errors.append(f"{rid} PROVED claim requires an explicit proof field")
+            if not isinstance(evidence, list) or not evidence:
+                errors.append(f"{rid} PROVED claim requires retained evidence paths")
     if inv_ids != {f"UI-INV-{i:03d}" for i in range(1, 7)}:
         errors.append("invariant registry must contain UI-INV-001 through UI-INV-006 exactly")
 
@@ -272,29 +339,50 @@ def validate_documents(
         errors.append("assurance nodes must exactly match contract assurance_dimensions")
 
     support_pairs: set[tuple[str, str]] = set()
-    for field in ("support_edges", "forbidden_automatic_promotions"):
-        edges = assurance.get(field)
-        if not isinstance(edges, list) or not edges:
-            errors.append(f"assurance.{field} must be non-empty list")
-            edges = []
-        for i, edge in enumerate(edges):
-            if not isinstance(edge, dict):
-                errors.append(f"assurance.{field}[{i}] must be object")
-                continue
-            src, dst = edge.get("from"), edge.get("to")
-            if src not in node_ids or dst not in node_ids:
-                errors.append(f"assurance.{field}[{i}] has dangling endpoint")
-            if src == dst:
-                errors.append(f"assurance.{field}[{i}] self edge forbidden")
-            if field == "support_edges":
-                if not nonempty(edge.get("relation")) or not nonempty(edge.get("entitlement")):
-                    errors.append(f"assurance.support_edges[{i}] requires relation and entitlement")
-                pair = (str(src), str(dst))
-                if pair in support_pairs:
-                    errors.append(f"duplicate assurance support edge {pair}")
-                support_pairs.add(pair)
-            elif not nonempty(edge.get("reason")):
-                errors.append(f"assurance.forbidden_automatic_promotions[{i}].reason required")
+    supports = assurance.get("support_edges")
+    if not isinstance(supports, list) or not supports:
+        errors.append("assurance.support_edges must be non-empty list")
+        supports = []
+    for i, edge in enumerate(supports):
+        if not isinstance(edge, dict):
+            errors.append(f"assurance.support_edges[{i}] must be object")
+            continue
+        src, dst = edge.get("from"), edge.get("to")
+        if src not in node_ids or dst not in node_ids:
+            errors.append(f"assurance.support_edges[{i}] has dangling endpoint")
+        if src == dst:
+            errors.append(f"assurance.support_edges[{i}] self edge forbidden")
+        if not nonempty(edge.get("relation")) or not nonempty(edge.get("entitlement")):
+            errors.append(f"assurance.support_edges[{i}] requires relation and entitlement")
+        pair = (str(src), str(dst))
+        if pair in support_pairs:
+            errors.append(f"duplicate assurance support edge {pair}")
+        support_pairs.add(pair)
+
+    forbidden_pairs: set[tuple[str, str]] = set()
+    forbidden = assurance.get("forbidden_automatic_promotions")
+    if not isinstance(forbidden, list) or not forbidden:
+        errors.append("assurance.forbidden_automatic_promotions must be non-empty list")
+        forbidden = []
+    for i, edge in enumerate(forbidden):
+        if not isinstance(edge, dict):
+            errors.append(f"assurance.forbidden_automatic_promotions[{i}] must be object")
+            continue
+        src, dst = edge.get("from"), edge.get("to")
+        if src not in node_ids or dst not in node_ids:
+            errors.append(f"assurance.forbidden_automatic_promotions[{i}] has dangling endpoint")
+        if src == dst:
+            errors.append(f"assurance.forbidden_automatic_promotions[{i}] self edge forbidden")
+        if not nonempty(edge.get("reason")):
+            errors.append(f"assurance.forbidden_automatic_promotions[{i}].reason required")
+        pair = (str(src), str(dst))
+        if pair in forbidden_pairs:
+            errors.append(f"duplicate forbidden assurance edge {pair}")
+        forbidden_pairs.add(pair)
+    if support_pairs & forbidden_pairs:
+        errors.append(f"assurance edge pairs cannot be both supported and forbidden: {sorted(support_pairs & forbidden_pairs)}")
+    if forbidden_pairs != EXPECTED_FORBIDDEN_PAIRS:
+        errors.append("forbidden assurance pairs must exactly match the canonical PR8 non-promotion set")
 
     def_ids: set[str] = set()
     definitions = obligations.get("definition_obligations")
@@ -313,11 +401,15 @@ def validate_documents(
         if oid in def_ids:
             errors.append(f"duplicate definition obligation {oid}")
         def_ids.add(oid)
-        if not nonempty(item.get("term")) or not nonempty(item.get("nonclaim")):
-            errors.append(f"{oid} requires term and nonclaim")
+        if item.get("term") != EXPECTED_DEF_TERMS.get(oid):
+            errors.append(f"{oid} term does not match canonical obligation identity")
+        if not nonempty(item.get("nonclaim")):
+            errors.append(f"{oid} requires nonclaim")
         string_list(item.get("minimum_declarations"), f"{oid}.minimum_declarations", errors, required=True)
         if item.get("conditional_declarations") is not None:
             string_list(item.get("conditional_declarations"), f"{oid}.conditional_declarations", errors)
+    if def_ids != set(EXPECTED_DEF_TERMS):
+        errors.append("definition obligation IDs must exactly match the canonical set")
 
     model_ids: set[str] = set()
     models = obligations.get("claim_realization_obligations")
@@ -336,9 +428,13 @@ def validate_documents(
         if oid in model_ids:
             errors.append(f"duplicate model obligation {oid}")
         model_ids.add(oid)
-        if not nonempty(item.get("claim")) or not nonempty(item.get("failure_state")):
-            errors.append(f"{oid} requires claim and failure_state")
+        if item.get("claim") != EXPECTED_MODEL_CLAIMS.get(oid):
+            errors.append(f"{oid} claim does not match canonical model obligation identity")
+        if not nonempty(item.get("failure_state")):
+            errors.append(f"{oid} requires failure_state")
         string_list(item.get("required_evidence"), f"{oid}.required_evidence", errors, required=True)
+    if model_ids != set(EXPECTED_MODEL_CLAIMS):
+        errors.append("model obligation IDs must exactly match the canonical set")
 
     proxy = obligations.get("proxy_rule")
     if not isinstance(proxy, dict):
@@ -358,9 +454,8 @@ def validate_documents(
         missing = set(required_fields) - set(example)
         if missing:
             errors.append(f"synthetic falsification example missing fields: {sorted(missing)}")
-        for field in ("hypothesis_id", "claim_class", "status"):
-            if not nonempty(example.get(field)):
-                errors.append(f"synthetic falsification example {field} required")
+        if example.get("hypothesis_id") != "FALS-SYN-001":
+            errors.append("synthetic falsification hypothesis_id must remain FALS-SYN-001")
         if example.get("claim_class") not in CLAIM_CLASSES:
             errors.append("synthetic falsification claim_class unsupported")
         for field in (
@@ -368,15 +463,31 @@ def validate_documents(
             "null_model", "rejection_conditions", "evidence_required", "scope_limits",
         ):
             string_list(example.get(field), f"synthetic.{field}", errors, required=True)
+        values = example.get("fixture_values")
+        if not isinstance(values, dict) or set(values) != {"q0", "q1"}:
+            errors.append("synthetic fixture_values must contain exactly q0 and q1")
+        else:
+            for key in ("q0", "q1"):
+                value = values.get(key)
+                if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(float(value)):
+                    errors.append(f"synthetic fixture_values.{key} must be a finite real number")
+        predictions = example.get("predictions")
+        rejections = example.get("rejection_conditions")
+        if not isinstance(predictions, list) or len(predictions) != 1 or RELATION_RE.fullmatch(str(predictions[0]).strip()) is None:
+            errors.append("synthetic prediction must be exactly one supported q(1) relation to q(0)")
+        if not isinstance(rejections, list) or len(rejections) != 1 or RELATION_RE.fullmatch(str(rejections[0]).strip()) is None:
+            errors.append("synthetic rejection condition must be exactly one supported q(1) relation to q(0)")
     string_list(falsification.get("nonclaims"), "falsification.nonclaims", errors, required=True)
 
+    one_claim_class(human_docs.get("assurance_human", ""), "assurance_human", "DEFINITION", errors)
+    one_claim_class(human_docs.get("falsification_human", ""), "falsification_human", "DEFINITION", errors)
+
     anchors = {
-        "invariant_human": ["INVARIANT_UNDER_F != UNIVERSAL_INVARIANT", "UI-INV-004", "CLAIMED_STRUCTURE", "IMPLEMENTED_STRUCTURE"],
+        "invariant_human": ["INVARIANT_UNDER_F != UNIVERSAL_INVARIANT", "UI-INV-004", "CLAIMED_STRUCTURE", "IMPLEMENTED_STRUCTURE", "p_1=p_0K"],
         "assurance_human": ["Formal Assurance Graph", "FORMAL_SYNTAX != PROOF", "MODEL_OUTPUT != EXECUTION_EVIDENCE"],
         "obligations_human": ["NAMED_OBJECT != WELL_DEFINED_MATHEMATICAL_OBJECT", "MODEL-OBL-REVERSIBLE", "SOFTWARE_SCAFFOLD != VALIDATED_SCIENTIFIC_SIMULATION"],
-        "falsification_human": ["FalsificationSpec", "FALS-SYN-001", "FALSIFIABLE_SCHEMA != EMPIRICICAL_VALIDATION"],
+        "falsification_human": ["FalsificationSpec", "FALS-SYN-001", "FALSIFIABLE_SCHEMA != EMPIRICAL_VALIDATION"],
     }
-    anchors["falsification_human"][-1] = "FALSIFIABLE_SCHEMA != EMPIRICAL_VALIDATION"
     for key, phrases in anchors.items():
         text = human_docs.get(key, "")
         for phrase in phrases:
@@ -452,6 +563,7 @@ def validate() -> dict[str, Any]:
         load(PATHS["assurance"]),
         load(PATHS["obligations"]),
         load(PATHS["falsification"]),
+        load(PATHS["cross_repo_patterns"]),
         human_docs,
         check_paths=True,
     )
