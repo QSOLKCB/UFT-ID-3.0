@@ -1,6 +1,6 @@
 {
   "type": "uft-id-observation-contract",
-  "schema_version": "1.0.0",
+  "schema_version": "1.0.1",
   "snapshot_date": "2026-08-20",
   "claim_class": "DEFINITION",
   "scope": "Deterministic set-theoretic observation, fibres, observational equivalence, image-scoped exact reconstruction, and exact floor-sampling fixtures.",
@@ -8,6 +8,7 @@
     "specs": "machine/observation_specs.json",
     "theorems": "machine/observation_theorems.json",
     "counterexamples": "machine/observation_counterexamples.json",
+    "formalization_contract": "machine/formalization_contract.json",
     "human": "theory/OBSERVATION_CALCULUS.md",
     "experiment": "experiments/observation/run.py",
     "validator": "scripts/validate_observation_specs.py",
