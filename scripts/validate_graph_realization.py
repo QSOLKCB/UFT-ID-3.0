@@ -42,12 +42,45 @@ EXPECTED_HUMAN_BLOBS = {
     "nonclaims": "fae4dc92a8356e309a0502cd82d5df2af29c26ac",
     "readme4ai": "3518fa11fd2bba6fa57b89b6279a271f1d654d29",
     "reproducibility": "9fce9ae1a3ae5a867f79faa90f5309c908c7d071",
-    "roadmap": "c3cf4f75f2dd740ec156f951b2b91f7f759c295e",
+    "roadmap": "abce8e80da40f81dae4d7bb56db967cce79abc1e",
 }
 
 EXPECTED_RESULT_IDS = {
     "UFT-GR-001", "UFT-GR-002", "UFT-GR-003", "UFT-GR-004",
     "UFT-GR-005", "UFT-GR-006", "CX-GR-001", "CX-GR-002", "CX-GR-003",
+}
+
+EXPECTED_PROVED_RESULT_BINDINGS = {
+    "UFT-GR-001": {
+        "statement": "For a finite labelled carrier X, G_step=(X,A_step) with (x,y) in A_step iff stepRel(x,y) preserves the one-step relation exactly.",
+        "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-001-finite-relation--digraph-identity",
+        "human_heading": "### UFT-GR-001 Finite relation ↔ digraph identity",
+    },
+    "UFT-GR-002": {
+        "statement": "In G_step, Normal_stepRel(x) iff outdegree(x)=0.",
+        "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-002-normality--zero-outdegree",
+        "human_heading": "### UFT-GR-002 Normality ↔ zero outdegree",
+    },
+    "UFT-GR-003": {
+        "statement": "For finite G_step, y is reflexive-transitively reachable from x iff there is a directed walk from x to y; when x!=y a directed path may be chosen.",
+        "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-003-reachability--directed-walkpath-existence",
+        "human_heading": "### UFT-GR-003 Reachability ↔ directed walk/path existence",
+    },
+    "UFT-GR-004": {
+        "statement": "On a finite carrier, forward termination of stepRel is equivalent to absence of directed cycles in G_step.",
+        "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-004-finite-termination--dag-acyclicity",
+        "human_heading": "### UFT-GR-004 Finite termination ↔ DAG acyclicity",
+    },
+    "UFT-GR-005": {
+        "statement": "Every nonempty finite directed graph has at least one sink strongly connected component.",
+        "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-005-finite-sink-scc-existence",
+        "human_heading": "### UFT-GR-005 Finite sink-SCC existence",
+    },
+    "UFT-GR-006": {
+        "statement": "The condensation graph obtained by collapsing strongly connected components of a finite directed graph is acyclic.",
+        "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-006-scc-condensation-is-acyclic",
+        "human_heading": "### UFT-GR-006 SCC condensation is acyclic",
+    },
 }
 
 EXPECTED_BOUNDARIES = {
@@ -180,7 +213,17 @@ PETTINI_ANCHORS = (
 
 PHYSIOLOGY_START = "# Future physiology and connectomics positive-control programme"
 PHYSIOLOGY_ANCHORS = (
+    "**Claim class:** `INTERPRETIVE` for every source-to-UFT-ID correspondence in this section",
+    "| A. Wheatstone pressure transducer -> typed transduction / identifiability | `INTERPRETIVE` |",
+    "| B. Haemoglobin oxygen curve -> context-dependent calibration | `INTERPRETIVE` |",
+    "| C. Arterial baroreflex -> closed-loop identification | `INTERPRETIVE` |",
+    "| D. Windkessel -> reduced-model boundary | `INTERPRETIVE` |",
+    "| E. Hodgkin-Huxley -> hidden-state observation fibre | `INTERPRETIVE` |",
+    "| F. Fick principle -> conservation-based inference | `INTERPRETIVE` |",
+    "| G. HPV16 -> host-context / alternate-mechanism mapping | `INTERPRETIVE` |",
+    "| H. FlyWire -> weighted/versioned structure-function mapping | `INTERPRETIVE` |",
     "SHARED_FORMAL_PATTERN != SHARED_PHYSICAL_MECHANISM",
+    "INTERPRETIVE_MAPPING != BRIDGE_THEOREM",
     "Delta_B = R1*Rx - R2*R3",
     "CLOSED_LOOP_OBSERVATION != OPEN_LOOP_IDENTIFICATION",
     "LUMPED_MODEL != DISTRIBUTED_SYSTEM",
@@ -192,7 +235,29 @@ PHYSIOLOGY_ANCHORS = (
     "DATASET_VERSION != INCIDENTAL_METADATA",
 )
 
+FIVEFOLD_START = "# Future fivefold assembly and rooted-representation donor programme"
+FIVEFOLD_ANCHORS = (
+    "**Claim class:** `INTERPRETIVE` for every source-to-UFT-ID correspondence below",
+    "10.1126/sciadv.aau1199",
+    "https://en.wikipedia.org/wiki/Pentatonic_scale",
+    "CARDINALITY_5 != FIVEFOLD_SYMMETRY",
+    "PENTAMER != REGULAR_PENTAGON != C5",
+    "NONEDGE != INTERFACE",
+    "AVAILABLE_COMPONENTS + CARDINALITY != UNIQUE_ASSEMBLY",
+    "PENTAMER != PENTATONIC_SCALE",
+    "PROJECTION != INVERSION",
+    "UNROOTED_SET_IDENTITY != ROOTED_STRUCTURE_IDENTITY",
+    "CHART != OBJECT",
+    "ABSENT != UNKNOWN",
+    "SHARED_CARDINALITY != SHARED_PHYSICAL_MECHANISM",
+)
+
 RECEIPT_SCHEMA_BINDING = '"schema_version": registered_receipt_version(),'
+
+SHELL_CONTROL_PREFIXES = (
+    "if ", "elif ", "for ", "while ", "until ", "case ", "select ", "function ",
+)
+SHELL_CONTROL_WORDS = {"then", "else", "fi", "do", "done", "esac", "{", "}"}
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -264,7 +329,7 @@ def first_blockquote_after_heading(text: str, heading: str) -> str | None:
     return None
 
 
-def workflow_step_executable_lines(text: str, step_name: str) -> tuple[str, ...]:
+def workflow_step_shell_lines(text: str, step_name: str) -> tuple[str, ...]:
     lines = text.splitlines()
     marker = f"- name: {step_name}"
     for index, line in enumerate(lines):
@@ -289,6 +354,43 @@ def workflow_step_executable_lines(text: str, step_name: str) -> tuple[str, ...]
                 if command_stripped and not command_stripped.startswith("#"):
                     commands.append(command_stripped)
             return tuple(commands)
+        return ()
+    return ()
+
+
+def has_shell_control_flow(lines: tuple[str, ...]) -> bool:
+    for line in lines:
+        lowered = line.casefold()
+        if lowered in SHELL_CONTROL_WORDS:
+            return True
+        if any(lowered.startswith(prefix) for prefix in SHELL_CONTROL_PREFIXES):
+            return True
+    return False
+
+
+def roadmap_reproducibility_gate_lines(text: str) -> tuple[str, ...]:
+    lines = text.splitlines()
+    heading = "# Reproducibility gate"
+    for index, line in enumerate(lines):
+        if line.strip() != heading:
+            continue
+        fence_index = None
+        for probe in range(index + 1, len(lines)):
+            stripped = lines[probe].strip()
+            if stripped.startswith("# ") and probe > index + 1:
+                break
+            if stripped == "```bash":
+                fence_index = probe
+                break
+        if fence_index is None:
+            return ()
+        commands: list[str] = []
+        for command_line in lines[fence_index + 1:]:
+            stripped = command_line.strip()
+            if stripped == "```":
+                return tuple(commands)
+            if stripped and not stripped.startswith("#"):
+                commands.append(stripped)
         return ()
     return ()
 
@@ -380,8 +482,19 @@ def validate() -> dict[str, object]:
             errors.append(f"duplicate graph result id: {result_id}")
         ids.add(result_id)
         claim_class = record.get("claim_class")
-        if result_id.startswith("UFT-GR-") and claim_class != "PROVED":
-            errors.append(f"{result_id} must remain PROVED")
+        if result_id.startswith("UFT-GR-"):
+            if claim_class != "PROVED":
+                errors.append(f"{result_id} must remain PROVED")
+            expected = EXPECTED_PROVED_RESULT_BINDINGS.get(result_id)
+            if expected is None:
+                errors.append(f"{result_id} missing canonical theorem binding")
+            else:
+                if record.get("statement") != expected["statement"]:
+                    errors.append(f"{result_id} machine theorem statement drift from frozen human proof")
+                if record.get("proof_reference") != expected["proof_reference"]:
+                    errors.append(f"{result_id} proof_reference drift from frozen human proof")
+                if expected["human_heading"] not in texts["human"]:
+                    errors.append(f"{result_id} frozen human theorem heading missing")
         if result_id.startswith("CX-GR-") and claim_class != "COUNTEREXAMPLE":
             errors.append(f"{result_id} must remain COUNTEREXAMPLE")
         evidence = record.get("executable_evidence", record.get("evidence", []))
@@ -428,9 +541,15 @@ def validate() -> dict[str, object]:
     require_anchors(texts["claims"], CLAIMS_ANCHORS, "docs/CLAIMS.md graph registration", errors)
     require_anchors(texts["readme4ai"], README_ANCHORS, "README4AI graph registration", errors)
     require_anchors(texts["reproducibility"], REPRO_ANCHORS, "reproducibility graph registration", errors)
-    require_anchors(texts["roadmap"], ROADMAP_GRAPH_COMMANDS, "ROADMAP graph validation gate", errors)
 
-    artifact_lines = workflow_step_executable_lines(texts["workflow"], "Generate deterministic evidence bundle")
+    roadmap_gate = roadmap_reproducibility_gate_lines(texts["roadmap"])
+    for command in ROADMAP_GRAPH_COMMANDS:
+        if command not in roadmap_gate:
+            errors.append(f"ROADMAP graph validation gate missing executable command: {command}")
+
+    artifact_lines = workflow_step_shell_lines(texts["workflow"], "Generate deterministic evidence bundle")
+    if has_shell_control_flow(artifact_lines):
+        errors.append("finite-adversarial graph artifact step may not contain shell control flow that can disable retained graph evidence")
     for command in GRAPH_ARTIFACT_COMMANDS:
         if command not in artifact_lines:
             errors.append(f"finite-adversarial graph artifact retention missing executable command: {command}")
@@ -447,7 +566,7 @@ def validate() -> dict[str, object]:
         require_anchors(pettini, PETTINI_ANCHORS, "ROADMAP Pettini model-donor programme", errors)
         citation = first_blockquote_after_heading(pettini, "### Primary model source")
         if citation != EXPECTED_PETTINI_PRIMARY_CITATION:
-            errors.append(f"ROADMAP Pettini primary citation/version drift: expected arXiv:2606.12457v2")
+            errors.append("ROADMAP Pettini primary citation/version drift: expected arXiv:2606.12457v2")
         pettini_lower = pettini.casefold()
         for forbidden in ("**status:** current graph theorem authority", "this section is current graph theorem authority", "pettini is current graph theorem authority"):
             if forbidden in pettini_lower:
@@ -458,21 +577,42 @@ def validate() -> dict[str, object]:
     physiology_index = texts["roadmap"].find(PHYSIOLOGY_START)
     if physiology_index < 0:
         errors.append("ROADMAP missing physiology/connectomics positive-control programme")
+        physiology = ""
     else:
-        require_anchors(texts["roadmap"][physiology_index:], PHYSIOLOGY_ANCHORS, "ROADMAP physiology/connectomics positive-control programme", errors)
+        physiology = texts["roadmap"][physiology_index:]
+        require_anchors(physiology, PHYSIOLOGY_ANCHORS, "ROADMAP physiology/connectomics positive-control programme", errors)
+
+    fivefold_index = texts["roadmap"].find(FIVEFOLD_START)
+    if fivefold_index < 0:
+        errors.append("ROADMAP missing fivefold assembly/rooted-representation donor programme")
+        fivefold = ""
+    else:
+        fivefold = texts["roadmap"][fivefold_index:]
+        require_anchors(fivefold, FIVEFOLD_ANCHORS, "ROADMAP fivefold donor programme", errors)
 
     if RECEIPT_SCHEMA_BINDING not in texts["receipt"]:
         errors.append("graph receipt schema version must be derived from canonical registry")
 
     for label, value in (
-        ("graph contract", contract), ("graph results", results), ("central graph authority", central if isinstance(central, dict) else {}),
-        ("graph source map", texts["sources"]), ("graph human theory", texts["human"]),
+        ("graph contract", contract),
+        ("graph results", results),
+        ("central graph authority", central if isinstance(central, dict) else {}),
+        ("graph source map", texts["sources"]),
+        ("graph human theory", texts["human"]),
     ):
         no_private_locators(value, label, errors)
     for label, value in (
-        ("graph contract", contract), ("graph results", results), ("graph source map", texts["sources"]), ("graph human theory", texts["human"]),
-        ("claims graph registration", texts["claims"]), ("nonclaims authority", texts["nonclaims"]), ("README4AI graph registration", texts["readme4ai"]),
-        ("reproducibility graph registration", texts["reproducibility"]), ("ROADMAP Pettini model donor", pettini),
+        ("graph contract", contract),
+        ("graph results", results),
+        ("graph source map", texts["sources"]),
+        ("graph human theory", texts["human"]),
+        ("claims graph registration", texts["claims"]),
+        ("nonclaims authority", texts["nonclaims"]),
+        ("README4AI graph registration", texts["readme4ai"]),
+        ("reproducibility graph registration", texts["reproducibility"]),
+        ("ROADMAP Pettini model donor", pettini),
+        ("ROADMAP physiology donor programme", physiology),
+        ("ROADMAP fivefold donor programme", fivefold),
     ):
         no_semantic_promotion(value, label, errors)
 
