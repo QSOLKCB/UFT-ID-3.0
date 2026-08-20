@@ -17,6 +17,7 @@ PATHS = {
     "human": ROOT / "theory/GRAPH_REALIZATION.md",
     "base_contract": ROOT / "machine/contract.json",
     "claims": ROOT / "docs/CLAIMS.md",
+    "nonclaims": ROOT / "docs/NONCLAIMS.md",
     "readme4ai": ROOT / "README4AI.md",
     "reproducibility": ROOT / "docs/REPRODUCIBILITY.md",
     "roadmap": ROOT / "ROADMAP.md",
@@ -35,13 +36,13 @@ EXPECTED_SHA256 = {
     "human": "e75d1b249ca36192d09a22a8359084c7e194fd601e9ef672a8ad2c94cf062687",
 }
 
-# These claim-bearing human surfaces are closed by exact Git blob identity.
-# Legitimate edits must deliberately update these pins in the same reviewed change.
+# Claim-bearing human surfaces are closed by exact Git blob identity.
 EXPECTED_HUMAN_BLOBS = {
     "claims": "b7afd74fe589f3032dcf3a34e287af365a39311b",
+    "nonclaims": "fae4dc92a8356e309a0502cd82d5df2af29c26ac",
     "readme4ai": "3518fa11fd2bba6fa57b89b6279a271f1d654d29",
     "reproducibility": "9fce9ae1a3ae5a867f79faa90f5309c908c7d071",
-    "roadmap": "c479d03238f41211cddaeb216289c30be24c05be",
+    "roadmap": "c3cf4f75f2dd740ec156f951b2b91f7f759c295e",
 }
 
 EXPECTED_RESULT_IDS = {
@@ -80,6 +81,7 @@ EXPECTED_CENTRAL_AUTHORITY = {
 }
 
 EXPECTED_AGENT_READS = {
+    "docs/NONCLAIMS.md",
     "theory/GRAPH_REALIZATION.md",
     "machine/graph_realization_contract.json",
     "machine/graph_realization_results.json",
@@ -89,14 +91,8 @@ EXPECTED_AGENT_READS = {
 }
 
 PRIVATE_PATTERNS = (
-    "mail.google.com",
-    "gmail",
-    "thread_id",
-    "attachment_id",
-    "x_attachment_id",
-    "deefiveothree",
-    "connector_",
-    "private-user-images",
+    "mail.google.com", "gmail", "thread_id", "attachment_id", "x_attachment_id",
+    "deefiveothree", "connector_", "private-user-images",
 )
 
 SEMANTIC_PROMOTION_PATTERNS = (
@@ -148,13 +144,19 @@ GRAPH_ARTIFACT_COMMANDS = (
     "python experiments/run_graph_realization.py --json > artifacts/graph-realization-receipt.json 2> artifacts/graph-realization-receipt.stderr.txt || true",
 )
 
+ROADMAP_GRAPH_COMMANDS = (
+    "python scripts/validate_graph_realization.py",
+    "python experiments/graph_realization/run.py --json",
+    "python experiments/run_graph_realization.py --json",
+)
+
 PETTINI_START = "# Future model-donor programme — typed causality, projection, and assumption structure"
+EXPECTED_PETTINI_PRIMARY_CITATION = (
+    "> Marco Pettini, *Quantum Entanglement Beyond Kinematics: A Dynamical Hypothesis in "
+    "(3,2)-Dimensional Spacetime*, arXiv:2606.12457v2 (2026). DOI `10.48550/arXiv.2606.12457`."
+)
 PETTINI_ANCHORS = (
     "ROADMAP-ONLY RESEARCH TARGET / MODEL DONOR",
-    "Marco Pettini",
-    "Quantum Entanglement Beyond Kinematics: A Dynamical Hypothesis in (3,2)-Dimensional Spacetime",
-    "arXiv:2606.12457v2",
-    "10.48550/arXiv.2606.12457",
     "ANSATZ_UNIQUENESS != GLOBAL_UNIQUENESS",
     "MODEL_CLASS_EXHAUSTION != PHYSICAL_SELECTION",
     "G_L = (V, L, I)",
@@ -175,6 +177,22 @@ PETTINI_ANCHORS = (
     "PREDICTED_CROSS_PAIR_SIGNAL != OBSERVED_CROSS_PAIR_SIGNAL",
     "PAPER_MODEL != UFT_ID_PHYSICAL_ONTOLOGY",
 )
+
+PHYSIOLOGY_START = "# Future physiology and connectomics positive-control programme"
+PHYSIOLOGY_ANCHORS = (
+    "SHARED_FORMAL_PATTERN != SHARED_PHYSICAL_MECHANISM",
+    "Delta_B = R1*Rx - R2*R3",
+    "CLOSED_LOOP_OBSERVATION != OPEN_LOOP_IDENTIFICATION",
+    "LUMPED_MODEL != DISTRIBUTED_SYSTEM",
+    "SAME_VOLTAGE != SAME_HIDDEN_STATE",
+    "INFERENCE_FORMULA != DIRECT_MEASUREMENT",
+    "GENOME_IDENTITY != EXPRESSION_STATE",
+    "CONNECTOME != EFFECTOME",
+    "THRESHOLDED_GRAPH != ORIGINAL_WEIGHTED_GRAPH",
+    "DATASET_VERSION != INCIDENTAL_METADATA",
+)
+
+RECEIPT_SCHEMA_BINDING = '"schema_version": registered_receipt_version(),'
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -231,36 +249,72 @@ def require_anchors(text: str, anchors: tuple[str, ...], label: str, errors: lis
             errors.append(f"{label} missing semantic anchor: {anchor}")
 
 
+def first_blockquote_after_heading(text: str, heading: str) -> str | None:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() != heading:
+            continue
+        for candidate in lines[index + 1:]:
+            stripped = candidate.strip()
+            if stripped.startswith("### ") or stripped.startswith("# "):
+                return None
+            if stripped.startswith(">"):
+                return stripped
+        return None
+    return None
+
+
+def workflow_step_executable_lines(text: str, step_name: str) -> tuple[str, ...]:
+    lines = text.splitlines()
+    marker = f"- name: {step_name}"
+    for index, line in enumerate(lines):
+        if line.strip() != marker:
+            continue
+        step_indent = len(line) - len(line.lstrip())
+        for run_index in range(index + 1, len(lines)):
+            run_line = lines[run_index]
+            stripped = run_line.strip()
+            indent = len(run_line) - len(run_line.lstrip())
+            if stripped.startswith("- name:") and indent <= step_indent:
+                return ()
+            if stripped != "run: |":
+                continue
+            run_indent = indent
+            commands: list[str] = []
+            for command_line in lines[run_index + 1:]:
+                command_stripped = command_line.strip()
+                command_indent = len(command_line) - len(command_line.lstrip())
+                if command_stripped and command_indent <= run_indent:
+                    break
+                if command_stripped and not command_stripped.startswith("#"):
+                    commands.append(command_stripped)
+            return tuple(commands)
+        return ()
+    return ()
+
+
 def validate() -> dict[str, object]:
     errors: list[str] = []
-
-    for _, path in PATHS.items():
+    for path in PATHS.values():
         if not path.is_file():
             errors.append(f"missing graph-realization authority file: {path.relative_to(ROOT)}")
     if errors:
-        return {"status": "error", "errors": errors, "result_count": 0}
+        return {"status": "error", "errors": errors, "result_count": 0, "source_count": 0, "boundary_count": 0}
 
     contract = load_json(PATHS["contract"])
     results = load_json(PATHS["results"])
     base_contract = load_json(PATHS["base_contract"])
     relation_contract = load_json(PATHS["relation_contract"])
     cross_repo = load_json(PATHS["cross_repo_patterns"])
-    sources = PATHS["sources"].read_text(encoding="utf-8")
-    human = PATHS["human"].read_text(encoding="utf-8")
-    claims = PATHS["claims"].read_text(encoding="utf-8")
-    readme4ai = PATHS["readme4ai"].read_text(encoding="utf-8")
-    reproducibility = PATHS["reproducibility"].read_text(encoding="utf-8")
-    roadmap = PATHS["roadmap"].read_text(encoding="utf-8")
-    workflow = PATHS["workflow"].read_text(encoding="utf-8")
+    texts = {name: PATHS[name].read_text(encoding="utf-8") for name in (
+        "sources", "human", "claims", "nonclaims", "readme4ai", "reproducibility", "roadmap", "workflow", "receipt"
+    )}
 
     for name in ("contract", "results", "sources", "human"):
-        actual = sha256_bytes(PATHS[name].read_bytes())
-        if actual != EXPECTED_SHA256[name]:
+        if sha256_bytes(PATHS[name].read_bytes()) != EXPECTED_SHA256[name]:
             errors.append(f"{name} canonical payload drift")
-
     for name, expected_blob in EXPECTED_HUMAN_BLOBS.items():
-        actual_blob = git_blob_sha(PATHS[name].read_bytes())
-        if actual_blob != expected_blob:
+        if git_blob_sha(PATHS[name].read_bytes()) != expected_blob:
             errors.append(f"{name} canonical human authority blob drift")
 
     if contract.get("type") != "uft-id-graph-realization-contract":
@@ -277,39 +331,35 @@ def validate() -> dict[str, object]:
     central = base_contract.get("graph_realization_authority")
     if central != EXPECTED_CENTRAL_AUTHORITY:
         errors.append("central graph_realization_authority payload drift")
-    else:
-        for field in (
-            "human", "machine_contract", "machine_results", "source_map", "validator",
-            "experiment", "tests", "receipt_runner", "base_relation_authority",
-        ):
+    elif isinstance(central, dict):
+        for field in ("human", "machine_contract", "machine_results", "source_map", "validator", "experiment", "tests", "receipt_runner", "base_relation_authority"):
             safe_repo_path(central.get(field), errors, f"central graph authority {field}")
 
-    experiment_library = base_contract.get("experiment_library")
-    if not isinstance(experiment_library, dict):
+    library = base_contract.get("experiment_library")
+    if not isinstance(library, dict):
         errors.append("base experiment_library must be an object")
     else:
-        if experiment_library.get("graph_realization_receipt_runner") != "experiments/run_graph_realization.py":
+        if library.get("graph_realization_receipt_runner") != "experiments/run_graph_realization.py":
             errors.append("central graph receipt runner registration drift")
-        if experiment_library.get("graph_realization_receipt_version") != "1.0.0":
+        if library.get("graph_realization_receipt_version") != "1.0.0":
             errors.append("central graph receipt version registration drift")
 
-    required_reads = base_contract.get("required_agent_reads")
-    if not isinstance(required_reads, list) or any(not isinstance(item, str) or not item for item in required_reads):
+    reads = base_contract.get("required_agent_reads")
+    if not isinstance(reads, list) or any(not isinstance(x, str) or not x for x in reads):
         errors.append("base required_agent_reads must be a list of non-empty strings")
-    elif not EXPECTED_AGENT_READS.issubset(set(required_reads)):
+    elif not EXPECTED_AGENT_READS.issubset(set(reads)):
         errors.append("central required_agent_reads missing graph authority surface")
 
-    relation_bridge = contract.get("relation_bridge")
-    if not isinstance(relation_bridge, dict):
+    bridge = contract.get("relation_bridge")
+    if not isinstance(bridge, dict):
         errors.append("relation_bridge must be an object")
     else:
-        if relation_bridge.get("relation") != "stepRel:X->X->Prop":
+        if bridge.get("relation") != "stepRel:X->X->Prop":
             errors.append("graph bridge must preserve stepRel:X->X->Prop")
-        if relation_bridge.get("arc_definition") != "(x,y) in A_step iff stepRel(x,y)":
+        if bridge.get("arc_definition") != "(x,y) in A_step iff stepRel(x,y)":
             errors.append("graph bridge adjacency biconditional drift")
-        if relation_bridge.get("lost_structure") != []:
+        if bridge.get("lost_structure") != []:
             errors.append("exact finite relation/digraph bridge must declare no lost one-step structure")
-
     if relation_contract.get("primary_types", {}).get("rewrite_relation") != "stepRel:X->X->Prop":
         errors.append("base relation authority no longer exposes canonical stepRel type")
 
@@ -346,83 +396,91 @@ def validate() -> dict[str, object]:
     source_records = contract.get("sources")
     if not isinstance(source_records, list) or len(source_records) != 2:
         errors.append("graph contract must contain exactly two public donor source records")
-    else:
-        by_id = {item.get("source_id"): item for item in source_records if isinstance(item, dict)}
-        grinberg = by_id.get("GRINBERG-2025-GRAPH-THEORY")
-        evers = by_id.get("EVERS-2015-SIS2")
-        if not isinstance(grinberg, dict) or grinberg.get("doi") != "10.48550/arXiv.2308.04512":
-            errors.append("Grinberg source identity drift")
-        if not isinstance(evers, dict) or evers.get("doi") != "10.1021/ic501825r":
-            errors.append("Evers SiS2 source identity drift")
-        if isinstance(evers, dict) and evers.get("kind") != "peer-reviewed-empirical-source":
-            errors.append("Evers source status drift")
+        source_records = []
+    by_id = {item.get("source_id"): item for item in source_records if isinstance(item, dict)}
+    grinberg = by_id.get("GRINBERG-2025-GRAPH-THEORY")
+    evers = by_id.get("EVERS-2015-SIS2")
+    if not isinstance(grinberg, dict) or grinberg.get("doi") != "10.48550/arXiv.2308.04512":
+        errors.append("Grinberg source identity drift")
+    if not isinstance(evers, dict) or evers.get("doi") != "10.1021/ic501825r":
+        errors.append("Evers SiS2 source identity drift")
+    if isinstance(evers, dict) and evers.get("kind") != "peer-reviewed-empirical-source":
+        errors.append("Evers source status drift")
 
     patterns = cross_repo.get("patterns")
-    pattern_ids = set()
-    if isinstance(patterns, list):
-        for item in patterns:
-            if isinstance(item, dict) and isinstance(item.get("pattern_id"), str):
-                pattern_ids.add(item["pattern_id"])
+    pattern_ids = {item.get("pattern_id") for item in patterns if isinstance(item, dict)} if isinstance(patterns, list) else set()
     for pattern_id in ("XR-P17", "XR-P18"):
         if pattern_id not in pattern_ids:
             errors.append(f"missing existing public context record: {pattern_id}")
 
-    anchors = (
+    combined = texts["sources"] + "\n" + texts["human"]
+    for anchor in (
         "TETRAHEDRAL_1_SKELETON_K4 != SIS4_CHEMICAL_BOND_GRAPH",
         "LOCAL_COORDINATION_GEOMETRY != CHEMICAL_BOND_GRAPH != POLYHEDRAL_SHARING_GRAPH",
         "SAME LOCAL COORDINATION MOTIF",
         "F3^3=I3 != GRAPH_THEORETIC_3_CYCLE",
         "FINITE_GRAPH_CONFORMANCE != GENERAL_PROOF",
         "No decorative “sacred geometry” image is used as source authority",
-    )
-    combined = sources + "\n" + human
-    for anchor in anchors:
+    ):
         if anchor not in combined:
             errors.append(f"human graph authority missing semantic anchor: {anchor}")
 
-    require_anchors(claims, CLAIMS_ANCHORS, "docs/CLAIMS.md graph registration", errors)
-    require_anchors(readme4ai, README_ANCHORS, "README4AI graph registration", errors)
-    require_anchors(reproducibility, REPRO_ANCHORS, "reproducibility graph registration", errors)
-    require_anchors(workflow, GRAPH_ARTIFACT_COMMANDS, "finite-adversarial graph artifact retention", errors)
+    require_anchors(texts["claims"], CLAIMS_ANCHORS, "docs/CLAIMS.md graph registration", errors)
+    require_anchors(texts["readme4ai"], README_ANCHORS, "README4AI graph registration", errors)
+    require_anchors(texts["reproducibility"], REPRO_ANCHORS, "reproducibility graph registration", errors)
+    require_anchors(texts["roadmap"], ROADMAP_GRAPH_COMMANDS, "ROADMAP graph validation gate", errors)
 
-    pettini_index = roadmap.find(PETTINI_START)
+    artifact_lines = workflow_step_executable_lines(texts["workflow"], "Generate deterministic evidence bundle")
+    for command in GRAPH_ARTIFACT_COMMANDS:
+        if command not in artifact_lines:
+            errors.append(f"finite-adversarial graph artifact retention missing executable command: {command}")
+    nonclaims_trigger_count = sum(1 for line in texts["workflow"].splitlines() if line.strip() == '- "docs/NONCLAIMS.md"')
+    if nonclaims_trigger_count != 2:
+        errors.append("finite-adversarial must trigger on docs/NONCLAIMS.md for PR and main push")
+
+    pettini_index = texts["roadmap"].find(PETTINI_START)
     if pettini_index < 0:
         errors.append("ROADMAP missing Pettini model-donor programme")
         pettini = ""
     else:
-        pettini = roadmap[pettini_index:]
+        pettini = texts["roadmap"][pettini_index:]
         require_anchors(pettini, PETTINI_ANCHORS, "ROADMAP Pettini model-donor programme", errors)
+        citation = first_blockquote_after_heading(pettini, "### Primary model source")
+        if citation != EXPECTED_PETTINI_PRIMARY_CITATION:
+            errors.append(f"ROADMAP Pettini primary citation/version drift: expected arXiv:2606.12457v2")
         pettini_lower = pettini.casefold()
-        for forbidden in (
-            "**status:** current graph theorem authority",
-            "this section is current graph theorem authority",
-            "pettini is current graph theorem authority",
-        ):
+        for forbidden in ("**status:** current graph theorem authority", "this section is current graph theorem authority", "pettini is current graph theorem authority"):
             if forbidden in pettini_lower:
                 errors.append("ROADMAP Pettini model donor must remain outside current graph theorem authority")
         if "extra-time physics is adopted by uft-id" in pettini_lower:
             errors.append("ROADMAP Pettini model donor illegally promotes extra-time ontology")
 
-    no_private_locators(contract, "graph contract", errors)
-    no_private_locators(results, "graph results", errors)
-    no_private_locators(central if isinstance(central, dict) else {}, "central graph authority", errors)
-    no_private_locators(sources, "graph source map", errors)
-    no_private_locators(human, "graph human theory", errors)
+    physiology_index = texts["roadmap"].find(PHYSIOLOGY_START)
+    if physiology_index < 0:
+        errors.append("ROADMAP missing physiology/connectomics positive-control programme")
+    else:
+        require_anchors(texts["roadmap"][physiology_index:], PHYSIOLOGY_ANCHORS, "ROADMAP physiology/connectomics positive-control programme", errors)
 
-    no_semantic_promotion(contract, "graph contract", errors)
-    no_semantic_promotion(results, "graph results", errors)
-    no_semantic_promotion(sources, "graph source map", errors)
-    no_semantic_promotion(human, "graph human theory", errors)
-    no_semantic_promotion(claims, "claims graph registration", errors)
-    no_semantic_promotion(readme4ai, "README4AI graph registration", errors)
-    no_semantic_promotion(reproducibility, "reproducibility graph registration", errors)
-    no_semantic_promotion(pettini, "ROADMAP Pettini model donor", errors)
+    if RECEIPT_SCHEMA_BINDING not in texts["receipt"]:
+        errors.append("graph receipt schema version must be derived from canonical registry")
+
+    for label, value in (
+        ("graph contract", contract), ("graph results", results), ("central graph authority", central if isinstance(central, dict) else {}),
+        ("graph source map", texts["sources"]), ("graph human theory", texts["human"]),
+    ):
+        no_private_locators(value, label, errors)
+    for label, value in (
+        ("graph contract", contract), ("graph results", results), ("graph source map", texts["sources"]), ("graph human theory", texts["human"]),
+        ("claims graph registration", texts["claims"]), ("nonclaims authority", texts["nonclaims"]), ("README4AI graph registration", texts["readme4ai"]),
+        ("reproducibility graph registration", texts["reproducibility"]), ("ROADMAP Pettini model donor", pettini),
+    ):
+        no_semantic_promotion(value, label, errors)
 
     return {
         "status": "error" if errors else "ok",
         "errors": errors,
         "result_count": len(ids),
-        "source_count": len(source_records) if isinstance(source_records, list) else 0,
+        "source_count": len(source_records),
         "boundary_count": len(contract.get("hard_boundaries", [])) if isinstance(contract.get("hard_boundaries"), list) else 0,
     }
 
@@ -435,11 +493,7 @@ def main() -> int:
     if args.json:
         print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
     elif result["status"] == "ok":
-        print(
-            "graph realization authority: ok "
-            f"({result['result_count']} results, {result['source_count']} sources, "
-            f"{result['boundary_count']} hard boundaries)"
-        )
+        print(f"graph realization authority: ok ({result['result_count']} results, {result['source_count']} sources, {result['boundary_count']} hard boundaries)")
     else:
         for error in result["errors"]:
             print(error)
