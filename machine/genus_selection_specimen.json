@@ -1,0 +1,76 @@
+{
+  "type": "uft-id-selection-stress-test",
+  "schema_version": "1.0.1",
+  "snapshot_date": "2026-08-20",
+  "id": "SEL-STRESS-GENUS-10-30",
+  "claim_class": "DIAGNOSTIC",
+  "purpose": "Instantiate UFT-SEL-001 with two labelled closed orientable surface realizations to test whether shared decorative/compatibility machinery can uniquely select genus 10.",
+  "logical_fixture": {
+    "source": "common-compatible-ingredient-state",
+    "branches": [
+      {"state": "M10", "label": {"kind": "genus", "value": 10}, "normal_in_fixture": true},
+      {"state": "M30", "label": {"kind": "genus", "value": 30}, "normal_in_fixture": true}
+    ],
+    "relation_edges": [
+      ["common-compatible-ingredient-state", "M10"],
+      ["common-compatible-ingredient-state", "M30"]
+    ],
+    "result": "Distinct reachable normal genus labels trigger UFT-SEL-001 and refute unique selection within this declared fixture."
+  },
+  "surface_constructions": {
+    "M10": {
+      "surface": "Sigma_10 = #_{h=1}^{10} T^2",
+      "euler_characteristic": -18,
+      "rank_H1_Z": 20,
+      "triality_blocks_allocated": 10
+    },
+    "M30": {
+      "surface": "Sigma_30 = #_{h=1}^{30} T^2",
+      "euler_characteristic": -58,
+      "rank_H1_Z": 60,
+      "triality_blocks_allocated": 30
+    }
+  },
+  "shared_finite_compatibility_context": {
+    "available_triality_blocks": 33,
+    "fixed_singlets": 2,
+    "local_operator": "D3=diag(1,-2,1)",
+    "phase_kick_theta": "pi/2",
+    "local_cycle_identity": "F3^3=I3",
+    "interpretation": "The ETQ blocks are labels/decorations assigned to handle sectors. They do not construct or prove the topology."
+  },
+  "public_context_pattern_refs": [
+    {
+      "pattern_id": "XR-P17",
+      "role": "compatibility-context-only"
+    },
+    {
+      "pattern_id": "XR-P18",
+      "role": "placement-context-only"
+    }
+  ],
+  "placement_example": {
+    "angle_rule": "vartheta_h = 2*pi*h/phi^2",
+    "scope": "optional order/placement map for labelled handle sectors only",
+    "boundary": "GOLDEN_SPIRAL_PLACEMENT != GENUS_DERIVATION"
+  },
+  "external_target_boundary": {
+    "status": "not-assessed-by-this-record",
+    "reason": "No external Genus-10 paper/package bytes or stable public source locator are committed or pinned in this repository record.",
+    "rule": "The generic theorem and this internal stress test must not be reported as a verdict on a specific external package without separately sourced premises."
+  },
+  "boundaries": [
+    "E8_TRIALITY_COMPATIBILITY != UNIQUE_GENUS",
+    "GOLDEN_SPIRAL_PLACEMENT != GENUS_DERIVATION",
+    "DIMENSION_MATCH != STRUCTURAL_MAP != PHYSICAL_SELECTION",
+    "PARAMETER != REALIZATION != INVARIANT != DISCRIMINANT != SELECTION",
+    "COMPATIBLE_REALIZATION != UNIQUE_SELECTION",
+    "LABELLED_HANDLE_DECORATION != TOPOLOGY_CONSTRUCTION",
+    "INTERNAL_STRESS_TEST != EXTERNAL_PAPER_REFUTATION"
+  ],
+  "evidence": [
+    "theory/RELATION_CALCULUS.md",
+    "experiments/relation/run.py",
+    "tests/test_pr11_relation_core.py"
+  ]
+}

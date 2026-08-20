@@ -1,8 +1,8 @@
 {
   "type": "uft-id-cross-repo-pattern-registry",
-  "schema_version": "1.0.1",
-  "snapshot_date": "2026-08-18",
-  "snapshot_basis": "UTC verification date of the pinned source files used to create this registry",
+  "schema_version": "1.0.2",
+  "snapshot_date": "2026-08-20",
+  "snapshot_basis": "UTC verification date of the pinned source files used to create or extend this registry",
   "scope": "public merged-main QSOLKCB repositories with reusable formal, evidentiary, representation, calibration, replay, or adversarial patterns",
   "selection_policy": [
     "Repository software semantics are imported only as mathematical or methodological examples, never as physical ontology.",
@@ -265,6 +265,36 @@
       "uft_mapping": ["D29", "D33", "D34", "T21", "T22"],
       "abstraction": "Formal theorem surfaces, reference implementations, runtime-specific receipts, accelerator residuals, and empirical claims remain separate; cross-runtime acceptance compares declared portable observables.",
       "prohibited_inference": "A renderer, accelerator, tissue metric, or conformance receipt silently becomes geometry authority, biology, or physical truth."
+    },
+    {
+      "pattern_id": "XR-P17",
+      "repository": "QSOLKCB/SONIFICATION",
+      "ref": "main",
+      "source_path": "docs/MATHEMATICAL_MODEL.md",
+      "source_blob_sha": "0e8f986dd5ca191c1eded726dd6e276c1f856613",
+      "source_status": "merged-main",
+      "import_class": "finite-triality-compatibility-context",
+      "source_contract": "The ETQ-101 model supplies 33 mutually exclusive direct-sum triality/qutrit blocks plus two fixed singlets, the local D3=diag(1,-2,1) operator, a theta=pi/2 phase kick, and the exact local identity F3^3=I3, while explicitly denying that these labels constitute a physical E8 representation or ontology.",
+      "preserved_structure": ["finite availability of 33 complete triality/qutrit blocks", "local D3=diag(1,-2,1) operator", "theta=pi/2 phase-kick convention", "exact local F3^3=I3 identity", "explicit model-versus-ontology boundary"],
+      "discarded_structure": ["ETQ sonification semantics", "E8 root-selector details beyond the finite block count", "selected-root graph geometry", "MIDI and acoustic receiver mappings"],
+      "uft_mapping": ["UFT-SEL-001", "SEL-STRESS-GENUS-10-30"],
+      "abstraction": "A finite authored model may supply enough mutually exclusive decorative blocks to label multiple competing constructions without thereby selecting one construction uniquely.",
+      "prohibited_inference": "Triality/qutrit compatibility, block count, phase closure, or E8-derived labels select a unique genus or establish a physical topology."
+    },
+    {
+      "pattern_id": "XR-P18",
+      "repository": "QSOLKCB/SPECTRAL",
+      "ref": "main",
+      "source_path": "E8/APP/README.md",
+      "source_blob_sha": "4855bfff69d89c4920a2b2daf59c38b875a617ec",
+      "source_status": "merged-main",
+      "import_class": "placement-geometry-context",
+      "source_contract": "The SPECTRAL E8 Geometry Studio exposes Triality Spiral, qutrit/ternary controls, phi-scaled geometry, and E8-derived control paths while explicitly treating them as sonification/composition mappings rather than physical E8 measurements.",
+      "preserved_structure": ["Triality Spiral as an authored path/ordering choice", "qutrit/ternary control structure", "phi-scaled placement geometry", "explicit control-geometry-versus-physical-measurement boundary"],
+      "discarded_structure": ["audio synthesis implementation", "WAV rendering and receiver semantics", "browser runtime identity", "creative-mode controls"],
+      "uft_mapping": ["UFT-SEL-001", "SEL-STRESS-GENUS-10-30"],
+      "abstraction": "A geometric spiral or phi-scaled ordering may organize labelled sectors while remaining independent of the topology those labels decorate.",
+      "prohibited_inference": "Spiral placement, qutrit controls, or E8 composition geometry derives topological genus, cosmology, or unique physical selection."
     }
   ],
   "quarantined_lineage": [

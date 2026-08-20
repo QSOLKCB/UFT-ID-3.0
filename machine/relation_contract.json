@@ -1,0 +1,71 @@
+{
+  "type": "uft-id-relation-core-contract",
+  "schema_version": "1.0.1",
+  "snapshot_date": "2026-08-20",
+  "claim_class": "DEFINITION",
+  "scope": "Labelled binary endorelations on declared carriers, finite reachability witnesses, normal forms, joinability, confluence, termination, normalization, and selection non-uniqueness. Admissibility remains a separate predicate.",
+  "primary_types": {
+    "rewrite_relation": "stepRel:X->X->Prop",
+    "admissibility": "A:X->Prop",
+    "reachability": "reflexive-transitive closure stepRel*",
+    "normal": "Normal_stepRel(x) iff no y satisfies stepRel(x,y)",
+    "joinable": "Joinable_stepRel(x,y) iff some z is reachable from both x and y",
+    "termination_orientation": "forward x->y termination corresponds to WellFounded(Function.swap stepRel) in the planned Lean encoding"
+  },
+  "authorities": {
+    "theorems": "machine/relation_theorems.json",
+    "counterexamples": "machine/relation_counterexamples.json",
+    "selection_specimen": "machine/genus_selection_specimen.json",
+    "cross_repo_patterns": "machine/cross_repo_patterns.json",
+    "human": "theory/RELATION_CALCULUS.md",
+    "experiment": "experiments/relation/run.py",
+    "validator": "scripts/validate_relation_core.py",
+    "tests": "tests/test_pr11_relation_core.py",
+    "receipt": "experiments/run_pr11.py",
+    "roadmap_state": "machine/roadmap_state.json",
+    "roadmap": "ROADMAP.md"
+  },
+  "execution_limits": {
+    "max_exhaustive_states": 3,
+    "exact_relation_count_through_fin3": 530,
+    "policy": "Routine exhaustive conformance enumerates every labelled binary relation on the fixed carriers Fin1, Fin2, and Fin3 only; it does not quotient relations by carrier isomorphism."
+  },
+  "hard_rules": {
+    "step_relation_forces_target_admissible": false,
+    "normal_implies_admissible": false,
+    "admissible_implies_normal": false,
+    "fixed_point_implies_normal": false,
+    "confluence_implies_termination": false,
+    "termination_implies_confluence": false,
+    "unique_reachable_normal_implies_all_paths_normalize": false,
+    "single_selector_result_equals_relation_semantics": false,
+    "finite_reachability_proves_infinite_path_liveness": false,
+    "compatibility_implies_unique_selection": false,
+    "parameter_depends_on_label_implies_semantic_realization": false,
+    "placement_geometry_implies_topological_genus": false,
+    "lean_proof_may_be_claimed_in_relation_core": false
+  },
+  "boundaries": [
+    "NORMAL != ADMISSIBLE != FIXED_POINT",
+    "REACHABLE != ADMISSIBLE != NORMAL != UNIQUE_REACHABLE_NORMAL",
+    "RIGHT_UNIQUE != TERMINATING",
+    "TERMINATION != CONFLUENCE",
+    "UNIQUE_REACHABLE_NORMAL_FORM != ALL_PATHS_NORMALIZE",
+    "WEAK_NORMALIZATION != STRONG_NORMALIZATION",
+    "FINITE_REACHABILITY != INFINITE_PATH_LIVENESS",
+    "PARAMETER != REALIZATION != INVARIANT != DISCRIMINANT != SELECTION",
+    "COMPATIBILITY != UNIQUE_SELECTION",
+    "GOLDEN_SPIRAL_PLACEMENT != GENUS_DERIVATION",
+    "MATHEMATICAL_PROOF != LEAN_PROOF"
+  ],
+  "explicit_deferrals": [
+    "Newman's lemma until a complete repository proof is supplied",
+    "deterministic selector specializations and selector iteration",
+    "observation-compatible quotient dynamics",
+    "schedule-independence theorems",
+    "trace/history semantics",
+    "infinite paths, fairness, and universal liveness",
+    "stochastic rewrite kernels",
+    "Lean proof objects"
+  ]
+}

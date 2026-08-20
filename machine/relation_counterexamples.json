@@ -1,0 +1,56 @@
+{
+  "type": "uft-id-relation-counterexample-registry",
+  "schema_version": "1.0.1",
+  "snapshot_date": "2026-08-20",
+  "records": [
+    {
+      "id": "CX-RW-FORK3",
+      "name": "Minimal terminating nonconfluent fork",
+      "claim_class": "COUNTEREXAMPLE",
+      "states": ["a", "b", "c"],
+      "edges": [["a", "b"], ["a", "c"]],
+      "normal_states": ["b", "c"],
+      "minimality": "Three states are minimal for a terminating labelled relation with two distinct reachable normal forms.",
+      "kills": [
+        "BRANCHING != CONFLUENCE",
+        "TERMINATION != CONFLUENCE",
+        "TERMINATION != UNIQUE_NORMAL_FORM",
+        "ONE_SELECTOR_RESULT != RELATION_SEMANTICS"
+      ],
+      "evidence": ["experiments/relation/run.py", "tests/test_pr11_relation_core.py"],
+      "nonclaims": ["The fixture is an abstract rewriting counterexample, not a physical process."]
+    },
+    {
+      "id": "CX-RW-LOOP1",
+      "name": "Minimal confluent nonterminating loop",
+      "claim_class": "COUNTEREXAMPLE",
+      "states": ["a"],
+      "edges": [["a", "a"]],
+      "normal_states": [],
+      "minimality": "One state is minimal when self-loops are allowed.",
+      "kills": [
+        "CONFLUENCE != TERMINATION",
+        "CONFLUENCE != NORMAL_FORM_EXISTENCE"
+      ],
+      "evidence": ["experiments/relation/run.py", "tests/test_pr11_relation_core.py"],
+      "nonclaims": ["Irreflexive rewrite systems would require a two-state cycle instead."]
+    },
+    {
+      "id": "CX-RW-EXIT2",
+      "name": "Unique reachable normal form with a nonterminating branch",
+      "claim_class": "COUNTEREXAMPLE",
+      "states": ["a", "b"],
+      "edges": [["a", "a"], ["a", "b"]],
+      "normal_states": ["b"],
+      "minimality": "Two states are minimal for nontermination together with a unique reachable normal form when self-loops are allowed.",
+      "kills": [
+        "CONFLUENCE != RIGHT_UNIQUENESS",
+        "UNIQUE_REACHABLE_NORMAL_FORM != TERMINATION",
+        "UNIQUE_REACHABLE_NORMAL_FORM != ALL_PATHS_NORMALIZE",
+        "WEAK_NORMALIZATION != STRONG_NORMALIZATION"
+      ],
+      "evidence": ["experiments/relation/run.py", "tests/test_pr11_relation_core.py"],
+      "nonclaims": ["Finite reflexive-transitive reachability alone cannot express universal liveness over infinite paths."]
+    }
+  ]
+}

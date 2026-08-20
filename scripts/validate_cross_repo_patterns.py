@@ -3,7 +3,7 @@
 
 This validator checks repository-local registry structure, pinned source
 identities, bridge obligations, and synchronization between the machine result
-registry and the canonical metadata carried by the human result surface.
+registry and the canonical human authority surfaces.
 
 It deliberately does not fetch remote repositories during CI, so a successful
 run does not assert that a remote main branch has not advanced since the
@@ -23,6 +23,7 @@ PATTERNS_PATH = ROOT / "machine/cross_repo_patterns.json"
 RESULTS_PATH = ROOT / "machine/cross_repo_results.json"
 CONTRACT_PATH = ROOT / "machine/contract.json"
 HUMAN_RESULTS_PATH = ROOT / "theory/CROSS_REPO_RESULTS.md"
+HUMAN_ATLAS_PATH = ROOT / "research/CROSS_REPO_PATTERN_ATLAS.md"
 SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
 PATTERN_RE = re.compile(r"^XR-P\d{2}$")
 QUARANTINE_RE = re.compile(r"^XR-Q\d{2}$")
@@ -52,6 +53,33 @@ REQUIRED_BOUNDARIES = {
     "ADJACENT_TRUTH != INHERITED_TRUTH",
 }
 
+EXPECTED_ATLAS_SECTIONS = {
+    "XR-P17": """### XR-P17 — SONIFICATION finite triality compatibility context
+
+Canonical source: `QSOLKCB/SONIFICATION`, `docs/MATHEMATICAL_MODEL.md`, blob `0e8f986dd5ca191c1eded726dd6e276c1f856613`.
+
+Reusable pattern: ETQ-101 supplies a finite authored compatibility context with 33 mutually exclusive triality/qutrit blocks plus two fixed singlets, the local `D3=diag(1,-2,1)` operator, the `theta=pi/2` phase-kick convention, and the exact local identity `F3^3=I3`. The source itself keeps those algebraic labels separate from physical E8 ontology.
+
+UFT-ID implication: finite compatibility machinery can be sufficient to decorate several distinct candidate constructions. Compatibility, block count, phase closure, or E8-derived labels do not thereby select a unique genus or establish a physical topology.
+
+```text
+FINITE_COMPATIBILITY != UNIQUE_SELECTION
+DECORATIVE_BLOCK_COUNT != TOPOLOGY_DERIVATION
+```""",
+    "XR-P18": """### XR-P18 — SPECTRAL placement geometry context
+
+Canonical source: `QSOLKCB/SPECTRAL`, `E8/APP/README.md`, blob `4855bfff69d89c4920a2b2daf59c38b875a617ec`.
+
+Reusable pattern: the E8 Geometry Studio exposes Triality Spiral, qutrit/ternary controls, phi-scaled geometry, and E8-derived control paths as explicit sonification/composition mappings rather than physical E8 measurements.
+
+UFT-ID implication: a spiral, phi-scaled ordering, qutrit control path, or other placement geometry may organize labelled sectors while remaining independent of the topology those labels decorate.
+
+```text
+PLACEMENT_GEOMETRY != TOPOLOGY_DERIVATION
+CONTROL_GEOMETRY != PHYSICAL_MEASUREMENT
+```""",
+}
+
 
 def load_json(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
@@ -65,16 +93,11 @@ def nonempty_string(value: object) -> bool:
 
 
 def nonempty_string_list(value: object) -> bool:
-    return (
-        isinstance(value, list)
-        and bool(value)
-        and all(nonempty_string(item) for item in value)
-    )
+    return isinstance(value, list) and bool(value) and all(nonempty_string(item) for item in value)
 
 
 def parse_human_results(path: Path) -> tuple[dict[str, dict[str, str]], list[str]]:
     """Parse canonical CR id/title/class/qualifier/scope metadata from Markdown."""
-
     errors: list[str] = []
     lines = path.read_text(encoding="utf-8").splitlines()
     starts: list[tuple[int, str, str]] = []
@@ -113,13 +136,21 @@ def parse_human_results(path: Path) -> tuple[dict[str, dict[str, str]], list[str
     return parsed, errors
 
 
-def validate_source_entry(
-    entry: object,
-    *,
-    expected_kind: str,
-    seen_ids: set[str],
-    errors: list[str],
-) -> None:
+def extract_atlas_section(atlas: str, pattern_id: str) -> str | None:
+    lines = atlas.splitlines()
+    heading = f"### {pattern_id} "
+    start = next((i for i, line in enumerate(lines) if line.startswith(heading)), None)
+    if start is None:
+        return None
+    end = len(lines)
+    for i in range(start + 1, len(lines)):
+        if lines[i].startswith("### ") or lines[i].startswith("## "):
+            end = i
+            break
+    return "\n".join(lines[start:end]).strip()
+
+
+def validate_source_entry(entry: object, *, expected_kind: str, seen_ids: set[str], errors: list[str]) -> None:
     if not isinstance(entry, dict):
         errors.append(f"{expected_kind} entry must be an object")
         return
@@ -177,13 +208,14 @@ def validate_source_entry(
 
 
 def validate(root: Path = ROOT) -> dict[str, object]:
-    global ROOT, PATTERNS_PATH, RESULTS_PATH, CONTRACT_PATH, HUMAN_RESULTS_PATH
-    original = (ROOT, PATTERNS_PATH, RESULTS_PATH, CONTRACT_PATH, HUMAN_RESULTS_PATH)
+    global ROOT, PATTERNS_PATH, RESULTS_PATH, CONTRACT_PATH, HUMAN_RESULTS_PATH, HUMAN_ATLAS_PATH
+    original = (ROOT, PATTERNS_PATH, RESULTS_PATH, CONTRACT_PATH, HUMAN_RESULTS_PATH, HUMAN_ATLAS_PATH)
     ROOT = root.resolve()
     PATTERNS_PATH = ROOT / "machine/cross_repo_patterns.json"
     RESULTS_PATH = ROOT / "machine/cross_repo_results.json"
     CONTRACT_PATH = ROOT / "machine/contract.json"
     HUMAN_RESULTS_PATH = ROOT / "theory/CROSS_REPO_RESULTS.md"
+    HUMAN_ATLAS_PATH = ROOT / "research/CROSS_REPO_PATTERN_ATLAS.md"
     errors: list[str] = []
     try:
         patterns = load_json(PATTERNS_PATH)
@@ -192,12 +224,12 @@ def validate(root: Path = ROOT) -> dict[str, object]:
 
         if patterns.get("type") != "uft-id-cross-repo-pattern-registry":
             errors.append("cross-repo pattern registry type mismatch")
-        if patterns.get("schema_version") != "1.0.1":
-            errors.append("cross-repo pattern registry schema_version must be 1.0.1")
-        if patterns.get("snapshot_date") != "2026-08-18":
+        if patterns.get("schema_version") != "1.0.2":
+            errors.append("cross-repo pattern registry schema_version must be 1.0.2")
+        if patterns.get("snapshot_date") != "2026-08-20":
             errors.append("cross-repo pattern registry snapshot_date mismatch")
-        if not nonempty_string(patterns.get("snapshot_basis")):
-            errors.append("cross-repo pattern registry requires snapshot_basis")
+        if patterns.get("snapshot_basis") != "UTC verification date of the pinned source files used to create or extend this registry":
+            errors.append("cross-repo pattern registry snapshot_basis mismatch")
         if set(patterns.get("global_boundaries", [])) != REQUIRED_BOUNDARIES:
             errors.append("cross-repo pattern registry boundary contract mismatch")
         if not nonempty_string_list(patterns.get("selection_policy")):
@@ -232,7 +264,16 @@ def validate(root: Path = ROOT) -> dict[str, object]:
         if results.get("experiment") != "experiments/cross_repo/run.py":
             errors.append("cross-repo results experiment path mismatch")
 
-        allowed_claims = set(contract.get("claim_classes", []))
+        claim_classes = contract.get("claim_classes")
+        if not isinstance(claim_classes, list):
+            errors.append("machine contract claim_classes must be a list")
+            allowed_claims: set[str] = set()
+        elif not all(isinstance(item, str) and bool(item.strip()) for item in claim_classes):
+            errors.append("machine contract claim_classes members must be non-empty strings")
+            allowed_claims = {item for item in claim_classes if isinstance(item, str) and item.strip()}
+        else:
+            allowed_claims = set(claim_classes)
+
         result_entries = results.get("results")
         if not isinstance(result_entries, list) or not result_entries:
             errors.append("cross-repo results requires non-empty results")
@@ -295,6 +336,17 @@ def validate(root: Path = ROOT) -> dict[str, object]:
         else:
             errors.append("required cross-repo authority file missing: theory/CROSS_REPO_RESULTS.md")
 
+        if HUMAN_ATLAS_PATH.is_file():
+            atlas = HUMAN_ATLAS_PATH.read_text(encoding="utf-8")
+            for pattern_id, expected_section in EXPECTED_ATLAS_SECTIONS.items():
+                actual_section = extract_atlas_section(atlas, pattern_id)
+                if actual_section is None:
+                    errors.append(f"human cross-repo atlas missing canonical context pattern: {pattern_id}")
+                elif actual_section != expected_section:
+                    errors.append(f"human cross-repo atlas canonical context payload drift: {pattern_id}")
+        else:
+            errors.append("required cross-repo authority file missing: research/CROSS_REPO_PATTERN_ATLAS.md")
+
         authority = contract.get("cross_repo_pattern_authority")
         if isinstance(authority, dict):
             expected = {
@@ -336,10 +388,11 @@ def validate(root: Path = ROOT) -> dict[str, object]:
                 "remote_freshness_checked": False,
                 "snapshot_date": patterns.get("snapshot_date"),
                 "human_result_sync_checked": True,
+                "human_pattern_atlas_sync_checked": True,
             },
         }
     finally:
-        ROOT, PATTERNS_PATH, RESULTS_PATH, CONTRACT_PATH, HUMAN_RESULTS_PATH = original
+        ROOT, PATTERNS_PATH, RESULTS_PATH, CONTRACT_PATH, HUMAN_RESULTS_PATH, HUMAN_ATLAS_PATH = original
 
 
 def main() -> None:
@@ -357,6 +410,7 @@ def main() -> None:
             f"{summary['results']} finite results"
         )
         print("human result metadata synchronized: yes")
+        print("human pattern atlas synchronized for current context records: yes")
         print("remote freshness checked: no (registry pins are snapshot provenance)")
         for error in report["errors"]:
             print(f"error: {error}")
