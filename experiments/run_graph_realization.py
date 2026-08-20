@@ -15,6 +15,7 @@ VALIDATOR = ROOT / "scripts/validate_graph_realization.py"
 EXPERIMENT = ROOT / "experiments/graph_realization/run.py"
 
 CORE_FILES = [
+    "machine/contract.json",
     "machine/relation_contract.json",
     "machine/graph_realization_contract.json",
     "machine/graph_realization_results.json",
