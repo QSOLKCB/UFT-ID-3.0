@@ -518,6 +518,32 @@ REPRODUCED != VALIDATED
 
 ---
 
+# PR #8 roadmap compatibility ledger
+
+The following headings are retained **only** as historical anchors for the merged PR #8 formalization validator and deterministic receipt. They describe the pre-audit scheduling baseline and are not the current implementation order.
+
+```text
+PR #8 — Invariant calculus, assurance graph, and model obligations
+PR #9 — Observation fibres, quotients, and reconstruction
+PR #10 — Recovery taxonomy
+PR #11 — Transport taxonomy and epistemic bridges
+PR #12 — Information-functional robustness
+PR #13 — Finite reference-model battery
+PR #14 — Lean foundation and theorem-surface audit
+PR #15 — Representation and receiver robustness
+```
+
+For the same historical validator, the completed foundation corresponds to the legacy labels:
+
+```text
+Phase 0: lineage and provenance — COMPLETE
+2019 MEI reproduction — COMPLETE
+```
+
+Current scheduling authority is the numbered programme above, not this compatibility ledger.
+
+---
+
 # Release criteria
 
 UFT-ID 3.0 is release-ready only when:
