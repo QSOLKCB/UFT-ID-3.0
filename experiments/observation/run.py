@@ -5,6 +5,10 @@ from __future__ import annotations
 import argparse
 import json
 from collections import defaultdict
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+CONTRACT_PATH = ROOT / "machine/observation_contract.json"
 
 
 def require(condition: bool, message: str) -> None:
@@ -15,6 +19,17 @@ def require(condition: bool, message: str) -> None:
 def positive_int(value: int, label: str) -> None:
     if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
         raise ValueError(f"{label} must be a positive integer")
+
+
+def max_floor_dimension() -> int:
+    payload = json.loads(CONTRACT_PATH.read_text(encoding="utf-8"))
+    limits = payload.get("execution_limits")
+    if not isinstance(limits, dict):
+        raise RuntimeError("observation contract execution_limits missing")
+    value = limits.get("max_floor_dimension")
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        raise RuntimeError("observation contract max_floor_dimension must be a positive integer")
+    return value
 
 
 def ceil_div(a: int, b: int) -> int:
@@ -54,11 +69,13 @@ def map_properties(mapping: dict[int, int], codomain: tuple[int, ...]) -> dict[s
 
 
 def floor_case(L: int, R: int) -> dict[str, object]:
-    # Validate before constructing ranges. Otherwise malformed non-positive
-    # dimensions can produce empty comprehensions and bypass the checks inside
-    # floor_sample/floor_fibre_formula.
     positive_int(L, "L")
     positive_int(R, "R")
+    ceiling = max_floor_dimension()
+    if L > ceiling or R > ceiling:
+        raise ValueError(
+            f"floor fixture dimensions must not exceed max_floor_dimension={ceiling}"
+        )
 
     mapping = {i: floor_sample(L, R, i) for i in range(R)}
     props = map_properties(mapping, tuple(range(L)))
@@ -107,6 +124,7 @@ def run_suite() -> dict[str, object]:
     return {
         "type": "uft-id-pr9-observation-witness",
         "schema_version": "1.0.1",
+        "execution_limit": {"max_floor_dimension": max_floor_dimension()},
         "constant_observation": {
             "source": [0, 1],
             "codomain": [0],
