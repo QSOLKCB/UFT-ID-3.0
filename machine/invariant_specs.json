@@ -2,6 +2,7 @@
   "generic_form": {
     "fields": [
       "id",
+      "name",
       "domain",
       "codomain",
       "transformation",
@@ -20,167 +21,112 @@
   },
   "records": [
     {
-      "break_conditions": [
-        "B(x) records known specification-level failure conditions separately from ordinary hypotheses"
-      ],
+      "break_conditions": ["B(x) records known specification-level failure conditions separately from ordinary hypotheses"],
       "claim_class": "DEFINITION",
       "codomain": "Y",
       "domain": "X",
-      "hypotheses": [
-        "H(x) is explicitly declared"
-      ],
+      "hypotheses": ["H(x) is explicitly declared"],
       "id": "UI-INV-001",
       "kind": "contract",
       "name": "Generic invariant specification",
-      "nonclaims": [
-        "This record shape is not itself a physical invariant.",
-        "Break-condition metadata does not replace proof of P."
-      ],
+      "nonclaims": ["This record shape is not itself a physical invariant.", "Break-condition metadata does not replace proof of P."],
       "property": "P(x,f(x))",
       "scope": "meta-formalization",
-      "source_lineage": [
-        "PR8-SRC-QEC-INV"
-      ],
+      "source_lineage": ["XR-P10", "PR8-INPUT-DEEP-RESEARCH"],
       "status": "definition",
       "transformation": "f : X -> Y"
     },
     {
-      "break_conditions": [
-        "Replacing rot90 by a non-isometric map such as scale2 invalidates the property"
-      ],
+      "break_conditions": ["Replacing rot90 by a non-isometric map such as scale2 invalidates the property"],
       "claim_class": "PROVED",
       "codomain": "Z^2",
       "domain": "Z^2",
-      "evidence": [
-        "experiments/formalization/run.py",
-        "tests/test_pr8_formalization.py"
-      ],
-      "hypotheses": [
-        "x and y are integers"
-      ],
+      "evidence": ["theory/INVARIANT_CALCULUS.md", "experiments/formalization/run.py", "tests/test_pr8_formalization.py"],
+      "hypotheses": ["x and y are integers"],
       "id": "UI-INV-002",
       "kind": "representation",
       "name": "Quarter-turn preserves integer squared norm",
-      "nonclaims": [
-        "This finite exact fixture is not a theorem about arbitrary representation changes or physical conservation."
-      ],
+      "nonclaims": ["This exact algebraic result is not a theorem about arbitrary representation changes or physical conservation."],
+      "proof": "For arbitrary integers x,y: sqnorm(rot90(x,y))=(-y)^2+x^2=y^2+x^2=x^2+y^2=sqnorm(x,y).",
       "property": "sqnorm(rot90(v)) = sqnorm(v)",
-      "scope": "exact finite/integer reference fixture",
-      "source_lineage": [
-        "PR8-SRC-QEC-INV"
-      ],
+      "scope": "all integer pairs Z^2; executable fixture is a conformance witness, not the universal proof",
+      "source_lineage": ["XR-P10"],
       "status": "proved-finite-specialization",
       "transformation": "rot90(x,y)=(-y,x)"
     },
     {
-      "break_conditions": [
-        "At the zero vector the inequality does not hold"
-      ],
+      "break_conditions": ["At the zero vector the inequality does not hold"],
       "claim_class": "COUNTEREXAMPLE",
       "codomain": "Z^2",
       "domain": "Z^2",
-      "evidence": [
-        "experiments/formalization/run.py"
-      ],
-      "hypotheses": [
-        "v != (0,0)"
-      ],
+      "evidence": ["experiments/formalization/run.py"],
+      "hypotheses": ["v != (0,0)"],
       "id": "UI-INV-003",
       "kind": "representation",
       "name": "Scaling counterexample to unqualified norm invariance",
-      "nonclaims": [
-        "Failure under scale2 does not refute invariance under the narrower rotation action."
-      ],
+      "nonclaims": ["Failure under scale2 does not refute invariance under the narrower rotation action."],
       "property": "sqnorm(scale2(v)) != sqnorm(v)",
-      "scope": "smallest exact adversarial contrast to UI-INV-002",
-      "source_lineage": [
-        "PR8-SRC-QEC-INV"
-      ],
+      "scope": "exact adversarial contrast to UI-INV-002",
+      "source_lineage": ["XR-P10"],
       "status": "counterexample",
       "transformation": "scale2(x,y)=(2x,2y)"
     },
     {
-      "break_conditions": [
-        "Changing the underlying distributions or entropy functional would no longer isolate observation-map dependence"
-      ],
+      "break_conditions": ["Changing the transition kernel, underlying initial distribution, or entropy functional would no longer isolate observation-map dependence"],
       "claim_class": "COUNTEREXAMPLE",
       "codomain": "R",
       "domain": "Finite probability distributions on four states",
-      "evidence": [
-        "experiments/formalization/run.py"
-      ],
+      "evidence": ["experiments/formalization/run.py"],
       "hypotheses": [
         "Shannon entropy uses base 2",
+        "p1 is derived from p0 by the declared row-stochastic kernel K",
         "Both partitions are complete and disjoint",
-        "The underlying p0 and p1 are identical across observer comparisons"
+        "The same p0, K, p1 trajectory is used for both observer comparisons"
       ],
       "id": "UI-INV-004",
       "kind": "statistical",
       "name": "Observer-dependent Shannon sign counterexample",
-      "nonclaims": [
-        "This does not violate data processing for one fixed deterministic observation map applied to one fixed distribution.",
-        "It shows that temporal entropy sign is not observer-independent when the observation contract changes."
-      ],
+      "nonclaims": ["This does not violate data processing for one fixed deterministic observation map applied to one fixed distribution.", "It shows that temporal entropy sign is not observer-independent when the observation contract changes."],
       "property": "Delta H_fine > 0, while one observed Delta H < 0 and another observed Delta H > 0",
-      "scope": "finite counterexample",
-      "source_lineage": [
-        "PR8-INPUT-DEEP-RESEARCH"
-      ],
+      "scope": "finite counterexample with one fixed declared fine-state dynamics",
+      "source_lineage": ["PR8-INPUT-DEEP-RESEARCH"],
       "status": "counterexample",
-      "transformation": "Compare the same p0->p1 under two declared coarse-graining partitions"
+      "transformation": "p1=p0 K, then compare that same fine trajectory under two declared coarse-graining partitions"
     },
     {
-      "break_conditions": [
-        "A weaker one-sided reconstruction claim has different obligations"
-      ],
+      "break_conditions": ["A weaker one-sided reconstruction claim has different obligations"],
       "claim_class": "DIAGNOSTIC",
       "codomain": "Audit status",
       "domain": "Declared map f : X -> Y",
-      "hypotheses": [
-        "The claim uses reversible/invertible semantics rather than merely recoverable metadata"
-      ],
+      "hypotheses": ["The claim uses reversible/invertible semantics rather than merely recoverable metadata"],
       "id": "UI-INV-005",
       "kind": "contract",
       "name": "Reversibility claim realization obligation",
-      "nonclaims": [
-        "The audit contract does not prove reversibility; it defines what evidence must exist before the repository may claim it."
-      ],
+      "nonclaims": ["The audit contract does not prove reversibility; it defines what evidence must exist before the repository may claim it."],
       "property": "A reversible claim is unsupported unless domain/codomain and inverse or bijectivity evidence are present",
       "scope": "claim-vs-implementation audit",
-      "source_lineage": [
-        "PR8-INPUT-PAPER-BUNDLE"
-      ],
+      "source_lineage": ["PR8-INPUT-PAPER-BUNDLE", "XR-P03"],
       "status": "definition",
       "transformation": "Audit a claimed reversible map against declared inverse/bijectivity evidence"
     },
     {
-      "break_conditions": [
-        "A separate experiment or evidence operation may legitimately update empirical fields"
-      ],
+      "break_conditions": ["A separate experiment or evidence operation may legitimately update empirical fields"],
       "claim_class": "NONCLAIM",
       "codomain": "AssuranceRecord",
       "domain": "AssuranceRecord",
-      "hypotheses": [
-        "Replay identity is valid under its frozen execution contract"
-      ],
+      "hypotheses": ["Replay identity is valid under its frozen execution contract"],
       "id": "UI-INV-006",
       "kind": "replay",
       "name": "Replay/empirical non-promotion",
-      "nonclaims": [
-        "Replay is not empirical confirmation.",
-        "A formal proof is not runtime conformance."
-      ],
+      "nonclaims": ["Replay is not empirical confirmation.", "A formal proof is not runtime conformance."],
       "property": "Replay status may change without automatically changing empirical measurement or scientific interpretation status",
       "scope": "assurance governance",
-      "source_lineage": [
-        "PR8-SRC-UFF-THEOREMS",
-        "PR8-SRC-UFF-NONCLAIMS"
-      ],
+      "source_lineage": ["XR-P06", "XR-P15"],
       "status": "nonclaim",
       "transformation": "Record a successful deterministic replay"
     }
   ],
-  "schema_version": "1.0.0",
+  "schema_version": "1.0.1",
   "snapshot_date": "2026-08-20",
   "type": "uft-id-invariant-spec-registry"
 }
