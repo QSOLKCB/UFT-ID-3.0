@@ -1,6 +1,6 @@
 {
   "type": "uft-id-relation-theorem-registry",
-  "schema_version": "1.0.0",
+  "schema_version": "1.0.1",
   "snapshot_date": "2026-08-21",
   "records": [
     {
@@ -8,12 +8,12 @@
       "lean_target_name": "UFT_RW_001_reach_preserves",
       "name": "Branchwise invariant induction",
       "claim_class": "PROVED",
-      "statement": "If P(x) and every r-step preserves P, then every state reachable from x by reflexive-transitive closure satisfies P.",
+      "statement": "If P(x) and every stepRel-step preserves P, then every state reachable from x by reflexive-transitive closure satisfies P.",
       "hypotheses": [
-        "r:X->X->Prop",
+        "stepRel:X->X->Prop",
         "P:X->Prop",
         "P(x)",
-        "for all u,v, P(u) and r(u,v) imply P(v)"
+        "for all u,v, P(u) and stepRel(u,v) imply P(v)"
       ],
       "proof_reference": "theory/RELATION_CALCULUS.md#uft-rw-001-branchwise-invariant-induction",
       "executable_evidence": [
@@ -29,10 +29,10 @@
       "lean_target_name": "UFT_RW_002_rightUnique_confluent",
       "name": "Right-unique rewriting is confluent",
       "claim_class": "PROVED",
-      "statement": "If r is right-unique, then r is confluent.",
+      "statement": "If stepRel is right-unique, then stepRel is confluent.",
       "hypotheses": [
-        "r:X->X->Prop",
-        "for all x,y,z, r(x,y) and r(x,z) imply y=z"
+        "stepRel:X->X->Prop",
+        "for all x,y,z, stepRel(x,y) and stepRel(x,z) imply y=z"
       ],
       "proof_reference": "theory/RELATION_CALCULUS.md#uft-rw-002-right-unique-rewriting-is-confluent",
       "executable_evidence": [
@@ -48,10 +48,10 @@
       "lean_target_name": "UFT_RW_003_confluent_reachableNormal_eq",
       "name": "Confluence gives at most one reachable normal form",
       "claim_class": "PROVED",
-      "statement": "If r is confluent, then from any common source x, any two reachable normal forms are equal.",
+      "statement": "If stepRel is confluent, then from any common source x, any two reachable normal forms are equal.",
       "hypotheses": [
-        "r:X->X->Prop",
-        "r is confluent",
+        "stepRel:X->X->Prop",
+        "stepRel is confluent",
         "x reaches n1",
         "x reaches n2",
         "n1 is normal",
@@ -71,9 +71,9 @@
       "lean_target_name": "UFT_RW_004_terminating_reachesNormal",
       "name": "Termination gives reachable normal-form existence",
       "claim_class": "PROVED",
-      "statement": "If the forward rewrite relation r terminates, every state x reaches at least one normal form.",
+      "statement": "If the forward rewrite relation stepRel terminates, every state x reaches at least one normal form.",
       "hypotheses": [
-        "r:X->X->Prop",
+        "stepRel:X->X->Prop",
         "forward rewriting is terminating, equivalently the swapped relation is well-founded"
       ],
       "proof_reference": "theory/RELATION_CALCULUS.md#uft-rw-004-termination-gives-reachable-normal-form-existence",
@@ -90,9 +90,9 @@
       "lean_target_name": "UFT_SEL_001_distinctNormalLabels_refuteUniqueSelection",
       "name": "Distinct reachable normal labels refute unique selection",
       "claim_class": "PROVED",
-      "statement": "If x reaches normal forms n1 and n2 and a label map lambda gives lambda(n1) != lambda(n2), then x does not have at most one reachable normal form; therefore r alone cannot justify a unique-selection claim over lambda.",
+      "statement": "If x reaches normal forms n1 and n2 and a label map lambda gives lambda(n1) != lambda(n2), then x does not have at most one reachable normal form; therefore stepRel alone cannot justify a unique-selection claim over lambda.",
       "hypotheses": [
-        "r:X->X->Prop",
+        "stepRel:X->X->Prop",
         "lambda:X->L",
         "x reaches n1",
         "x reaches n2",
@@ -113,7 +113,7 @@
   "derived_corollaries": [
     {
       "name": "termination-and-confluence-give-exactly-one-reachable-normal-form",
-      "statement": "If r terminates and is confluent, then every x has exactly one reachable normal form.",
+      "statement": "If stepRel terminates and is confluent, then every x has exactly one reachable normal form.",
       "from": [
         "UFT-RW-003",
         "UFT-RW-004"
