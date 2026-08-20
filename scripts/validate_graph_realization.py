@@ -20,6 +20,7 @@ PATHS = {
     "readme4ai": ROOT / "README4AI.md",
     "reproducibility": ROOT / "docs/REPRODUCIBILITY.md",
     "roadmap": ROOT / "ROADMAP.md",
+    "workflow": ROOT / ".github/workflows/finite-adversarial.yml",
     "relation_contract": ROOT / "machine/relation_contract.json",
     "cross_repo_patterns": ROOT / "machine/cross_repo_patterns.json",
     "experiment": ROOT / "experiments/graph_realization/run.py",
@@ -32,6 +33,15 @@ EXPECTED_SHA256 = {
     "results": "c947c612922c68eccaed585ea256295afe9f7bb428d801f06b1e2e41cbacb0d8",
     "sources": "776a7fa9e46f3ee68d75ffaa651d68696899108b24e1f603e19b1f3c9264342b",
     "human": "e75d1b249ca36192d09a22a8359084c7e194fd601e9ef672a8ad2c94cf062687",
+}
+
+# These claim-bearing human surfaces are closed by exact Git blob identity.
+# Legitimate edits must deliberately update these pins in the same reviewed change.
+EXPECTED_HUMAN_BLOBS = {
+    "claims": "b7afd74fe589f3032dcf3a34e287af365a39311b",
+    "readme4ai": "3518fa11fd2bba6fa57b89b6279a271f1d654d29",
+    "reproducibility": "9fce9ae1a3ae5a867f79faa90f5309c908c7d071",
+    "roadmap": "c479d03238f41211cddaeb216289c30be24c05be",
 }
 
 EXPECTED_RESULT_IDS = {
@@ -132,11 +142,18 @@ REPRO_ANCHORS = (
     "ROADMAP.md",
 )
 
+GRAPH_ARTIFACT_COMMANDS = (
+    "python scripts/validate_graph_realization.py --json > artifacts/graph-realization-validation.json 2> artifacts/graph-realization-validation.stderr.txt || true",
+    "python experiments/graph_realization/run.py --json > artifacts/graph-realization-witness.json 2> artifacts/graph-realization-witness.stderr.txt || true",
+    "python experiments/run_graph_realization.py --json > artifacts/graph-realization-receipt.json 2> artifacts/graph-realization-receipt.stderr.txt || true",
+)
+
 PETTINI_START = "# Future model-donor programme — typed causality, projection, and assumption structure"
 PETTINI_ANCHORS = (
     "ROADMAP-ONLY RESEARCH TARGET / MODEL DONOR",
     "Marco Pettini",
     "Quantum Entanglement Beyond Kinematics: A Dynamical Hypothesis in (3,2)-Dimensional Spacetime",
+    "arXiv:2606.12457v2",
     "10.48550/arXiv.2606.12457",
     "ANSATZ_UNIQUENESS != GLOBAL_UNIQUENESS",
     "MODEL_CLASS_EXHAUSTION != PHYSICAL_SELECTION",
@@ -162,6 +179,11 @@ PETTINI_ANCHORS = (
 
 def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+def git_blob_sha(data: bytes) -> str:
+    header = f"blob {len(data)}\0".encode("ascii")
+    return hashlib.sha1(header + data).hexdigest()
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -229,11 +251,17 @@ def validate() -> dict[str, object]:
     readme4ai = PATHS["readme4ai"].read_text(encoding="utf-8")
     reproducibility = PATHS["reproducibility"].read_text(encoding="utf-8")
     roadmap = PATHS["roadmap"].read_text(encoding="utf-8")
+    workflow = PATHS["workflow"].read_text(encoding="utf-8")
 
     for name in ("contract", "results", "sources", "human"):
         actual = sha256_bytes(PATHS[name].read_bytes())
         if actual != EXPECTED_SHA256[name]:
             errors.append(f"{name} canonical payload drift")
+
+    for name, expected_blob in EXPECTED_HUMAN_BLOBS.items():
+        actual_blob = git_blob_sha(PATHS[name].read_bytes())
+        if actual_blob != expected_blob:
+            errors.append(f"{name} canonical human authority blob drift")
 
     if contract.get("type") != "uft-id-graph-realization-contract":
         errors.append("graph contract type drift")
@@ -355,6 +383,7 @@ def validate() -> dict[str, object]:
     require_anchors(claims, CLAIMS_ANCHORS, "docs/CLAIMS.md graph registration", errors)
     require_anchors(readme4ai, README_ANCHORS, "README4AI graph registration", errors)
     require_anchors(reproducibility, REPRO_ANCHORS, "reproducibility graph registration", errors)
+    require_anchors(workflow, GRAPH_ARTIFACT_COMMANDS, "finite-adversarial graph artifact retention", errors)
 
     pettini_index = roadmap.find(PETTINI_START)
     if pettini_index < 0:
