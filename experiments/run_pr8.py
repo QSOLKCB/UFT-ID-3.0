@@ -20,11 +20,15 @@ FILES = [
     "machine/assurance_graph.json",
     "machine/definition_obligations.json",
     "machine/falsification_contract.json",
+    "machine/cross_repo_patterns.json",
     "theory/INVARIANT_CALCULUS.md",
     "theory/ASSURANCE.md",
     "theory/DEFINITION_OBLIGATIONS.md",
     "theory/FALSIFICATION_CONTRACTS.md",
     "scripts/validate_formalization_contracts.py",
+    "experiments/__init__.py",
+    "experiments/lib/__init__.py",
+    "experiments/lib/information.py",
     "experiments/formalization/run.py",
     "tests/test_pr8_formalization.py",
     "experiments/run_pr8.py",
@@ -60,13 +64,10 @@ def run_suite() -> dict[str, object]:
         raise RuntimeError("; ".join(validation["errors"]))
 
     result = experiment.run_suite()
-    source_hashes = {
-        path: sha256_bytes((ROOT / path).read_bytes())
-        for path in sorted(FILES)
-    }
+    source_hashes = {path: sha256_bytes((ROOT / path).read_bytes()) for path in sorted(FILES)}
     identity = {
         "type": "uft-id-pr8-formalization-receipt",
-        "schema_version": "1.0.0",
+        "schema_version": "1.0.1",
         "source_sha256": source_hashes,
         "result_sha256": sha256_bytes(canonical_bytes(result)),
         "summary": {
@@ -90,6 +91,7 @@ def run_suite() -> dict[str, object]:
         "runtime_excluded_from_fingerprint": True,
         "claim_boundary": (
             "FORMAL_PROOF != RUNTIME_CONFORMANCE != EMPIRICAL_VALIDATION; "
+            "MODEL_OUTPUT != EXECUTION_EVIDENCE; "
             "NAMED_OBJECT != WELL_DEFINED_OBJECT"
         ),
     }
