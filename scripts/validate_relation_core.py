@@ -39,6 +39,15 @@ EXPECTED_AUTHORITIES = {
     "roadmap": "ROADMAP.md",
 }
 
+EXPECTED_PRIMARY_TYPES = {
+    "rewrite_relation": "stepRel:X->X->Prop",
+    "admissibility": "A:X->Prop",
+    "reachability": "reflexive-transitive closure stepRel*",
+    "normal": "Normal_stepRel(x) iff no y satisfies stepRel(x,y)",
+    "joinable": "Joinable_stepRel(x,y) iff some z is reachable from both x and y",
+    "termination_orientation": "forward x->y termination corresponds to WellFounded(Function.swap stepRel) in the planned Lean encoding",
+}
+
 EXPECTED_HARD_RULES = {
     "step_relation_forces_target_admissible",
     "normal_implies_admissible",
@@ -82,6 +91,16 @@ EXPECTED_PROOF_REFS = {
     "UFT-SEL-001": "theory/RELATION_CALCULUS.md#uft-sel-001-distinct-reachable-normal-labels-refute-unique-selection",
 }
 
+EXPECTED_DERIVED_COROLLARY = {
+    "name": "termination-and-confluence-give-exactly-one-reachable-normal-form",
+    "statement": "If stepRel terminates and is confluent, then every x has exactly one reachable normal form.",
+    "from": ["UFT-RW-003", "UFT-RW-004"],
+    "separate_headline_theorem_id": False,
+}
+EXPECTED_DERIVED_HUMAN_MARKER = (
+    "**Canonical derived corollary:** `If stepRel terminates and is confluent, then every x has exactly one reachable normal form.`"
+)
+
 EXPECTED_CX = {
     "CX-RW-FORK3": {
         "states": ["a", "b", "c"],
@@ -102,18 +121,34 @@ EXPECTED_CX = {
 
 EXPECTED_CONTEXT_PATTERNS = {
     "XR-P17": {
+        "pattern_id": "XR-P17",
         "repository": "QSOLKCB/SONIFICATION",
         "ref": "main",
         "source_path": "docs/MATHEMATICAL_MODEL.md",
         "source_blob_sha": "0e8f986dd5ca191c1eded726dd6e276c1f856613",
         "source_status": "merged-main",
+        "import_class": "finite-triality-compatibility-context",
+        "source_contract": "The ETQ-101 model supplies 33 mutually exclusive direct-sum triality/qutrit blocks plus two fixed singlets, the local D3=diag(1,-2,1) operator, a theta=pi/2 phase kick, and the exact local identity F3^3=I3, while explicitly denying that these labels constitute a physical E8 representation or ontology.",
+        "preserved_structure": ["finite availability of 33 complete triality/qutrit blocks", "local D3=diag(1,-2,1) operator", "theta=pi/2 phase-kick convention", "exact local F3^3=I3 identity", "explicit model-versus-ontology boundary"],
+        "discarded_structure": ["ETQ sonification semantics", "E8 root-selector details beyond the finite block count", "selected-root graph geometry", "MIDI and acoustic receiver mappings"],
+        "uft_mapping": ["UFT-SEL-001", "SEL-STRESS-GENUS-10-30"],
+        "abstraction": "A finite authored model may supply enough mutually exclusive decorative blocks to label multiple competing constructions without thereby selecting one construction uniquely.",
+        "prohibited_inference": "Triality/qutrit compatibility, block count, phase closure, or E8-derived labels select a unique genus or establish a physical topology.",
     },
     "XR-P18": {
+        "pattern_id": "XR-P18",
         "repository": "QSOLKCB/SPECTRAL",
         "ref": "main",
         "source_path": "E8/APP/README.md",
         "source_blob_sha": "4855bfff69d89c4920a2b2daf59c38b875a617ec",
         "source_status": "merged-main",
+        "import_class": "placement-geometry-context",
+        "source_contract": "The SPECTRAL E8 Geometry Studio exposes Triality Spiral, qutrit/ternary controls, phi-scaled geometry, and E8-derived control paths while explicitly treating them as sonification/composition mappings rather than physical E8 measurements.",
+        "preserved_structure": ["Triality Spiral as an authored path/ordering choice", "qutrit/ternary control structure", "phi-scaled placement geometry", "explicit control-geometry-versus-physical-measurement boundary"],
+        "discarded_structure": ["audio synthesis implementation", "WAV rendering and receiver semantics", "browser runtime identity", "creative-mode controls"],
+        "uft_mapping": ["UFT-SEL-001", "SEL-STRESS-GENUS-10-30"],
+        "abstraction": "A geometric spiral or phi-scaled ordering may organize labelled sectors while remaining independent of the topology those labels decorate.",
+        "prohibited_inference": "Spiral placement, qutrit controls, or E8 composition geometry derives topological genus, cosmology, or unique physical selection.",
     },
 }
 
@@ -328,7 +363,15 @@ def validate_documents(
     check_paths: bool = True,
 ) -> dict[str, Any]:
     errors: list[str] = []
-    claim_classes = set(base_contract.get("claim_classes", []))
+
+    claim_classes_raw = base_contract.get("claim_classes")
+    if not isinstance(claim_classes_raw, list):
+        errors.append("base project claim_classes must be a list")
+        claim_classes: set[str] = set()
+    else:
+        claim_classes = {value for value in claim_classes_raw if isinstance(value, str)}
+        if len(claim_classes) != len(claim_classes_raw):
+            errors.append("base project claim_classes must contain strings only")
 
     if contract.get("type") != "uft-id-relation-core-contract" or contract.get("schema_version") != "1.0.1":
         errors.append("relation contract shape mismatch")
@@ -341,13 +384,8 @@ def validate_documents(
             repo_file(path, f"authority.{key}", errors)
 
     primary = contract.get("primary_types")
-    if not isinstance(primary, dict):
-        errors.append("primary_types must be an object")
-    else:
-        if primary.get("rewrite_relation") != "stepRel:X->X->Prop":
-            errors.append("general rewrite carrier must remain stepRel:X->X->Prop")
-        if primary.get("admissibility") != "A:X->Prop":
-            errors.append("admissibility must remain a separate predicate A:X->Prop")
+    if primary != EXPECTED_PRIMARY_TYPES:
+        errors.append("primary_types canonical mapping drift")
 
     hard = contract.get("hard_rules")
     if not isinstance(hard, dict) or set(hard) != EXPECTED_HARD_RULES:
@@ -430,12 +468,10 @@ def validate_documents(
         errors.append("relation theorem IDs must match the four foundational RW theorems plus UFT-SEL-001 exactly")
 
     derived = theorems.get("derived_corollaries")
-    if not isinstance(derived, list) or len(derived) != 1:
-        errors.append("exactly one derived corollary is required")
-    else:
-        item = derived[0]
-        if not isinstance(item, dict) or item.get("from") != ["UFT-RW-003", "UFT-RW-004"] or item.get("separate_headline_theorem_id") is not False:
-            errors.append("unique-normal derived corollary must remain split across existence and uniqueness theorems")
+    if derived != [EXPECTED_DERIVED_COROLLARY]:
+        errors.append("derived corollary canonical payload drift")
+    if EXPECTED_DERIVED_HUMAN_MARKER not in human:
+        errors.append("human derived corollary canonical statement drift")
 
     deferred_targets = theorems.get("deferred_theorem_targets")
     if not isinstance(deferred_targets, list) or len(deferred_targets) != 1:
@@ -482,8 +518,6 @@ def validate_documents(
     if cx_ids != EXPECTED_CX_IDS:
         errors.append("counterexample IDs must be exactly FORK3, LOOP1, and EXIT2")
 
-    # The selection specimen is a small claim-bearing authority. Validate it as one
-    # canonical payload so hashes cannot authenticate semantic drift the validator missed.
     if selection != EXPECTED_SELECTION:
         errors.append("genus selection specimen canonical payload drift")
 
@@ -499,10 +533,8 @@ def validate_documents(
         actual = pattern_by_id.get(pattern_id)
         if actual is None:
             errors.append(f"selection context reference missing canonical pattern: {pattern_id}")
-            continue
-        for field, value in expected.items():
-            if actual.get(field) != value:
-                errors.append(f"{pattern_id}.{field} drift from verified selection context")
+        elif actual != expected:
+            errors.append(f"{pattern_id} canonical payload drift from verified selection context")
 
     if roadmap_state.get("type") != "uft-id-roadmap-state" or roadmap_state.get("schema_version") != "1.0.0":
         errors.append("live roadmap state shape mismatch")
