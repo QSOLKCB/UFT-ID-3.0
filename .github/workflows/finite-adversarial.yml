@@ -12,6 +12,7 @@ on:
       - "scripts/validate_observation_specs.py"
       - "scripts/validate_relation_core.py"
       - "scripts/validate_graph_realization.py"
+      - "scripts/verify_graph_artifacts.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -48,6 +49,7 @@ on:
       - "scripts/validate_observation_specs.py"
       - "scripts/validate_relation_core.py"
       - "scripts/validate_graph_realization.py"
+      - "scripts/verify_graph_artifacts.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -179,6 +181,11 @@ jobs:
           python experiments/graph_realization/run.py --json > artifacts/graph-realization-witness.json 2> artifacts/graph-realization-witness.stderr.txt || true
           python experiments/run_graph_realization.py --json > artifacts/graph-realization-receipt.json 2> artifacts/graph-realization-receipt.stderr.txt || true
           python scripts/validate_reproducibility.py --json > artifacts/reproducibility-validation.json 2> artifacts/reproducibility-validation.stderr.txt || true
+
+      - name: Verify retained graph evidence
+        if: always()
+        run: |
+          python scripts/verify_graph_artifacts.py artifacts
 
       - name: Retain finite evidence bundle
         if: always()
