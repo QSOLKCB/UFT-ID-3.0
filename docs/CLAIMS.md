@@ -117,15 +117,19 @@ The SiS2, ETQ/SPECTRAL, tetrahedral, or other structural examples do not promote
 
 **Qualifier:** abstract/set-theoretic structural-transport scope; not epistemic promotion, semantic equivalence, or physical validation.
 
-The canonical BridgeCore authority registers `UFT-BR-001` through `UFT-BR-005` as proved abstract results. A `BridgeSpec` declares source and target type, source domain, a typed map or relation, preserved structure, lost structure, scope, and source/target versions. Ordinary BridgeCore composition is licensed only when intermediate type and version identities agree, every produced intermediate state lies in the second bridge domain, and the declared scopes overlap.
+The canonical BridgeCore authority registers `UFT-BR-001` through `UFT-BR-005` as proved abstract results. A `BridgeSpec` declares source and target type, a possibly empty source domain, a typed map or relation, preserved structure, lost structure, scope, and source/target versions. Ordinary BridgeCore composition is licensed only when intermediate type and version identities agree, every produced intermediate state lies in the second bridge domain, and the declared scopes overlap.
 
-Under the conservative composition contract, automatically inherited preservation is the intersection of the two preservation sets, previously lost structure remains lost, compatible identity bridges are neutral, and fully compatible three-bridge composition is associative. The repository's finite BridgeCore battery checks all 4,096 ordered triples of labelled binary relations on `Fin2` plus bounded preservation/loss fixtures as independent conformance evidence, not as the proof of the general set-theoretic results.
+Under the conservative composition contract, automatically inherited preservation is the intersection of the two preservation sets and previously lost structure remains lost. Two-sided **preservation/loss metadata** neutrality of an identity bridge additionally requires complete structure tracking: the identity's tracked vocabulary must be exactly `P_B union L_B` for the bridge being composed. Fully compatible three-bridge composition is associative.
+
+The repository's finite BridgeCore battery checks all 4,096 ordered triples of labelled binary relations on `Fin2` and all 729 ordered pairs of valid partial preservation/loss declarations over a three-label family by invoking the production composition implementation. This is independent bounded conformance evidence, not the proof of the general set-theoretic results.
 
 ```text
 BRIDGE != IDENTITY
 TRANSPORT != EQUIVALENCE
 PRESERVED_STRUCTURE != ALL_STRUCTURE
 LOSSY_BRIDGE != INVERTIBLE_BRIDGE
+DISJOINT_METADATA != EXHAUSTIVE_METADATA
+RELATIONAL_IDENTITY_NEUTRALITY != UNCONDITIONAL_METADATA_NEUTRALITY
 STRUCTURAL_BRIDGE != EPISTEMIC_PROMOTION
 FINITE_BRIDGE_CONFORMANCE != GENERAL_PROOF
 BRIDGE_CONFORMANCE != PHYSICAL_VALIDATION
