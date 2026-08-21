@@ -40,6 +40,52 @@ EXPECTED_RECEIPT_SUMMARY = {
     "scc_partition_checks": 530,
 }
 
+EXPECTED_CLAIM_BOUNDARY = (
+    "FINITE_GRAPH_CONFORMANCE != GENERAL_PROOF; "
+    "ALGEBRA != GRAPH != EMBEDDING != PHYSICS; "
+    "MATERIAL_POSITIVE_CONTROL != UFT_ID_PHYSICAL_PREMISE; "
+    "PAPER_MODEL != UFT_ID_PHYSICAL_ONTOLOGY"
+)
+
+# Independent authority closure.  These sets are intentionally duplicated here
+# rather than derived from the receipt runner so a modified runner cannot shrink
+# the bundle it claims to bind.
+EXPECTED_CORE_FILES = (
+    "machine/contract.json",
+    "machine/relation_contract.json",
+    "machine/graph_realization_contract.json",
+    "machine/graph_realization_results.json",
+    "machine/cross_repo_patterns.json",
+    "docs/CLAIMS.md",
+    "docs/NONCLAIMS.md",
+    "README4AI.md",
+    "docs/REPRODUCIBILITY.md",
+    "ROADMAP.md",
+    ".github/workflows/finite-adversarial.yml",
+    "research/GRAPH_REALIZATION_SOURCES.md",
+    "theory/RELATION_CALCULUS.md",
+    "theory/GRAPH_REALIZATION.md",
+    "scripts/validate_graph_realization.py",
+    "scripts/verify_graph_artifacts.py",
+    "experiments/relation/run.py",
+    "experiments/graph_realization/__init__.py",
+    "experiments/graph_realization/run.py",
+    "tests/test_graph_realization.py",
+    "tests/test_pr11_codex_final4.py",
+    "tests/test_pr11_codex_final2.py",
+    "tests/test_pr11_codex_latest5.py",
+    "tests/test_pr11_codex_latest6.py",
+    "tests/test_pr11_codex_latest7.py",
+    "experiments/run_graph_realization.py",
+)
+EXPECTED_DECLARED_EVIDENCE_PATHS = (
+    "experiments/graph_realization/run.py",
+    "tests/test_graph_realization.py",
+)
+EXPECTED_RECEIPT_FILES = tuple(
+    sorted(set(EXPECTED_CORE_FILES) | set(EXPECTED_DECLARED_EVIDENCE_PATHS))
+)
+
 HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 FINGERPRINT_FIELDS = (
     "type",
@@ -48,6 +94,7 @@ FINGERPRINT_FIELDS = (
     "declared_evidence_paths",
     "result_sha256",
     "summary",
+    "claim_boundary",
 )
 
 
@@ -138,9 +185,6 @@ def verify(artifact_dir: Path) -> dict[str, object]:
     if not isinstance(exhaustive, dict) or exhaustive != EXPECTED_BOUNDED_CHECK:
         raise RuntimeError("retained graph witness bounded-check payload drift")
 
-    # Verify the *entire* retained witness, not only its count envelope.  This
-    # keeps positive controls, counterexamples, and claim boundaries from being
-    # silently dropped while hashes are recomputed around an incomplete object.
     experiment = load_module("graph_artifact_experiment", EXPERIMENT)
     expected_witness = experiment.run_suite()
     if witness != expected_witness:
@@ -150,6 +194,8 @@ def verify(artifact_dir: Path) -> dict[str, object]:
         raise RuntimeError("retained graph receipt type drift")
     if receipt.get("schema_version") != registered_receipt_version():
         raise RuntimeError("retained graph receipt schema/version registry mismatch")
+    if receipt.get("claim_boundary") != EXPECTED_CLAIM_BOUNDARY:
+        raise RuntimeError("retained graph receipt claim boundary drift")
 
     expected_result_hash = sha256_bytes(canonical_bytes(witness))
     if receipt.get("result_sha256") != expected_result_hash:
@@ -159,23 +205,26 @@ def verify(artifact_dir: Path) -> dict[str, object]:
     if not isinstance(summary, dict) or summary != EXPECTED_RECEIPT_SUMMARY:
         raise RuntimeError("retained graph receipt summary drift")
 
-    # Reconstruct the exact source/evidence sets from the canonical runner and
-    # recompute every repository-file digest.  A self-consistent receipt cannot
-    # substitute invented paths or invented hashes.
     runner = load_module("graph_artifact_receipt_runner", RECEIPT_RUNNER)
-    expected_files = runner.receipt_files()
-    expected_evidence = sorted(runner.declared_evidence_paths())
+    if tuple(runner.CORE_FILES) != EXPECTED_CORE_FILES:
+        raise RuntimeError("graph receipt runner core source set drift")
+    runner_evidence = tuple(sorted(runner.declared_evidence_paths()))
+    if runner_evidence != EXPECTED_DECLARED_EVIDENCE_PATHS:
+        raise RuntimeError("graph receipt runner declared evidence set drift")
+    runner_files = tuple(runner.receipt_files())
+    if runner_files != EXPECTED_RECEIPT_FILES:
+        raise RuntimeError("graph receipt runner resolved source set drift")
 
     source_hashes = verify_hash_map(receipt.get("source_sha256"))
-    if sorted(source_hashes) != expected_files:
+    if tuple(sorted(source_hashes)) != EXPECTED_RECEIPT_FILES:
         raise RuntimeError("retained graph receipt source file set drift")
-    for path in expected_files:
+    for path in EXPECTED_RECEIPT_FILES:
         actual = sha256_bytes((ROOT / path).read_bytes())
         if source_hashes[path] != actual:
             raise RuntimeError(f"retained graph receipt source digest mismatch: {path}")
 
     evidence_paths = receipt.get("declared_evidence_paths")
-    if not isinstance(evidence_paths, list) or evidence_paths != expected_evidence:
+    if not isinstance(evidence_paths, list) or tuple(evidence_paths) != EXPECTED_DECLARED_EVIDENCE_PATHS:
         raise RuntimeError("retained graph receipt declared evidence path set drift")
 
     fingerprint = receipt.get("suite_fingerprint_sha256")
