@@ -44,6 +44,13 @@ CORE_FILES = [
     "experiments/run_graph_realization.py",
 ]
 
+CLAIM_BOUNDARY = (
+    "FINITE_GRAPH_CONFORMANCE != GENERAL_PROOF; "
+    "ALGEBRA != GRAPH != EMBEDDING != PHYSICS; "
+    "MATERIAL_POSITIVE_CONTROL != UFT_ID_PHYSICAL_PREMISE; "
+    "PAPER_MODEL != UFT_ID_PHYSICAL_ONTOLOGY"
+)
+
 
 def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
@@ -150,6 +157,7 @@ def run_suite() -> dict[str, object]:
             "reachability_source_checks": result["bounded_exhaustive_check"]["reachability_source_checks"],
             "scc_partition_checks": result["bounded_exhaustive_check"]["scc_partition_checks"],
         },
+        "claim_boundary": CLAIM_BOUNDARY,
     }
     fingerprint = sha256_bytes(canonical_bytes(identity))
     return {
@@ -161,12 +169,6 @@ def run_suite() -> dict[str, object]:
             "platform": sys.platform,
         },
         "runtime_excluded_from_fingerprint": True,
-        "claim_boundary": (
-            "FINITE_GRAPH_CONFORMANCE != GENERAL_PROOF; "
-            "ALGEBRA != GRAPH != EMBEDDING != PHYSICS; "
-            "MATERIAL_POSITIVE_CONTROL != UFT_ID_PHYSICAL_PREMISE; "
-            "PAPER_MODEL != UFT_ID_PHYSICAL_ONTOLOGY"
-        ),
     }
 
 
