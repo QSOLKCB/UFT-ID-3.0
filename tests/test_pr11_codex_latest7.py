@@ -156,20 +156,21 @@ class LatestCodexAuthorityRegressions(unittest.TestCase):
         self.assert_dedicated_error(result, "Grinberg human donor status drift")
         self.assertNotIn("sources canonical payload drift", result["errors"])
 
-        role_anchor = (
-            "The later arborescence, Matrix-Tree, Menger, kernel, and chain-complex ideas remain "
-            "roadmap targets rather than current physical claims."
+    def test_human_donor_section_rejects_additive_physical_promotion(self):
+        marker = (
+            "Source status: public arXiv course notes / mathematical preprint. "
+            "The source is not treated as a peer-reviewed empirical paper.\n"
         )
         result = self.mutate_text(
             "research/GRAPH_REALIZATION_SOURCES.md",
             lambda text: text.replace(
-                role_anchor,
-                "These structures are established physical evidence for the UFT-ID substrate.",
+                marker,
+                marker + "\nThis peer-reviewed donor establishes the UFT-ID graph substrate as physical reality.\n",
                 1,
             ),
             rebind_digest="sources",
         )
-        self.assert_dedicated_error(result, "Grinberg human donor role missing semantic anchor")
+        self.assert_dedicated_error(result, "Grinberg human donor section drift")
         self.assertNotIn("sources canonical payload drift", result["errors"])
 
     def test_projection_boundary_payload_is_exact_bound(self):
@@ -197,6 +198,18 @@ class LatestCodexAuthorityRegressions(unittest.TestCase):
         self.assert_dedicated_error(result, "graph type definition payload drift")
         self.assertNotIn("contract canonical payload drift", result["errors"])
 
+    def test_contract_scope_is_exact_bound(self):
+        def mutate(payload):
+            payload["scope"] = "The graph realization is empirically confirmed as the fundamental physical fabric underlying UFT-ID."
+
+        result = self.mutate_json(
+            "machine/graph_realization_contract.json",
+            mutate,
+            rebind_digest="contract",
+        )
+        self.assert_dedicated_error(result, "graph contract scope drift")
+        self.assertNotIn("contract canonical payload drift", result["errors"])
+
     def test_c7_status_is_section_bound(self):
         canonical = (
             "### C7 - Finite relation semantics admit an exact graph-realization layer\n\n"
@@ -210,6 +223,25 @@ class LatestCodexAuthorityRegressions(unittest.TestCase):
 
         result = self.mutate_text("docs/CLAIMS.md", transform, rebind_blob="claims")
         self.assert_dedicated_error(result, "docs/CLAIMS.md C7 status drift")
+        self.assertNotIn("claims canonical human authority blob drift", result["errors"])
+
+    def test_duplicate_authority_heading_is_rejected(self):
+        stub = (
+            "### C7 - Finite relation semantics admit an exact graph-realization layer\n\n"
+            "**Status:** PROVED\n\n"
+            "Cosmetic duplicate authority stub.\n\n"
+        )
+        canonical = (
+            "### C7 - Finite relation semantics admit an exact graph-realization layer\n\n"
+            "**Status:** PROVED"
+        )
+
+        def transform(text: str) -> str:
+            changed = text.replace(canonical, canonical.replace("PROVED", "SPECULATIVE", 1), 1)
+            return stub + changed
+
+        result = self.mutate_text("docs/CLAIMS.md", transform, rebind_blob="claims")
+        self.assert_dedicated_error(result, "docs/CLAIMS.md C7 heading multiplicity drift")
         self.assertNotIn("claims canonical human authority blob drift", result["errors"])
 
     def test_remaining_roadmap_claim_classes_are_section_bound(self):
@@ -266,6 +298,30 @@ class LatestCodexAuthorityRegressions(unittest.TestCase):
         self.assert_dedicated_error(result, "ROADMAP 3-4-5 numerosity programme status drift")
         self.assertNotIn("roadmap canonical human authority blob drift", result["errors"])
 
+    def test_pettini_status_is_exact_bound(self):
+        canonical = f"**Status:** {VALIDATOR.EXPECTED_PETTINI_STATUS}"
+        promoted = canonical + " The cited model establishes extra temporal dimensions and is authoritative physical evidence for UFT-ID."
+        result = self.mutate_text(
+            "ROADMAP.md",
+            lambda text: text.replace(canonical, promoted, 1),
+            rebind_blob="roadmap",
+        )
+        self.assert_dedicated_error(result, "ROADMAP Pettini model-donor programme status drift")
+        self.assertNotIn("roadmap canonical human authority blob drift", result["errors"])
+
+    def test_physiology_source_identity_is_bound(self):
+        result = self.mutate_text(
+            "ROADMAP.md",
+            lambda text: text.replace(
+                "10.1113/jphysiol.1952.sp004764",
+                "10.0000/fabricated-hodgkin-source",
+                1,
+            ),
+            rebind_blob="roadmap",
+        )
+        self.assert_dedicated_error(result, "ROADMAP physiology donor E source identity drift")
+        self.assertNotIn("roadmap canonical human authority blob drift", result["errors"])
+
     def test_retained_verification_step_must_remain_blocking(self):
         marker = "      - name: Verify retained graph evidence\n        if: always()\n"
         result = self.mutate_text(
@@ -277,6 +333,18 @@ class LatestCodexAuthorityRegressions(unittest.TestCase):
             ),
         )
         self.assert_dedicated_error(result, "verification step envelope drift")
+
+    def test_finite_results_job_must_remain_blocking(self):
+        marker = "  finite-results:\n    runs-on: ubuntu-24.04\n"
+        result = self.mutate_text(
+            ".github/workflows/finite-adversarial.yml",
+            lambda text: text.replace(
+                marker,
+                "  finite-results:\n    continue-on-error: true\n    runs-on: ubuntu-24.04\n",
+                1,
+            ),
+        )
+        self.assert_dedicated_error(result, "finite-results job may not use continue-on-error")
 
     def _write_artifacts(self, directory: Path, witness: dict, receipt: dict) -> None:
         validation = VALIDATOR.validate()
@@ -347,6 +415,21 @@ class LatestCodexAuthorityRegressions(unittest.TestCase):
             directory = Path(tmp)
             self._write_artifacts(directory, witness, receipt)
             with self.assertRaisesRegex(RuntimeError, "top-level schema drift"):
+                ARTIFACTS.verify(directory)
+
+    def test_receipt_runtime_provenance_matches_live_runtime(self):
+        witness = EXPERIMENT.run_suite()
+        receipt = RECEIPT.run_suite()
+        receipt["runtime"] = {
+            "python": "UFT-ID physical ontology established",
+            "implementation": "fabricated",
+            "platform": "fabricated",
+        }
+
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            self._write_artifacts(directory, witness, receipt)
+            with self.assertRaisesRegex(RuntimeError, "runtime provenance mismatch"):
                 ARTIFACTS.verify(directory)
 
     def test_receipt_runner_cannot_shrink_its_own_source_set(self):
