@@ -1,0 +1,135 @@
+{
+  "claim_class": "DEFINITION",
+  "future_targets": [
+    "spanning arborescence recovery skeletons",
+    "Matrix-Tree and weighted Matrix-Tree recovery redundancy diagnostics",
+    "Menger arc/vertex cut robustness",
+    "digraph kernels as absorbing-independent set diagnostics",
+    "graph incidence/boundary operators and chain-complex bridge obligations",
+    "history-augmented and metastable terminal-class semantics",
+    "Lean formalization after theorem surface freeze"
+  ],
+  "graph_types": {
+    "condensation": "quotient digraph whose vertices are strong components and whose inter-component arcs are induced by G_step",
+    "finite_termination": "G_step has no directed cycle",
+    "normal_vertex": "outdegree_G_step(x)=0",
+    "sink_strong_component": "strong component with no outgoing arc to another strong component",
+    "strong_component": "equivalence class under mutual directed reachability"
+  },
+  "hard_boundaries": [
+    "ALGEBRA != GRAPH != EMBEDDING != PHYSICS",
+    "GRAPH != DRAWING",
+    "COUPLING_GRAPH != PLACEMENT_GRAPH",
+    "TETRAHEDRAL_1_SKELETON_K4 != SIS4_CHEMICAL_BOND_GRAPH",
+    "LOCAL_COORDINATION_GEOMETRY != CHEMICAL_BOND_GRAPH != POLYHEDRAL_SHARING_GRAPH",
+    "MODULE_INVENTORY != INCIDENCE != GLOBAL_TOPOLOGY",
+    "SAME_LOCAL_MODULE != SAME_GLOBAL_CONNECTIVITY",
+    "NORMAL_VERTEX != SINK_SCC",
+    "SINK_SCC != FIXED_POINT != TERMINATION",
+    "LOSSY_PROJECTION != STRUCTURAL_EQUIVALENCE",
+    "F3^3=I3 != GRAPH_THEORETIC_3_CYCLE",
+    "FINITE_GRAPH_CONFORMANCE != GENERAL_PROOF",
+    "MATERIAL_POSITIVE_CONTROL != UFT_ID_PHYSICAL_PREMISE"
+  ],
+  "positive_controls": [
+    {
+      "boundary": "TETRAHEDRAL_1_SKELETON_K4 != SIS4_CHEMICAL_BOND_GRAPH",
+      "claim_class": "DEFINITION",
+      "id": "PC-GR-TETRA-K4",
+      "statement": "The 1-skeleton of a geometric tetrahedron is the complete graph K4 on its four corner vertices."
+    },
+    {
+      "boundary": "SAME_LOCAL_COORDINATION_MOTIF != SAME_GLOBAL_CONNECTIVITY",
+      "claim_class": "EMPIRICAL",
+      "id": "PC-GR-SIS2",
+      "statement": "The cited SiS2 source reports phases built from SiS4 tetrahedral coordination units with different edge-sharing and corner-sharing connectivity patterns."
+    },
+    {
+      "boundary": "ALGEBRA != GRAPH != EMBEDDING != PHYSICS",
+      "claim_class": "DIAGNOSTIC",
+      "context_refs": [
+        "XR-P17",
+        "XR-P18"
+      ],
+      "id": "PC-GR-ETQ-INVENTORY",
+      "statement": "XR-P17/XR-P18 may motivate separate module-inventory, coupling-graph, placement-graph, and embedding layers; no such layer is promoted into topology or physics without an explicit bridge."
+    }
+  ],
+  "projection_boundary": {
+    "boundary": "LOSSY_PROJECTION != STRUCTURAL_EQUIVALENCE",
+    "noninjective_in_general": true,
+    "rich_to_simple": "forget arc identity, multiplicity, and/or link labels while retaining only endpoint adjacency"
+  },
+  "relation_bridge": {
+    "arc_definition": "(x,y) in A_step iff stepRel(x,y)",
+    "carrier": "X",
+    "digraph": "G_step=(X,A_step)",
+    "lost_structure": [],
+    "preserved_structure": [
+      "labelled carrier identity",
+      "ordered one-step relation membership",
+      "finite reflexive-transitive reachability",
+      "normality as absence of outgoing steps"
+    ],
+    "relation": "stepRel:X->X->Prop",
+    "status": "exact representation equivalence on finite declared carriers"
+  },
+  "schema_version": "1.0.0",
+  "scope": "Finite labelled binary endorelations, their exact directed-graph realizations, typed incidence descriptions, finite strong-component structure, and representation-loss diagnostics. No physical ontology is inferred from graph, geometry, material, sonification, or visualization similarity.",
+  "snapshot_date": "2026-08-20",
+  "sources": [
+    {
+      "author": "Darij Grinberg",
+      "doi": "10.48550/arXiv.2308.04512",
+      "identifier": "arXiv:2308.04512v3",
+      "kind": "public-mathematical-source",
+      "not_inherited": [
+        "no physical ontology",
+        "no claim that graph-theoretic equivalence establishes semantic or physical equivalence"
+      ],
+      "role": "mathematical donor for graph/digraph representation, drawing separation, adjacency matrices, SCCs, arborescences, matrix-tree machinery, and Menger-type path/cut results",
+      "source_id": "GRINBERG-2025-GRAPH-THEORY",
+      "source_status": "arXiv-course-notes-preprint",
+      "title": "An introduction to graph theory",
+      "version_date": "2025-06-08"
+    },
+    {
+      "authors": [
+        "Jürgen Evers",
+        "Peter Mayer",
+        "Leonhard Möckl",
+        "Gilbert Oehlinger",
+        "Ralf Köppe",
+        "Hansgeorg Schnöckel"
+      ],
+      "doi": "10.1021/ic501825r",
+      "issue": 4,
+      "journal": "Inorganic Chemistry",
+      "kind": "peer-reviewed-empirical-source",
+      "not_inherited": [
+        "SiS2 chemistry is not a UFT-ID ontology",
+        "tetrahedral material structure does not validate ETQ, E8, Fuller geometry, or information physics"
+      ],
+      "pages": "1240-1253",
+      "role": "positive-control example that a shared local SiS4 tetrahedral coordination motif can participate in distinct edge-sharing, mixed edge/corner-sharing, and corner-sharing global structures",
+      "source_id": "EVERS-2015-SIS2",
+      "title": "Two High-Pressure Phases of SiS2 as Missing Links between the Extremes of Only Edge-Sharing and Only Corner-Sharing Tetrahedra",
+      "volume": 54,
+      "year": 2015
+    }
+  ],
+  "type": "uft-id-graph-realization-contract",
+  "typed_incidence": {
+    "incidence": "I subseteq M x L x M",
+    "link_labels": "L",
+    "modules": "M",
+    "optional_embedding": "rho:V->R^d",
+    "rules": [
+      "module inventory does not determine incidence",
+      "incidence does not determine a unique geometric embedding",
+      "geometric embedding does not confer physical ontology",
+      "typed link labels may carry structure that unlabelled adjacency forgets"
+    ],
+    "type": "IncSpec=(M,L,I)"
+  }
+}

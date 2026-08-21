@@ -11,6 +11,8 @@ on:
       - "scripts/validate_formalization_contracts.py"
       - "scripts/validate_observation_specs.py"
       - "scripts/validate_relation_core.py"
+      - "scripts/validate_graph_realization.py"
+      - "scripts/verify_graph_artifacts.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -23,10 +25,15 @@ on:
       - "theory/FALSIFICATION_CONTRACTS.md"
       - "theory/OBSERVATION_CALCULUS.md"
       - "theory/RELATION_CALCULUS.md"
+      - "theory/GRAPH_REALIZATION.md"
       - "research/CROSS_REPO_PATTERN_ATLAS.md"
+      - "research/GRAPH_REALIZATION_SOURCES.md"
       - "research/HISTORICAL_LINEAGE.md"
       - "research/vopson/**"
       - "machine/**"
+      - "README4AI.md"
+      - "docs/CLAIMS.md"
+      - "docs/NONCLAIMS.md"
       - "docs/REPRODUCIBILITY.md"
       - "ROADMAP.md"
       - ".github/workflows/**"
@@ -41,6 +48,8 @@ on:
       - "scripts/validate_formalization_contracts.py"
       - "scripts/validate_observation_specs.py"
       - "scripts/validate_relation_core.py"
+      - "scripts/validate_graph_realization.py"
+      - "scripts/verify_graph_artifacts.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -53,10 +62,15 @@ on:
       - "theory/FALSIFICATION_CONTRACTS.md"
       - "theory/OBSERVATION_CALCULUS.md"
       - "theory/RELATION_CALCULUS.md"
+      - "theory/GRAPH_REALIZATION.md"
       - "research/CROSS_REPO_PATTERN_ATLAS.md"
+      - "research/GRAPH_REALIZATION_SOURCES.md"
       - "research/HISTORICAL_LINEAGE.md"
       - "research/vopson/**"
       - "machine/**"
+      - "README4AI.md"
+      - "docs/CLAIMS.md"
+      - "docs/NONCLAIMS.md"
       - "docs/REPRODUCIBILITY.md"
       - "ROADMAP.md"
       - ".github/workflows/**"
@@ -117,6 +131,14 @@ jobs:
           python experiments/relation/run.py --json > /tmp/pr11-relation.json
           python experiments/run_pr11.py --hash-only > /tmp/pr11-relation-receipt.json
 
+      - name: Validate graph realization authority surface
+        run: python scripts/validate_graph_realization.py
+
+      - name: Run graph realization witnesses
+        run: |
+          python experiments/graph_realization/run.py --json > /tmp/graph-realization.json
+          python experiments/run_graph_realization.py --hash-only > /tmp/graph-realization-receipt.json
+
       - name: Validate Vopson 2019 MEI authority surface
         run: python scripts/validate_vopson_2019_mei.py
 
@@ -155,7 +177,15 @@ jobs:
           python scripts/validate_relation_core.py --json > artifacts/pr11-relation-validation.json 2> artifacts/pr11-relation-validation.stderr.txt || true
           python experiments/relation/run.py --json > artifacts/pr11-relation-witness.json 2> artifacts/pr11-relation-witness.stderr.txt || true
           python experiments/run_pr11.py --json > artifacts/pr11-relation-receipt.json 2> artifacts/pr11-relation-receipt.stderr.txt || true
+          python scripts/validate_graph_realization.py --json > artifacts/graph-realization-validation.json 2> artifacts/graph-realization-validation.stderr.txt || true
+          python experiments/graph_realization/run.py --json > artifacts/graph-realization-witness.json 2> artifacts/graph-realization-witness.stderr.txt || true
+          python experiments/run_graph_realization.py --json > artifacts/graph-realization-receipt.json 2> artifacts/graph-realization-receipt.stderr.txt || true
           python scripts/validate_reproducibility.py --json > artifacts/reproducibility-validation.json 2> artifacts/reproducibility-validation.stderr.txt || true
+
+      - name: Verify retained graph evidence
+        if: always()
+        run: |
+          python scripts/verify_graph_artifacts.py artifacts
 
       - name: Retain finite evidence bundle
         if: always()

@@ -63,7 +63,9 @@
     "cross_repo_receipt_runner": "experiments/run_cross_repo.py",
     "cross_repo_receipt_version": "1.0.0",
     "vopson_2019_mei_receipt_runner": "experiments/run_pr6.py",
-    "vopson_2019_mei_receipt_version": "1.0.0"
+    "vopson_2019_mei_receipt_version": "1.0.0",
+    "graph_realization_receipt_runner": "experiments/run_graph_realization.py",
+    "graph_realization_receipt_version": "1.0.0"
   },
   "finite_result_authority": {
     "human": "theory/FINITE_RESULTS.md",
@@ -83,6 +85,19 @@
     "receipt_version": "1.0.0",
     "source_freshness": "snapshot-pinned-not-live-remote-validated-in-ci",
     "rule": "Public merged repository contracts may motivate mathematical or methodological UFT-ID patterns, but software semantics never inherit physical ontology or epistemic truth by adjacency."
+  },
+  "graph_realization_authority": {
+    "human": "theory/GRAPH_REALIZATION.md",
+    "machine_contract": "machine/graph_realization_contract.json",
+    "machine_results": "machine/graph_realization_results.json",
+    "source_map": "research/GRAPH_REALIZATION_SOURCES.md",
+    "validator": "scripts/validate_graph_realization.py",
+    "experiment": "experiments/graph_realization/run.py",
+    "tests": "tests/test_graph_realization.py",
+    "receipt_runner": "experiments/run_graph_realization.py",
+    "receipt_version": "1.0.0",
+    "base_relation_authority": "machine/relation_contract.json",
+    "rule": "Finite relation/digraph realization and typed incidence preserve only declared structure; graph identity, drawings, tetrahedral geometry, material examples, ETQ/SPECTRAL context, and combinatorial invariants do not acquire physical ontology by resemblance or representation."
   },
   "vopson_corpus_authority": {
     "author": "research/vopson/AUTHOR.json",
@@ -216,8 +231,11 @@
     "experiments/README.md", "MATHS.md", "theory/DEFINITIONS.md",
     "theory/AUXILIARY_CONTRACTS.md", "theory/THEOREM_TARGETS.md",
     "theory/FINITE_RESULTS.md", "theory/CROSS_REPO_RESULTS.md",
+    "theory/GRAPH_REALIZATION.md",
     "machine/finite_results.json", "machine/cross_repo_patterns.json",
-    "machine/cross_repo_results.json", "research/CROSS_REPO_PATTERN_ATLAS.md",
+    "machine/cross_repo_results.json", "machine/graph_realization_contract.json",
+    "machine/graph_realization_results.json", "research/CROSS_REPO_PATTERN_ATLAS.md",
+    "research/GRAPH_REALIZATION_SOURCES.md",
     "research/vopson/AUTHOR.json", "research/vopson/CORPUS.md",
     "research/vopson/corpus.json", "research/vopson/CLAIM_GRAPH.md",
     "research/vopson/CLAIM_GRAPH.json", "research/vopson/DEFINITIONS.md",
@@ -229,7 +247,8 @@
     "research/vopson/reproduction/2019-mei/DIMENSIONAL_AUDIT.md",
     "research/vopson/reproduction/2019-mei/CONTROL_MATRIX.md",
     "research/vopson/reproduction/2019-mei/result.json",
-    "scripts/validate_vopson_2019_mei.py",
+    "scripts/validate_vopson_2019_mei.py", "scripts/validate_graph_realization.py",
+    "experiments/run_graph_realization.py",
     "research/reports/2026-08-18-PR4-ACTION-REGISTER.md",
     "research/VOPSON_MATRIX.md", "ROADMAP.md"
   ]

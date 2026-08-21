@@ -92,6 +92,25 @@ For any proposed monotonicity result, UFT-ID 3.0 requires the state space, dynam
 
 The mass-equivalence proposal, information-entropy monotonicity proposal, cross-domain applications, gravity derivation, and simulation-hypothesis interpretation are treated as logically separable audit tracks. Agreement or failure in one track does not automatically settle the others.
 
+### C7 - Finite relation semantics admit an exact graph-realization layer
+
+**Status:** PROVED
+
+**Qualifier:** finite/set-theoretic mathematical scope; not a physical ontology claim.
+
+The canonical graph-realization authority registers `UFT-GR-001` through `UFT-GR-006` as proved abstract results. For a finite labelled carrier and its declared binary endorelation `stepRel`, the corresponding directed graph preserves one-step adjacency exactly; normal states are exactly zero-outdegree vertices; relation reachability agrees with directed graph reachability; finite forward termination agrees with directed acyclicity; every nonempty finite digraph has at least one sink strongly connected component; and the SCC condensation graph is acyclic.
+
+The repository's 530-relation executable battery is an independent finite conformance witness for these statements, not the proof of their general finite mathematical content.
+
+```text
+FINITE_GRAPH_CONFORMANCE != GENERAL_PROOF
+ABSTRACT_GRAPH_RESULT != PHYSICAL_ONTOLOGY
+GRAPH != DRAWING
+NORMAL_VERTEX != SINK_SCC
+```
+
+The SiS2, ETQ/SPECTRAL, tetrahedral, or other structural examples do not promote these graph theorems into claims about fundamental physics.
+
 ## Claims requiring future proof or evidence
 
 The following are intentionally not yet promoted beyond theorem target or hypothesis:
