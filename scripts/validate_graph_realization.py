@@ -171,6 +171,19 @@ EXPECTED_POSITIVE_CONTROLS = [
     },
 ]
 
+EXPECTED_GRAPH_TYPES = {
+    "condensation": "quotient digraph whose vertices are strong components and whose inter-component arcs are induced by G_step",
+    "finite_termination": "G_step has no directed cycle",
+    "normal_vertex": "outdegree_G_step(x)=0",
+    "sink_strong_component": "strong component with no outgoing arc to another strong component",
+    "strong_component": "equivalence class under mutual directed reachability",
+}
+EXPECTED_PROJECTION_BOUNDARY = {
+    "boundary": "LOSSY_PROJECTION != STRUCTURAL_EQUIVALENCE",
+    "noninjective_in_general": True,
+    "rich_to_simple": "forget arc identity, multiplicity, and/or link labels while retaining only endpoint adjacency",
+}
+
 EXPECTED_BOUNDARIES = {
     "ALGEBRA != GRAPH != EMBEDDING != PHYSICS",
     "GRAPH != DRAWING",
@@ -226,9 +239,10 @@ SEMANTIC_PROMOTION_PATTERNS = (
     "current graph theorem authority: pettini",
 )
 
+C7_HEADING = "### C7 - Finite relation semantics admit an exact graph-realization layer"
+EXPECTED_C7_STATUS = "PROVED"
 CLAIMS_ANCHORS = (
-    "### C7 - Finite relation semantics admit an exact graph-realization layer",
-    "**Status:** PROVED",
+    C7_HEADING,
     "`UFT-GR-001` through `UFT-GR-006`",
     "FINITE_GRAPH_CONFORMANCE != GENERAL_PROOF",
     "ABSTRACT_GRAPH_RESULT != PHYSICAL_ONTOLOGY",
@@ -323,9 +337,18 @@ PETTINI_ANCHORS = (
     "PAPER_MODEL != UFT_ID_PHYSICAL_ONTOLOGY",
 )
 
-PHYSIOLOGY_START = "# Future physiology and connectomics positive-control programme"
+PHYSIOLOGY_START = "# Future physiology and connectomics positive-control programme — typed transduction, feedback, hidden state, alternate mechanisms, and structure/function boundaries"
+EXPECTED_PHYSIOLOGY_STATUS = (
+    "ROADMAP-ONLY POSITIVE-CONTROL / MODEL-DONOR PROGRAMME. It does not renumber PR #12-#18 "
+    "and does not make physiology, virology, or neuroscience UFT-ID ontology."
+)
+EXPECTED_PHYSIOLOGY_CLAIM_CLASS = (
+    "`INTERPRETIVE` for every source-to-UFT-ID correspondence in this section until a later explicit "
+    "BridgeCore record supplies source type, target type, source/target dynamics, preserved structure, "
+    "lost structure, scope, and measurement/observation bridge. External source facts retain their own "
+    "evidentiary status; the mapping into UFT-ID is not promoted above `INTERPRETIVE` here."
+)
 PHYSIOLOGY_ANCHORS = (
-    "**Claim class:** `INTERPRETIVE` for every source-to-UFT-ID correspondence in this section",
     "| A. Wheatstone pressure transducer -> typed transduction / identifiability | `INTERPRETIVE` |",
     "| B. Haemoglobin oxygen curve -> context-dependent calibration | `INTERPRETIVE` |",
     "| C. Arterial baroreflex -> closed-loop identification | `INTERPRETIVE` |",
@@ -347,9 +370,17 @@ PHYSIOLOGY_ANCHORS = (
     "DATASET_VERSION != INCIDENTAL_METADATA",
 )
 
-FIVEFOLD_START = "# Future fivefold assembly and rooted-representation donor programme"
+FIVEFOLD_START = "# Future fivefold assembly and rooted-representation donor programme — cardinality, asymmetry, interfaces, and coordinate charts"
+EXPECTED_FIVEFOLD_STATUS = (
+    "ROADMAP-ONLY MODEL-DONOR PROGRAMME. This section does not renumber PR #12-#18 and does not infer "
+    "a universal significance for the number five."
+)
+EXPECTED_FIVEFOLD_CLAIM_CLASS = (
+    "`INTERPRETIVE` for every source-to-UFT-ID correspondence below. The empirical IgM findings remain "
+    "external empirical evidence; the musical facts remain background/source facts; the UFT-ID abstractions "
+    "are interpretive until explicit BridgeCore objects and independent mathematical fixtures are supplied."
+)
 FIVEFOLD_ANCHORS = (
-    "**Claim class:** `INTERPRETIVE` for every source-to-UFT-ID correspondence below",
     "10.1126/sciadv.aau1199",
     "https://en.wikipedia.org/wiki/Pentatonic_scale",
     "CARDINALITY_5 != FIVEFOLD_SYMMETRY",
@@ -365,6 +396,10 @@ FIVEFOLD_ANCHORS = (
 )
 
 NUMEROSITY_START = "# Future 3-4-5 finite numerosity and semantic-lifting stress programme"
+EXPECTED_NUMEROSITY_STATUS = (
+    "ROADMAP-ONLY MODEL-DONOR / ADVERSARIAL PROGRAMME. It does not renumber PR #12-#18, does not claim "
+    "that 3, 4, or 5 are physically privileged, and does not infer a common mechanism from repeated cardinalities."
+)
 EXPECTED_NUMEROSITY_CLAIM_CLASS = (
     "`INTERPRETIVE` for every source-to-UFT-ID correspondence in this section until explicit "
     "BridgeCore objects and independent mathematical fixtures exist."
@@ -425,6 +460,25 @@ EXPECTED_EVERS = {
 EXPECTED_EVERS_CITATION = (
     "> Jürgen Evers, Peter Mayer, Leonhard Möckl, Gilbert Oehlinger, Ralf Köppe, and Hansgeorg Schnöckel, “Two High-Pressure Phases of SiS2 as Missing Links between the Extremes of Only Edge-Sharing and Only Corner-Sharing Tetrahedra,” *Inorganic Chemistry* **54**(4), 1240–1253 (2015). DOI `10.1021/ic501825r`."
 )
+
+EXPECTED_HUMAN_DONORS = {
+    "Grinberg": {
+        "heading": "## 1. Darij Grinberg — graph-theory donor",
+        "status": "Source status: public arXiv course notes / mathematical preprint. The source is not treated as a peer-reviewed empirical paper.",
+        "role_anchors": (
+            "UFT-ID imports only the typed mathematics needed here:",
+            "The later arborescence, Matrix-Tree, Menger, kernel, and chain-complex ideas remain roadmap targets rather than current physical claims.",
+        ),
+    },
+    "Evers": {
+        "heading": "## 2. Evers et al. — SiS2 positive structural control",
+        "status": "Source status: peer-reviewed journal article.",
+        "role_anchors": (
+            "The reusable UFT-ID lesson is deliberately narrower than the chemistry:",
+            "The SiS2 result is therefore a positive control for why a list of local modules is insufficient to determine a global network. It is not evidence for ETQ, E8, information physics, Fuller geometry, or a universal tetrahedral ontology.",
+        ),
+    },
+}
 
 RECEIPT_SCHEMA_BINDING = '"schema_version": registered_receipt_version(),'
 SHELL_CONTROL_PREFIXES = (
@@ -526,6 +580,15 @@ def markdown_metadata_value(section: str, label: str) -> str | None:
     prefix = f"**{label}:** "
     matches = [
         line.strip()[len(prefix):]
+        for line in section.splitlines()[1:]
+        if line.strip().startswith(prefix)
+    ]
+    return matches[0] if len(matches) == 1 else None
+
+
+def unique_prefixed_line(section: str, prefix: str) -> str | None:
+    matches = [
+        line.strip()
         for line in section.splitlines()[1:]
         if line.strip().startswith(prefix)
     ]
@@ -660,6 +723,8 @@ def validate() -> dict[str, object]:
     if contract.get("schema_version") != "1.0.0": errors.append("graph contract schema drift")
     if contract.get("snapshot_date") != "2026-08-20": errors.append("graph contract UTC snapshot drift")
     if contract.get("claim_class") != "DEFINITION": errors.append("graph contract claim class drift")
+    if contract.get("graph_types") != EXPECTED_GRAPH_TYPES: errors.append("graph type definition payload drift")
+    if contract.get("projection_boundary") != EXPECTED_PROJECTION_BOUNDARY: errors.append("graph projection-boundary payload drift")
     if set(contract.get("hard_boundaries", [])) != EXPECTED_BOUNDARIES: errors.append("graph contract hard-boundary set drift")
     if contract.get("positive_controls") != EXPECTED_POSITIVE_CONTROLS: errors.append("graph positive-control authority payload drift")
 
@@ -783,6 +848,15 @@ def validate() -> dict[str, object]:
             if evers.get(key) != expected_value: errors.append(f"Evers source {key} drift")
     if EXPECTED_EVERS_CITATION not in texts["sources"]: errors.append("Evers human source citation drift")
 
+    for donor_name, spec in EXPECTED_HUMAN_DONORS.items():
+        section = markdown_section(texts["sources"], spec["heading"])
+        if section is None:
+            errors.append(f"{donor_name} human donor section missing")
+            continue
+        if unique_prefixed_line(section, "Source status:") != spec["status"]:
+            errors.append(f"{donor_name} human donor status drift")
+        require_anchors(section, spec["role_anchors"], f"{donor_name} human donor role", errors)
+
     patterns = cross_repo.get("patterns")
     pattern_ids = {item.get("pattern_id") for item in patterns if isinstance(item, dict)} if isinstance(patterns, list) else set()
     for pattern_id in ("XR-P17", "XR-P18"):
@@ -800,6 +874,11 @@ def validate() -> dict[str, object]:
         if anchor not in combined: errors.append(f"human graph authority missing semantic anchor: {anchor}")
 
     require_anchors(texts["claims"], CLAIMS_ANCHORS, "docs/CLAIMS.md graph registration", errors)
+    c7 = markdown_section(texts["claims"], C7_HEADING)
+    if c7 is None:
+        errors.append("docs/CLAIMS.md C7 section missing")
+    elif markdown_metadata_value(c7, "Status") != EXPECTED_C7_STATUS:
+        errors.append("docs/CLAIMS.md C7 status drift")
     require_anchors(texts["readme4ai"], README_ANCHORS, "README4AI graph registration", errors)
     require_anchors(texts["reproducibility"], REPRO_ANCHORS, "reproducibility graph registration", errors)
 
@@ -836,20 +915,26 @@ def validate() -> dict[str, object]:
             if forbidden in lower: errors.append("ROADMAP Pettini model donor must remain outside current graph theorem authority")
         if "extra-time physics is adopted by uft-id" in lower: errors.append("ROADMAP Pettini model donor illegally promotes extra-time ontology")
 
-    physiology_index = texts["roadmap"].find(PHYSIOLOGY_START)
-    if physiology_index < 0:
+    physiology = markdown_section(texts["roadmap"], PHYSIOLOGY_START)
+    if physiology is None:
         errors.append("ROADMAP missing physiology/connectomics positive-control programme")
         physiology = ""
     else:
-        physiology = texts["roadmap"][physiology_index:]
+        if markdown_metadata_value(physiology, "Status") != EXPECTED_PHYSIOLOGY_STATUS:
+            errors.append("ROADMAP physiology/connectomics programme status drift")
+        if markdown_metadata_value(physiology, "Claim class") != EXPECTED_PHYSIOLOGY_CLAIM_CLASS:
+            errors.append("ROADMAP physiology/connectomics programme claim class drift")
         require_anchors(physiology, PHYSIOLOGY_ANCHORS, "ROADMAP physiology/connectomics positive-control programme", errors)
 
-    fivefold_index = texts["roadmap"].find(FIVEFOLD_START)
-    if fivefold_index < 0:
+    fivefold = markdown_section(texts["roadmap"], FIVEFOLD_START)
+    if fivefold is None:
         errors.append("ROADMAP missing fivefold assembly/rooted-representation donor programme")
         fivefold = ""
     else:
-        fivefold = texts["roadmap"][fivefold_index:]
+        if markdown_metadata_value(fivefold, "Status") != EXPECTED_FIVEFOLD_STATUS:
+            errors.append("ROADMAP fivefold donor programme status drift")
+        if markdown_metadata_value(fivefold, "Claim class") != EXPECTED_FIVEFOLD_CLAIM_CLASS:
+            errors.append("ROADMAP fivefold donor programme claim class drift")
         require_anchors(fivefold, FIVEFOLD_ANCHORS, "ROADMAP fivefold donor programme", errors)
 
     numerosity = markdown_section(texts["roadmap"], NUMEROSITY_START)
@@ -857,6 +942,8 @@ def validate() -> dict[str, object]:
         errors.append("ROADMAP missing 3-4-5 numerosity/semantic-lifting programme")
         numerosity = ""
     else:
+        if markdown_metadata_value(numerosity, "Status") != EXPECTED_NUMEROSITY_STATUS:
+            errors.append("ROADMAP 3-4-5 numerosity programme status drift")
         if markdown_metadata_value(numerosity, "Claim class") != EXPECTED_NUMEROSITY_CLAIM_CLASS:
             errors.append("ROADMAP 3-4-5 numerosity programme claim class drift")
         require_anchors(numerosity, NUMEROSITY_ANCHORS, "ROADMAP 3-4-5 numerosity programme", errors)
