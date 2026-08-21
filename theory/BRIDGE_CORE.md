@@ -38,7 +38,7 @@ BridgeSpec = (
 where:
 
 - `X_s` and `X_t` are declared source and target types/carriers;
-- `D subseteq X_s` is the declared source domain;
+- `D subseteq X_s` is the declared source domain and may be empty;
 - `R subseteq D x X_t` is a typed relation, with a map as the right-unique specialization;
 - `P` is the set of declared structure labels preserved by the bridge;
 - `L` is the set of declared source structure labels lost by the bridge;
@@ -51,12 +51,15 @@ Require
 P\cap L=\varnothing.
 \]
 
-A bridge need not be injective, surjective, total outside `D`, invertible, truth-preserving, or physically realized.
+Generic BridgeCore does **not** require `P union L` to exhaust a structure vocabulary. A label may remain unclassified. Any theorem that needs complete structure tracking must state that hypothesis explicitly.
+
+A bridge need not be injective, surjective, total outside `D`, invertible, truth-preserving, or physically realized. An empty-domain bridge is a valid nowhere-defined structural relation under this definition.
 
 ```text
 PRESERVED_STRUCTURE != ALL_STRUCTURE
 LOSSY_BRIDGE != INVERTIBLE_BRIDGE
 VERSION_COMPATIBLE != CONTENT_IDENTICAL
+DISJOINT_METADATA != EXHAUSTIVE_METADATA
 ```
 
 ## 2. Composition compatibility
@@ -75,6 +78,8 @@ ordinary BridgeCore composition is licensed only when all of the following hold:
 2. `B1.target_version == B2.source_version`;
 3. every intermediate state produced by `B1` on its declared domain lies in `B2.domain`;
 4. `scope(B1) intersect scope(B2)` is nonempty.
+
+If `B1` has empty domain, its image is empty, so condition 3 holds vacuously. Thus matching type/version and scope conditions still govern the empty relational composite.
 
 Thus matching type names are necessary but not sufficient.
 
@@ -98,7 +103,7 @@ R_{21}(x,z)
 
 This is a relation from the source domain of `B1` into the target carrier of `B2`.
 
-**Proof.** For any witness `y`, `R1(x,y)` places `y` in the intermediate carrier. Domain coverage places that `y` in `B2.domain`, so `R2(y,z)` is well-typed and `z` belongs to the target carrier of `B2`. Hence the existential composite is a well-defined typed relation.
+**Proof.** For any witness `y`, `R1(x,y)` places `y` in the intermediate carrier. Domain coverage places that `y` in `B2.domain`, so `R2(y,z)` is well-typed and `z` belongs to the target carrier of `B2`. Hence the existential composite is a well-defined typed relation. When `D_1` is empty, no witness exists and the composite relation is empty, which is still a well-defined relation on the declared source domain.
 
 This proof establishes structural composability only.
 
@@ -116,6 +121,8 @@ BridgeCore uses a conservative automatic composition rule:
 \[
 P_{21}=P_1\cap P_2.
 \]
+
+**Hypotheses:** `B1` and `B2` are composable BridgeCore bridges and preservation labels use a shared declared vocabulary.
 
 **Proof.** A structure label is automatically licensed as preserved by the composite only if the first bridge preserves it into the intermediate representation and the second bridge preserves that same declared structure out of the intermediate representation. Therefore exactly the shared declared preservation set is inherited automatically.
 
@@ -139,24 +146,36 @@ L_1\subseteq L_{21}.
 
 and every structure preserved by `B1` but not preserved by `B2` enters `L21`.
 
-**Proof.** Immediate from set union. The formula explicitly contains `L1`, so any structure lost by the first bridge remains in the composite loss declaration. The second term adds structures that survived the first bridge but fail the second preservation contract.
+**Hypotheses:** `B1` and `B2` are composable BridgeCore bridges and `P1` is disjoint from `L1`.
+
+**Proof.** Immediate from set union. The formula explicitly contains `L1`, so any structure lost by the first bridge remains in the composite loss declaration. The second term adds structures that survived the first bridge but fail the second preservation contract. Labels unclassified by either bridge remain unclassified unless the formula classifies them.
 
 ```text
 LOST_ONCE != AUTOMATICALLY_RESTORED
 DETERMINISTIC_POSTPROCESSING != EXACT_RECONSTRUCTION
 ```
 
-## UFT-BR-004 Identity neutrality
+## UFT-BR-004 Identity neutrality under complete structure tracking
 
 **Claim class:** `PROVED`
 
-For a declared carrier `X`, version `v`, scope `Sigma`, and tracked structure set `P`, define the identity bridge
+Let `B` have preserved and lost sets `P_B` and `L_B`, with
 
 \[
-I_X=(X,X,X,\{(x,x):x\in X\},P,\varnothing,\Sigma,v,v).
+P_B\cap L_B=\varnothing.
 \]
 
-Whenever compatibility holds,
+For the relevant carrier `X`, version `v`, and compatible scope `Sigma`, define an identity bridge whose tracked structure set is exactly
+
+\[
+S_B=P_B\cup L_B:
+\]
+
+\[
+I_X=(X,X,X,\{(x,x):x\in X\},S_B,\varnothing,\Sigma,v,v).
+\]
+
+Whenever the ordinary composition conditions hold,
 
 \[
 B\circ I_X=B,
@@ -166,7 +185,14 @@ I_Y\circ B=B
 
 at the relation level and under the conservative preservation/loss metadata rules.
 
-**Proof.** Relational identity is neutral under ordinary relation composition. Intersecting `P_B` with the identity bridge's full tracked preservation set leaves `P_B`; the identity contributes no loss.
+**Proof.** Relational identity is neutral under ordinary relation composition. For left composition, preservation becomes `S_B intersect P_B = P_B` and loss becomes `empty union (S_B minus P_B) = L_B` because `S_B=P_B union L_B` and the sets are disjoint. For right composition, preservation remains `P_B` and no new loss is added because the identity preserves every label in `S_B`, including every label in `P_B`.
+
+Without the completeness condition `S_B=P_B union L_B`, two-sided **metadata** neutrality is not guaranteed. In particular, an identity that tracks extra labels can classify previously unclassified labels as lost under left composition.
+
+```text
+RELATIONAL_IDENTITY_NEUTRALITY != UNCONDITIONAL_METADATA_NEUTRALITY
+PARTIAL_STRUCTURE_METADATA != COMPLETE_STRUCTURE_TRACKING
+```
 
 A same-named source and target type does not make an arbitrary bridge an identity.
 
@@ -183,6 +209,8 @@ B_3\circ(B_2\circ B_1)
 \]
 
 under the BridgeCore relation, scope, preservation, and conservative-loss contracts.
+
+**Hypotheses:** all intermediate type/version/domain conditions required by both parenthesizations hold and all required scope intersections are nonempty.
 
 **Proof.** Ordinary relational composition is associative by reassociation of the existential intermediate witnesses. Scope composition is set intersection, hence associative. Preservation composition is set intersection, hence associative. For loss propagation,
 
@@ -299,7 +327,7 @@ BRIDGE_CONFORMANCE != EMPIRICAL_VALIDATION
 
 ## 6. Executable evidence boundary
 
-The finite witness checks the declared fixtures, exhaustively checks associativity for all `16^3 = 4096` ordered triples of labelled binary relations on `Fin2`, and checks the conservative preservation/loss formulas over a bounded three-label structure family.
+The finite witness checks the declared fixtures, exhaustively checks associativity for all `16^3 = 4096` ordered triples of labelled binary relations on `Fin2`, and checks the conservative preservation/loss formulas by enumerating all `27^2 = 729` ordered pairs of valid partial preservation/loss declarations over a three-label structure family and invoking the production `compose` implementation.
 
 ```text
 FINITE_BRIDGE_CONFORMANCE != GENERAL_PROOF
