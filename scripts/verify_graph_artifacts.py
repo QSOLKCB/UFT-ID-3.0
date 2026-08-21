@@ -11,6 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE_CONTRACT = ROOT / "machine/contract.json"
+VALIDATOR = ROOT / "scripts/validate_graph_realization.py"
 EXPERIMENT = ROOT / "experiments/graph_realization/run.py"
 RECEIPT_RUNNER = ROOT / "experiments/run_graph_realization.py"
 
@@ -47,7 +48,21 @@ EXPECTED_CLAIM_BOUNDARY = (
     "PAPER_MODEL != UFT_ID_PHYSICAL_ONTOLOGY"
 )
 
-# Independent authority closure.  These sets are intentionally duplicated here
+EXPECTED_RECEIPT_TOP_LEVEL_FIELDS = {
+    "type",
+    "schema_version",
+    "source_sha256",
+    "declared_evidence_paths",
+    "result_sha256",
+    "summary",
+    "suite_fingerprint_sha256",
+    "runtime",
+    "runtime_excluded_from_fingerprint",
+    "claim_boundary",
+}
+EXPECTED_RUNTIME_FIELDS = {"python", "implementation", "platform"}
+
+# Independent authority closure. These sets are intentionally duplicated here
 # rather than derived from the receipt runner so a modified runner cannot shrink
 # the bundle it claims to bind.
 EXPECTED_CORE_FILES = (
@@ -170,6 +185,16 @@ def verify(artifact_dir: Path) -> dict[str, object]:
     witness = load_object(artifact_dir / WITNESS_FILE)
     receipt = load_object(artifact_dir / RECEIPT_FILE)
 
+    # Retained validation evidence is accepted only if it is the exact current
+    # result of the canonical validator. A stale or fabricated "ok" artifact
+    # cannot survive a repository change that makes live validation fail.
+    validator = load_module("graph_artifact_validator", VALIDATOR)
+    expected_validation = validator.validate()
+    if expected_validation.get("status") != "ok":
+        raise RuntimeError("canonical graph validation is not currently successful")
+    if validation != expected_validation:
+        raise RuntimeError("retained graph validation full payload drift")
+
     if validation.get("status") != "ok" or validation.get("errors") not in ([], None):
         raise RuntimeError("retained graph validation artifact is not successful")
     if validation.get("result_count") != 9 or validation.get("source_count") != 2:
@@ -189,6 +214,15 @@ def verify(artifact_dir: Path) -> dict[str, object]:
     expected_witness = experiment.run_suite()
     if witness != expected_witness:
         raise RuntimeError("retained graph witness full payload drift")
+
+    # Fail closed on the receipt schema itself. Runtime metadata is explicitly
+    # excluded from the deterministic fingerprint, but no extra semantic field
+    # may be smuggled into the retained receipt unsigned.
+    if set(receipt) != EXPECTED_RECEIPT_TOP_LEVEL_FIELDS:
+        raise RuntimeError("retained graph receipt top-level schema drift")
+    runtime = receipt.get("runtime")
+    if not isinstance(runtime, dict) or set(runtime) != EXPECTED_RUNTIME_FIELDS:
+        raise RuntimeError("retained graph receipt runtime schema drift")
 
     if receipt.get("type") != "uft-id-graph-realization-receipt":
         raise RuntimeError("retained graph receipt type drift")
