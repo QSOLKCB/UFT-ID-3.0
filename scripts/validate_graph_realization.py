@@ -78,6 +78,7 @@ EXPECTED_PROVED_RESULT_BINDINGS = {
         "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-001-finite-relation--digraph-identity",
         "human_heading": "### UFT-GR-001 Finite relation ↔ digraph identity",
         "human_content_anchor": "For finite labelled `X`, the map from `stepRel` to `G_step` defined above is exact at the one-step level.",
+        "human_claim_class": "`PROVED`",
     },
     "UFT-GR-002": {
         "statement": "In G_step, Normal_stepRel(x) iff outdegree(x)=0.",
@@ -85,6 +86,7 @@ EXPECTED_PROVED_RESULT_BINDINGS = {
         "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-002-normality--zero-outdegree",
         "human_heading": "### UFT-GR-002 Normality ↔ zero outdegree",
         "human_content_anchor": "\\deg^+_{G_{\\mathrm{step}}}(x)=0.",
+        "human_claim_class": "`PROVED`",
     },
     "UFT-GR-003": {
         "statement": "For finite G_step, y is reflexive-transitively reachable from x iff there is a directed walk from x to y; when x!=y a directed path may be chosen.",
@@ -92,6 +94,7 @@ EXPECTED_PROVED_RESULT_BINDINGS = {
         "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-003-reachability--directed-walkpath-existence",
         "human_heading": "### UFT-GR-003 Reachability ↔ directed walk/path existence",
         "human_content_anchor": "iff there is a directed walk from `x` to `y` in `G_step`. When `x != y`, repeated vertices may be removed from a finite walk to obtain a directed path.",
+        "human_claim_class": "`PROVED`",
     },
     "UFT-GR-004": {
         "statement": "On a finite carrier, forward termination of stepRel is equivalent to absence of directed cycles in G_step.",
@@ -99,6 +102,7 @@ EXPECTED_PROVED_RESULT_BINDINGS = {
         "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-004-finite-termination--dag-acyclicity",
         "human_heading": "### UFT-GR-004 Finite termination ↔ DAG acyclicity",
         "human_content_anchor": "G_{\\mathrm{step}}\\text{ has no directed cycle}.",
+        "human_claim_class": "`PROVED`",
     },
     "UFT-GR-005": {
         "statement": "Every nonempty finite directed graph has at least one sink strongly connected component.",
@@ -106,6 +110,7 @@ EXPECTED_PROVED_RESULT_BINDINGS = {
         "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-005-finite-sink-scc-existence",
         "human_heading": "### UFT-GR-005 Finite sink-SCC existence",
         "human_content_anchor": "Every nonempty finite directed graph has at least one sink SCC.",
+        "human_claim_class": "`PROVED`",
     },
     "UFT-GR-006": {
         "statement": "The condensation graph obtained by collapsing strongly connected components of a finite directed graph is acyclic.",
@@ -113,6 +118,7 @@ EXPECTED_PROVED_RESULT_BINDINGS = {
         "proof_reference": "theory/GRAPH_REALIZATION.md#uft-gr-006-scc-condensation-is-acyclic",
         "human_heading": "### UFT-GR-006 SCC condensation is acyclic",
         "human_content_anchor": "`Cond(G)` has no directed cycle.",
+        "human_claim_class": "`PROVED`",
     },
 }
 
@@ -123,6 +129,7 @@ EXPECTED_COUNTEREXAMPLE_BINDINGS = {
         "kills": ("LOSSY_PROJECTION_IMPLIES_STRUCTURAL_EQUIVALENCE", "SIMPLE_ADJACENCY_DETERMINES_RICH_INCIDENCE"),
         "human_heading": "### CX-GR-001 Rich-to-simple projection loses arc identity",
         "human_content_anchor": "The projection from rich arc records to simple endpoint adjacency is non-injective in general.",
+        "human_claim_class": "`COUNTEREXAMPLE`",
     },
     "CX-GR-002": {
         "statement": "The same labelled module set can support distinct typed incidence relations.",
@@ -130,6 +137,7 @@ EXPECTED_COUNTEREXAMPLE_BINDINGS = {
         "kills": ("MODULE_INVENTORY_DETERMINES_GLOBAL_NETWORK",),
         "human_heading": "### CX-GR-002 Module inventory does not determine incidence",
         "human_content_anchor": "The inventory is identical while the global connectivity differs.",
+        "human_claim_class": "`COUNTEREXAMPLE`",
     },
     "CX-GR-003": {
         "statement": "One abstract graph admits multiple coordinate drawings with identical adjacency.",
@@ -137,6 +145,7 @@ EXPECTED_COUNTEREXAMPLE_BINDINGS = {
         "kills": ("DRAWING_COORDINATES_ARE_GRAPH_IDENTITY", "VISUAL_RESEMBLANCE_IMPLIES_PHYSICAL_EQUIVALENCE"),
         "human_heading": "### CX-GR-003 Multiple drawings, one graph",
         "human_content_anchor": "The drawings differ while the abstract labelled adjacency is unchanged.",
+        "human_claim_class": "`COUNTEREXAMPLE`",
     },
 }
 
@@ -253,6 +262,7 @@ GRAPH_ARTIFACT_COMMANDS = (
     "python experiments/run_graph_realization.py --json > artifacts/graph-realization-receipt.json 2> artifacts/graph-realization-receipt.stderr.txt || true",
 )
 GRAPH_ARTIFACT_VERIFY_COMMAND = "python scripts/verify_graph_artifacts.py artifacts"
+EXPECTED_VERIFY_STEP_DIRECTIVES = ("if: always()", "run: |")
 ROADMAP_GRAPH_COMMANDS = (
     "python scripts/validate_graph_realization.py",
     "python experiments/graph_realization/run.py --json",
@@ -355,8 +365,11 @@ FIVEFOLD_ANCHORS = (
 )
 
 NUMEROSITY_START = "# Future 3-4-5 finite numerosity and semantic-lifting stress programme"
+EXPECTED_NUMEROSITY_CLAIM_CLASS = (
+    "`INTERPRETIVE` for every source-to-UFT-ID correspondence in this section until explicit "
+    "BridgeCore objects and independent mathematical fixtures exist."
+)
 NUMEROSITY_ANCHORS = (
-    "**Claim class:** `INTERPRETIVE` for every source-to-UFT-ID correspondence in this section",
     "NumberSpec = (n, role, carrier, structure, semantics, scope)",
     "NUMBER != ROLE",
     "CARDINALITY_3 != ARITY_3 != DIMENSION_3 != RADIX_3",
@@ -379,6 +392,11 @@ EXPECTED_GRINBERG = {
     "doi": "10.48550/arXiv.2308.04512",
     "identifier": "arXiv:2308.04512v3",
     "kind": "public-mathematical-source",
+    "not_inherited": [
+        "no physical ontology",
+        "no claim that graph-theoretic equivalence establishes semantic or physical equivalence",
+    ],
+    "role": "mathematical donor for graph/digraph representation, drawing separation, adjacency matrices, SCCs, arborescences, matrix-tree machinery, and Menger-type path/cut results",
     "version_date": "2025-06-08",
     "source_status": "arXiv-course-notes-preprint",
     "title": "An introduction to graph theory",
@@ -394,7 +412,12 @@ EXPECTED_EVERS = {
     "issue": 4,
     "journal": "Inorganic Chemistry",
     "kind": "peer-reviewed-empirical-source",
+    "not_inherited": [
+        "SiS2 chemistry is not a UFT-ID ontology",
+        "tetrahedral material structure does not validate ETQ, E8, Fuller geometry, or information physics",
+    ],
     "pages": "1240-1253",
+    "role": "positive-control example that a shared local SiS4 tetrahedral coordination motif can participate in distinct edge-sharing, mixed edge/corner-sharing, and corner-sharing global structures",
     "title": "Two High-Pressure Phases of SiS2 as Missing Links between the Extremes of Only Edge-Sharing and Only Corner-Sharing Tetrahedra",
     "volume": 54,
     "year": 2015,
@@ -499,6 +522,16 @@ def markdown_section(text: str, heading: str) -> str | None:
     return "\n".join(section)
 
 
+def markdown_metadata_value(section: str, label: str) -> str | None:
+    prefix = f"**{label}:** "
+    matches = [
+        line.strip()[len(prefix):]
+        for line in section.splitlines()[1:]
+        if line.strip().startswith(prefix)
+    ]
+    return matches[0] if len(matches) == 1 else None
+
+
 def workflow_step_shell_lines(text: str, step_name: str) -> tuple[str, ...]:
     lines = text.splitlines()
     marker = f"- name: {step_name}"
@@ -528,22 +561,37 @@ def workflow_step_shell_lines(text: str, step_name: str) -> tuple[str, ...]:
     return ()
 
 
-def workflow_step_has_always(text: str, step_name: str) -> bool:
+def workflow_step_directives(text: str, step_name: str) -> tuple[str, ...]:
     lines = text.splitlines()
     marker = f"- name: {step_name}"
     for index, line in enumerate(lines):
         if line.strip() != marker:
             continue
         step_indent = len(line) - len(line.lstrip())
+        directives: list[str] = []
+        run_indent: int | None = None
         for candidate in lines[index + 1:]:
             stripped = candidate.strip()
             indent = len(candidate) - len(candidate.lstrip())
             if stripped.startswith("- name:") and indent <= step_indent:
-                return False
-            if stripped == "if: always()":
-                return True
-        return False
-    return False
+                break
+            if not stripped or stripped.startswith("#"):
+                continue
+            if indent <= step_indent:
+                break
+            if run_indent is not None and indent > run_indent:
+                continue
+            if run_indent is not None and indent <= run_indent:
+                run_indent = None
+            directives.append(stripped)
+            if stripped == "run: |":
+                run_indent = indent
+        return tuple(directives)
+    return ()
+
+
+def workflow_step_has_always(text: str, step_name: str) -> bool:
+    return "if: always()" in workflow_step_directives(text, step_name)
 
 
 def has_shell_control_flow(lines: tuple[str, ...]) -> bool:
@@ -679,8 +727,13 @@ def validate() -> dict[str, object]:
                 if not isinstance(hypotheses, list) or tuple(hypotheses) != expected["hypotheses"]: errors.append(f"{result_id} theorem hypotheses drift from frozen human proof")
                 if record.get("proof_reference") != expected["proof_reference"]: errors.append(f"{result_id} proof_reference drift from frozen human proof")
                 section = markdown_section(texts["human"], expected["human_heading"])
-                if section is None: errors.append(f"{result_id} frozen human theorem heading missing")
-                elif expected["human_content_anchor"] not in section: errors.append(f"{result_id} frozen human theorem content drift")
+                if section is None:
+                    errors.append(f"{result_id} frozen human theorem heading missing")
+                else:
+                    if markdown_metadata_value(section, "Claim class") != expected["human_claim_class"]:
+                        errors.append(f"{result_id} human theorem claim class drift")
+                    if expected["human_content_anchor"] not in section:
+                        errors.append(f"{result_id} frozen human theorem content drift")
         elif result_id.startswith("CX-GR-"):
             if claim_class != "COUNTEREXAMPLE": errors.append(f"{result_id} must remain COUNTEREXAMPLE")
             expected = EXPECTED_COUNTEREXAMPLE_BINDINGS.get(result_id)
@@ -692,8 +745,13 @@ def validate() -> dict[str, object]:
                 kills = record.get("kills")
                 if not isinstance(kills, list) or tuple(kills) != expected["kills"]: errors.append(f"{result_id} counterexample kills drift")
                 section = markdown_section(texts["human"], expected["human_heading"])
-                if section is None: errors.append(f"{result_id} frozen human counterexample heading missing")
-                elif expected["human_content_anchor"] not in section: errors.append(f"{result_id} frozen human counterexample content drift")
+                if section is None:
+                    errors.append(f"{result_id} frozen human counterexample heading missing")
+                else:
+                    if markdown_metadata_value(section, "Claim class") != expected["human_claim_class"]:
+                        errors.append(f"{result_id} human counterexample claim class drift")
+                    if expected["human_content_anchor"] not in section:
+                        errors.append(f"{result_id} frozen human counterexample content drift")
 
         evidence_spec = EXPECTED_RESULT_EVIDENCE.get(result_id)
         if evidence_spec is None: errors.append(f"{result_id} missing canonical evidence binding")
@@ -757,6 +815,9 @@ def validate() -> dict[str, object]:
 
     verify_lines = workflow_step_shell_lines(texts["workflow"], "Verify retained graph evidence")
     if verify_lines != (GRAPH_ARTIFACT_VERIFY_COMMAND,): errors.append("finite-adversarial retained graph evidence verification step drift")
+    verify_directives = workflow_step_directives(texts["workflow"], "Verify retained graph evidence")
+    if verify_directives != EXPECTED_VERIFY_STEP_DIRECTIVES:
+        errors.append("finite-adversarial retained graph evidence verification step envelope drift")
     if not workflow_step_has_always(texts["workflow"], "Verify retained graph evidence"): errors.append("finite-adversarial retained graph evidence verification must use always()")
     if sum(1 for line in texts["workflow"].splitlines() if line.strip() == '- "scripts/verify_graph_artifacts.py"') != 2: errors.append("finite-adversarial must trigger on scripts/verify_graph_artifacts.py for PR and main push")
     if sum(1 for line in texts["workflow"].splitlines() if line.strip() == '- "docs/NONCLAIMS.md"') != 2: errors.append("finite-adversarial must trigger on docs/NONCLAIMS.md for PR and main push")
@@ -791,12 +852,13 @@ def validate() -> dict[str, object]:
         fivefold = texts["roadmap"][fivefold_index:]
         require_anchors(fivefold, FIVEFOLD_ANCHORS, "ROADMAP fivefold donor programme", errors)
 
-    numerosity_index = texts["roadmap"].find(NUMEROSITY_START)
-    if numerosity_index < 0:
+    numerosity = markdown_section(texts["roadmap"], NUMEROSITY_START)
+    if numerosity is None:
         errors.append("ROADMAP missing 3-4-5 numerosity/semantic-lifting programme")
         numerosity = ""
     else:
-        numerosity = texts["roadmap"][numerosity_index:]
+        if markdown_metadata_value(numerosity, "Claim class") != EXPECTED_NUMEROSITY_CLAIM_CLASS:
+            errors.append("ROADMAP 3-4-5 numerosity programme claim class drift")
         require_anchors(numerosity, NUMEROSITY_ANCHORS, "ROADMAP 3-4-5 numerosity programme", errors)
 
     if RECEIPT_SCHEMA_BINDING not in texts["receipt"]: errors.append("graph receipt schema version must be derived from canonical registry")
