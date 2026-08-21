@@ -1,6 +1,6 @@
 {
   "type": "uft-id-bridge-core-contract",
-  "schema_version": "1.0.0",
+  "schema_version": "1.0.1",
   "snapshot_date": "2026-08-21",
   "claim_class": "DEFINITION",
   "scope": "Typed structural transport between declared source and target carriers. BridgeCore records domain, map-or-relation semantics, preserved structure, lost structure, scope, and source/target versions. It does not encode epistemic promotion or physical ontology.",
@@ -8,13 +8,18 @@
   "fields": {
     "source_type": "declared source carrier/type identity",
     "target_type": "declared target carrier/type identity",
-    "domain": "declared subset of the source carrier on which the bridge is defined",
+    "domain": "declared subset, possibly empty, of the source carrier on which the bridge is defined",
     "map_or_relation": "typed map or binary relation from the declared domain into the target carrier",
     "preserved_structure": "declared structure labels proved or specified to survive the bridge",
     "lost_structure": "declared source structure labels not preserved by the bridge",
     "scope": "nonempty set of contexts/regimes in which the bridge claim is licensed",
     "source_version": "source semantic/version identity",
     "target_version": "target semantic/version identity"
+  },
+  "structure_metadata_policy": {
+    "disjointness": "preserved_structure intersect lost_structure = empty",
+    "exhaustiveness": "not required in a generic BridgeSpec; labels may remain unclassified",
+    "identity_neutrality_condition": "two-sided preservation/loss metadata neutrality requires the identity bridge to track exactly preserved_structure(B) union lost_structure(B)"
   },
   "composition_contract": {
     "intermediate_type_match": "B1.target_type = B2.source_type",
@@ -52,6 +57,8 @@
     "labelled_binary_relations": 16,
     "ordered_relation_triples": 4096,
     "structure_label_family": ["a", "b", "c"],
+    "valid_partial_structure_declarations": 27,
+    "ordered_structure_declaration_pairs": 729,
     "policy": "Finite execution is a bounded conformance witness for the declared fixtures and set-theoretic formulas; it is not the proof of unrestricted mathematics."
   },
   "explicit_deferrals": [
