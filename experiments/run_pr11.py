@@ -25,8 +25,10 @@ CORE_FILES = [
     "research/CROSS_REPO_PATTERN_ATLAS.md",
     "theory/RELATION_CALCULUS.md",
     "scripts/validate_relation_core.py",
+    "scripts/validate_relation_core_frozen_pr11.py",
     "experiments/relation/run.py",
     "tests/test_pr11_relation_core.py",
+    "tests/pr11_relation_core_tests_frozen.py",
     "experiments/run_pr11.py",
     "ROADMAP.md",
 ]
