@@ -6,8 +6,10 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import platform
 import re
 from pathlib import Path
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE_CONTRACT = ROOT / "machine/contract.json"
@@ -223,6 +225,13 @@ def verify(artifact_dir: Path) -> dict[str, object]:
     runtime = receipt.get("runtime")
     if not isinstance(runtime, dict) or set(runtime) != EXPECTED_RUNTIME_FIELDS:
         raise RuntimeError("retained graph receipt runtime schema drift")
+    expected_runtime = {
+        "python": platform.python_version(),
+        "implementation": platform.python_implementation(),
+        "platform": sys.platform,
+    }
+    if runtime != expected_runtime:
+        raise RuntimeError("retained graph receipt runtime provenance mismatch")
 
     if receipt.get("type") != "uft-id-graph-realization-receipt":
         raise RuntimeError("retained graph receipt type drift")
