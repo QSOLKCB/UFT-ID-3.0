@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 VALIDATOR = ROOT / "scripts/validate_bridge_core.py"
 EXPERIMENT = ROOT / "experiments/bridge_core/run.py"
 RECEIPT_RUNNER = ROOT / "experiments/run_bridge_core.py"
+BASE_CONTRACT = ROOT / "machine/contract.json"
 
 VALIDATION_FILE = "bridge-core-validation.json"
 WITNESS_FILE = "bridge-core-witness.json"
@@ -42,10 +43,13 @@ EXPECTED_CORE_FILES = (
     "theory/BRIDGE_CORE.md",
     "theory/AUXILIARY_CONTRACTS.md",
     "scripts/validate_bridge_core.py",
+    "scripts/validate_bridge_core_precodex2_frozen.py",
     "scripts/verify_bridge_artifacts.py",
     "experiments/bridge_core/__init__.py",
     "experiments/bridge_core/run.py",
+    "experiments/bridge_core/run_precodex2_frozen.py",
     "tests/test_bridge_core.py",
+    "tests/test_bridge_core_codex2.py",
     "experiments/run_bridge_core.py",
     ".github/workflows/finite-adversarial.yml",
 )
@@ -86,6 +90,25 @@ def load_object(path: Path) -> dict[str, object]:
     return value
 
 
+def registered_receipt_version() -> str:
+    payload = json.loads(BASE_CONTRACT.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise RuntimeError("machine/contract.json must be an object")
+    authority = payload.get("bridge_core_authority")
+    library = payload.get("experiment_library")
+    if not isinstance(authority, dict) or not isinstance(library, dict):
+        raise RuntimeError("BridgeCore receipt version registries must be objects")
+    authority_version = authority.get("receipt_version")
+    library_version = library.get("bridge_core_receipt_version")
+    if not isinstance(authority_version, str) or not authority_version:
+        raise RuntimeError("BridgeCore authority receipt_version must be a non-empty string")
+    if not isinstance(library_version, str) or not library_version:
+        raise RuntimeError("BridgeCore experiment-library receipt version must be a non-empty string")
+    if authority_version != library_version:
+        raise RuntimeError("BridgeCore receipt version registry disagreement")
+    return authority_version
+
+
 def fingerprint_identity(receipt: dict[str, object]) -> dict[str, object]:
     return {field: receipt.get(field) for field in FINGERPRINT_FIELDS}
 
@@ -106,16 +129,20 @@ def verify(artifact_dir: Path) -> dict[str, object]:
     expected_witness = experiment.run_suite()
     if witness != expected_witness:
         raise RuntimeError("retained BridgeCore witness full payload drift")
-    loss_check = witness.get("bounded_checks", {}).get("preservation_loss", {}) if isinstance(witness.get("bounded_checks"), dict) else {}
+    bounded = witness.get("bounded_checks")
+    loss_check = bounded.get("preservation_loss", {}) if isinstance(bounded, dict) else {}
+    assoc_check = bounded.get("relation_associativity", {}) if isinstance(bounded, dict) else {}
     if not isinstance(loss_check, dict) or loss_check.get("valid_partial_structure_declarations") != 27 or loss_check.get("ordered_structure_declaration_pairs_checked") != 729:
         raise RuntimeError("retained BridgeCore partial structure conformance count drift")
+    if not isinstance(assoc_check, dict) or assoc_check.get("ordered_relation_triples_checked") != 4096 or assoc_check.get("production_compose_exercised") != 4096:
+        raise RuntimeError("retained BridgeCore production associativity count drift")
 
     if set(receipt) != EXPECTED_TOP_LEVEL:
         raise RuntimeError("retained BridgeCore receipt top-level schema drift")
     if receipt.get("type") != "uft-id-bridge-core-receipt":
         raise RuntimeError("retained BridgeCore receipt type drift")
-    if receipt.get("schema_version") != "1.0.1":
-        raise RuntimeError("retained BridgeCore receipt schema drift")
+    if receipt.get("schema_version") != registered_receipt_version():
+        raise RuntimeError("retained BridgeCore receipt schema/version registry mismatch")
     if receipt.get("claim_boundary") != EXPECTED_CLAIM_BOUNDARY:
         raise RuntimeError("retained BridgeCore receipt claim boundary drift")
 
@@ -133,6 +160,8 @@ def verify(artifact_dir: Path) -> dict[str, object]:
         raise RuntimeError("retained BridgeCore runtime fingerprint boundary drift")
 
     runner = load_module("bridge_artifact_receipt_runner", RECEIPT_RUNNER)
+    if runner.registered_receipt_version() != registered_receipt_version():
+        raise RuntimeError("BridgeCore receipt runner registry-version drift")
     if tuple(runner.CORE_FILES) != EXPECTED_CORE_FILES:
         raise RuntimeError("BridgeCore receipt runner core source set drift")
     if tuple(sorted(runner.declared_evidence_paths())) != EXPECTED_EVIDENCE:
@@ -177,6 +206,7 @@ def verify(artifact_dir: Path) -> dict[str, object]:
         "verified_files": [VALIDATION_FILE, WITNESS_FILE, RECEIPT_FILE],
         "relation_triples_checked": 4096,
         "structure_declaration_pairs_checked": 729,
+        "receipt_schema_version": receipt["schema_version"],
         "suite_fingerprint_sha256": fingerprint,
     }
 

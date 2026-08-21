@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "experiments/**"
+      - "scripts/**"
       - "scripts/validate_reproducibility.py"
       - "scripts/validate_cross_repo_patterns.py"
       - "scripts/validate_vopson_2019_mei.py"
@@ -44,6 +45,7 @@ on:
     branches: [main]
     paths:
       - "experiments/**"
+      - "scripts/**"
       - "scripts/validate_reproducibility.py"
       - "scripts/validate_cross_repo_patterns.py"
       - "scripts/validate_vopson_2019_mei.py"

@@ -1,59 +1,48 @@
 #!/usr/bin/env python3
-"""Finite conformance witnesses for UFT-ID PR #12 BridgeCore."""
+"""Hardened BridgeCore executable wrapper after the second Codex audit.
+
+The pre-audit implementation is preserved byte-for-byte in
+run_precodex2_frozen.py. This wrapper tightens executable conformance around
+empty carriers, intermediate-carrier identity, production associativity, and
+counterexample derivation while preserving the existing API.
+"""
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import itertools
 import json
+from pathlib import Path
 from typing import Iterable
 
-State = str
-Edge = tuple[State, State]
+ROOT = Path(__file__).resolve().parents[2]
+FROZEN = Path(__file__).with_name("run_precodex2_frozen.py")
 
+_spec = importlib.util.spec_from_file_location("bridge_core_precodex2_frozen", FROZEN)
+if _spec is None or _spec.loader is None:
+    raise RuntimeError(f"cannot load frozen BridgeCore executable: {FROZEN}")
+_frozen = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_frozen)
 
-def _strings(values: Iterable[str], label: str, *, nonempty: bool = False) -> tuple[str, ...]:
-    out = tuple(values)
-    if nonempty and not out:
-        raise ValueError(f"{label} must be nonempty")
-    if any(not isinstance(x, str) or not x for x in out):
-        raise ValueError(f"{label} must contain nonempty strings")
-    if len(out) != len(set(out)):
-        raise ValueError(f"{label} must be unique")
-    return out
+# Re-export the frozen API first. Hardened functions below deliberately replace
+# the names that need stronger conformance semantics.
+for _name in dir(_frozen):
+    if not _name.startswith("__"):
+        globals()[_name] = getattr(_frozen, _name)
 
-
-def make_bridge(*, bridge_id: str, source_type: str, target_type: str, source_version: str,
-                target_version: str, source_states: Iterable[State], target_states: Iterable[State],
-                domain: Iterable[State], relation: Iterable[Edge], relation_kind: str,
-                preserved_structure: Iterable[str], lost_structure: Iterable[str],
-                scope: Iterable[str]) -> dict[str, object]:
-    bridge = {
-        "id": bridge_id,
-        "source_type": source_type,
-        "target_type": target_type,
-        "source_version": source_version,
-        "target_version": target_version,
-        "source_states": tuple(source_states),
-        "target_states": tuple(target_states),
-        "domain": frozenset(domain),
-        "relation": frozenset(relation),
-        "relation_kind": relation_kind,
-        "preserved_structure": frozenset(preserved_structure),
-        "lost_structure": frozenset(lost_structure),
-        "scope": frozenset(scope),
-    }
-    validate_bridge(bridge)
-    return bridge
+_ORIGINAL_FIXTURES = _frozen.fixtures
 
 
 def validate_bridge(bridge: dict[str, object]) -> None:
+    """Validate a finite BridgeSpec realization, including empty carriers."""
     for key in ("id", "source_type", "target_type", "source_version", "target_version"):
         value = bridge.get(key)
         if not isinstance(value, str) or not value:
             raise ValueError(f"bridge {key} must be a nonempty string")
 
-    source = _strings(bridge.get("source_states", ()), "source_states", nonempty=True)
-    target = _strings(bridge.get("target_states", ()), "target_states", nonempty=True)
+    # Generic BridgeCore does not require either carrier to be inhabited.
+    source = _frozen._strings(bridge.get("source_states", ()), "source_states", nonempty=False)
+    target = _frozen._strings(bridge.get("target_states", ()), "target_states", nonempty=False)
     source_set, target_set = set(source), set(target)
 
     domain = bridge.get("domain")
@@ -95,9 +84,12 @@ def validate_bridge(bridge: dict[str, object]) -> None:
         raise ValueError("preserved_structure and lost_structure must be disjoint")
 
 
-def relation_image(bridge: dict[str, object]) -> frozenset[State]:
+def relation_image(bridge: dict[str, object]) -> frozenset[str]:
     validate_bridge(bridge)
-    return frozenset(b for _, b in bridge["relation"])
+    relation = bridge["relation"]
+    if not isinstance(relation, frozenset):
+        raise RuntimeError("validated relation unexpectedly malformed")
+    return frozenset(b for _, b in relation)
 
 
 def composability_errors(first: dict[str, object], second: dict[str, object]) -> tuple[str, ...]:
@@ -108,9 +100,25 @@ def composability_errors(first: dict[str, object], second: dict[str, object]) ->
         errors.append("intermediate-type-mismatch")
     if first["target_version"] != second["source_version"]:
         errors.append("intermediate-version-mismatch")
-    if not (first["scope"] & second["scope"]):
+
+    # In the finite reference model, a type/version label is not allowed to
+    # conceal two different concrete carrier realizations.
+    first_target = frozenset(first["target_states"])
+    second_source = frozenset(second["source_states"])
+    if first_target != second_source:
+        errors.append("intermediate-carrier-mismatch")
+
+    scope1 = first["scope"]
+    scope2 = second["scope"]
+    if not isinstance(scope1, frozenset) or not isinstance(scope2, frozenset):
+        raise RuntimeError("validated scope unexpectedly malformed")
+    if not (scope1 & scope2):
         errors.append("scope-intersection-empty")
-    if not relation_image(first).issubset(second["domain"]):
+
+    domain2 = second["domain"]
+    if not isinstance(domain2, frozenset):
+        raise RuntimeError("validated domain unexpectedly malformed")
+    if not relation_image(first).issubset(domain2):
         errors.append("intermediate-image-outside-second-domain")
     return tuple(errors)
 
@@ -119,235 +127,148 @@ def is_composable(first: dict[str, object], second: dict[str, object]) -> bool:
     return not composability_errors(first, second)
 
 
-def compose(first: dict[str, object], second: dict[str, object], *, bridge_id: str = "composite") -> dict[str, object]:
-    errors = composability_errors(first, second)
-    if errors:
-        raise ValueError("bridges are not composable: " + ",".join(errors))
-    rel1, rel2 = first["relation"], second["relation"]
-    relation = frozenset((x, z) for x, y in rel1 for y2, z in rel2 if y == y2)
-    p1, p2 = first["preserved_structure"], second["preserved_structure"]
-    l1 = first["lost_structure"]
-    return make_bridge(
-        bridge_id=bridge_id,
-        source_type=str(first["source_type"]),
-        target_type=str(second["target_type"]),
-        source_version=str(first["source_version"]),
-        target_version=str(second["target_version"]),
-        source_states=first["source_states"],
-        target_states=second["target_states"],
-        domain=first["domain"],
-        relation=relation,
-        relation_kind="map" if first["relation_kind"] == second["relation_kind"] == "map" else "relation",
-        preserved_structure=p1 & p2,
-        lost_structure=l1 | (p1 - p2),
-        scope=first["scope"] & second["scope"],
+def identity_bridge(
+    states: Iterable[str], *, type_name: str, version: str,
+    scope: Iterable[str], structure: Iterable[str]
+) -> dict[str, object]:
+    carrier = _frozen._strings(states, "identity states", nonempty=False)
+    return _frozen.make_bridge(
+        bridge_id=f"id:{type_name}@{version}",
+        source_type=type_name,
+        target_type=type_name,
+        source_version=version,
+        target_version=version,
+        source_states=carrier,
+        target_states=carrier,
+        domain=carrier,
+        relation=((x, x) for x in carrier),
+        relation_kind="map",
+        preserved_structure=structure,
+        lost_structure=(),
+        scope=scope,
     )
 
 
-def identity_bridge(states: Iterable[State], *, type_name: str, version: str,
-                    scope: Iterable[str], structure: Iterable[str]) -> dict[str, object]:
-    carrier = _strings(states, "identity states", nonempty=True)
-    return make_bridge(
-        bridge_id=f"id:{type_name}@{version}", source_type=type_name, target_type=type_name,
-        source_version=version, target_version=version, source_states=carrier,
-        target_states=carrier, domain=carrier, relation=((x, x) for x in carrier),
-        relation_kind="map", preserved_structure=structure, lost_structure=(), scope=scope,
-    )
+# Patch the frozen module globals used by its make_bridge/compose/fixture code.
+_frozen.validate_bridge = validate_bridge
+_frozen.relation_image = relation_image
+_frozen.composability_errors = composability_errors
+_frozen.is_composable = is_composable
+_frozen.identity_bridge = identity_bridge
 
-
-def bridge_view(bridge: dict[str, object]) -> dict[str, object]:
-    validate_bridge(bridge)
-    return {
-        "id": bridge["id"], "source_type": bridge["source_type"], "target_type": bridge["target_type"],
-        "source_version": bridge["source_version"], "target_version": bridge["target_version"],
-        "source_states": list(bridge["source_states"]), "target_states": list(bridge["target_states"]),
-        "domain": sorted(bridge["domain"]), "relation": [list(edge) for edge in sorted(bridge["relation"])],
-        "relation_kind": bridge["relation_kind"], "preserved_structure": sorted(bridge["preserved_structure"]),
-        "lost_structure": sorted(bridge["lost_structure"]), "scope": sorted(bridge["scope"]),
-    }
-
-
-def enumerate_fin2_relations() -> tuple[frozenset[Edge], ...]:
-    carrier = ("0", "1")
-    possible = tuple(itertools.product(carrier, repeat=2))
-    return tuple(frozenset(possible[i] for i in range(4) if mask & (1 << i)) for mask in range(16))
-
-
-def compose_relation(first: frozenset[Edge], second: frozenset[Edge]) -> frozenset[Edge]:
-    return frozenset((x, z) for x, y in first for y2, z in second if y == y2)
+# compose itself is retained, but it now resolves the hardened validation and
+# composability functions through the frozen module globals above.
+compose = _frozen.compose
+make_bridge = _frozen.make_bridge
+bridge_view = _frozen.bridge_view
 
 
 def associativity_exhaustive_check() -> dict[str, int]:
-    relations = enumerate_fin2_relations()
+    """Exercise production compose over every ordered Fin2 relation triple."""
+    carrier = ("0", "1")
+    relations = _frozen.enumerate_fin2_relations()
     checked = 0
-    for r1 in relations:
-        for r2 in relations:
-            for r3 in relations:
-                if compose_relation(compose_relation(r1, r2), r3) != compose_relation(r1, compose_relation(r2, r3)):
-                    raise RuntimeError("UFT-BR-005 finite relation associativity failure")
+    for i, r1 in enumerate(relations):
+        for j, r2 in enumerate(relations):
+            for k, r3 in enumerate(relations):
+                common = dict(
+                    source_type="Fin2",
+                    target_type="Fin2",
+                    source_version="1",
+                    target_version="1",
+                    source_states=carrier,
+                    target_states=carrier,
+                    domain=carrier,
+                    relation_kind="relation",
+                    preserved_structure=(),
+                    lost_structure=(),
+                    scope=("assoc",),
+                )
+                b1 = make_bridge(bridge_id=f"assoc-b1-{i}-{j}-{k}", relation=r1, **common)
+                b2 = make_bridge(bridge_id=f"assoc-b2-{i}-{j}-{k}", relation=r2, **common)
+                b3 = make_bridge(bridge_id=f"assoc-b3-{i}-{j}-{k}", relation=r3, **common)
+
+                left = compose(compose(b1, b2, bridge_id="assoc-left-12"), b3, bridge_id="assoc-left")
+                right = compose(b1, compose(b2, b3, bridge_id="assoc-right-23"), bridge_id="assoc-right")
+                for field in ("relation", "preserved_structure", "lost_structure", "scope"):
+                    if left[field] != right[field]:
+                        raise RuntimeError(f"UFT-BR-005 production associativity failure: {field}")
                 checked += 1
+
     if checked != 4096:
-        raise RuntimeError("Fin2 relation triple count drift")
-    return {"labelled_relations_fin2": 16, "ordered_relation_triples_checked": checked}
-
-
-def partial_structure_declarations(labels: tuple[str, ...]) -> tuple[tuple[frozenset[str], frozenset[str]], ...]:
-    declarations: list[tuple[frozenset[str], frozenset[str]]] = []
-    for assignments in itertools.product(("P", "L", "U"), repeat=len(labels)):
-        p = frozenset(label for label, tag in zip(labels, assignments) if tag == "P")
-        l = frozenset(label for label, tag in zip(labels, assignments) if tag == "L")
-        declarations.append((p, l))
-    return tuple(declarations)
-
-
-def preservation_loss_exhaustive_check() -> dict[str, int]:
-    labels = ("a", "b", "c")
-    declarations = partial_structure_declarations(labels)
-    checked = 0
-    for i, (p1, l1) in enumerate(declarations):
-        for j, (p2, l2) in enumerate(declarations):
-            first = make_bridge(
-                bridge_id=f"meta-first-{i}-{j}", source_type="A", target_type="B",
-                source_version="1", target_version="1", source_states=("a",), target_states=("b",),
-                domain=("a",), relation=(("a", "b"),), relation_kind="map",
-                preserved_structure=p1, lost_structure=l1, scope=("s",),
-            )
-            second = make_bridge(
-                bridge_id=f"meta-second-{i}-{j}", source_type="B", target_type="C",
-                source_version="1", target_version="1", source_states=("b",), target_states=("c",),
-                domain=("b",), relation=(("b", "c"),), relation_kind="map",
-                preserved_structure=p2, lost_structure=l2, scope=("s",),
-            )
-            composite = compose(first, second, bridge_id=f"meta-composite-{i}-{j}")
-            expected_p = p1 & p2
-            expected_l = l1 | (p1 - p2)
-            if composite["preserved_structure"] != expected_p:
-                raise RuntimeError("UFT-BR-002 production preservation intersection failure")
-            if composite["lost_structure"] != expected_l:
-                raise RuntimeError("UFT-BR-003 production loss propagation failure")
-            if not l1.issubset(composite["lost_structure"]):
-                raise RuntimeError("UFT-BR-003 loss monotonicity failure")
-            if composite["preserved_structure"] & composite["lost_structure"]:
-                raise RuntimeError("composite preservation/loss disjointness failure")
-            checked += 1
-    if len(declarations) != 27 or checked != 729:
-        raise RuntimeError("partial preservation/loss declaration count drift")
+        raise RuntimeError("Fin2 production relation triple count drift")
     return {
-        "structure_labels": 3,
-        "valid_partial_structure_declarations": 27,
-        "ordered_structure_declaration_pairs_checked": checked,
-        "ordered_preservation_pairs_checked": checked,
+        "labelled_relations_fin2": 16,
+        "ordered_relation_triples_checked": checked,
+        "production_compose_exercised": checked,
     }
+
+
+_frozen.associativity_exhaustive_check = associativity_exhaustive_check
 
 
 def fixtures() -> dict[str, object]:
-    identity_like = make_bridge(
-        bridge_id="endpoint-identity", source_type="TwoState", target_type="TwoStateOut",
-        source_version="1", target_version="1", source_states=("s0", "s1"), target_states=("t0", "t1"),
-        domain=("s0", "s1"), relation=(("s0", "t0"), ("s1", "t1")), relation_kind="map",
-        preserved_structure=("distinguishability", "label"), lost_structure=(), scope=("fixture",),
-    )
-    collapse = make_bridge(
-        bridge_id="endpoint-collapse", source_type="TwoState", target_type="TwoStateOut",
-        source_version="1", target_version="1", source_states=("s0", "s1"), target_states=("t0", "t1"),
-        domain=("s0", "s1"), relation=(("s0", "t0"), ("s1", "t0")), relation_kind="map",
-        preserved_structure=("label",), lost_structure=("distinguishability",), scope=("fixture",),
-    )
-    if identity_like["relation"] == collapse["relation"]:
-        raise RuntimeError("CX-BR-001 relation difference disappeared")
+    result = _ORIGINAL_FIXTURES()
 
-    version_first = make_bridge(
-        bridge_id="version-first", source_type="A", target_type="B", source_version="1", target_version="1",
-        source_states=("a",), target_states=("b",), domain=("a",), relation=(("a", "b"),),
-        relation_kind="map", preserved_structure=("x",), lost_structure=(), scope=("shared",),
-    )
-    version_second = make_bridge(
-        bridge_id="version-second", source_type="B", target_type="C", source_version="2", target_version="1",
-        source_states=("b",), target_states=("c",), domain=("b",), relation=(("b", "c"),),
-        relation_kind="map", preserved_structure=("x",), lost_structure=(), scope=("shared",),
-    )
-    version_errors = composability_errors(version_first, version_second)
-    if version_errors != ("intermediate-version-mismatch",):
-        raise RuntimeError("CX-BR-002 version mismatch classification drift")
+    # CX-BR-001 must derive its advertised metadata distinction from the actual
+    # serialized fixtures, never from a hard-coded success flag.
+    cx1 = result.get("CX-BR-001")
+    if not isinstance(cx1, dict):
+        raise RuntimeError("CX-BR-001 fixture payload missing")
+    first = cx1.get("first")
+    second = cx1.get("second")
+    if not isinstance(first, dict) or not isinstance(second, dict):
+        raise RuntimeError("CX-BR-001 serialized bridges missing")
+    loss_sets_differ = first.get("lost_structure") != second.get("lost_structure")
+    if not loss_sets_differ:
+        raise RuntimeError("CX-BR-001 loss-set distinction disappeared")
+    cx1["loss_sets_differ"] = loss_sets_differ
 
-    scope_first = dict(version_first); scope_first["id"] = "scope-first"; scope_first["scope"] = frozenset({"calibration-A"})
-    scope_second = dict(version_second); scope_second["id"] = "scope-second"; scope_second["source_version"] = "1"; scope_second["scope"] = frozenset({"calibration-B"})
-    validate_bridge(scope_first); validate_bridge(scope_second)
-    scope_errors = composability_errors(scope_first, scope_second)
-    if scope_errors != ("scope-intersection-empty",):
-        raise RuntimeError("CX-BR-003 scope mismatch classification drift")
-
-    projection = make_bridge(
-        bridge_id="first-bit-projection", source_type="Bits2", target_type="Bit1", source_version="1", target_version="1",
-        source_states=("00", "01", "10", "11"), target_states=("0", "1"), domain=("00", "01", "10", "11"),
-        relation=(("00", "0"), ("01", "0"), ("10", "1"), ("11", "1")), relation_kind="map",
-        preserved_structure=("first_bit",), lost_structure=("second_bit", "full_state_identity"), scope=("fixture",),
+    # Matching type/version labels do not excuse different finite carrier
+    # realizations of the alleged shared intermediate object.
+    carrier_first = make_bridge(
+        bridge_id="carrier-first", source_type="A", target_type="B",
+        source_version="1", target_version="1",
+        source_states=("a",), target_states=("b0", "b1"),
+        domain=("a",), relation=(("a", "b0"),), relation_kind="map",
+        preserved_structure=(), lost_structure=(), scope=("shared",),
     )
-    decoder = make_bridge(
-        bridge_id="canonical-decoder", source_type="Bit1", target_type="Bits2", source_version="1", target_version="1",
-        source_states=("0", "1"), target_states=("00", "01", "10", "11"), domain=("0", "1"),
-        relation=(("0", "00"), ("1", "10")), relation_kind="map", preserved_structure=("first_bit",),
-        lost_structure=(), scope=("fixture",),
+    carrier_second = make_bridge(
+        bridge_id="carrier-second", source_type="B", target_type="C",
+        source_version="1", target_version="1",
+        source_states=("b0",), target_states=("c",),
+        domain=("b0",), relation=(("b0", "c"),), relation_kind="map",
+        preserved_structure=(), lost_structure=(), scope=("shared",),
     )
-    decoded = compose(projection, decoder, bridge_id="lossy-roundtrip")
-    identity_relation = frozenset((x, x) for x in projection["source_states"])
-    if decoded["relation"] == identity_relation or not projection["lost_structure"].issubset(decoded["lost_structure"]):
-        raise RuntimeError("CX-BR-004 reconstruction boundary drift")
+    carrier_errors = composability_errors(carrier_first, carrier_second)
+    if carrier_errors != ("intermediate-carrier-mismatch",):
+        raise RuntimeError("finite intermediate-carrier mismatch classification drift")
+    result["CARRIER-MISMATCH"] = {"errors": list(carrier_errors)}
 
-    neutral_bridge = make_bridge(
-        bridge_id="neutral-target", source_type="N0", target_type="N1", source_version="1", target_version="1",
-        source_states=("n0", "n1"), target_states=("m0", "m1"), domain=("n0", "n1"),
-        relation=(("n0", "m0"), ("n1", "m1")), relation_kind="map",
-        preserved_structure=("a", "b"), lost_structure=("c",), scope=("shared",),
-    )
-    complete_structure = neutral_bridge["preserved_structure"] | neutral_bridge["lost_structure"]
-    id_source = identity_bridge(neutral_bridge["source_states"], type_name="N0", version="1", scope=("shared",), structure=complete_structure)
-    id_target = identity_bridge(neutral_bridge["target_states"], type_name="N1", version="1", scope=("shared",), structure=complete_structure)
-    left = compose(id_source, neutral_bridge, bridge_id="left-neutral")
-    right = compose(neutral_bridge, id_target, bridge_id="right-neutral")
-    for candidate in (left, right):
-        if candidate["relation"] != neutral_bridge["relation"] or candidate["preserved_structure"] != neutral_bridge["preserved_structure"] or candidate["lost_structure"] != neutral_bridge["lost_structure"]:
-            raise RuntimeError("UFT-BR-004 complete-metadata identity neutrality failure")
-
-    partial_bridge = make_bridge(
-        bridge_id="partial-meta", source_type="Q0", target_type="Q1", source_version="1", target_version="1",
-        source_states=("q",), target_states=("r",), domain=("q",), relation=(("q", "r"),), relation_kind="map",
-        preserved_structure=("a",), lost_structure=(), scope=("shared",),
-    )
-    oversized_identity = identity_bridge(("q",), type_name="Q0", version="1", scope=("shared",), structure=("a", "b"))
-    partial_left = compose(oversized_identity, partial_bridge, bridge_id="partial-left")
-    if partial_left["lost_structure"] != frozenset({"b"}):
-        raise RuntimeError("UFT-BR-004 partial-metadata negative control drift")
-
-    empty = make_bridge(
-        bridge_id="empty-domain", source_type="E0", target_type="E1", source_version="1", target_version="1",
-        source_states=("e",), target_states=("f",), domain=(), relation=(), relation_kind="relation",
+    # Empty source/target carriers are legal generic BridgeCore realizations.
+    empty_relation = make_bridge(
+        bridge_id="empty-carriers", source_type="Empty0", target_type="Empty1",
+        source_version="1", target_version="1", source_states=(), target_states=(),
+        domain=(), relation=(), relation_kind="relation",
         preserved_structure=(), lost_structure=(), scope=("fixture",),
     )
-    if empty["domain"] or empty["relation"]:
-        raise RuntimeError("empty-domain bridge fixture drift")
-
-    return {
-        "CX-BR-001": {"same_endpoint_types": True, "first": bridge_view(identity_like), "second": bridge_view(collapse), "relations_differ": True, "loss_sets_differ": True},
-        "CX-BR-002": {"errors": list(version_errors)},
-        "CX-BR-003": {"errors": list(scope_errors)},
-        "CX-BR-004": {"projection": bridge_view(projection), "decoder": bridge_view(decoder), "composite": bridge_view(decoded), "exact_reconstruction": False},
-        "UFT-BR-004": {"left_identity_neutral": True, "right_identity_neutral": True, "complete_structure_tracking_required": True, "partial_metadata_negative_control": bridge_view(partial_left)},
-        "EMPTY-DOMAIN": bridge_view(empty),
+    empty_identity = identity_bridge(
+        (), type_name="Empty0", version="1", scope=("fixture",), structure=()
+    )
+    if empty_relation["source_states"] or empty_relation["target_states"] or empty_identity["relation"]:
+        raise RuntimeError("empty-carrier BridgeCore fixture drift")
+    result["EMPTY-CARRIER"] = {
+        "relation_bridge": bridge_view(empty_relation),
+        "identity_bridge": bridge_view(empty_identity),
     }
+    return result
+
+
+_frozen.fixtures = fixtures
 
 
 def run_suite() -> dict[str, object]:
-    return {
-        "type": "uft-id-bridge-core-finite-conformance",
-        "schema_version": "1.0.1",
-        "bounded_checks": {
-            "relation_associativity": associativity_exhaustive_check(),
-            "preservation_loss": preservation_loss_exhaustive_check(),
-        },
-        "fixtures": fixtures(),
-        "claim_boundary": "FINITE_BRIDGE_CONFORMANCE != GENERAL_PROOF; STRUCTURAL_BRIDGE != EPISTEMIC_PROMOTION; BRIDGE_CONFORMANCE != PHYSICAL_VALIDATION",
-    }
+    return _frozen.run_suite()
 
 
 def main() -> int:

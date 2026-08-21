@@ -37,7 +37,7 @@ BridgeSpec = (
 
 where:
 
-- `X_s` and `X_t` are declared source and target types/carriers;
+- `X_s` and `X_t` are declared source and target types/carriers and may be empty;
 - `D subseteq X_s` is the declared source domain and may be empty;
 - `R subseteq D x X_t` is a typed relation, with a map as the right-unique specialization;
 - `P` is the set of declared structure labels preserved by the bridge;
@@ -53,7 +53,7 @@ P\cap L=\varnothing.
 
 Generic BridgeCore does **not** require `P union L` to exhaust a structure vocabulary. A label may remain unclassified. Any theorem that needs complete structure tracking must state that hypothesis explicitly.
 
-A bridge need not be injective, surjective, total outside `D`, invertible, truth-preserving, or physically realized. An empty-domain bridge is a valid nowhere-defined structural relation under this definition.
+A bridge need not be injective, surjective, total outside `D`, invertible, truth-preserving, or physically realized. Empty-carrier and empty-domain bridges are valid structural relations under this definition; only `Sigma` is required to be nonempty.
 
 ```text
 PRESERVED_STRUCTURE != ALL_STRUCTURE
@@ -79,19 +79,26 @@ ordinary BridgeCore composition is licensed only when all of the following hold:
 3. every intermediate state produced by `B1` on its declared domain lies in `B2.domain`;
 4. `scope(B1) intersect scope(B2)` is nonempty.
 
-If `B1` has empty domain, its image is empty, so condition 3 holds vacuously. Thus matching type/version and scope conditions still govern the empty relational composite.
+The abstract notation above uses one shared intermediate carrier `X_1`. Therefore a finite executable realization must also verify that the concrete carrier declared as `B1.target_states` is exactly the carrier declared as `B2.source_states`; reusing the same type/version strings does not excuse a mismatched finite carrier realization.
+
+If `B1` has empty domain, its image is empty, so condition 3 holds vacuously. Thus matching type/version, shared-carrier realization, and scope conditions still govern the empty relational composite.
 
 Thus matching type names are necessary but not sufficient.
 
 ```text
 COMPOSABLE_TYPES != SEMANTIC_EQUIVALENCE
 TYPE_NAME_MATCH != VERSION_COMPATIBILITY
+TYPE_VERSION_MATCH != FINITE_CARRIER_IDENTITY
 LOCAL_SCOPE != GLOBAL_SCOPE
 ```
 
 ## UFT-BR-001 Typed relational composition
 
 **Claim class:** `PROVED`
+
+**Canonical statement:** `If B1 and B2 have matching intermediate type and version, nonempty scope intersection, and every intermediate output of B1 lies in the domain of B2, then their ordinary relational composite is a well-defined bridge from the source of B1 to the target of B2.`
+
+**Canonical hypotheses:** `["B1.target_type = B2.source_type", "B1.target_version = B2.source_version", "scope(B1) intersect scope(B2) is nonempty", "image(B1) subseteq domain(B2)"]`
 
 When the compatibility conditions above hold, define
 
@@ -103,9 +110,9 @@ R_{21}(x,z)
 
 This is a relation from the source domain of `B1` into the target carrier of `B2`.
 
-**Proof.** For any witness `y`, `R1(x,y)` places `y` in the intermediate carrier. Domain coverage places that `y` in `B2.domain`, so `R2(y,z)` is well-typed and `z` belongs to the target carrier of `B2`. Hence the existential composite is a well-defined typed relation. When `D_1` is empty, no witness exists and the composite relation is empty, which is still a well-defined relation on the declared source domain.
+**Proof.** For any witness `y`, `R1(x,y)` places `y` in the shared intermediate carrier. Domain coverage places that `y` in `B2.domain`, so `R2(y,z)` is well-typed and `z` belongs to the target carrier of `B2`. Hence the existential composite is a well-defined typed relation. When `D_1` is empty, no witness exists and the composite relation is empty, which is still a well-defined relation on the declared source domain.
 
-This proof establishes structural composability only.
+This proof establishes structural composability only. The finite executable realization separately checks that its two concrete declarations of the shared intermediate carrier agree exactly.
 
 ```text
 TYPE_CORRECT_COMPOSITION != SEMANTIC_EQUIVALENCE
@@ -115,6 +122,10 @@ TYPE_CORRECT_COMPOSITION != PHYSICAL_VALIDATION
 ## UFT-BR-002 Preservation intersection
 
 **Claim class:** `PROVED`
+
+**Canonical statement:** `Under the BridgeCore conservative composition contract, the structure automatically preserved by B2 o B1 is exactly P1 intersect P2.`
+
+**Canonical hypotheses:** `["B1 and B2 are composable BridgeCore bridges", "preserved structure uses a shared declared label vocabulary"]`
 
 BridgeCore uses a conservative automatic composition rule:
 
@@ -131,6 +142,10 @@ A separately proved reconstruction theorem may justify stronger claims, but ordi
 ## UFT-BR-003 Loss monotonicity
 
 **Claim class:** `PROVED`
+
+**Canonical statement:** `For the conservative composite L21 = L1 union (P1 minus P2), every structure already lost by B1 remains lost in B2 o B1, and every structure preserved by B1 but not B2 becomes lost in the composite.`
+
+**Canonical hypotheses:** `["B1 and B2 are composable BridgeCore bridges", "P1 is disjoint from L1"]`
 
 Define the conservative composite loss set by
 
@@ -159,6 +174,10 @@ DETERMINISTIC_POSTPROCESSING != EXACT_RECONSTRUCTION
 
 **Claim class:** `PROVED`
 
+**Canonical statement:** `For a compatible bridge B, an identity bridge whose tracked structure vocabulary is exactly P_B union L_B composes neutrally with B at the relation and preservation/loss metadata levels.`
+
+**Canonical hypotheses:** `["identity bridge and B satisfy ordinary composition compatibility", "the identity bridge tracked structure set equals P_B union L_B", "P_B is disjoint from L_B"]`
+
 Let `B` have preserved and lost sets `P_B` and `L_B`, with
 
 \[
@@ -174,6 +193,8 @@ S_B=P_B\cup L_B:
 \[
 I_X=(X,X,X,\{(x,x):x\in X\},S_B,\varnothing,\Sigma,v,v).
 \]
+
+This definition also permits `X=empty`, in which case the identity relation and domain are empty.
 
 Whenever the ordinary composition conditions hold,
 
@@ -199,6 +220,10 @@ A same-named source and target type does not make an arbitrary bridge an identit
 ## UFT-BR-005 Associativity
 
 **Claim class:** `PROVED`
+
+**Canonical statement:** `For three mutually compatible bridges, ordinary relational composition, scope intersection, preservation intersection, and conservative loss propagation are associative.`
+
+**Canonical hypotheses:** `["all intermediate type/version/domain conditions required by both parenthesizations hold", "all required scope intersections are nonempty"]`
 
 For three bridges whose compatibility/domain conditions make both parenthesizations meaningful,
 
@@ -327,7 +352,9 @@ BRIDGE_CONFORMANCE != EMPIRICAL_VALIDATION
 
 ## 6. Executable evidence boundary
 
-The finite witness checks the declared fixtures, exhaustively checks associativity for all `16^3 = 4096` ordered triples of labelled binary relations on `Fin2`, and checks the conservative preservation/loss formulas by enumerating all `27^2 = 729` ordered pairs of valid partial preservation/loss declarations over a three-label structure family and invoking the production `compose` implementation.
+The finite witness checks the declared fixtures, exhaustively checks associativity for all `16^3 = 4096` ordered triples of labelled binary relations on `Fin2` by constructing compatible relation-kind BridgeSpecs and comparing both parenthesizations through the production `compose` implementation, and checks the conservative preservation/loss formulas by enumerating all `27^2 = 729` ordered pairs of valid partial preservation/loss declarations over a three-label structure family through that same production composition path.
+
+The executable fixtures also include empty carriers, an empty identity, and a finite intermediate-carrier mismatch control.
 
 ```text
 FINITE_BRIDGE_CONFORMANCE != GENERAL_PROOF

@@ -13,7 +13,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 VALIDATOR = ROOT / "scripts/validate_bridge_core.py"
 EXPERIMENT = ROOT / "experiments/bridge_core/run.py"
-RECEIPT_VERSION = "1.0.1"
+BASE_CONTRACT = ROOT / "machine/contract.json"
 
 CORE_FILES = [
     "machine/bridge_core_contract.json",
@@ -26,10 +26,13 @@ CORE_FILES = [
     "theory/BRIDGE_CORE.md",
     "theory/AUXILIARY_CONTRACTS.md",
     "scripts/validate_bridge_core.py",
+    "scripts/validate_bridge_core_precodex2_frozen.py",
     "scripts/verify_bridge_artifacts.py",
     "experiments/bridge_core/__init__.py",
     "experiments/bridge_core/run.py",
+    "experiments/bridge_core/run_precodex2_frozen.py",
     "tests/test_bridge_core.py",
+    "tests/test_bridge_core_codex2.py",
     "experiments/run_bridge_core.py",
     ".github/workflows/finite-adversarial.yml",
 ]
@@ -50,6 +53,25 @@ def load_module(name: str, path: Path):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def registered_receipt_version() -> str:
+    payload = json.loads(BASE_CONTRACT.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise RuntimeError("machine/contract.json must be an object")
+    authority = payload.get("bridge_core_authority")
+    library = payload.get("experiment_library")
+    if not isinstance(authority, dict) or not isinstance(library, dict):
+        raise RuntimeError("BridgeCore receipt version registries must be objects")
+    authority_version = authority.get("receipt_version")
+    library_version = library.get("bridge_core_receipt_version")
+    if not isinstance(authority_version, str) or not authority_version:
+        raise RuntimeError("BridgeCore authority receipt_version must be a non-empty string")
+    if not isinstance(library_version, str) or not library_version:
+        raise RuntimeError("BridgeCore experiment-library receipt version must be a non-empty string")
+    if authority_version != library_version:
+        raise RuntimeError("BridgeCore receipt version registry disagreement")
+    return authority_version
 
 
 def declared_evidence_paths() -> set[str]:
@@ -99,7 +121,7 @@ def run_suite() -> dict[str, object]:
     files = receipt_files()
     identity = {
         "type": "uft-id-bridge-core-receipt",
-        "schema_version": RECEIPT_VERSION,
+        "schema_version": registered_receipt_version(),
         "source_sha256": {path: sha256_bytes((ROOT / path).read_bytes()) for path in files},
         "declared_evidence_paths": sorted(declared_evidence_paths()),
         "result_sha256": sha256_bytes(canonical_bytes(witness)),
