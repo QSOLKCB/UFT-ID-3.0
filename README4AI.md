@@ -124,6 +124,53 @@ The Grinberg graph-theory source is a mathematical donor. The SiS2 source is a
 bounded structural positive control. Neither source makes a UFT-ID physical
 claim true by analogy.
 
+## BridgeCore authority
+
+The active structural-transport layer uses the canonical `BridgeSpec`:
+
+```text
+BridgeSpec = (
+  source_type,
+  target_type,
+  domain,
+  map_or_relation,
+  preserved_structure,
+  lost_structure,
+  scope,
+  source_version,
+  target_version
+)
+```
+
+Canonical BridgeCore surfaces:
+
+```text
+machine/bridge_core_contract.json
+machine/bridge_core_results.json
+theory/BRIDGE_CORE.md
+scripts/validate_bridge_core.py
+experiments/bridge_core/run.py
+experiments/run_bridge_core.py
+scripts/verify_bridge_artifacts.py
+tests/test_bridge_core.py
+```
+
+`UFT-BR-001` through `UFT-BR-005` are abstract/set-theoretic results only. A bridge domain may be empty. Preservation/loss metadata is disjoint but not automatically exhaustive. Two-sided identity metadata neutrality therefore requires the identity bridge to track exactly `P_B union L_B` for the bridge being composed.
+
+The finite BridgeCore witness checks all 4,096 ordered relation triples on `Fin2` and all 729 ordered pairs of valid partial preservation/loss declarations over a three-label family using the production composition implementation.
+
+```text
+BRIDGE != IDENTITY
+TRANSPORT != EQUIVALENCE
+DISJOINT_METADATA != EXHAUSTIVE_METADATA
+RELATIONAL_IDENTITY_NEUTRALITY != UNCONDITIONAL_METADATA_NEUTRALITY
+STRUCTURAL_BRIDGE != EPISTEMIC_PROMOTION
+FINITE_BRIDGE_CONFORMANCE != GENERAL_PROOF
+BRIDGE_CONFORMANCE != PHYSICAL_VALIDATION
+```
+
+PR #13 remains responsible for epistemic promotion/demotion semantics. Structural transport does not manufacture stronger evidence authority.
+
 ## Cross-repository formal pattern authority
 
 UFT-ID may use public, merged, inspectable QSOLKCB repositories as a **pattern
@@ -257,6 +304,9 @@ python scripts/validate_relation_core.py
 python scripts/validate_graph_realization.py
 python experiments/graph_realization/run.py --json
 python experiments/run_graph_realization.py --json
+python scripts/validate_bridge_core.py
+python experiments/bridge_core/run.py --json
+python experiments/run_bridge_core.py --json
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 python experiments/run_pr2.py --json
@@ -304,6 +354,7 @@ Then review the diff and rerun `--check`.
     tetrahedral geometry, material coordination, or a finite conformance suite.
 17. Do not promote roadmap-only donor models, including extra-time spacetime
     hypotheses, into current UFT-ID theorem or physical authority.
+18. Do not infer semantic equivalence or epistemic promotion from BridgeCore compatibility, deterministic transport, or finite BridgeCore conformance.
 
 ## Lean
 
@@ -332,22 +383,27 @@ finite minimum sufficient-basis selector.
 15. `research/GRAPH_REALIZATION_SOURCES.md`
 16. `scripts/validate_graph_realization.py`
 17. `experiments/run_graph_realization.py`
-18. `theory/CROSS_REPO_RESULTS.md`
-19. `research/CROSS_REPO_PATTERN_ATLAS.md`
-20. `machine/cross_repo_patterns.json`
-21. `machine/cross_repo_results.json`
-22. `research/vopson/CORPUS.md`
-23. `research/vopson/CLAIM_GRAPH.md`
-24. `research/vopson/DEFINITIONS.md`
-25. `research/vopson/REPRODUCTION_MATRIX.md`
-26. `research/vopson/reproduction/2019-mei/SOURCE_MAP.md`
-27. `research/vopson/reproduction/2019-mei/DERIVATION.md`
-28. `research/vopson/reproduction/2019-mei/ASSUMPTION_GRAPH.json`
-29. `research/vopson/reproduction/2019-mei/DIMENSIONAL_AUDIT.md`
-30. `research/vopson/reproduction/2019-mei/CONTROL_MATRIX.md`
-31. `research/vopson/reproduction/2019-mei/result.json`
-32. `research/vopson/COUNTEREXAMPLE_MATRIX.md`
-33. `research/vopson/RESPONSE_HISTORY.md`
-34. `research/reports/2026-08-18-PR4-ACTION-REGISTER.md`
-35. `research/VOPSON_MATRIX.md`
-36. `ROADMAP.md`
+18. `theory/BRIDGE_CORE.md`
+19. `machine/bridge_core_contract.json`
+20. `machine/bridge_core_results.json`
+21. `scripts/validate_bridge_core.py`
+22. `experiments/run_bridge_core.py`
+23. `theory/CROSS_REPO_RESULTS.md`
+24. `research/CROSS_REPO_PATTERN_ATLAS.md`
+25. `machine/cross_repo_patterns.json`
+26. `machine/cross_repo_results.json`
+27. `research/vopson/CORPUS.md`
+28. `research/vopson/CLAIM_GRAPH.md`
+29. `research/vopson/DEFINITIONS.md`
+30. `research/vopson/REPRODUCTION_MATRIX.md`
+31. `research/vopson/reproduction/2019-mei/SOURCE_MAP.md`
+32. `research/vopson/reproduction/2019-mei/DERIVATION.md`
+33. `research/vopson/reproduction/2019-mei/ASSUMPTION_GRAPH.json`
+34. `research/vopson/reproduction/2019-mei/DIMENSIONAL_AUDIT.md`
+35. `research/vopson/reproduction/2019-mei/CONTROL_MATRIX.md`
+36. `research/vopson/reproduction/2019-mei/result.json`
+37. `research/vopson/COUNTEREXAMPLE_MATRIX.md`
+38. `research/vopson/RESPONSE_HISTORY.md`
+39. `research/reports/2026-08-18-PR4-ACTION-REGISTER.md`
+40. `research/VOPSON_MATRIX.md`
+41. `ROADMAP.md`
