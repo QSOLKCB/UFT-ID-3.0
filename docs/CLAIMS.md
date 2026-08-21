@@ -111,6 +111,28 @@ NORMAL_VERTEX != SINK_SCC
 
 The SiS2, ETQ/SPECTRAL, tetrahedral, or other structural examples do not promote these graph theorems into claims about fundamental physics.
 
+### C8 - Compatible typed structural bridges compose conservatively
+
+**Status:** PROVED
+
+**Qualifier:** abstract/set-theoretic structural-transport scope; not epistemic promotion, semantic equivalence, or physical validation.
+
+The canonical BridgeCore authority registers `UFT-BR-001` through `UFT-BR-005` as proved abstract results. A `BridgeSpec` declares source and target type, source domain, a typed map or relation, preserved structure, lost structure, scope, and source/target versions. Ordinary BridgeCore composition is licensed only when intermediate type and version identities agree, every produced intermediate state lies in the second bridge domain, and the declared scopes overlap.
+
+Under the conservative composition contract, automatically inherited preservation is the intersection of the two preservation sets, previously lost structure remains lost, compatible identity bridges are neutral, and fully compatible three-bridge composition is associative. The repository's finite BridgeCore battery checks all 4,096 ordered triples of labelled binary relations on `Fin2` plus bounded preservation/loss fixtures as independent conformance evidence, not as the proof of the general set-theoretic results.
+
+```text
+BRIDGE != IDENTITY
+TRANSPORT != EQUIVALENCE
+PRESERVED_STRUCTURE != ALL_STRUCTURE
+LOSSY_BRIDGE != INVERTIBLE_BRIDGE
+STRUCTURAL_BRIDGE != EPISTEMIC_PROMOTION
+FINITE_BRIDGE_CONFORMANCE != GENERAL_PROOF
+BRIDGE_CONFORMANCE != PHYSICAL_VALIDATION
+```
+
+PR #13 remains responsible for any later epistemic bridge specialization. Structural transport alone cannot manufacture stronger evidence authority.
+
 ## Claims requiring future proof or evidence
 
 The following are intentionally not yet promoted beyond theorem target or hypothesis:
