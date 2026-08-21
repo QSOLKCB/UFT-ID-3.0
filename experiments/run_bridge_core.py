@@ -13,13 +13,16 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 VALIDATOR = ROOT / "scripts/validate_bridge_core.py"
 EXPERIMENT = ROOT / "experiments/bridge_core/run.py"
-RECEIPT_VERSION = "1.0.0"
+RECEIPT_VERSION = "1.0.1"
 
 CORE_FILES = [
     "machine/bridge_core_contract.json",
     "machine/bridge_core_results.json",
     "machine/roadmap_state.json",
     "machine/contract.json",
+    "docs/CLAIMS.md",
+    "README4AI.md",
+    "docs/REPRODUCIBILITY.md",
     "theory/BRIDGE_CORE.md",
     "theory/AUXILIARY_CONTRACTS.md",
     "scripts/validate_bridge_core.py",
@@ -33,9 +36,7 @@ CORE_FILES = [
 
 
 def canonical_bytes(value: object) -> bytes:
-    return json.dumps(
-        value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
-    ).encode("utf-8")
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -108,11 +109,7 @@ def run_suite() -> dict[str, object]:
             "relation_triples_checked": witness["bounded_checks"]["relation_associativity"]["ordered_relation_triples_checked"],
             "preservation_pairs_checked": witness["bounded_checks"]["preservation_loss"]["ordered_preservation_pairs_checked"],
         },
-        "claim_boundary": (
-            "FINITE_BRIDGE_CONFORMANCE != GENERAL_PROOF; "
-            "STRUCTURAL_BRIDGE != EPISTEMIC_PROMOTION; "
-            "BRIDGE_CONFORMANCE != PHYSICAL_VALIDATION"
-        ),
+        "claim_boundary": "FINITE_BRIDGE_CONFORMANCE != GENERAL_PROOF; STRUCTURAL_BRIDGE != EPISTEMIC_PROMOTION; BRIDGE_CONFORMANCE != PHYSICAL_VALIDATION",
     }
     return {
         **identity,
