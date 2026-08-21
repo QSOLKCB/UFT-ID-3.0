@@ -1,0 +1,65 @@
+{
+  "type": "uft-id-bridge-core-contract",
+  "schema_version": "1.0.0",
+  "snapshot_date": "2026-08-21",
+  "claim_class": "DEFINITION",
+  "scope": "Typed structural transport between declared source and target carriers. BridgeCore records domain, map-or-relation semantics, preserved structure, lost structure, scope, and source/target versions. It does not encode epistemic promotion or physical ontology.",
+  "primary_type": "BridgeSpec=(source_type,target_type,domain,map_or_relation,preserved_structure,lost_structure,scope,source_version,target_version)",
+  "fields": {
+    "source_type": "declared source carrier/type identity",
+    "target_type": "declared target carrier/type identity",
+    "domain": "declared subset of the source carrier on which the bridge is defined",
+    "map_or_relation": "typed map or binary relation from the declared domain into the target carrier",
+    "preserved_structure": "declared structure labels proved or specified to survive the bridge",
+    "lost_structure": "declared source structure labels not preserved by the bridge",
+    "scope": "nonempty set of contexts/regimes in which the bridge claim is licensed",
+    "source_version": "source semantic/version identity",
+    "target_version": "target semantic/version identity"
+  },
+  "composition_contract": {
+    "intermediate_type_match": "B1.target_type = B2.source_type",
+    "intermediate_version_match": "B1.target_version = B2.source_version",
+    "domain_coverage": "every B1 intermediate output used by the composition lies in B2.domain",
+    "scope_rule": "scope(B2 o B1) = scope(B1) intersect scope(B2), and the intersection must be nonempty",
+    "relation_rule": "R_21(x,z) iff there exists y with R_1(x,y) and R_2(y,z)",
+    "preservation_rule": "P_21 = P_1 intersect P_2",
+    "loss_rule": "L_21 = L_1 union (P_1 minus P_2)",
+    "loss_monotonicity": "once a source structure is lost by B1, ordinary BridgeCore composition does not restore it automatically"
+  },
+  "hard_boundaries": [
+    "BRIDGE != IDENTITY",
+    "TRANSPORT != EQUIVALENCE",
+    "PRESERVED_STRUCTURE != ALL_STRUCTURE",
+    "LOSSY_BRIDGE != INVERTIBLE_BRIDGE",
+    "COMPOSABLE_TYPES != SEMANTIC_EQUIVALENCE",
+    "VERSION_COMPATIBLE != CONTENT_IDENTICAL",
+    "SAME_ENDPOINT_TYPES != SAME_BRIDGE",
+    "INTEGER_OR_LABEL_MATCH != STRUCTURAL_BRIDGE",
+    "STRUCTURAL_BRIDGE != EPISTEMIC_PROMOTION",
+    "BRIDGE_CONFORMANCE != PHYSICAL_VALIDATION"
+  ],
+  "authorities": {
+    "human": "theory/BRIDGE_CORE.md",
+    "results": "machine/bridge_core_results.json",
+    "validator": "scripts/validate_bridge_core.py",
+    "experiment": "experiments/bridge_core/run.py",
+    "tests": "tests/test_bridge_core.py",
+    "receipt": "experiments/run_bridge_core.py",
+    "roadmap_state": "machine/roadmap_state.json"
+  },
+  "execution_limits": {
+    "associativity_carrier": "Fin2",
+    "labelled_binary_relations": 16,
+    "ordered_relation_triples": 4096,
+    "structure_label_family": ["a", "b", "c"],
+    "policy": "Finite execution is a bounded conformance witness for the declared fixtures and set-theoretic formulas; it is not the proof of unrestricted mathematics."
+  },
+  "explicit_deferrals": [
+    "epistemic and authority promotion/demotion rules to PR #13",
+    "representation-specific congruence and similarity classes to PR #14",
+    "information comparability semantics to PR #15",
+    "stochastic or measurable-kernel bridges to PR #17",
+    "empirical measurement bridges to PR #18",
+    "Lean proof objects"
+  ]
+}
