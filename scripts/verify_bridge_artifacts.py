@@ -36,6 +36,9 @@ EXPECTED_CORE_FILES = (
     "machine/bridge_core_results.json",
     "machine/roadmap_state.json",
     "machine/contract.json",
+    "docs/CLAIMS.md",
+    "README4AI.md",
+    "docs/REPRODUCIBILITY.md",
     "theory/BRIDGE_CORE.md",
     "theory/AUXILIARY_CONTRACTS.md",
     "scripts/validate_bridge_core.py",
@@ -46,10 +49,7 @@ EXPECTED_CORE_FILES = (
     "experiments/run_bridge_core.py",
     ".github/workflows/finite-adversarial.yml",
 )
-EXPECTED_EVIDENCE = (
-    "experiments/bridge_core/run.py",
-    "tests/test_bridge_core.py",
-)
+EXPECTED_EVIDENCE = ("experiments/bridge_core/run.py", "tests/test_bridge_core.py")
 EXPECTED_FILES = tuple(sorted(set(EXPECTED_CORE_FILES) | set(EXPECTED_EVIDENCE)))
 FINGERPRINT_FIELDS = (
     "type", "schema_version", "source_sha256", "declared_evidence_paths",
@@ -58,9 +58,7 @@ FINGERPRINT_FIELDS = (
 
 
 def canonical_bytes(value: object) -> bytes:
-    return json.dumps(
-        value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
-    ).encode("utf-8")
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -108,12 +106,15 @@ def verify(artifact_dir: Path) -> dict[str, object]:
     expected_witness = experiment.run_suite()
     if witness != expected_witness:
         raise RuntimeError("retained BridgeCore witness full payload drift")
+    loss_check = witness.get("bounded_checks", {}).get("preservation_loss", {}) if isinstance(witness.get("bounded_checks"), dict) else {}
+    if not isinstance(loss_check, dict) or loss_check.get("valid_partial_structure_declarations") != 27 or loss_check.get("ordered_structure_declaration_pairs_checked") != 729:
+        raise RuntimeError("retained BridgeCore partial structure conformance count drift")
 
     if set(receipt) != EXPECTED_TOP_LEVEL:
         raise RuntimeError("retained BridgeCore receipt top-level schema drift")
     if receipt.get("type") != "uft-id-bridge-core-receipt":
         raise RuntimeError("retained BridgeCore receipt type drift")
-    if receipt.get("schema_version") != "1.0.0":
+    if receipt.get("schema_version") != "1.0.1":
         raise RuntimeError("retained BridgeCore receipt schema drift")
     if receipt.get("claim_boundary") != EXPECTED_CLAIM_BOUNDARY:
         raise RuntimeError("retained BridgeCore receipt claim boundary drift")
@@ -156,14 +157,13 @@ def verify(artifact_dir: Path) -> dict[str, object]:
     if receipt.get("result_sha256") != expected_result_hash:
         raise RuntimeError("retained BridgeCore receipt does not bind witness")
 
-    summary = receipt.get("summary")
     expected_summary = {
         "result_count": 9,
         "hard_boundary_count": 10,
         "relation_triples_checked": 4096,
-        "preservation_pairs_checked": 64,
+        "preservation_pairs_checked": 729,
     }
-    if summary != expected_summary:
+    if receipt.get("summary") != expected_summary:
         raise RuntimeError("retained BridgeCore receipt summary drift")
 
     fingerprint = receipt.get("suite_fingerprint_sha256")
@@ -176,6 +176,7 @@ def verify(artifact_dir: Path) -> dict[str, object]:
         "status": "ok",
         "verified_files": [VALIDATION_FILE, WITNESS_FILE, RECEIPT_FILE],
         "relation_triples_checked": 4096,
+        "structure_declaration_pairs_checked": 729,
         "suite_fingerprint_sha256": fingerprint,
     }
 
