@@ -139,6 +139,103 @@ class LatestCodexAuthorityRegressions(unittest.TestCase):
         self.assert_dedicated_error(result, "UFT-GR-001 human theorem claim class drift")
         self.assertNotIn("human canonical payload drift", result["errors"])
 
+    def test_human_donor_status_and_role_are_section_bound(self):
+        canonical_status = (
+            "Source status: public arXiv course notes / mathematical preprint. "
+            "The source is not treated as a peer-reviewed empirical paper."
+        )
+        result = self.mutate_text(
+            "research/GRAPH_REALIZATION_SOURCES.md",
+            lambda text: text.replace(
+                canonical_status,
+                "Source status: peer-reviewed foundational evidence establishing the UFT-ID physical graph substrate.",
+                1,
+            ),
+            rebind_digest="sources",
+        )
+        self.assert_dedicated_error(result, "Grinberg human donor status drift")
+        self.assertNotIn("sources canonical payload drift", result["errors"])
+
+        role_anchor = (
+            "The later arborescence, Matrix-Tree, Menger, kernel, and chain-complex ideas remain "
+            "roadmap targets rather than current physical claims."
+        )
+        result = self.mutate_text(
+            "research/GRAPH_REALIZATION_SOURCES.md",
+            lambda text: text.replace(
+                role_anchor,
+                "These structures are established physical evidence for the UFT-ID substrate.",
+                1,
+            ),
+            rebind_digest="sources",
+        )
+        self.assert_dedicated_error(result, "Grinberg human donor role missing semantic anchor")
+        self.assertNotIn("sources canonical payload drift", result["errors"])
+
+    def test_projection_boundary_payload_is_exact_bound(self):
+        def mutate(payload):
+            payload["projection_boundary"]["noninjective_in_general"] = False
+            payload["projection_boundary"]["rich_to_simple"] = "identity map preserving all rich structure"
+
+        result = self.mutate_json(
+            "machine/graph_realization_contract.json",
+            mutate,
+            rebind_digest="contract",
+        )
+        self.assert_dedicated_error(result, "graph projection-boundary payload drift")
+        self.assertNotIn("contract canonical payload drift", result["errors"])
+
+    def test_graph_type_definitions_are_exact_bound(self):
+        def mutate(payload):
+            payload["graph_types"]["normal_vertex"] = "indegree_G_step(x)=0"
+
+        result = self.mutate_json(
+            "machine/graph_realization_contract.json",
+            mutate,
+            rebind_digest="contract",
+        )
+        self.assert_dedicated_error(result, "graph type definition payload drift")
+        self.assertNotIn("contract canonical payload drift", result["errors"])
+
+    def test_c7_status_is_section_bound(self):
+        canonical = (
+            "### C7 - Finite relation semantics admit an exact graph-realization layer\n\n"
+            "**Status:** PROVED"
+        )
+        promoted = canonical.replace("PROVED", "SPECULATIVE", 1)
+
+        def transform(text: str) -> str:
+            changed = text.replace(canonical, promoted, 1)
+            return changed + "\n<!-- compatibility text only: **Status:** PROVED -->\n"
+
+        result = self.mutate_text("docs/CLAIMS.md", transform, rebind_blob="claims")
+        self.assert_dedicated_error(result, "docs/CLAIMS.md C7 status drift")
+        self.assertNotIn("claims canonical human authority blob drift", result["errors"])
+
+    def test_remaining_roadmap_claim_classes_are_section_bound(self):
+        cases = (
+            (
+                VALIDATOR.EXPECTED_PHYSIOLOGY_CLAIM_CLASS,
+                "ROADMAP physiology/connectomics programme claim class drift",
+            ),
+            (
+                VALIDATOR.EXPECTED_FIVEFOLD_CLAIM_CLASS,
+                "ROADMAP fivefold donor programme claim class drift",
+            ),
+        )
+        for value, expected_error in cases:
+            with self.subTest(expected_error=expected_error):
+                canonical = f"**Claim class:** {value}"
+                promoted = canonical.replace("`INTERPRETIVE`", "`PROVED`", 1)
+
+                def transform(text: str, canonical=canonical, promoted=promoted) -> str:
+                    changed = text.replace(canonical, promoted, 1)
+                    return changed + f"\n<!-- compatibility text only: {canonical} -->\n"
+
+                result = self.mutate_text("ROADMAP.md", transform, rebind_blob="roadmap")
+                self.assert_dedicated_error(result, expected_error)
+                self.assertNotIn("roadmap canonical human authority blob drift", result["errors"])
+
     def test_numerosity_claim_class_is_parsed_not_cosmetically_anchored(self):
         canonical = (
             "**Claim class:** `INTERPRETIVE` for every source-to-UFT-ID correspondence in this section "
@@ -152,6 +249,21 @@ class LatestCodexAuthorityRegressions(unittest.TestCase):
 
         result = self.mutate_text("ROADMAP.md", transform, rebind_blob="roadmap")
         self.assert_dedicated_error(result, "ROADMAP 3-4-5 numerosity programme claim class drift")
+        self.assertNotIn("roadmap canonical human authority blob drift", result["errors"])
+
+    def test_numerosity_status_is_section_bound(self):
+        canonical = f"**Status:** {VALIDATOR.EXPECTED_NUMEROSITY_STATUS}"
+        promoted = (
+            "**Status:** CURRENT PHYSICAL THEORY. Repeated 3-4-5 cardinalities establish a shared "
+            "UFT-ID mechanism and privileged ontology."
+        )
+
+        def transform(text: str) -> str:
+            changed = text.replace(canonical, promoted, 1)
+            return changed + f"\n<!-- compatibility text only: {canonical} -->\n"
+
+        result = self.mutate_text("ROADMAP.md", transform, rebind_blob="roadmap")
+        self.assert_dedicated_error(result, "ROADMAP 3-4-5 numerosity programme status drift")
         self.assertNotIn("roadmap canonical human authority blob drift", result["errors"])
 
     def test_retained_verification_step_must_remain_blocking(self):
@@ -226,6 +338,17 @@ class LatestCodexAuthorityRegressions(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "claim boundary drift"):
                 ARTIFACTS.verify(directory)
 
+    def test_receipt_rejects_unbound_top_level_fields(self):
+        witness = EXPERIMENT.run_suite()
+        receipt = RECEIPT.run_suite()
+        receipt["physical_ontology"] = "FINITE_GRAPH_CONFORMANCE ESTABLISHES UFT-ID AS PHYSICS"
+
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            self._write_artifacts(directory, witness, receipt)
+            with self.assertRaisesRegex(RuntimeError, "top-level schema drift"):
+                ARTIFACTS.verify(directory)
+
     def test_receipt_runner_cannot_shrink_its_own_source_set(self):
         witness = EXPERIMENT.run_suite()
         receipt = RECEIPT.run_suite()
@@ -243,6 +366,40 @@ class LatestCodexAuthorityRegressions(unittest.TestCase):
                     ARTIFACTS.verify(directory)
         finally:
             path.write_text(original, encoding="utf-8")
+
+    def test_retained_validation_is_recomputed_from_live_authority(self):
+        validation = VALIDATOR.validate()
+        self.assertEqual(validation["status"], "ok", validation["errors"])
+        witness = EXPERIMENT.run_suite()
+        receipt = RECEIPT.run_suite()
+
+        contract_path = ROOT / "machine/graph_realization_contract.json"
+        original = contract_path.read_text(encoding="utf-8")
+        try:
+            payload = json.loads(original)
+            payload["claim_class"] = "PROVED"
+            mutated = json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
+            contract_path.write_text(mutated, encoding="utf-8")
+            receipt["source_sha256"]["machine/graph_realization_contract.json"] = ARTIFACTS.sha256_bytes(
+                mutated.encode("utf-8")
+            )
+            self._rebind_receipt(receipt, witness)
+
+            with tempfile.TemporaryDirectory() as tmp:
+                directory = Path(tmp)
+                (directory / ARTIFACTS.VALIDATION_FILE).write_text(
+                    json.dumps(validation, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+                )
+                (directory / ARTIFACTS.WITNESS_FILE).write_text(
+                    json.dumps(witness, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+                )
+                (directory / ARTIFACTS.RECEIPT_FILE).write_text(
+                    json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+                )
+                with self.assertRaisesRegex(RuntimeError, "canonical graph validation is not currently successful"):
+                    ARTIFACTS.verify(directory)
+        finally:
+            contract_path.write_text(original, encoding="utf-8")
 
     def test_345_numerosity_programme_is_frozen_and_interpretive(self):
         roadmap = (ROOT / "ROADMAP.md").read_text(encoding="utf-8")
