@@ -26,6 +26,11 @@ EXPECTED_BLOBS = {
     "results": "b52e5e2a4bfba44a1cc292bd7adf2929ca455d8a",
     "human": "c68269736f31dabfc4a327f6467719e2575f30ec",
 }
+EXPECTED_SCOPE = (
+    "Typed structural transport between declared source and target carriers. BridgeCore records domain, "
+    "map-or-relation semantics, preserved structure, lost structure, scope, and source/target versions. "
+    "It does not encode epistemic promotion or physical ontology."
+)
 EXPECTED_PRIMARY_TYPE = (
     "BridgeSpec=(source_type,target_type,domain,map_or_relation,preserved_structure,"
     "lost_structure,scope,source_version,target_version)"
@@ -203,6 +208,7 @@ def validate() -> dict[str, object]:
     if contract.get("schema_version") != "1.0.0": errors.append("BridgeCore contract schema drift")
     if contract.get("snapshot_date") != "2026-08-21": errors.append("BridgeCore contract snapshot drift")
     if contract.get("claim_class") != "DEFINITION": errors.append("BridgeCore contract claim class drift")
+    if contract.get("scope") != EXPECTED_SCOPE: errors.append("BridgeCore contract scope drift")
     if contract.get("primary_type") != EXPECTED_PRIMARY_TYPE: errors.append("BridgeCore primary type drift")
     fields = contract.get("fields")
     if not isinstance(fields, dict) or set(fields) != EXPECTED_FIELD_KEYS: errors.append("BridgeCore field set drift")
@@ -241,7 +247,6 @@ def validate() -> dict[str, object]:
         if result_id.startswith("UFT-BR-"):
             if record.get("proof_reference") != expected_third: errors.append(f"{result_id} proof reference drift")
             if record.get("executable_evidence") != EXPECTED_EVIDENCE: errors.append(f"{result_id} executable evidence drift")
-            heading = "## " + result_id
             section = next((markdown_section(human, line.strip()) for line in human.splitlines() if line.startswith("## ") and result_id in line), None)
             if section is None: errors.append(f"{result_id} human theorem section missing or duplicated")
             elif metadata_value(section, "Claim class") != "`PROVED`": errors.append(f"{result_id} human theorem claim class drift")
