@@ -183,6 +183,11 @@ EXPECTED_PROJECTION_BOUNDARY = {
     "noninjective_in_general": True,
     "rich_to_simple": "forget arc identity, multiplicity, and/or link labels while retaining only endpoint adjacency",
 }
+EXPECTED_CONTRACT_SCOPE = (
+    "Finite labelled binary endorelations, their exact directed-graph realizations, typed incidence descriptions, "
+    "finite strong-component structure, and representation-loss diagnostics. No physical ontology is inferred "
+    "from graph, geometry, material, sonification, or visualization similarity."
+)
 
 EXPECTED_BOUNDARIES = {
     "ALGEBRA != GRAPH != EMBEDDING != PHYSICS",
@@ -310,12 +315,15 @@ EXPECTED_EVIDENCE_BUNDLE_LINES = (
 )
 
 PETTINI_START = "# Future model-donor programme — typed causality, projection, and assumption structure"
+EXPECTED_PETTINI_STATUS = (
+    "ROADMAP-ONLY RESEARCH TARGET / MODEL DONOR. This section is not current graph theorem authority, does not "
+    "renumber planned PR #12-#18, and does not adopt the source model as UFT-ID ontology."
+)
 EXPECTED_PETTINI_PRIMARY_CITATION = (
     "> Marco Pettini, *Quantum Entanglement Beyond Kinematics: A Dynamical Hypothesis in "
     "(3,2)-Dimensional Spacetime*, arXiv:2606.12457v2 (2026). DOI `10.48550/arXiv.2606.12457`."
 )
 PETTINI_ANCHORS = (
-    "ROADMAP-ONLY RESEARCH TARGET / MODEL DONOR",
     "ANSATZ_UNIQUENESS != GLOBAL_UNIQUENESS",
     "MODEL_CLASS_EXHAUSTION != PHYSICAL_SELECTION",
     "G_L = (V, L, I)",
@@ -369,6 +377,66 @@ PHYSIOLOGY_ANCHORS = (
     "THRESHOLDED_GRAPH != ORIGINAL_WEIGHTED_GRAPH",
     "DATASET_VERSION != INCIDENTAL_METADATA",
 )
+EXPECTED_PHYSIOLOGY_CITATIONS = {
+    "A": {
+        "heading": "### A. Wheatstone pressure transducer — typed K4, balance residual, transduction, and identifiability",
+        "marker": "Educational/clinical engineering source:",
+        "citations": (
+            "- Deranged Physiology, *Wheatstone bridge pressure transducer*: https://derangedphysiology.com/main/required-reading/intensive-care-procedures/Chapter-216/wheatstone-bridge-pressure-transducer",
+        ),
+    },
+    "B": {
+        "heading": "### B. Haemoglobin oxygen-dissociation curve — context-dependent calibration",
+        "marker": "Public source:",
+        "citations": (
+            "- *Relating oxygen partial pressure, saturation and content: the haemoglobin–oxygen dissociation curve*, PMCID `PMC4666443`: https://pmc.ncbi.nlm.nih.gov/articles/PMC4666443/",
+        ),
+    },
+    "C": {
+        "heading": "### C. Arterial baroreflex — closed-loop observation versus open-loop identification",
+        "marker": "Public source:",
+        "citations": (
+            "- *Systems physiology of the baroreflex during orthostatic stress: from animals to humans*, PMCID `PMC4086024`: https://pmc.ncbi.nlm.nih.gov/articles/PMC4086024/",
+        ),
+    },
+    "D": {
+        "heading": "### D. Arterial Windkessel — useful reduced model versus distributed realization",
+        "marker": "Canonical review source:",
+        "citations": (
+            "- Westerhof, N., Lankhaar, J.-W., Westerhof, B.E. *The arterial Windkessel.* Med Biol Eng Comput 47, 131-141 (2009). DOI `10.1007/s11517-008-0359-2`.",
+        ),
+    },
+    "E": {
+        "heading": "### E. Hodgkin-Huxley — hidden state and observation fibres",
+        "marker": "Primary mathematical-physiology source:",
+        "citations": (
+            "- Hodgkin, A.L. & Huxley, A.F. *A quantitative description of membrane current and its application to conduction and excitation in nerve.* J Physiol 117, 500-544 (1952). DOI `10.1113/jphysiol.1952.sp004764`.",
+        ),
+    },
+    "F": {
+        "heading": "### F. Fick cardiac-output principle — conservation-based inference and assumption sensitivity",
+        "marker": "Public methodological source:",
+        "citations": (
+            "- *Methods in pharmacology: measurement of cardiac output*, PMCID `PMC3045542`: https://pmc.ncbi.nlm.nih.gov/articles/PMC3045542/",
+        ),
+    },
+    "G": {
+        "heading": "### G. HPV16 — host-context dependence and alternate routes to similar downstream classes",
+        "marker": "Public sources:",
+        "citations": (
+            "- *Manipulation of Epithelial Differentiation by HPV Oncoproteins*, PMCID `PMC6549445`: https://pmc.ncbi.nlm.nih.gov/articles/PMC6549445/",
+            "- *IGF axis and other factors in HPV-related and HPV-unrelated carcinogenesis*, PMCID `PMC4240475`: https://pmc.ncbi.nlm.nih.gov/articles/PMC4240475/",
+        ),
+    },
+    "H": {
+        "heading": "### H. FlyWire adult Drosophila connectome — weighted directed structure, threshold projection, SCCs, versioning, and structure/function separation",
+        "marker": "Primary/companion sources:",
+        "citations": (
+            "- Dorkenwald, S. et al. *Neuronal wiring diagram of an adult brain.* Nature 634, 124-138 (2024). DOI `10.1038/s41586-024-07558-y`.",
+            "- Shiu, P.K. et al. *Network statistics of the whole-brain connectome of Drosophila.* Nature 634 (2024). DOI `10.1038/s41586-024-07968-y`.",
+        ),
+    },
+}
 
 FIVEFOLD_START = "# Future fivefold assembly and rooted-representation donor programme — cardinality, asymmetry, interfaces, and coordinate charts"
 EXPECTED_FIVEFOLD_STATUS = (
@@ -465,18 +533,12 @@ EXPECTED_HUMAN_DONORS = {
     "Grinberg": {
         "heading": "## 1. Darij Grinberg — graph-theory donor",
         "status": "Source status: public arXiv course notes / mathematical preprint. The source is not treated as a peer-reviewed empirical paper.",
-        "role_anchors": (
-            "UFT-ID imports only the typed mathematics needed here:",
-            "The later arborescence, Matrix-Tree, Menger, kernel, and chain-complex ideas remain roadmap targets rather than current physical claims.",
-        ),
+        "section_sha256": "cc56abaa85a0dcd5c047fb522575ec8ea5483e4ce6f93464f6f0050538cf43da",
     },
     "Evers": {
         "heading": "## 2. Evers et al. — SiS2 positive structural control",
         "status": "Source status: peer-reviewed journal article.",
-        "role_anchors": (
-            "The reusable UFT-ID lesson is deliberately narrower than the chemistry:",
-            "The SiS2 result is therefore a positive control for why a list of local modules is insufficient to determine a global network. It is not evidence for ETQ, E8, information physics, Fuller geometry, or a universal tetrahedral ontology.",
-        ),
+        "section_sha256": "4a91c119a338152b1b3522d1773aa3fc608e220c4ac05309bd7076d09357a09c",
     },
 }
 
@@ -557,6 +619,10 @@ def first_blockquote_after_heading(text: str, heading: str) -> str | None:
     return None
 
 
+def markdown_heading_count(text: str, heading: str) -> int:
+    return sum(1 for line in text.splitlines() if line.strip() == heading)
+
+
 def markdown_section(text: str, heading: str) -> str | None:
     lines = text.splitlines()
     try:
@@ -576,6 +642,10 @@ def markdown_section(text: str, heading: str) -> str | None:
     return "\n".join(section)
 
 
+def normalized_markdown_section(section: str) -> str:
+    return "\n".join(line.rstrip() for line in section.strip().splitlines())
+
+
 def markdown_metadata_value(section: str, label: str) -> str | None:
     prefix = f"**{label}:** "
     matches = [
@@ -593,6 +663,21 @@ def unique_prefixed_line(section: str, prefix: str) -> str | None:
         if line.strip().startswith(prefix)
     ]
     return matches[0] if len(matches) == 1 else None
+
+
+def markdown_bullets_after_marker(section: str, marker: str) -> tuple[str, ...]:
+    lines = section.splitlines()
+    indices = [i for i, line in enumerate(lines) if line.strip() == marker]
+    if len(indices) != 1:
+        return ()
+    index = indices[0] + 1
+    while index < len(lines) and not lines[index].strip():
+        index += 1
+    bullets: list[str] = []
+    while index < len(lines) and lines[index].strip().startswith("- "):
+        bullets.append(lines[index].strip())
+        index += 1
+    return tuple(bullets)
 
 
 def workflow_step_shell_lines(text: str, step_name: str) -> tuple[str, ...]:
@@ -657,6 +742,24 @@ def workflow_step_has_always(text: str, step_name: str) -> bool:
     return "if: always()" in workflow_step_directives(text, step_name)
 
 
+def workflow_job_has_top_level_directive(text: str, job_name: str, prefix: str) -> bool:
+    lines = text.splitlines()
+    marker = f"{job_name}:"
+    for index, line in enumerate(lines):
+        if line.strip() != marker:
+            continue
+        job_indent = len(line) - len(line.lstrip())
+        for candidate in lines[index + 1:]:
+            stripped = candidate.strip()
+            indent = len(candidate) - len(candidate.lstrip())
+            if stripped and indent <= job_indent:
+                break
+            if stripped and indent == job_indent + 2 and stripped.startswith(prefix):
+                return True
+        return False
+    return False
+
+
 def has_shell_control_flow(lines: tuple[str, ...]) -> bool:
     for line in lines:
         lowered = line.casefold()
@@ -712,6 +815,33 @@ def validate() -> dict[str, object]:
         "sources", "human", "claims", "nonclaims", "readme4ai", "reproducibility", "roadmap", "workflow", "receipt"
     )}
 
+    unique_authority_headings: list[tuple[str, str, str]] = [
+        ("claims", C7_HEADING, "docs/CLAIMS.md C7"),
+        ("roadmap", PETTINI_START, "ROADMAP Pettini programme"),
+        ("roadmap", PHYSIOLOGY_START, "ROADMAP physiology programme"),
+        ("roadmap", FIVEFOLD_START, "ROADMAP fivefold programme"),
+        ("roadmap", NUMEROSITY_START, "ROADMAP numerosity programme"),
+    ]
+    unique_authority_headings.extend(
+        ("human", spec["human_heading"], result_id)
+        for result_id, spec in EXPECTED_PROVED_RESULT_BINDINGS.items()
+    )
+    unique_authority_headings.extend(
+        ("human", spec["human_heading"], result_id)
+        for result_id, spec in EXPECTED_COUNTEREXAMPLE_BINDINGS.items()
+    )
+    unique_authority_headings.extend(
+        ("sources", spec["heading"], f"{donor_name} human donor")
+        for donor_name, spec in EXPECTED_HUMAN_DONORS.items()
+    )
+    unique_authority_headings.extend(
+        ("roadmap", spec["heading"], f"physiology donor {donor_id}")
+        for donor_id, spec in EXPECTED_PHYSIOLOGY_CITATIONS.items()
+    )
+    for text_key, heading, label in unique_authority_headings:
+        if markdown_heading_count(texts[text_key], heading) != 1:
+            errors.append(f"{label} heading multiplicity drift")
+
     for name in ("contract", "results", "sources", "human"):
         if sha256_bytes(PATHS[name].read_bytes()) != EXPECTED_SHA256[name]:
             errors.append(f"{name} canonical payload drift")
@@ -723,6 +853,7 @@ def validate() -> dict[str, object]:
     if contract.get("schema_version") != "1.0.0": errors.append("graph contract schema drift")
     if contract.get("snapshot_date") != "2026-08-20": errors.append("graph contract UTC snapshot drift")
     if contract.get("claim_class") != "DEFINITION": errors.append("graph contract claim class drift")
+    if contract.get("scope") != EXPECTED_CONTRACT_SCOPE: errors.append("graph contract scope drift")
     if contract.get("graph_types") != EXPECTED_GRAPH_TYPES: errors.append("graph type definition payload drift")
     if contract.get("projection_boundary") != EXPECTED_PROJECTION_BOUNDARY: errors.append("graph projection-boundary payload drift")
     if set(contract.get("hard_boundaries", [])) != EXPECTED_BOUNDARIES: errors.append("graph contract hard-boundary set drift")
@@ -855,7 +986,9 @@ def validate() -> dict[str, object]:
             continue
         if unique_prefixed_line(section, "Source status:") != spec["status"]:
             errors.append(f"{donor_name} human donor status drift")
-        require_anchors(section, spec["role_anchors"], f"{donor_name} human donor role", errors)
+        normalized = normalized_markdown_section(section)
+        if sha256_bytes(normalized.encode("utf-8")) != spec["section_sha256"]:
+            errors.append(f"{donor_name} human donor section drift")
 
     patterns = cross_repo.get("patterns")
     pattern_ids = {item.get("pattern_id") for item in patterns if isinstance(item, dict)} if isinstance(patterns, list) else set()
@@ -897,22 +1030,23 @@ def validate() -> dict[str, object]:
     verify_directives = workflow_step_directives(texts["workflow"], "Verify retained graph evidence")
     if verify_directives != EXPECTED_VERIFY_STEP_DIRECTIVES:
         errors.append("finite-adversarial retained graph evidence verification step envelope drift")
+    if workflow_job_has_top_level_directive(texts["workflow"], "finite-results", "continue-on-error:"):
+        errors.append("finite-adversarial finite-results job may not use continue-on-error")
     if not workflow_step_has_always(texts["workflow"], "Verify retained graph evidence"): errors.append("finite-adversarial retained graph evidence verification must use always()")
     if sum(1 for line in texts["workflow"].splitlines() if line.strip() == '- "scripts/verify_graph_artifacts.py"') != 2: errors.append("finite-adversarial must trigger on scripts/verify_graph_artifacts.py for PR and main push")
     if sum(1 for line in texts["workflow"].splitlines() if line.strip() == '- "docs/NONCLAIMS.md"') != 2: errors.append("finite-adversarial must trigger on docs/NONCLAIMS.md for PR and main push")
 
-    pettini_index = texts["roadmap"].find(PETTINI_START)
-    if pettini_index < 0:
+    pettini = markdown_section(texts["roadmap"], PETTINI_START)
+    if pettini is None:
         errors.append("ROADMAP missing Pettini model-donor programme")
         pettini = ""
     else:
-        pettini = texts["roadmap"][pettini_index:]
+        if markdown_metadata_value(pettini, "Status") != EXPECTED_PETTINI_STATUS:
+            errors.append("ROADMAP Pettini model-donor programme status drift")
         require_anchors(pettini, PETTINI_ANCHORS, "ROADMAP Pettini model-donor programme", errors)
         citation = first_blockquote_after_heading(pettini, "### Primary model source")
         if citation != EXPECTED_PETTINI_PRIMARY_CITATION: errors.append("ROADMAP Pettini primary citation/version drift: expected arXiv:2606.12457v2")
         lower = pettini.casefold()
-        for forbidden in ("**status:** current graph theorem authority", "this section is current graph theorem authority", "pettini is current graph theorem authority"):
-            if forbidden in lower: errors.append("ROADMAP Pettini model donor must remain outside current graph theorem authority")
         if "extra-time physics is adopted by uft-id" in lower: errors.append("ROADMAP Pettini model donor illegally promotes extra-time ontology")
 
     physiology = markdown_section(texts["roadmap"], PHYSIOLOGY_START)
@@ -925,6 +1059,14 @@ def validate() -> dict[str, object]:
         if markdown_metadata_value(physiology, "Claim class") != EXPECTED_PHYSIOLOGY_CLAIM_CLASS:
             errors.append("ROADMAP physiology/connectomics programme claim class drift")
         require_anchors(physiology, PHYSIOLOGY_ANCHORS, "ROADMAP physiology/connectomics positive-control programme", errors)
+        for donor_id, spec in EXPECTED_PHYSIOLOGY_CITATIONS.items():
+            donor_section = markdown_section(physiology, spec["heading"])
+            if donor_section is None:
+                errors.append(f"ROADMAP physiology donor {donor_id} section missing")
+                continue
+            citations = markdown_bullets_after_marker(donor_section, spec["marker"])
+            if citations != spec["citations"]:
+                errors.append(f"ROADMAP physiology donor {donor_id} source identity drift")
 
     fivefold = markdown_section(texts["roadmap"], FIVEFOLD_START)
     if fivefold is None:
