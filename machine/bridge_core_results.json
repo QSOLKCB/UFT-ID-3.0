@@ -1,6 +1,6 @@
 {
   "type": "uft-id-bridge-core-result-registry",
-  "schema_version": "1.0.0",
+  "schema_version": "1.0.1",
   "snapshot_date": "2026-08-21",
   "records": [
     {
@@ -23,7 +23,10 @@
       "name": "Composite preservation is intersection-bounded",
       "claim_class": "PROVED",
       "statement": "Under the BridgeCore conservative composition contract, the structure automatically preserved by B2 o B1 is exactly P1 intersect P2.",
-      "hypotheses": ["B1 and B2 are composable BridgeCore bridges", "preserved structure uses a shared declared label vocabulary"],
+      "hypotheses": [
+        "B1 and B2 are composable BridgeCore bridges",
+        "preserved structure uses a shared declared label vocabulary"
+      ],
       "proof_reference": "theory/BRIDGE_CORE.md#uft-br-002-preservation-intersection",
       "executable_evidence": ["experiments/bridge_core/run.py", "tests/test_bridge_core.py"],
       "nonclaims": ["This does not forbid a separately proved reconstruction theorem; it forbids silently assuming one."]
@@ -33,27 +36,37 @@
       "name": "Loss is monotone under ordinary composition",
       "claim_class": "PROVED",
       "statement": "For the conservative composite L21 = L1 union (P1 minus P2), every structure already lost by B1 remains lost in B2 o B1, and every structure preserved by B1 but not B2 becomes lost in the composite.",
-      "hypotheses": ["B1 and B2 are composable BridgeCore bridges", "P1 is disjoint from L1"],
+      "hypotheses": [
+        "B1 and B2 are composable BridgeCore bridges",
+        "P1 is disjoint from L1"
+      ],
       "proof_reference": "theory/BRIDGE_CORE.md#uft-br-003-loss-monotonicity",
       "executable_evidence": ["experiments/bridge_core/run.py", "tests/test_bridge_core.py"],
       "nonclaims": ["Deterministic post-processing is not automatically exact reconstruction of discarded structure."]
     },
     {
       "id": "UFT-BR-004",
-      "name": "Identity bridge is neutral",
+      "name": "Identity bridge is neutral under complete structure tracking",
       "claim_class": "PROVED",
-      "statement": "On a fixed type, version, domain, scope, and declared structure vocabulary, the identity bridge composes neutrally with a compatible bridge at both the relation and preservation/loss metadata levels.",
-      "hypotheses": ["identity bridge and target bridge satisfy ordinary composition compatibility"],
-      "proof_reference": "theory/BRIDGE_CORE.md#uft-br-004-identity-neutrality",
+      "statement": "For a compatible bridge B, an identity bridge whose tracked structure vocabulary is exactly P_B union L_B composes neutrally with B at the relation and preservation/loss metadata levels.",
+      "hypotheses": [
+        "identity bridge and B satisfy ordinary composition compatibility",
+        "the identity bridge tracked structure set equals P_B union L_B",
+        "P_B is disjoint from L_B"
+      ],
+      "proof_reference": "theory/BRIDGE_CORE.md#uft-br-004-identity-neutrality-under-complete-structure-tracking",
       "executable_evidence": ["experiments/bridge_core/run.py", "tests/test_bridge_core.py"],
-      "nonclaims": ["A bridge is not an identity merely because source and target type names happen to match."]
+      "nonclaims": ["A bridge is not an identity merely because source and target type names happen to match; partial structure metadata does not imply two-sided metadata neutrality."]
     },
     {
       "id": "UFT-BR-005",
       "name": "Compatible BridgeCore composition is associative",
       "claim_class": "PROVED",
       "statement": "For three mutually compatible bridges, ordinary relational composition, scope intersection, preservation intersection, and conservative loss propagation are associative.",
-      "hypotheses": ["all intermediate type/version/domain conditions required by both parenthesizations hold", "all required scope intersections are nonempty"],
+      "hypotheses": [
+        "all intermediate type/version/domain conditions required by both parenthesizations hold",
+        "all required scope intersections are nonempty"
+      ],
       "proof_reference": "theory/BRIDGE_CORE.md#uft-br-005-associativity",
       "executable_evidence": ["experiments/bridge_core/run.py", "tests/test_bridge_core.py"],
       "nonclaims": ["Associativity of the structural bridge calculus does not imply that an application-specific interpretation is associative or lossless."]
