@@ -45,6 +45,34 @@ class LatestCodexAuthorityRegressions(unittest.TestCase):
             path.write_text(original, encoding="utf-8")
             VALIDATOR.EXPECTED_SHA256[rebind_digest] = old_digest
 
+    def mutate_text(
+        self,
+        relpath: str,
+        transform,
+        *,
+        rebind_digest: str | None = None,
+        rebind_blob: str | None = None,
+    ):
+        path = ROOT / relpath
+        original = path.read_text(encoding="utf-8")
+        old_digest = VALIDATOR.EXPECTED_SHA256.get(rebind_digest) if rebind_digest else None
+        old_blob = VALIDATOR.EXPECTED_HUMAN_BLOBS.get(rebind_blob) if rebind_blob else None
+        try:
+            mutated = transform(original)
+            self.assertNotEqual(mutated, original)
+            path.write_text(mutated, encoding="utf-8")
+            if rebind_digest is not None:
+                VALIDATOR.EXPECTED_SHA256[rebind_digest] = VALIDATOR.sha256_bytes(mutated.encode("utf-8"))
+            if rebind_blob is not None:
+                VALIDATOR.EXPECTED_HUMAN_BLOBS[rebind_blob] = VALIDATOR.git_blob_sha(mutated.encode("utf-8"))
+            return VALIDATOR.validate()
+        finally:
+            path.write_text(original, encoding="utf-8")
+            if rebind_digest is not None and old_digest is not None:
+                VALIDATOR.EXPECTED_SHA256[rebind_digest] = old_digest
+            if rebind_blob is not None and old_blob is not None:
+                VALIDATOR.EXPECTED_HUMAN_BLOBS[rebind_blob] = old_blob
+
     def test_positive_control_cannot_promote_empirical_donor_to_proof(self):
         def mutate(payload):
             record = next(x for x in payload["positive_controls"] if x["id"] == "PC-GR-SIS2")
@@ -86,6 +114,57 @@ class LatestCodexAuthorityRegressions(unittest.TestCase):
         self.assert_dedicated_error(result, "Grinberg source author drift")
         self.assert_dedicated_error(result, "Grinberg source kind drift")
         self.assertNotIn("contract canonical payload drift", result["errors"])
+
+    def test_donor_role_and_noninheritance_are_bound(self):
+        def mutate(payload):
+            record = next(x for x in payload["sources"] if x["source_id"] == "GRINBERG-2025-GRAPH-THEORY")
+            record["role"] = "established evidence for a UFT-ID physical substrate"
+            record["not_inherited"] = []
+
+        result = self.mutate_json(
+            "machine/graph_realization_contract.json",
+            mutate,
+            rebind_digest="contract",
+        )
+        self.assert_dedicated_error(result, "Grinberg source role drift")
+        self.assert_dedicated_error(result, "Grinberg source not_inherited drift")
+        self.assertNotIn("contract canonical payload drift", result["errors"])
+
+    def test_human_theorem_claim_class_is_section_bound(self):
+        result = self.mutate_text(
+            "theory/GRAPH_REALIZATION.md",
+            lambda text: text.replace("**Claim class:** `PROVED`", "**Claim class:** `EMPIRICAL`", 1),
+            rebind_digest="human",
+        )
+        self.assert_dedicated_error(result, "UFT-GR-001 human theorem claim class drift")
+        self.assertNotIn("human canonical payload drift", result["errors"])
+
+    def test_numerosity_claim_class_is_parsed_not_cosmetically_anchored(self):
+        canonical = (
+            "**Claim class:** `INTERPRETIVE` for every source-to-UFT-ID correspondence in this section "
+            "until explicit BridgeCore objects and independent mathematical fixtures exist."
+        )
+        promoted = canonical.replace("`INTERPRETIVE`", "`PROVED`", 1)
+
+        def transform(text: str) -> str:
+            changed = text.replace(canonical, promoted, 1)
+            return changed + f"\n<!-- compatibility text only: {canonical} -->\n"
+
+        result = self.mutate_text("ROADMAP.md", transform, rebind_blob="roadmap")
+        self.assert_dedicated_error(result, "ROADMAP 3-4-5 numerosity programme claim class drift")
+        self.assertNotIn("roadmap canonical human authority blob drift", result["errors"])
+
+    def test_retained_verification_step_must_remain_blocking(self):
+        marker = "      - name: Verify retained graph evidence\n        if: always()\n"
+        result = self.mutate_text(
+            ".github/workflows/finite-adversarial.yml",
+            lambda text: text.replace(
+                marker,
+                marker + "        continue-on-error: true\n",
+                1,
+            ),
+        )
+        self.assert_dedicated_error(result, "verification step envelope drift")
 
     def _write_artifacts(self, directory: Path, witness: dict, receipt: dict) -> None:
         validation = VALIDATOR.validate()
@@ -131,6 +210,39 @@ class LatestCodexAuthorityRegressions(unittest.TestCase):
             self._write_artifacts(directory, witness, receipt)
             with self.assertRaisesRegex(RuntimeError, "source file set drift"):
                 ARTIFACTS.verify(directory)
+
+    def test_receipt_claim_boundary_is_exact_and_fingerprinted(self):
+        witness = EXPERIMENT.run_suite()
+        receipt = RECEIPT.run_suite()
+        receipt["claim_boundary"] = (
+            "FINITE_GRAPH_CONFORMANCE = GENERAL_PROOF; "
+            "MATERIAL_POSITIVE_CONTROL = UFT_ID_PHYSICAL_PREMISE"
+        )
+        self._rebind_receipt(receipt, witness)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            self._write_artifacts(directory, witness, receipt)
+            with self.assertRaisesRegex(RuntimeError, "claim boundary drift"):
+                ARTIFACTS.verify(directory)
+
+    def test_receipt_runner_cannot_shrink_its_own_source_set(self):
+        witness = EXPERIMENT.run_suite()
+        receipt = RECEIPT.run_suite()
+        path = ROOT / "experiments/run_graph_realization.py"
+        original = path.read_text(encoding="utf-8")
+        needle = '    "scripts/verify_graph_artifacts.py",\n'
+        try:
+            mutated = original.replace(needle, "", 1)
+            self.assertNotEqual(mutated, original)
+            path.write_text(mutated, encoding="utf-8")
+            with tempfile.TemporaryDirectory() as tmp:
+                directory = Path(tmp)
+                self._write_artifacts(directory, witness, receipt)
+                with self.assertRaisesRegex(RuntimeError, "core source set drift"):
+                    ARTIFACTS.verify(directory)
+        finally:
+            path.write_text(original, encoding="utf-8")
 
     def test_345_numerosity_programme_is_frozen_and_interpretive(self):
         roadmap = (ROOT / "ROADMAP.md").read_text(encoding="utf-8")
