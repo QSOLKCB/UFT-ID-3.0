@@ -22,9 +22,9 @@ PATHS = {
 }
 
 EXPECTED_BLOBS = {
-    "contract": "cd5f7c2bceba255a7f75df062075f792f89db816",
-    "results": "b52e5e2a4bfba44a1cc292bd7adf2929ca455d8a",
-    "human": "c68269736f31dabfc4a327f6467719e2575f30ec",
+    "contract": "4fc600dc2d5112470d6dab180a19dbed1e2bc5ac",
+    "results": "51d6c6996f4345afa8cb9b3dcfcb185e318611d9",
+    "human": "fc6521377d082fd02882598a5de61a76c71c92f1",
 }
 EXPECTED_SCOPE = (
     "Typed structural transport between declared source and target carriers. BridgeCore records domain, "
@@ -35,9 +35,21 @@ EXPECTED_PRIMARY_TYPE = (
     "BridgeSpec=(source_type,target_type,domain,map_or_relation,preserved_structure,"
     "lost_structure,scope,source_version,target_version)"
 )
-EXPECTED_FIELD_KEYS = {
-    "source_type", "target_type", "domain", "map_or_relation", "preserved_structure",
-    "lost_structure", "scope", "source_version", "target_version",
+EXPECTED_FIELDS = {
+    "source_type": "declared source carrier/type identity",
+    "target_type": "declared target carrier/type identity",
+    "domain": "declared subset, possibly empty, of the source carrier on which the bridge is defined",
+    "map_or_relation": "typed map or binary relation from the declared domain into the target carrier",
+    "preserved_structure": "declared structure labels proved or specified to survive the bridge",
+    "lost_structure": "declared source structure labels not preserved by the bridge",
+    "scope": "nonempty set of contexts/regimes in which the bridge claim is licensed",
+    "source_version": "source semantic/version identity",
+    "target_version": "target semantic/version identity",
+}
+EXPECTED_STRUCTURE_POLICY = {
+    "disjointness": "preserved_structure intersect lost_structure = empty",
+    "exhaustiveness": "not required in a generic BridgeSpec; labels may remain unclassified",
+    "identity_neutrality_condition": "two-sided preservation/loss metadata neutrality requires the identity bridge to track exactly preserved_structure(B) union lost_structure(B)",
 }
 EXPECTED_COMPOSITION = {
     "intermediate_type_match": "B1.target_type = B2.source_type",
@@ -50,15 +62,10 @@ EXPECTED_COMPOSITION = {
     "loss_monotonicity": "once a source structure is lost by B1, ordinary BridgeCore composition does not restore it automatically",
 }
 EXPECTED_BOUNDARIES = {
-    "BRIDGE != IDENTITY",
-    "TRANSPORT != EQUIVALENCE",
-    "PRESERVED_STRUCTURE != ALL_STRUCTURE",
-    "LOSSY_BRIDGE != INVERTIBLE_BRIDGE",
-    "COMPOSABLE_TYPES != SEMANTIC_EQUIVALENCE",
-    "VERSION_COMPATIBLE != CONTENT_IDENTICAL",
-    "SAME_ENDPOINT_TYPES != SAME_BRIDGE",
-    "INTEGER_OR_LABEL_MATCH != STRUCTURAL_BRIDGE",
-    "STRUCTURAL_BRIDGE != EPISTEMIC_PROMOTION",
+    "BRIDGE != IDENTITY", "TRANSPORT != EQUIVALENCE", "PRESERVED_STRUCTURE != ALL_STRUCTURE",
+    "LOSSY_BRIDGE != INVERTIBLE_BRIDGE", "COMPOSABLE_TYPES != SEMANTIC_EQUIVALENCE",
+    "VERSION_COMPATIBLE != CONTENT_IDENTICAL", "SAME_ENDPOINT_TYPES != SAME_BRIDGE",
+    "INTEGER_OR_LABEL_MATCH != STRUCTURAL_BRIDGE", "STRUCTURAL_BRIDGE != EPISTEMIC_PROMOTION",
     "BRIDGE_CONFORMANCE != PHYSICAL_VALIDATION",
 }
 EXPECTED_AUTHORITIES = {
@@ -70,65 +77,67 @@ EXPECTED_AUTHORITIES = {
     "receipt": "experiments/run_bridge_core.py",
     "roadmap_state": "machine/roadmap_state.json",
 }
-EXPECTED_RESULT_BINDINGS = {
-    "UFT-BR-001": (
-        "PROVED",
-        "If B1 and B2 have matching intermediate type and version, nonempty scope intersection, and every intermediate output of B1 lies in the domain of B2, then their ordinary relational composite is a well-defined bridge from the source of B1 to the target of B2.",
-        "theory/BRIDGE_CORE.md#uft-br-001-typed-relational-composition",
-    ),
-    "UFT-BR-002": (
-        "PROVED",
-        "Under the BridgeCore conservative composition contract, the structure automatically preserved by B2 o B1 is exactly P1 intersect P2.",
-        "theory/BRIDGE_CORE.md#uft-br-002-preservation-intersection",
-    ),
-    "UFT-BR-003": (
-        "PROVED",
-        "For the conservative composite L21 = L1 union (P1 minus P2), every structure already lost by B1 remains lost in B2 o B1, and every structure preserved by B1 but not B2 becomes lost in the composite.",
-        "theory/BRIDGE_CORE.md#uft-br-003-loss-monotonicity",
-    ),
-    "UFT-BR-004": (
-        "PROVED",
-        "On a fixed type, version, domain, scope, and declared structure vocabulary, the identity bridge composes neutrally with a compatible bridge at both the relation and preservation/loss metadata levels.",
-        "theory/BRIDGE_CORE.md#uft-br-004-identity-neutrality",
-    ),
-    "UFT-BR-005": (
-        "PROVED",
-        "For three mutually compatible bridges, ordinary relational composition, scope intersection, preservation intersection, and conservative loss propagation are associative.",
-        "theory/BRIDGE_CORE.md#uft-br-005-associativity",
-    ),
-    "CX-BR-001": (
-        "COUNTEREXAMPLE",
-        "Two bridges with the same source and target type/version can differ in relation, injectivity, and preserved/lost structure.",
-        "two-state identity transport versus two-state collapse transport",
-    ),
-    "CX-BR-002": (
-        "COUNTEREXAMPLE",
-        "Two individually valid bridges fail the BridgeCore composition predicate when the first target version differs from the second source version.",
-        "A@1 -> B@1 followed by B@2 -> C@1",
-    ),
-    "CX-BR-003": (
-        "COUNTEREXAMPLE",
-        "Two otherwise type/version/domain-compatible bridges are not composable when their declared scopes have empty intersection.",
-        "calibration-A-only bridge followed by calibration-B-only bridge",
-    ),
-    "CX-BR-004": (
-        "COUNTEREXAMPLE",
-        "A noninjective bridge followed by a deterministic canonical decoder can produce a total composite while failing to reconstruct distinct source states.",
-        "two-bit source -> first-bit projection -> canonical two-bit representative",
-    ),
+EXPECTED_EXECUTION_LIMITS = {
+    "associativity_carrier": "Fin2",
+    "labelled_binary_relations": 16,
+    "ordered_relation_triples": 4096,
+    "structure_label_family": ["a", "b", "c"],
+    "valid_partial_structure_declarations": 27,
+    "ordered_structure_declaration_pairs": 729,
+    "policy": "Finite execution is a bounded conformance witness for the declared fixtures and set-theoretic formulas; it is not the proof of unrestricted mathematics.",
 }
-EXPECTED_EVIDENCE = ["experiments/bridge_core/run.py", "tests/test_bridge_core.py"]
-EXPECTED_DEFERRAL_PREFIXES = (
+EXPECTED_DEFERRALS = [
     "epistemic and authority promotion/demotion rules to PR #13",
     "representation-specific congruence and similarity classes to PR #14",
     "information comparability semantics to PR #15",
-)
+    "stochastic or measurable-kernel bridges to PR #17",
+    "empirical measurement bridges to PR #18",
+    "Lean proof objects",
+]
+EXPECTED_RESULT_BINDINGS = {
+    "UFT-BR-001": {
+        "claim_class": "PROVED",
+        "statement": "If B1 and B2 have matching intermediate type and version, nonempty scope intersection, and every intermediate output of B1 lies in the domain of B2, then their ordinary relational composite is a well-defined bridge from the source of B1 to the target of B2.",
+        "hypotheses": ["B1.target_type = B2.source_type", "B1.target_version = B2.source_version", "scope(B1) intersect scope(B2) is nonempty", "image(B1) subseteq domain(B2)"],
+        "proof_reference": "theory/BRIDGE_CORE.md#uft-br-001-typed-relational-composition",
+    },
+    "UFT-BR-002": {
+        "claim_class": "PROVED",
+        "statement": "Under the BridgeCore conservative composition contract, the structure automatically preserved by B2 o B1 is exactly P1 intersect P2.",
+        "hypotheses": ["B1 and B2 are composable BridgeCore bridges", "preserved structure uses a shared declared label vocabulary"],
+        "proof_reference": "theory/BRIDGE_CORE.md#uft-br-002-preservation-intersection",
+    },
+    "UFT-BR-003": {
+        "claim_class": "PROVED",
+        "statement": "For the conservative composite L21 = L1 union (P1 minus P2), every structure already lost by B1 remains lost in B2 o B1, and every structure preserved by B1 but not B2 becomes lost in the composite.",
+        "hypotheses": ["B1 and B2 are composable BridgeCore bridges", "P1 is disjoint from L1"],
+        "proof_reference": "theory/BRIDGE_CORE.md#uft-br-003-loss-monotonicity",
+    },
+    "UFT-BR-004": {
+        "claim_class": "PROVED",
+        "statement": "For a compatible bridge B, an identity bridge whose tracked structure vocabulary is exactly P_B union L_B composes neutrally with B at the relation and preservation/loss metadata levels.",
+        "hypotheses": ["identity bridge and B satisfy ordinary composition compatibility", "the identity bridge tracked structure set equals P_B union L_B", "P_B is disjoint from L_B"],
+        "proof_reference": "theory/BRIDGE_CORE.md#uft-br-004-identity-neutrality-under-complete-structure-tracking",
+    },
+    "UFT-BR-005": {
+        "claim_class": "PROVED",
+        "statement": "For three mutually compatible bridges, ordinary relational composition, scope intersection, preservation intersection, and conservative loss propagation are associative.",
+        "hypotheses": ["all intermediate type/version/domain conditions required by both parenthesizations hold", "all required scope intersections are nonempty"],
+        "proof_reference": "theory/BRIDGE_CORE.md#uft-br-005-associativity",
+    },
+    "CX-BR-001": {"claim_class": "COUNTEREXAMPLE", "statement": "Two bridges with the same source and target type/version can differ in relation, injectivity, and preserved/lost structure.", "fixture": "two-state identity transport versus two-state collapse transport"},
+    "CX-BR-002": {"claim_class": "COUNTEREXAMPLE", "statement": "Two individually valid bridges fail the BridgeCore composition predicate when the first target version differs from the second source version.", "fixture": "A@1 -> B@1 followed by B@2 -> C@1"},
+    "CX-BR-003": {"claim_class": "COUNTEREXAMPLE", "statement": "Two otherwise type/version/domain-compatible bridges are not composable when their declared scopes have empty intersection.", "fixture": "calibration-A-only bridge followed by calibration-B-only bridge"},
+    "CX-BR-004": {"claim_class": "COUNTEREXAMPLE", "statement": "A noninjective bridge followed by a deterministic canonical decoder can produce a total composite while failing to reconstruct distinct source states.", "fixture": "two-bit source -> first-bit projection -> canonical two-bit representative"},
+}
+EXPECTED_EVIDENCE = ["experiments/bridge_core/run.py", "tests/test_bridge_core.py"]
 PRIVATE_PATTERNS = ("mail.google.com", "gmail", "connector_", "private-user-images")
 PROMOTION_PATTERNS = (
     "bridgecore proves uft-id physics",
     "structural transport establishes physical ontology",
     "bridge composition upgrades evidence authority",
     "type compatibility proves semantic equivalence",
+    "empirically confirmed physical transport substrate",
 )
 
 
@@ -149,10 +158,10 @@ def markdown_section(text: str, heading: str) -> str | None:
     if len(matches) != 1:
         return None
     index = matches[0]
-    match = re.match(r"^(#+)\s", heading)
-    if match is None:
+    level_match = re.match(r"^(#+)\s", heading)
+    if level_match is None:
         return None
-    level = len(match.group(1))
+    level = len(level_match.group(1))
     out = [lines[index]]
     for line in lines[index + 1:]:
         candidate = re.match(r"^(#+)\s", line.strip())
@@ -205,23 +214,24 @@ def validate() -> dict[str, object]:
             errors.append(f"BridgeCore {name} canonical blob drift")
 
     if contract.get("type") != "uft-id-bridge-core-contract": errors.append("BridgeCore contract type drift")
-    if contract.get("schema_version") != "1.0.0": errors.append("BridgeCore contract schema drift")
+    if contract.get("schema_version") != "1.0.1": errors.append("BridgeCore contract schema drift")
     if contract.get("snapshot_date") != "2026-08-21": errors.append("BridgeCore contract snapshot drift")
     if contract.get("claim_class") != "DEFINITION": errors.append("BridgeCore contract claim class drift")
     if contract.get("scope") != EXPECTED_SCOPE: errors.append("BridgeCore contract scope drift")
     if contract.get("primary_type") != EXPECTED_PRIMARY_TYPE: errors.append("BridgeCore primary type drift")
-    fields = contract.get("fields")
-    if not isinstance(fields, dict) or set(fields) != EXPECTED_FIELD_KEYS: errors.append("BridgeCore field set drift")
+    if contract.get("fields") != EXPECTED_FIELDS: errors.append("BridgeCore field payload drift")
+    if contract.get("structure_metadata_policy") != EXPECTED_STRUCTURE_POLICY: errors.append("BridgeCore structure metadata policy drift")
     if contract.get("composition_contract") != EXPECTED_COMPOSITION: errors.append("BridgeCore composition contract drift")
     if set(contract.get("hard_boundaries", [])) != EXPECTED_BOUNDARIES: errors.append("BridgeCore hard-boundary set drift")
     if contract.get("authorities") != EXPECTED_AUTHORITIES: errors.append("BridgeCore authority registry drift")
-    deferrals = contract.get("explicit_deferrals")
-    if not isinstance(deferrals, list) or not all(any(str(item).startswith(prefix) for item in deferrals) for prefix in EXPECTED_DEFERRAL_PREFIXES):
-        errors.append("BridgeCore explicit deferral surface drift")
+    if contract.get("execution_limits") != EXPECTED_EXECUTION_LIMITS: errors.append("BridgeCore execution-limit payload drift")
+    if contract.get("explicit_deferrals") != EXPECTED_DEFERRALS: errors.append("BridgeCore explicit deferral surface drift")
     for field, path in EXPECTED_AUTHORITIES.items():
-        if field != "roadmap_state":
-            safe_path(path, errors, f"BridgeCore authority {field}")
+        if field != "roadmap_state": safe_path(path, errors, f"BridgeCore authority {field}")
 
+    if results.get("type") != "uft-id-bridge-core-result-registry": errors.append("BridgeCore result registry type drift")
+    if results.get("schema_version") != "1.0.1": errors.append("BridgeCore result registry schema drift")
+    if results.get("snapshot_date") != "2026-08-21": errors.append("BridgeCore result registry snapshot drift")
     records = results.get("records")
     if not isinstance(records, list):
         errors.append("BridgeCore results records must be a list")
@@ -241,19 +251,21 @@ def validate() -> dict[str, object]:
         if expected is None:
             errors.append(f"unexpected BridgeCore result id: {result_id}")
             continue
-        expected_class, expected_statement, expected_third = expected
-        if record.get("claim_class") != expected_class: errors.append(f"{result_id} claim class drift")
-        if record.get("statement") != expected_statement: errors.append(f"{result_id} statement drift")
+        if record.get("claim_class") != expected["claim_class"]: errors.append(f"{result_id} claim class drift")
+        if record.get("statement") != expected["statement"]: errors.append(f"{result_id} statement drift")
         if result_id.startswith("UFT-BR-"):
-            if record.get("proof_reference") != expected_third: errors.append(f"{result_id} proof reference drift")
+            if record.get("hypotheses") != expected["hypotheses"]: errors.append(f"{result_id} hypotheses drift")
+            if record.get("proof_reference") != expected["proof_reference"]: errors.append(f"{result_id} proof reference drift")
             if record.get("executable_evidence") != EXPECTED_EVIDENCE: errors.append(f"{result_id} executable evidence drift")
-            section = next((markdown_section(human, line.strip()) for line in human.splitlines() if line.startswith("## ") and result_id in line), None)
+            candidates = [line.strip() for line in human.splitlines() if line.startswith("## ") and result_id in line]
+            section = markdown_section(human, candidates[0]) if len(candidates) == 1 else None
             if section is None: errors.append(f"{result_id} human theorem section missing or duplicated")
             elif metadata_value(section, "Claim class") != "`PROVED`": errors.append(f"{result_id} human theorem claim class drift")
         else:
-            if record.get("fixture") != expected_third: errors.append(f"{result_id} fixture drift")
+            if record.get("fixture") != expected["fixture"]: errors.append(f"{result_id} fixture drift")
             if record.get("evidence") != EXPECTED_EVIDENCE: errors.append(f"{result_id} counterexample evidence drift")
-            section = next((markdown_section(human, line.strip()) for line in human.splitlines() if line.startswith("### ") and result_id in line), None)
+            candidates = [line.strip() for line in human.splitlines() if line.startswith("### ") and result_id in line]
+            section = markdown_section(human, candidates[0]) if len(candidates) == 1 else None
             if section is None: errors.append(f"{result_id} human counterexample section missing or duplicated")
             elif metadata_value(section, "Claim class") != "`COUNTEREXAMPLE`": errors.append(f"{result_id} human counterexample claim class drift")
         nonclaims = record.get("nonclaims")
@@ -279,6 +291,11 @@ def validate() -> dict[str, object]:
 
     if "## A8. Versioned semantic bridge" not in auxiliary: errors.append("A8 versioned semantic bridge precursor missing")
     if "ADJACENT_VERSION != COMPATIBLE_BY_DEFAULT" not in auxiliary: errors.append("A8 version compatibility boundary missing")
+    for anchor in (
+        "D subseteq X_s", "may be empty", "DISJOINT_METADATA != EXHAUSTIVE_METADATA",
+        "UFT-BR-004 Identity neutrality under complete structure tracking", "27^2 = 729",
+    ):
+        if anchor not in human: errors.append(f"BridgeCore human authority missing semantic anchor: {anchor}")
 
     combined = json.dumps(contract, ensure_ascii=False) + json.dumps(results, ensure_ascii=False) + human
     lowered = combined.casefold()
@@ -305,8 +322,7 @@ def main() -> int:
     elif result["status"] == "ok":
         print(f"BridgeCore authority: ok ({result['result_count']} results, {result['boundary_count']} hard boundaries)")
     else:
-        for error in result["errors"]:
-            print(error)
+        for error in result["errors"]: print(error)
     return 0 if result["status"] == "ok" else 1
 
 
