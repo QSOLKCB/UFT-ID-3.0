@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "experiments/**"
+      - "scripts/**"
       - "scripts/validate_reproducibility.py"
       - "scripts/validate_cross_repo_patterns.py"
       - "scripts/validate_vopson_2019_mei.py"
@@ -13,6 +14,8 @@ on:
       - "scripts/validate_relation_core.py"
       - "scripts/validate_graph_realization.py"
       - "scripts/verify_graph_artifacts.py"
+      - "scripts/validate_bridge_core.py"
+      - "scripts/verify_bridge_artifacts.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -26,6 +29,7 @@ on:
       - "theory/OBSERVATION_CALCULUS.md"
       - "theory/RELATION_CALCULUS.md"
       - "theory/GRAPH_REALIZATION.md"
+      - "theory/BRIDGE_CORE.md"
       - "research/CROSS_REPO_PATTERN_ATLAS.md"
       - "research/GRAPH_REALIZATION_SOURCES.md"
       - "research/HISTORICAL_LINEAGE.md"
@@ -41,6 +45,7 @@ on:
     branches: [main]
     paths:
       - "experiments/**"
+      - "scripts/**"
       - "scripts/validate_reproducibility.py"
       - "scripts/validate_cross_repo_patterns.py"
       - "scripts/validate_vopson_2019_mei.py"
@@ -50,6 +55,8 @@ on:
       - "scripts/validate_relation_core.py"
       - "scripts/validate_graph_realization.py"
       - "scripts/verify_graph_artifacts.py"
+      - "scripts/validate_bridge_core.py"
+      - "scripts/verify_bridge_artifacts.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -63,6 +70,7 @@ on:
       - "theory/OBSERVATION_CALCULUS.md"
       - "theory/RELATION_CALCULUS.md"
       - "theory/GRAPH_REALIZATION.md"
+      - "theory/BRIDGE_CORE.md"
       - "research/CROSS_REPO_PATTERN_ATLAS.md"
       - "research/GRAPH_REALIZATION_SOURCES.md"
       - "research/HISTORICAL_LINEAGE.md"
@@ -139,6 +147,14 @@ jobs:
           python experiments/graph_realization/run.py --json > /tmp/graph-realization.json
           python experiments/run_graph_realization.py --hash-only > /tmp/graph-realization-receipt.json
 
+      - name: Validate BridgeCore authority surface
+        run: python scripts/validate_bridge_core.py
+
+      - name: Run BridgeCore witnesses
+        run: |
+          python experiments/bridge_core/run.py --json > /tmp/bridge-core.json
+          python experiments/run_bridge_core.py --hash-only > /tmp/bridge-core-receipt.json
+
       - name: Validate Vopson 2019 MEI authority surface
         run: python scripts/validate_vopson_2019_mei.py
 
@@ -182,10 +198,23 @@ jobs:
           python experiments/run_graph_realization.py --json > artifacts/graph-realization-receipt.json 2> artifacts/graph-realization-receipt.stderr.txt || true
           python scripts/validate_reproducibility.py --json > artifacts/reproducibility-validation.json 2> artifacts/reproducibility-validation.stderr.txt || true
 
+      - name: Generate BridgeCore evidence bundle
+        if: always()
+        run: |
+          mkdir -p artifacts
+          python scripts/validate_bridge_core.py --json > artifacts/bridge-core-validation.json 2> artifacts/bridge-core-validation.stderr.txt || true
+          python experiments/bridge_core/run.py --json > artifacts/bridge-core-witness.json 2> artifacts/bridge-core-witness.stderr.txt || true
+          python experiments/run_bridge_core.py --json > artifacts/bridge-core-receipt.json 2> artifacts/bridge-core-receipt.stderr.txt || true
+
       - name: Verify retained graph evidence
         if: always()
         run: |
           python scripts/verify_graph_artifacts.py artifacts
+
+      - name: Verify retained BridgeCore evidence
+        if: always()
+        run: |
+          python scripts/verify_bridge_artifacts.py artifacts
 
       - name: Retain finite evidence bundle
         if: always()

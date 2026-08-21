@@ -1,0 +1,116 @@
+{
+  "type": "uft-id-bridge-core-result-registry",
+  "schema_version": "1.0.1",
+  "snapshot_date": "2026-08-21",
+  "records": [
+    {
+      "id": "UFT-BR-001",
+      "name": "Typed relational bridge composition",
+      "claim_class": "PROVED",
+      "statement": "If B1 and B2 have matching intermediate type and version, nonempty scope intersection, and every intermediate output of B1 lies in the domain of B2, then their ordinary relational composite is a well-defined bridge from the source of B1 to the target of B2.",
+      "hypotheses": [
+        "B1.target_type = B2.source_type",
+        "B1.target_version = B2.source_version",
+        "scope(B1) intersect scope(B2) is nonempty",
+        "image(B1) subseteq domain(B2)"
+      ],
+      "proof_reference": "theory/BRIDGE_CORE.md#uft-br-001-typed-relational-composition",
+      "executable_evidence": ["experiments/bridge_core/run.py", "tests/test_bridge_core.py"],
+      "nonclaims": ["Type-correct composition does not imply semantic equivalence, truth preservation, or physical validity."]
+    },
+    {
+      "id": "UFT-BR-002",
+      "name": "Composite preservation is intersection-bounded",
+      "claim_class": "PROVED",
+      "statement": "Under the BridgeCore conservative composition contract, the structure automatically preserved by B2 o B1 is exactly P1 intersect P2.",
+      "hypotheses": [
+        "B1 and B2 are composable BridgeCore bridges",
+        "preserved structure uses a shared declared label vocabulary"
+      ],
+      "proof_reference": "theory/BRIDGE_CORE.md#uft-br-002-preservation-intersection",
+      "executable_evidence": ["experiments/bridge_core/run.py", "tests/test_bridge_core.py"],
+      "nonclaims": ["This does not forbid a separately proved reconstruction theorem; it forbids silently assuming one."]
+    },
+    {
+      "id": "UFT-BR-003",
+      "name": "Loss is monotone under ordinary composition",
+      "claim_class": "PROVED",
+      "statement": "For the conservative composite L21 = L1 union (P1 minus P2), every structure already lost by B1 remains lost in B2 o B1, and every structure preserved by B1 but not B2 becomes lost in the composite.",
+      "hypotheses": [
+        "B1 and B2 are composable BridgeCore bridges",
+        "P1 is disjoint from L1"
+      ],
+      "proof_reference": "theory/BRIDGE_CORE.md#uft-br-003-loss-monotonicity",
+      "executable_evidence": ["experiments/bridge_core/run.py", "tests/test_bridge_core.py"],
+      "nonclaims": ["Deterministic post-processing is not automatically exact reconstruction of discarded structure."]
+    },
+    {
+      "id": "UFT-BR-004",
+      "name": "Identity bridge is neutral under complete structure tracking",
+      "claim_class": "PROVED",
+      "statement": "For a compatible bridge B, an identity bridge whose tracked structure vocabulary is exactly P_B union L_B composes neutrally with B at the relation and preservation/loss metadata levels.",
+      "hypotheses": [
+        "identity bridge and B satisfy ordinary composition compatibility",
+        "the identity bridge tracked structure set equals P_B union L_B",
+        "P_B is disjoint from L_B"
+      ],
+      "proof_reference": "theory/BRIDGE_CORE.md#uft-br-004-identity-neutrality-under-complete-structure-tracking",
+      "executable_evidence": ["experiments/bridge_core/run.py", "tests/test_bridge_core.py"],
+      "nonclaims": ["A bridge is not an identity merely because source and target type names happen to match; partial structure metadata does not imply two-sided metadata neutrality."]
+    },
+    {
+      "id": "UFT-BR-005",
+      "name": "Compatible BridgeCore composition is associative",
+      "claim_class": "PROVED",
+      "statement": "For three mutually compatible bridges, ordinary relational composition, scope intersection, preservation intersection, and conservative loss propagation are associative.",
+      "hypotheses": [
+        "all intermediate type/version/domain conditions required by both parenthesizations hold",
+        "all required scope intersections are nonempty"
+      ],
+      "proof_reference": "theory/BRIDGE_CORE.md#uft-br-005-associativity",
+      "executable_evidence": ["experiments/bridge_core/run.py", "tests/test_bridge_core.py"],
+      "nonclaims": ["Associativity of the structural bridge calculus does not imply that an application-specific interpretation is associative or lossless."]
+    },
+    {
+      "id": "CX-BR-001",
+      "name": "Same endpoint types do not determine one bridge",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "Two bridges with the same source and target type/version can differ in relation, injectivity, and preserved/lost structure.",
+      "fixture": "two-state identity transport versus two-state collapse transport",
+      "kills": ["SAME_ENDPOINT_TYPES_IMPLY_SAME_BRIDGE", "TYPE_MATCH_IMPLIES_STRUCTURE_PRESERVATION"],
+      "evidence": ["experiments/bridge_core/run.py", "tests/test_bridge_core.py"],
+      "nonclaims": ["The fixture is synthetic and does not model a particular physical channel."]
+    },
+    {
+      "id": "CX-BR-002",
+      "name": "Version mismatch blocks composition",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "Two individually valid bridges fail the BridgeCore composition predicate when the first target version differs from the second source version.",
+      "fixture": "A@1 -> B@1 followed by B@2 -> C@1",
+      "kills": ["ADJACENT_VERSION_IMPLIES_COMPOSABLE", "TYPE_NAME_MATCH_ERASES_VERSION"],
+      "evidence": ["experiments/bridge_core/run.py", "tests/test_bridge_core.py"],
+      "nonclaims": ["A separately supplied migration bridge may make two versions compatible."]
+    },
+    {
+      "id": "CX-BR-003",
+      "name": "Disjoint scope blocks composition",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "Two otherwise type/version/domain-compatible bridges are not composable when their declared scopes have empty intersection.",
+      "fixture": "calibration-A-only bridge followed by calibration-B-only bridge",
+      "kills": ["LOCAL_SCOPE_IMPLIES_GLOBAL_TRANSFER", "TYPE_COMPATIBLE_IMPLIES_SCOPE_COMPATIBLE"],
+      "evidence": ["experiments/bridge_core/run.py", "tests/test_bridge_core.py"],
+      "nonclaims": ["Scope overlap is a licensing condition, not evidence that the bridge is physically correct."]
+    },
+    {
+      "id": "CX-BR-004",
+      "name": "Lossy transport plus deterministic decoder is not exact reconstruction",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "A noninjective bridge followed by a deterministic canonical decoder can produce a total composite while failing to reconstruct distinct source states.",
+      "fixture": "two-bit source -> first-bit projection -> canonical two-bit representative",
+      "kills": ["DETERMINISTIC_DECODER_RESTORES_LOST_STRUCTURE", "TOTAL_COMPOSITE_IMPLIES_INVERTIBLE"],
+      "evidence": ["experiments/bridge_core/run.py", "tests/test_bridge_core.py"],
+      "nonclaims": ["This is a finite structural reconstruction counterexample, not an information-destruction claim about physics."]
+    }
+  ],
+  "claim_boundary": "BRIDGE_CONFORMANCE != GENERAL_PROOF != EPISTEMIC_PROMOTION != PHYSICAL_VALIDATION"
+}

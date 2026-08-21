@@ -51,22 +51,12 @@ EXPECTED_CLAIM_BOUNDARY = (
 )
 
 EXPECTED_RECEIPT_TOP_LEVEL_FIELDS = {
-    "type",
-    "schema_version",
-    "source_sha256",
-    "declared_evidence_paths",
-    "result_sha256",
-    "summary",
-    "suite_fingerprint_sha256",
-    "runtime",
-    "runtime_excluded_from_fingerprint",
-    "claim_boundary",
+    "type", "schema_version", "source_sha256", "declared_evidence_paths",
+    "result_sha256", "summary", "suite_fingerprint_sha256", "runtime",
+    "runtime_excluded_from_fingerprint", "claim_boundary",
 }
 EXPECTED_RUNTIME_FIELDS = {"python", "implementation", "platform"}
 
-# Independent authority closure. These sets are intentionally duplicated here
-# rather than derived from the receipt runner so a modified runner cannot shrink
-# the bundle it claims to bind.
 EXPECTED_CORE_FILES = (
     "machine/contract.json",
     "machine/relation_contract.json",
@@ -83,6 +73,7 @@ EXPECTED_CORE_FILES = (
     "theory/RELATION_CALCULUS.md",
     "theory/GRAPH_REALIZATION.md",
     "scripts/validate_graph_realization.py",
+    "scripts/validate_graph_realization_pr11_frozen.py",
     "scripts/verify_graph_artifacts.py",
     "experiments/relation/run.py",
     "experiments/graph_realization/__init__.py",
@@ -99,30 +90,17 @@ EXPECTED_DECLARED_EVIDENCE_PATHS = (
     "experiments/graph_realization/run.py",
     "tests/test_graph_realization.py",
 )
-EXPECTED_RECEIPT_FILES = tuple(
-    sorted(set(EXPECTED_CORE_FILES) | set(EXPECTED_DECLARED_EVIDENCE_PATHS))
-)
+EXPECTED_RECEIPT_FILES = tuple(sorted(set(EXPECTED_CORE_FILES) | set(EXPECTED_DECLARED_EVIDENCE_PATHS)))
 
 HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 FINGERPRINT_FIELDS = (
-    "type",
-    "schema_version",
-    "source_sha256",
-    "declared_evidence_paths",
-    "result_sha256",
-    "summary",
-    "claim_boundary",
+    "type", "schema_version", "source_sha256", "declared_evidence_paths",
+    "result_sha256", "summary", "claim_boundary",
 )
 
 
 def canonical_bytes(value: object) -> bytes:
-    return json.dumps(
-        value,
-        sort_keys=True,
-        separators=(",", ":"),
-        ensure_ascii=False,
-        allow_nan=False,
-    ).encode("utf-8")
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -187,16 +165,12 @@ def verify(artifact_dir: Path) -> dict[str, object]:
     witness = load_object(artifact_dir / WITNESS_FILE)
     receipt = load_object(artifact_dir / RECEIPT_FILE)
 
-    # Retained validation evidence is accepted only if it is the exact current
-    # result of the canonical validator. A stale or fabricated "ok" artifact
-    # cannot survive a repository change that makes live validation fail.
     validator = load_module("graph_artifact_validator", VALIDATOR)
     expected_validation = validator.validate()
     if expected_validation.get("status") != "ok":
         raise RuntimeError("canonical graph validation is not currently successful")
     if validation != expected_validation:
         raise RuntimeError("retained graph validation full payload drift")
-
     if validation.get("status") != "ok" or validation.get("errors") not in ([], None):
         raise RuntimeError("retained graph validation artifact is not successful")
     if validation.get("result_count") != 9 or validation.get("source_count") != 2:
@@ -217,9 +191,6 @@ def verify(artifact_dir: Path) -> dict[str, object]:
     if witness != expected_witness:
         raise RuntimeError("retained graph witness full payload drift")
 
-    # Fail closed on the receipt schema itself. Runtime metadata is explicitly
-    # excluded from the deterministic fingerprint, but no extra semantic field
-    # may be smuggled into the retained receipt unsigned.
     if set(receipt) != EXPECTED_RECEIPT_TOP_LEVEL_FIELDS:
         raise RuntimeError("retained graph receipt top-level schema drift")
     runtime = receipt.get("runtime")
@@ -232,30 +203,24 @@ def verify(artifact_dir: Path) -> dict[str, object]:
     }
     if runtime != expected_runtime:
         raise RuntimeError("retained graph receipt runtime provenance mismatch")
-
     if receipt.get("type") != "uft-id-graph-realization-receipt":
         raise RuntimeError("retained graph receipt type drift")
     if receipt.get("schema_version") != registered_receipt_version():
         raise RuntimeError("retained graph receipt schema/version registry mismatch")
     if receipt.get("claim_boundary") != EXPECTED_CLAIM_BOUNDARY:
         raise RuntimeError("retained graph receipt claim boundary drift")
-
     expected_result_hash = sha256_bytes(canonical_bytes(witness))
     if receipt.get("result_sha256") != expected_result_hash:
         raise RuntimeError("retained graph receipt does not bind retained witness")
-
-    summary = receipt.get("summary")
-    if not isinstance(summary, dict) or summary != EXPECTED_RECEIPT_SUMMARY:
+    if receipt.get("summary") != EXPECTED_RECEIPT_SUMMARY:
         raise RuntimeError("retained graph receipt summary drift")
 
     runner = load_module("graph_artifact_receipt_runner", RECEIPT_RUNNER)
     if tuple(runner.CORE_FILES) != EXPECTED_CORE_FILES:
         raise RuntimeError("graph receipt runner core source set drift")
-    runner_evidence = tuple(sorted(runner.declared_evidence_paths()))
-    if runner_evidence != EXPECTED_DECLARED_EVIDENCE_PATHS:
+    if tuple(sorted(runner.declared_evidence_paths())) != EXPECTED_DECLARED_EVIDENCE_PATHS:
         raise RuntimeError("graph receipt runner declared evidence set drift")
-    runner_files = tuple(runner.receipt_files())
-    if runner_files != EXPECTED_RECEIPT_FILES:
+    if tuple(runner.receipt_files()) != EXPECTED_RECEIPT_FILES:
         raise RuntimeError("graph receipt runner resolved source set drift")
 
     source_hashes = verify_hash_map(receipt.get("source_sha256"))
@@ -273,10 +238,8 @@ def verify(artifact_dir: Path) -> dict[str, object]:
     fingerprint = receipt.get("suite_fingerprint_sha256")
     if not isinstance(fingerprint, str) or HEX64_RE.fullmatch(fingerprint) is None:
         raise RuntimeError("retained graph receipt fingerprint malformed")
-    expected_fingerprint = sha256_bytes(canonical_bytes(fingerprint_identity(receipt)))
-    if fingerprint != expected_fingerprint:
+    if fingerprint != sha256_bytes(canonical_bytes(fingerprint_identity(receipt))):
         raise RuntimeError("retained graph receipt fingerprint mismatch")
-
     if receipt.get("runtime_excluded_from_fingerprint") is not True:
         raise RuntimeError("retained graph receipt runtime fingerprint boundary drift")
 

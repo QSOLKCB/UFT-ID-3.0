@@ -31,6 +31,7 @@ CORE_FILES = [
     "theory/RELATION_CALCULUS.md",
     "theory/GRAPH_REALIZATION.md",
     "scripts/validate_graph_realization.py",
+    "scripts/validate_graph_realization_pr11_frozen.py",
     "scripts/verify_graph_artifacts.py",
     "experiments/relation/run.py",
     "experiments/graph_realization/__init__.py",
@@ -57,9 +58,7 @@ def sha256_bytes(data: bytes) -> str:
 
 
 def canonical_bytes(value: object) -> bytes:
-    return json.dumps(
-        value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
-    ).encode("utf-8")
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
 
 
 def load_module(name: str, path: Path):
@@ -105,9 +104,7 @@ def safe_repo_file(path: str) -> str:
 
 
 def declared_evidence_paths() -> set[str]:
-    payload = json.loads(
-        (ROOT / "machine/graph_realization_results.json").read_text(encoding="utf-8")
-    )
+    payload = json.loads((ROOT / "machine/graph_realization_results.json").read_text(encoding="utf-8"))
     records = payload.get("records")
     if not isinstance(records, list):
         raise RuntimeError("graph result registry must contain records list")
@@ -126,19 +123,15 @@ def declared_evidence_paths() -> set[str]:
 
 
 def receipt_files() -> list[str]:
-    return sorted(
-        safe_repo_file(path) for path in (set(CORE_FILES) | declared_evidence_paths())
-    )
+    return sorted(safe_repo_file(path) for path in (set(CORE_FILES) | declared_evidence_paths()))
 
 
 def run_suite() -> dict[str, object]:
     validator = load_module("graph_realization_validator", VALIDATOR)
     experiment = load_module("graph_realization_experiment", EXPERIMENT)
-
     validation = validator.validate()
     if validation["status"] != "ok":
         raise RuntimeError("; ".join(validation["errors"]))
-
     result = experiment.run_suite()
     files = receipt_files()
     source_hashes = {path: sha256_bytes((ROOT / path).read_bytes()) for path in files}
@@ -163,11 +156,7 @@ def run_suite() -> dict[str, object]:
     return {
         **identity,
         "suite_fingerprint_sha256": fingerprint,
-        "runtime": {
-            "python": platform.python_version(),
-            "implementation": platform.python_implementation(),
-            "platform": sys.platform,
-        },
+        "runtime": {"python": platform.python_version(), "implementation": platform.python_implementation(), "platform": sys.platform},
         "runtime_excluded_from_fingerprint": True,
     }
 
@@ -179,10 +168,7 @@ def main() -> int:
     args = parser.parse_args()
     result = run_suite()
     if args.hash_only:
-        print(json.dumps(
-            {"suite_fingerprint_sha256": result["suite_fingerprint_sha256"]},
-            sort_keys=True
-        ))
+        print(json.dumps({"suite_fingerprint_sha256": result["suite_fingerprint_sha256"]}, sort_keys=True))
     elif args.json:
         print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
     else:

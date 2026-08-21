@@ -42,6 +42,9 @@ python scripts/validate_reproducibility.py
 python scripts/validate_graph_realization.py
 python experiments/graph_realization/run.py --json
 python experiments/run_graph_realization.py --json
+python scripts/validate_bridge_core.py
+python experiments/bridge_core/run.py --json
+python experiments/run_bridge_core.py --json
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 python experiments/run_pr2.py --json
@@ -75,10 +78,37 @@ requires it and the difference is documented explicitly.
 `experiments/run_cross_repo.py` records the cross-repository finite formal-pattern
 surface. `experiments/run_pr6.py` records the VOP-2019-MEI source-specific
 reproduction package. `experiments/run_graph_realization.py` records the finite
-graph-realization and typed-incidence authority surface.
+graph-realization and typed-incidence authority surface. `experiments/run_bridge_core.py`
+records the PR #12 BridgeCore structural-transport authority surface.
 
 All receipt families bind deterministic repository files and canonical result
 payloads while keeping runtime metadata separate from the portable suite
+fingerprint.
+
+For BridgeCore, the deterministic source set includes:
+
+```text
+machine/bridge_core_contract.json
+machine/bridge_core_results.json
+machine/roadmap_state.json
+machine/contract.json
+docs/CLAIMS.md
+README4AI.md
+docs/REPRODUCIBILITY.md
+theory/BRIDGE_CORE.md
+theory/AUXILIARY_CONTRACTS.md
+scripts/validate_bridge_core.py
+scripts/verify_bridge_artifacts.py
+experiments/bridge_core/run.py
+tests/test_bridge_core.py
+experiments/run_bridge_core.py
+.github/workflows/finite-adversarial.yml
+```
+
+The BridgeCore receipt therefore changes when its theorem registry, hypotheses,
+human claim boundary, central machine registration, AI read chain,
+reproducibility declaration, roadmap state, implementation, validator, tests, or
+CI evidence path changes. Runtime metadata is excluded from the portable
 fingerprint.
 
 For the graph-realization suite, the deterministic source set includes at least:
@@ -147,6 +177,28 @@ DOI_AND_LOCATOR_IDENTITY != SOURCE_PDF_BYTE_HASH
 
 Runtime metadata is descriptive. A suite fingerprint identifies the declared
 source-and-result bundle; it does not establish semantic truth.
+
+## BridgeCore conformance boundary
+
+BridgeCore accepts a possibly empty declared domain `D subseteq X_s` and keeps
+preserved/lost structure metadata disjoint without requiring it to be exhaustive.
+The production composition law is checked over all `27^2 = 729` ordered pairs of
+valid partial preservation/loss declarations on a three-label vocabulary.
+
+The identity theorem is correspondingly scoped: two-sided preservation/loss
+metadata neutrality requires the identity bridge's tracked structure vocabulary
+to equal `P_B union L_B` for the bridge being composed.
+
+```text
+DISJOINT_METADATA != EXHAUSTIVE_METADATA
+RELATIONAL_IDENTITY_NEUTRALITY != UNCONDITIONAL_METADATA_NEUTRALITY
+FINITE_BRIDGE_CONFORMANCE != GENERAL_PROOF
+STRUCTURAL_BRIDGE != EPISTEMIC_PROMOTION
+BRIDGE_CONFORMANCE != PHYSICAL_VALIDATION
+```
+
+The executable battery is independent bounded conformance evidence. The proofs
+in `theory/BRIDGE_CORE.md` are the mathematical authority.
 
 ## Graph-realization conformance boundary
 
@@ -241,6 +293,9 @@ cross-repo-receipt.json
 graph-realization-validation.json
 graph-realization-witness.json
 graph-realization-receipt.json
+bridge-core-validation.json
+bridge-core-witness.json
+bridge-core-receipt.json
 vopson-corpus-validation.json
 vopson-doc-sync.json
 reproducibility-validation.json
@@ -272,6 +327,10 @@ not a claim that arbitrary minimum-cover problems are computationally cheap.
 The graph-realization battery is separately exhaustive only over all labelled
 binary relations on fixed carriers `Fin1`, `Fin2`, and `Fin3`; it does not
 establish universality by enumeration.
+
+The BridgeCore battery is separately exhaustive only over all 4,096 ordered
+triples of `Fin2` binary relations plus 729 partial structure-declaration pairs
+on the declared three-label vocabulary.
 
 ## Human and machine synchronization
 
@@ -315,6 +374,11 @@ The graph layer is synchronized across `machine/graph_realization_contract.json`
 `docs/REPRODUCIBILITY.md`, central `machine/contract.json` registration, and the
 receipt-bound `ROADMAP.md` boundaries.
 
+BridgeCore is synchronized across `machine/bridge_core_contract.json`,
+`machine/bridge_core_results.json`, `theory/BRIDGE_CORE.md`, `docs/CLAIMS.md`,
+`README4AI.md`, `docs/REPRODUCIBILITY.md`, central `machine/contract.json`, the
+live `machine/roadmap_state.json`, and the deterministic BridgeCore receipt.
+
 ## Nonclaims
 
 This contract does not claim that deterministic output proves a physical law,
@@ -323,5 +387,6 @@ physical premise, that a synchronized reproduction promotion proves the source
 hypothesis, that a public software invariant is a physical law, that a pinned
 source blob proves live remote freshness, that a complete bibliography is a
 completed reproduction, that two Python versions constitute universal
-portability, that finite graph conformance proves unrestricted mathematics or
-physical ontology, or that CI can replace independent scientific review.
+portability, that finite graph or BridgeCore conformance proves unrestricted
+mathematics or physical ontology, or that CI can replace independent scientific
+review.

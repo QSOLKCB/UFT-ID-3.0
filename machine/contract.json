@@ -26,10 +26,7 @@
     "dependency_policy": "Python standard library only for current validators and finite experiments"
   },
   "ci_provenance": {
-    "workflow_files": [
-      ".github/workflows/finite-adversarial.yml",
-      ".github/workflows/vopson-corpus.yml"
-    ],
+    "workflow_files": [".github/workflows/finite-adversarial.yml", ".github/workflows/vopson-corpus.yml"],
     "workflow_extensions": [".yml", ".yaml"],
     "workflow_permissions": {"contents": "read"},
     "job_permission_overrides_allowed": false,
@@ -42,10 +39,7 @@
     "artifact_directory": "artifacts",
     "artifact_retention_days": 30,
     "compile_command": "python -m compileall -q experiments scripts tests",
-    "test_commands": [
-      "python -m unittest discover -s tests -v",
-      "python -O -m unittest discover -s tests -v"
-    ],
+    "test_commands": ["python -m unittest discover -s tests -v", "python -O -m unittest discover -s tests -v"],
     "evidence_generation_condition": "always()",
     "validator": "scripts/validate_reproducibility.py"
   },
@@ -65,7 +59,9 @@
     "vopson_2019_mei_receipt_runner": "experiments/run_pr6.py",
     "vopson_2019_mei_receipt_version": "1.0.0",
     "graph_realization_receipt_runner": "experiments/run_graph_realization.py",
-    "graph_realization_receipt_version": "1.0.0"
+    "graph_realization_receipt_version": "1.0.0",
+    "bridge_core_receipt_runner": "experiments/run_bridge_core.py",
+    "bridge_core_receipt_version": "1.0.1"
   },
   "finite_result_authority": {
     "human": "theory/FINITE_RESULTS.md",
@@ -98,6 +94,18 @@
     "receipt_version": "1.0.0",
     "base_relation_authority": "machine/relation_contract.json",
     "rule": "Finite relation/digraph realization and typed incidence preserve only declared structure; graph identity, drawings, tetrahedral geometry, material examples, ETQ/SPECTRAL context, and combinatorial invariants do not acquire physical ontology by resemblance or representation."
+  },
+  "bridge_core_authority": {
+    "human": "theory/BRIDGE_CORE.md",
+    "machine_contract": "machine/bridge_core_contract.json",
+    "machine_results": "machine/bridge_core_results.json",
+    "validator": "scripts/validate_bridge_core.py",
+    "experiment": "experiments/bridge_core/run.py",
+    "tests": "tests/test_bridge_core.py",
+    "receipt_runner": "experiments/run_bridge_core.py",
+    "receipt_version": "1.0.1",
+    "roadmap_state": "machine/roadmap_state.json",
+    "rule": "BridgeCore formalizes typed structural transport and conservative composition only; type/version/scope compatibility, deterministic transport, or finite conformance do not confer semantic equivalence, epistemic authority, or physical ontology."
   },
   "vopson_corpus_authority": {
     "author": "research/vopson/AUTHOR.json",
@@ -153,12 +161,7 @@
   "authority_layers": ["formal-core", "diagnostic", "empirical", "interpretive", "speculative"],
   "inherited_constraint_core": {
     "symbols": ["S", "A", "r", "Phi", "Phi_crit", "Pi_lex", "Delta"],
-    "preferred_lineage": [
-      "10.22541/au.176790866.68066655/v1",
-      "10.22541/au.176790865.55905239/v1",
-      "10.22541/au.176765062.20893637/v1",
-      "10.22541/au.176780579.95800648/v1"
-    ]
+    "preferred_lineage": ["10.22541/au.176790866.68066655/v1", "10.22541/au.176790865.55905239/v1", "10.22541/au.176765062.20893637/v1", "10.22541/au.176780579.95800648/v1"]
   },
   "hard_rules": {
     "information_measures_interchangeable": false,
@@ -206,50 +209,24 @@
   "vopson": {
     "orcid": "0000-0002-8073-5538",
     "orcid_role": "bibliographic identity anchor only",
-    "tracks": [
-      "mass-energy-information-equivalence", "genomic-information-entropy",
-      "second-law-of-infodynamics", "cross-domain-applications",
-      "simulation-hypothesis-inference", "information-theoretic-gravity",
-      "polygon-symmetry", "language-diversity"
-    ]
+    "tracks": ["mass-energy-information-equivalence", "genomic-information-entropy", "second-law-of-infodynamics", "cross-domain-applications", "simulation-hypothesis-inference", "information-theoretic-gravity", "polygon-symmetry", "language-diversity"]
   },
   "formal_verification": {
     "system": "Lean",
     "status": "deferred",
     "entry_condition": "canonical definitions and theorem statements frozen after reproduction and adversarial review",
     "placeholder_formalizations_allowed": false,
-    "initial_targets": [
-      "finite admissibility predicate", "finite total tie-break order",
-      "lexicographic recovery existence and uniqueness", "recovery returns admissible state",
-      "restricted monotonicity theorem", "explicit finite counterexamples",
-      "coprime cyclic traversal", "finite minimum sufficient basis"
-    ]
+    "initial_targets": ["finite admissibility predicate", "finite total tie-break order", "lexicographic recovery existence and uniqueness", "recovery returns admissible state", "restricted monotonicity theorem", "explicit finite counterexamples", "coprime cyclic traversal", "finite minimum sufficient basis"]
   },
   "required_agent_reads": [
-    "README4AI.md", "AGENTS.md", "docs/CLAIMS.md", "docs/NONCLAIMS.md",
-    "docs/ARCHITECTURE.md", "docs/REPRODUCIBILITY.md", "docs/MILESTONES.md",
-    "experiments/README.md", "MATHS.md", "theory/DEFINITIONS.md",
-    "theory/AUXILIARY_CONTRACTS.md", "theory/THEOREM_TARGETS.md",
-    "theory/FINITE_RESULTS.md", "theory/CROSS_REPO_RESULTS.md",
-    "theory/GRAPH_REALIZATION.md",
-    "machine/finite_results.json", "machine/cross_repo_patterns.json",
-    "machine/cross_repo_results.json", "machine/graph_realization_contract.json",
-    "machine/graph_realization_results.json", "research/CROSS_REPO_PATTERN_ATLAS.md",
-    "research/GRAPH_REALIZATION_SOURCES.md",
-    "research/vopson/AUTHOR.json", "research/vopson/CORPUS.md",
-    "research/vopson/corpus.json", "research/vopson/CLAIM_GRAPH.md",
-    "research/vopson/CLAIM_GRAPH.json", "research/vopson/DEFINITIONS.md",
-    "research/vopson/REPRODUCTION_MATRIX.md", "research/vopson/COUNTEREXAMPLE_MATRIX.md",
-    "research/vopson/RESPONSE_HISTORY.md",
-    "research/vopson/reproduction/2019-mei/SOURCE_MAP.md",
-    "research/vopson/reproduction/2019-mei/DERIVATION.md",
-    "research/vopson/reproduction/2019-mei/ASSUMPTION_GRAPH.json",
-    "research/vopson/reproduction/2019-mei/DIMENSIONAL_AUDIT.md",
-    "research/vopson/reproduction/2019-mei/CONTROL_MATRIX.md",
-    "research/vopson/reproduction/2019-mei/result.json",
-    "scripts/validate_vopson_2019_mei.py", "scripts/validate_graph_realization.py",
-    "experiments/run_graph_realization.py",
-    "research/reports/2026-08-18-PR4-ACTION-REGISTER.md",
-    "research/VOPSON_MATRIX.md", "ROADMAP.md"
+    "README4AI.md", "AGENTS.md", "docs/CLAIMS.md", "docs/NONCLAIMS.md", "docs/ARCHITECTURE.md", "docs/REPRODUCIBILITY.md", "docs/MILESTONES.md",
+    "experiments/README.md", "MATHS.md", "theory/DEFINITIONS.md", "theory/AUXILIARY_CONTRACTS.md", "theory/THEOREM_TARGETS.md", "theory/FINITE_RESULTS.md", "theory/CROSS_REPO_RESULTS.md",
+    "theory/GRAPH_REALIZATION.md", "machine/finite_results.json", "machine/cross_repo_patterns.json", "machine/cross_repo_results.json", "machine/graph_realization_contract.json", "machine/graph_realization_results.json",
+    "theory/BRIDGE_CORE.md", "machine/bridge_core_contract.json", "machine/bridge_core_results.json", "scripts/validate_bridge_core.py", "experiments/run_bridge_core.py",
+    "research/CROSS_REPO_PATTERN_ATLAS.md", "research/GRAPH_REALIZATION_SOURCES.md", "research/vopson/AUTHOR.json", "research/vopson/CORPUS.md", "research/vopson/corpus.json", "research/vopson/CLAIM_GRAPH.md",
+    "research/vopson/CLAIM_GRAPH.json", "research/vopson/DEFINITIONS.md", "research/vopson/REPRODUCTION_MATRIX.md", "research/vopson/COUNTEREXAMPLE_MATRIX.md", "research/vopson/RESPONSE_HISTORY.md",
+    "research/vopson/reproduction/2019-mei/SOURCE_MAP.md", "research/vopson/reproduction/2019-mei/DERIVATION.md", "research/vopson/reproduction/2019-mei/ASSUMPTION_GRAPH.json",
+    "research/vopson/reproduction/2019-mei/DIMENSIONAL_AUDIT.md", "research/vopson/reproduction/2019-mei/CONTROL_MATRIX.md", "research/vopson/reproduction/2019-mei/result.json",
+    "scripts/validate_vopson_2019_mei.py", "scripts/validate_graph_realization.py", "experiments/run_graph_realization.py", "research/reports/2026-08-18-PR4-ACTION-REGISTER.md", "research/VOPSON_MATRIX.md", "ROADMAP.md"
   ]
 }
