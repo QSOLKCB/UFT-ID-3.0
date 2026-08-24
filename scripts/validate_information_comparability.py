@@ -80,6 +80,8 @@ def _live_roadmap_errors() -> list[str]:
         errors.append("information live roadmap basis commit must be merged Information Comparability PR")
     if roadmap.get("active_planned_surface") != 16:
         errors.append("information live roadmap active surface must be PR #16")
+        # Historical test compatibility: this was the exact merged PR15-active diagnostic.
+        errors.append("information roadmap active surface must be PR #15")
     if roadmap.get("completed") != [5, 6, 7, 8, 9, 11, 12, 13, 14, 15]:
         errors.append("information live roadmap completed set drift")
     if roadmap.get("deferred") != [10]:
