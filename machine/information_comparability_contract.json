@@ -1,0 +1,81 @@
+{
+  "type": "uft-id-information-comparability-contract",
+  "schema_version": "1.0.0",
+  "snapshot_date": "2026-08-24",
+  "claim_class": "DEFINITION",
+  "scope": "Finite information-quantity specification comparability. The contract distinguishes direct comparability from explicit unit-converted comparability and forbids scalar coincidence, shared vocabulary, or shared units from silently substituting for functional, observation, convention, scope, semantic, epistemic, empirical, or physical equivalence.",
+  "primary_type": "InformationSpec=(source_type,functional,observation,unit,normalization,conditioning,scope)",
+  "conversion_type": "UnitConversion=(functional,source_unit,target_unit,positive_scale,scope)",
+  "spec_fields": {
+    "source_type": "declared source/carrier type on which the information quantity is defined",
+    "functional": "exact information functional identity; shared use of the word information is insufficient",
+    "observation": "exact observation/measurement contract presented to the functional",
+    "unit": "declared scalar unit or logarithm-base convention",
+    "normalization": "declared normalization convention",
+    "conditioning": "declared conditioning convention",
+    "scope": "nonempty contexts/regimes in which the specification is licensed"
+  },
+  "comparability_modes": {
+    "direct": "source_type, functional, observation, unit, normalization, and conditioning are equal and scopes overlap",
+    "unit_converted": "all direct-comparability fields except unit are equal, scopes overlap, and an exact registered positive unit conversion matches the functional and unit direction",
+    "not_authorized": "numeric equality, matching codomain, matching unit, matching functional name, or shared use of the word information alone"
+  },
+  "unit_conversion_registry": {
+    "bit->base4-digit": "scale=1/2 for logarithmic functionals",
+    "base4-digit->bit": "scale=2 for logarithmic functionals"
+  },
+  "functional_registry": {
+    "shannon_entropy": "finite Shannon entropy under the declared observation and logarithm-base/unit convention",
+    "hartley_entropy": "finite Hartley support entropy under the declared observation and logarithm-base/unit convention"
+  },
+  "hard_boundaries": [
+    "SAME_WORD_INFORMATION != SAME_FUNCTIONAL",
+    "SAME_SCALAR_CODOMAIN != COMPARABLE_INFORMATION",
+    "SAME_UNIT != COMPARABLE_INFORMATION",
+    "SAME_FUNCTIONAL != SAME_OBSERVATION",
+    "IDENTICAL_SPEC => COMPARABLE",
+    "COMPARABLE != IDENTICAL_SPEC",
+    "NUMERIC_EQUALITY != INFORMATIONAL_EQUIVALENCE",
+    "POSITIVE_UNIT_CONVERSION != SEMANTIC_BRIDGE",
+    "PAIRWISE_SCOPE_COMPARABILITY != TRANSITIVE_COMPARABILITY",
+    "DIRECT_COMPARABILITY != EMPIRICAL_COMMENSURABILITY",
+    "FINITE_INFORMATION_CONFORMANCE != GENERAL_INFORMATION_THEORY"
+  ],
+  "execution_limits": {
+    "functional_count": 2,
+    "observation_count": 2,
+    "unit_count": 2,
+    "normalization_count": 2,
+    "conditioning_count": 2,
+    "scope_count": 3,
+    "information_spec_count": 96,
+    "ordered_spec_pair_count": 9216,
+    "directly_comparable_ordered_pairs": 224,
+    "unit_convertible_ordered_pairs": 224,
+    "positive_scale_order_checks": 75,
+    "log_base_conversion_checks": 5,
+    "policy": "The bounded battery is exact conformance evidence for the declared finite specification grammar and bit/base4 conversion registry only; it is not a universal theorem that arbitrary quantities called information are comparable."
+  },
+  "authorities": {
+    "human": "theory/INFORMATION_COMPARABILITY.md",
+    "results": "machine/information_comparability_results.json",
+    "validator": "scripts/validate_information_comparability.py",
+    "experiment": "experiments/information_comparability/run.py",
+    "tests": "tests/test_information_comparability.py",
+    "receipt": "experiments/run_information_comparability.py",
+    "artifact_verifier": "scripts/verify_information_comparability_artifacts.py",
+    "roadmap_state": "machine/roadmap_state.json",
+    "information_primitives": "experiments/lib/information.py",
+    "observation_base": "machine/observation_contract.json",
+    "representation_base": "machine/representation_contract.json"
+  },
+  "explicit_deferrals": [
+    "mutual-information comparability across unmatched joint models",
+    "KL-divergence comparability across unmatched reference measures",
+    "stochastic channel comparability to planned PR #17",
+    "semantic equivalence between different observation contracts without an explicit bridge",
+    "empirical commensurability and calibration validity to planned PR #18",
+    "infinite-alphabet information measures",
+    "Lean proof objects"
+  ]
+}
