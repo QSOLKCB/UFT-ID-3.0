@@ -4,10 +4,19 @@ from __future__ import annotations
 
 import argparse
 from fractions import Fraction
+import importlib.util
 import itertools
 import json
+from pathlib import Path
 
-from experiments.lib.information import shannon_entropy
+ROOT = Path(__file__).resolve().parents[2]
+_INFORMATION_PRIMITIVES = ROOT / "experiments/lib/information.py"
+_INFO_SPEC = importlib.util.spec_from_file_location("information_comparability_shared_primitives", _INFORMATION_PRIMITIVES)
+if _INFO_SPEC is None or _INFO_SPEC.loader is None:
+    raise RuntimeError(f"cannot load shared information primitives: {_INFORMATION_PRIMITIVES}")
+_INFO = importlib.util.module_from_spec(_INFO_SPEC)
+_INFO_SPEC.loader.exec_module(_INFO)
+shannon_entropy = _INFO.shannon_entropy
 
 FUNCTIONALS = ("shannon_entropy", "hartley_entropy")
 OBSERVATION_REGISTRY = {
