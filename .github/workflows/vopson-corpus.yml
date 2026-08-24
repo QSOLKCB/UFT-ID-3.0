@@ -67,10 +67,14 @@ jobs:
 
           run = root / "experiments/empirical_falsification_profile/run.py"
           text = run.read_text(encoding="utf-8")
-          old_pred = "if not refs or any(not isinstance(ref, str) or not ref for ref in refs):"
-          if text.count(old_pred) != 2:
-              raise SystemExit("provenance predicate anchor drift")
-          text = text.replace(old_pred, "if not refs or any(not isinstance(ref, str) or not ref.strip() for ref in refs):")
+          constructor_pred = "if not refs or any(not isinstance(ref, str) or not ref for ref in refs):"
+          evaluator_pred = "if not isinstance(refs, list) or not refs or any(not isinstance(ref, str) or not ref for ref in refs):"
+          if text.count(constructor_pred) != 1:
+              raise SystemExit("constructor provenance predicate anchor drift")
+          if text.count(evaluator_pred) != 1:
+              raise SystemExit("evaluator provenance predicate anchor drift")
+          text = text.replace(constructor_pred, "if not refs or any(not isinstance(ref, str) or not ref.strip() for ref in refs):")
+          text = text.replace(evaluator_pred, "if not isinstance(refs, list) or not refs or any(not isinstance(ref, str) or not ref.strip() for ref in refs):")
           run.write_text(text, encoding="utf-8")
 
           tests = root / "tests/test_empirical_falsification_profile.py"
@@ -89,7 +93,6 @@ jobs:
               raise SystemExit("graph README4AI pin anchor drift")
           graph.write_text(text, encoding="utf-8")
 
-          # Restore the canonical workflow before validation/commit so no repair machinery survives.
           canonical = subprocess.check_output([
               "git", "show", "8c854e9b8bb81f96d4c04be98cdd7a133d73e234:.github/workflows/vopson-corpus.yml"
           ], text=True)
