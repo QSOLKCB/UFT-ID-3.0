@@ -76,9 +76,20 @@ class LeanObservationFoundationFreezeTests(unittest.TestCase):
         mutated = workflow.replace("        run: python scripts/validate_lean_observation_foundation.py\n", "        run: python -c 'pass'\n", 1)
         self.assertTrue(any("direct validator/policy drift" in e for e in V.workflow_contract_errors(mutated)))
 
-    def test_basis_commit_object_mapping_matches_when_required(self):
-        errors = V.basis_source_object_errors(require_objects=True)
-        self.assertEqual(errors, [])
+    def test_basis_commit_object_mapping_logic_is_fail_closed(self):
+        original = V.basis_git_blob_sha
+        try:
+            V.basis_git_blob_sha = lambda relpath: V.EXPECTED_SOURCE_BLOBS.get(relpath)
+            self.assertEqual(V.basis_source_object_errors(require_objects=True), [])
+
+            V.basis_git_blob_sha = lambda relpath: None
+            errors = V.basis_source_object_errors(require_objects=True)
+            self.assertTrue(any("basis commit object unavailable" in error for error in errors), errors)
+            self.assertIn("complete PR9 basis dependency closure was not resolved from Git objects", errors)
+
+            self.assertEqual(V.basis_source_object_errors(require_objects=False), [])
+        finally:
+            V.basis_git_blob_sha = original
 
     def test_first_batch_is_exactly_obs_001_through_004(self):
         freeze = documents()["freeze"]
