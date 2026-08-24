@@ -4,7 +4,7 @@
 The exact BridgeCore validator merged in GitHub PR #13 is preserved as
 validate_bridge_core_pr13_frozen.py. This wrapper replays that validator against
 its historical PR12-active roadmap snapshot, then independently validates the
-current post-BridgeCore live roadmap where planned PR #13 is active.
+current live roadmap without changing BridgeCore theorem semantics.
 """
 from __future__ import annotations
 
@@ -60,20 +60,13 @@ HISTORICAL_ROADMAP_STATE = {
 
 EXPECTED_LIVE_ROADMAP = {
     "type": "uft-id-roadmap-state",
-    "schema_version": "1.1.0",
+    "schema_version": "1.2.0",
     "snapshot_date": "2026-08-24",
-    "basis_commit": "2242f96564f4d27af4ba641b45f45f011a49a7c7",
-    "completed": [5, 6, 7, 8, 9, 11, 12],
-    "active_planned_surface": 13,
+    "basis_commit": "083aa9ae9e812cae86302d856f70ad83e5cf806b",
+    "completed": [5, 6, 7, 8, 9, 11, 12, 13],
+    "active_planned_surface": 14,
     "deferred": [10],
 }
-
-
-def _historical_load(path: Path):
-    original = _prior._frozen.load_json
-    if path == _prior._frozen.PATHS["roadmap_state"]:
-        return copy.deepcopy(HISTORICAL_ROADMAP_STATE)
-    return original(path)
 
 
 def validate() -> dict[str, object]:
@@ -100,8 +93,10 @@ def validate() -> dict[str, object]:
         by_pr = {x.get("planned_pr"): x for x in sequence if isinstance(x, dict)}
         if by_pr.get(12, {}).get("status") != "complete-merged-2242f96564f4d27af4ba641b45f45f011a49a7c7":
             errors.append("BridgeCore live roadmap must mark planned PR #12 complete")
-        if by_pr.get(13, {}).get("status") != "active-implemented-in-current-change":
-            errors.append("BridgeCore live roadmap active surface must be PR #13")
+        if by_pr.get(13, {}).get("status") != "complete-merged-083aa9ae9e812cae86302d856f70ad83e5cf806b":
+            errors.append("BridgeCore live roadmap must mark planned PR #13 complete")
+        if by_pr.get(14, {}).get("status") != "active-implemented-in-current-change":
+            errors.append("BridgeCore live roadmap active surface must be PR #14")
     return {**result, "status": "error" if errors else "ok", "errors": errors}
 
 
