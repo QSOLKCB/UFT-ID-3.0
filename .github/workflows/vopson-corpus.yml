@@ -5,6 +5,7 @@ on:
     paths:
       - ".github/workflows/**"
       - "tools/post_efp_rollover_patch.py"
+      - "tools/post_efp_rollover_testfix.py"
 
 permissions:
   contents: write
@@ -28,8 +29,9 @@ jobs:
         run: |
           set -euo pipefail
           python tools/post_efp_rollover_patch.py
+          python tools/post_efp_rollover_testfix.py
           git show 516cff5d6a45af54d6fc4ae9c72c2e8e9c668637:.github/workflows/vopson-corpus.yml > .github/workflows/vopson-corpus.yml
-          rm tools/post_efp_rollover_patch.py
+          rm tools/post_efp_rollover_patch.py tools/post_efp_rollover_testfix.py
 
       - name: Validate rollover authority
         shell: bash
@@ -56,6 +58,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           test ! -e tools/post_efp_rollover_patch.py
+          test ! -e tools/post_efp_rollover_testfix.py
           git diff --cached --name-only
           git commit -m "Roll roadmap from EFP to Lean theorem freeze"
           git push origin HEAD:agent/post-efp-roadmap-rollover
