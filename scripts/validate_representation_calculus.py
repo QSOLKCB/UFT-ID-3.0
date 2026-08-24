@@ -3,7 +3,7 @@
 
 The theorem/contract audit remains in validate_representation_calculus_preintegration_frozen.py.
 This wrapper replays that authority against the exact merged Representation roadmap snapshot,
-then independently validates the current Information Comparability schedule.
+then independently validates the current Recovery Specializations schedule.
 """
 from __future__ import annotations
 
@@ -82,13 +82,13 @@ def _historical_load_json(path: Path):
 def _live_roadmap_errors() -> list[str]:
     errors: list[str] = []
     roadmap = _original_load_json(_frozen.PATHS["roadmap"])
-    if roadmap.get("schema_version") != "1.3.0":
+    if roadmap.get("schema_version") != "1.4.0":
         errors.append("representation live roadmap schema drift")
-    if roadmap.get("basis_commit") != "a094ec469f311bc6cc11442ee5f850f5dc130e2f":
-        errors.append("representation live roadmap basis commit must be merged PR15")
-    if roadmap.get("active_planned_surface") != 15:
-        errors.append("representation live roadmap active surface must be PR #15")
-    if roadmap.get("completed") != [5, 6, 7, 8, 9, 11, 12, 13, 14]:
+    if roadmap.get("basis_commit") != "22b589c4e2e2042d180d64db837f092a007e0813":
+        errors.append("representation live roadmap basis commit must be merged Information Comparability PR")
+    if roadmap.get("active_planned_surface") != 16:
+        errors.append("representation live roadmap active surface must be PR #16")
+    if roadmap.get("completed") != [5, 6, 7, 8, 9, 11, 12, 13, 14, 15]:
         errors.append("representation live roadmap completed set drift")
     sequence = roadmap.get("sequence")
     if not isinstance(sequence, list):
@@ -97,10 +97,10 @@ def _live_roadmap_errors() -> list[str]:
         by_pr = {x.get("planned_pr"): x for x in sequence if isinstance(x, dict)}
         if by_pr.get(14, {}).get("status") != "complete-merged-a094ec469f311bc6cc11442ee5f850f5dc130e2f":
             errors.append("representation live roadmap PR14 completion drift")
-        if by_pr.get(15, {}).get("status") != "active-implemented-in-current-change":
-            errors.append("representation live roadmap PR15 active-state drift")
-        if by_pr.get(16, {}).get("status") != "planned":
-            errors.append("representation live roadmap PR16 must remain planned")
+        if by_pr.get(15, {}).get("status") != "complete-merged-22b589c4e2e2042d180d64db837f092a007e0813":
+            errors.append("representation live roadmap PR15 completion drift")
+        if by_pr.get(16, {}).get("status") != "active-implemented-in-current-change":
+            errors.append("representation live roadmap PR16 active-state drift")
     serialized = json.dumps(roadmap, sort_keys=True).casefold()
     for token in _frozen.PRIVATE_PATTERNS:
         if token.casefold() in serialized:
