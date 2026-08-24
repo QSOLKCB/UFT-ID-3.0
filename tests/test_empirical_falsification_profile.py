@@ -82,6 +82,16 @@ class EmpiricalFalsificationProfileTests(unittest.TestCase):
         self.assertEqual(E.evaluate(profile1, evidence1)["decision"], "NOT_REJECTED_IN_SCOPE")
         self.assertEqual(E.evaluate(profile1, evidence0)["decision"], "INVALID_EVIDENCE")
 
+    def test_profile_fingerprint_normalizes_equivalent_exact_numbers(self):
+        fraction_profile = E.make_profile(Fraction(0))
+        integer_profile = deepcopy(fraction_profile)
+        integer_profile["prediction"]["upper_bound"] = 0
+        integer_profile["null_model"]["value"] = 0
+        integer_profile["rejection_rule"]["threshold"] = 0
+        self.assertEqual(E.profile_fingerprint(fraction_profile), E.profile_fingerprint(integer_profile))
+        evidence = E.make_evidence(fraction_profile, 1, 0)
+        self.assertEqual(E.evaluate(integer_profile, evidence)["decision"], "REJECTED_IN_SCOPE")
+
     def test_profile_semantics_are_exact_bound(self):
         profile = E.make_profile(0)
         cases = (
@@ -244,6 +254,17 @@ class EmpiricalFalsificationProfileTests(unittest.TestCase):
         finally:
             path.write_text(original, encoding="utf-8")
 
+    def _mutate_text(self, relpath: str, mutate):
+        path = ROOT / relpath
+        original = path.read_text(encoding="utf-8")
+        try:
+            mutated = mutate(original)
+            self.assertNotEqual(mutated, original)
+            path.write_text(mutated, encoding="utf-8")
+            return V.validate()
+        finally:
+            path.write_text(original, encoding="utf-8")
+
     def test_undeclared_contract_field_fails_closed(self):
         result = self._mutate_json("machine/empirical_falsification_profile_contract.json", lambda payload: payload.__setitem__("empirically_validated", True))
         self.assertEqual(result["status"], "error")
@@ -263,6 +284,29 @@ class EmpiricalFalsificationProfileTests(unittest.TestCase):
         result = self._mutate_json("machine/empirical_falsification_profile_results.json", mutate)
         self.assertEqual(result["status"], "error")
         self.assertIn("UFT-EFP-001 proof reference drift", result["errors"])
+
+    def test_csp_base_authority_is_validated_as_complete_contract(self):
+        def mutate(payload):
+            payload["hard_boundaries"] = ["BROKEN-CSP-BOUNDARY"]
+        result = self._mutate_json("machine/continuum_stochastic_prevalence_contract.json", mutate)
+        self.assertEqual(result["status"], "error")
+        self.assertIn("EFP CSP base authority validation failed", result["errors"])
+
+    def test_efp_workflow_command_chain_is_exact_bound(self):
+        attacks = (
+            ("run: python scripts/validate_empirical_falsification_profile.py", "run: python -c 'print(1)'", "validation"),
+            ("python experiments/run_empirical_falsification_profile.py --hash-only > /tmp/empirical-falsification-profile-receipt.json", "python -c 'print(2)' > /tmp/empirical-falsification-profile-receipt.json", "witness_receipt"),
+            ("python experiments/run_empirical_falsification_profile.py --json > artifacts/empirical-falsification-profile-receipt.json 2> artifacts/empirical-falsification-profile-receipt.stderr.txt || true", "python -c 'print(3)' > artifacts/empirical-falsification-profile-receipt.json || true", "evidence_bundle"),
+            ("run: python scripts/verify_empirical_falsification_profile_artifacts.py artifacts", "run: python -c 'print(4)'", "retained_verification"),
+        )
+        for old, new, label in attacks:
+            with self.subTest(label=label):
+                result = self._mutate_text(
+                    ".github/workflows/finite-adversarial.yml",
+                    lambda text, old=old, new=new: text.replace(old, new, 1),
+                )
+                self.assertEqual(result["status"], "error")
+                self.assertIn(f"EFP workflow {label} command-chain drift", result["errors"])
 
     def test_future_snapshot_dates_fail_closed(self):
         result = self._mutate_json(

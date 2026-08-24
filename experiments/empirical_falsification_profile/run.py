@@ -97,13 +97,17 @@ def _exact(value: object, label: str) -> Fraction:
 
 
 def _canonicalize(value: object) -> object:
+    if isinstance(value, bool):
+        return value
     if isinstance(value, Fraction):
         return {"numerator": value.numerator, "denominator": value.denominator}
+    if isinstance(value, int):
+        return {"numerator": value, "denominator": 1}
     if isinstance(value, dict):
         return {str(key): _canonicalize(item) for key, item in sorted(value.items(), key=lambda pair: str(pair[0]))}
     if isinstance(value, (list, tuple)):
         return [_canonicalize(item) for item in value]
-    if isinstance(value, (str, int, bool)) or value is None:
+    if isinstance(value, str) or value is None:
         return value
     raise TypeError(f"unsupported canonical profile value: {type(value).__name__}")
 

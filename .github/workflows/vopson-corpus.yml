@@ -3,205 +3,84 @@ name: vopson-corpus
 on:
   pull_request:
     paths:
+      - "research/vopson/**"
+      - "scripts/validate_vopson_corpus.py"
+      - "scripts/render_vopson_docs.py"
+      - "scripts/validate_reproducibility.py"
+      - "tests/**"
+      - "machine/**"
+      - "README.md"
+      - "README4AI.md"
+      - "AGENTS.md"
+      - "docs/REPRODUCIBILITY.md"
+      - ".github/workflows/**"
+  push:
+    branches: [main]
+    paths:
+      - "research/vopson/**"
+      - "scripts/validate_vopson_corpus.py"
+      - "scripts/render_vopson_docs.py"
+      - "scripts/validate_reproducibility.py"
+      - "tests/**"
+      - "machine/**"
+      - "README.md"
+      - "README4AI.md"
+      - "AGENTS.md"
+      - "docs/REPRODUCIBILITY.md"
       - ".github/workflows/**"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  repair-latest-three-p2:
+  validate-corpus:
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: agent/pr18-empirical-falsification-profile
-          persist-credentials: true
-          fetch-depth: 96
+          persist-credentials: false
 
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
 
-      - name: Apply and verify latest three Codex P2 repairs
-        shell: bash
+      - name: Compile Python
+        run: python -m compileall -q experiments scripts tests
+
+      - name: Check generated Vopson documentation
+        run: python scripts/render_vopson_docs.py --check
+
+      - name: Validate canonical Vopson corpus
+        run: python scripts/validate_vopson_corpus.py
+
+      - name: Validate reproducibility contract
+        run: python scripts/validate_reproducibility.py
+
+      - name: Unit and adversarial tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Optimized-Python tests
+        run: python -O -m unittest discover -s tests -v
+
+      - name: Generate corpus evidence bundle
+        if: always()
         run: |
-          set -euo pipefail
-          test "$(git merge-base HEAD b3d36c8789fc30421add1bd8b29f63d23213f9f9)" = "b3d36c8789fc30421add1bd8b29f63d23213f9f9"
-          python - <<'PY'
-          from pathlib import Path
-          import subprocess
-          import textwrap
+          mkdir -p artifacts
+          python scripts/validate_vopson_corpus.py --json > artifacts/vopson-corpus-validation.json 2> artifacts/vopson-corpus-validation.stderr.txt || true
+          python scripts/render_vopson_docs.py --check --json > artifacts/vopson-doc-sync.json 2> artifacts/vopson-doc-sync.stderr.txt || true
+          python scripts/validate_reproducibility.py --json > artifacts/reproducibility-validation.json 2> artifacts/reproducibility-validation.stderr.txt || true
+          python experiments/run_pr2.py --json > artifacts/pr2-receipt.json 2> artifacts/pr2-receipt.stderr.txt || true
 
-          root = Path.cwd()
-
-          def replace_once(path: Path, old: str, new: str, label: str) -> None:
-              text = path.read_text(encoding="utf-8")
-              if text.count(old) != 1:
-                  raise SystemExit(f"{label} anchor drift: {text.count(old)}")
-              path.write_text(text.replace(old, new), encoding="utf-8")
-
-          run = root / "experiments/empirical_falsification_profile/run.py"
-          replace_once(
-              run,
-              '''def _canonicalize(value: object) -> object:
-              if isinstance(value, Fraction):
-                  return {"numerator": value.numerator, "denominator": value.denominator}
-              if isinstance(value, dict):
-                  return {str(key): _canonicalize(item) for key, item in sorted(value.items(), key=lambda pair: str(pair[0]))}
-              if isinstance(value, (list, tuple)):
-                  return [_canonicalize(item) for item in value]
-              if isinstance(value, (str, int, bool)) or value is None:
-                  return value
-              raise TypeError(f"unsupported canonical profile value: {type(value).__name__}")
-          ''',
-              '''def _canonicalize(value: object) -> object:
-              if isinstance(value, bool):
-                  return value
-              if isinstance(value, Fraction):
-                  return {"numerator": value.numerator, "denominator": value.denominator}
-              if isinstance(value, int):
-                  return {"numerator": value, "denominator": 1}
-              if isinstance(value, dict):
-                  return {str(key): _canonicalize(item) for key, item in sorted(value.items(), key=lambda pair: str(pair[0]))}
-              if isinstance(value, (list, tuple)):
-                  return [_canonicalize(item) for item in value]
-              if isinstance(value, str) or value is None:
-                  return value
-              raise TypeError(f"unsupported canonical profile value: {type(value).__name__}")
-          ''',
-              "runtime canonicalize",
-          )
-
-          validator = root / "scripts/validate_empirical_falsification_profile.py"
-          replace_once(
-              validator,
-              '    "csp_base": ROOT / "machine/continuum_stochastic_prevalence_contract.json",\n',
-              '    "csp_base": ROOT / "machine/continuum_stochastic_prevalence_contract.json",\n    "csp_validator": ROOT / "scripts/validate_continuum_stochastic_prevalence.py",\n',
-              "validator CSP path",
-          )
-          workflow_anchors = {
-              "validation": "      - name: Validate Empirical Falsification Profile authority surface\n        run: python scripts/validate_empirical_falsification_profile.py\n",
-              "witness_receipt": "      - name: Run Empirical Falsification Profile witnesses\n        run: |\n          python experiments/empirical_falsification_profile/run.py --json > /tmp/empirical-falsification-profile.json\n          python experiments/run_empirical_falsification_profile.py --hash-only > /tmp/empirical-falsification-profile-receipt.json\n",
-              "evidence_bundle": "      - name: Generate Empirical Falsification Profile evidence bundle\n        if: always()\n        run: |\n          mkdir -p artifacts\n          python scripts/validate_empirical_falsification_profile.py --json > artifacts/empirical-falsification-profile-validation.json 2> artifacts/empirical-falsification-profile-validation.stderr.txt || true\n          python experiments/empirical_falsification_profile/run.py --json > artifacts/empirical-falsification-profile-witness.json 2> artifacts/empirical-falsification-profile-witness.stderr.txt || true\n          python experiments/run_empirical_falsification_profile.py --json > artifacts/empirical-falsification-profile-receipt.json 2> artifacts/empirical-falsification-profile-receipt.stderr.txt || true\n",
-              "retained_verification": "      - name: Verify retained Empirical Falsification Profile evidence\n        if: always()\n        run: python scripts/verify_empirical_falsification_profile_artifacts.py artifacts\n",
-          }
-          replace_once(
-              validator,
-              "EXPECTED_PRIMARY_TYPES = {\n",
-              "EXPECTED_WORKFLOW_ANCHORS = " + repr(workflow_anchors) + "\n\nEXPECTED_PRIMARY_TYPES = {\n",
-              "validator workflow constants",
-          )
-          replace_once(
-              validator,
-              '    repro = PATHS["repro"].read_text(encoding="utf-8")\n',
-              '    repro = PATHS["repro"].read_text(encoding="utf-8")\n    workflow = PATHS["workflow"].read_text(encoding="utf-8")\n',
-              "validator workflow read",
-          )
-          replace_once(
-              validator,
-              '    if csp_base.get("type") != "uft-id-continuum-stochastic-prevalence-contract": errors.append("EFP CSP base authority drift")\n',
-              '    if csp_base.get("type") != "uft-id-continuum-stochastic-prevalence-contract": errors.append("EFP CSP base authority drift")\n    csp_validator = load_module("efp_csp_base_validator", PATHS["csp_validator"])\n    csp_validation = csp_validator.validate()\n    if csp_validation.get("status") != "ok": errors.append("EFP CSP base authority validation failed")\n',
-              "validator CSP invocation",
-          )
-          replace_once(
-              validator,
-              '    experiment = load_module("efp_validator_experiment", PATHS["experiment"])\n',
-              '    for label, anchor in EXPECTED_WORKFLOW_ANCHORS.items():\n        if workflow.count(anchor) != 1:\n            errors.append(f"EFP workflow {label} command-chain drift")\n\n    experiment = load_module("efp_validator_experiment", PATHS["experiment"])\n',
-              "validator workflow checks",
-          )
-
-          tests = root / "tests/test_empirical_falsification_profile.py"
-          numeric_test = textwrap.indent(textwrap.dedent('''\
-          def test_profile_fingerprint_normalizes_equivalent_exact_numbers(self):
-              fraction_profile = E.make_profile(Fraction(0))
-              integer_profile = deepcopy(fraction_profile)
-              integer_profile["prediction"]["upper_bound"] = 0
-              integer_profile["null_model"]["value"] = 0
-              integer_profile["rejection_rule"]["threshold"] = 0
-              self.assertEqual(E.profile_fingerprint(fraction_profile), E.profile_fingerprint(integer_profile))
-              evidence = E.make_evidence(fraction_profile, 1, 0)
-              self.assertEqual(E.evaluate(integer_profile, evidence)["decision"], "REJECTED_IN_SCOPE")
-
-          '''), "    ")
-          replace_once(
-              tests,
-              "    def test_profile_semantics_are_exact_bound(self):\n",
-              numeric_test + "    def test_profile_semantics_are_exact_bound(self):\n",
-              "numeric regression insertion",
-          )
-
-          mutate_text_helper = textwrap.indent(textwrap.dedent('''\
-          def _mutate_text(self, relpath: str, mutate):
-              path = ROOT / relpath
-              original = path.read_text(encoding="utf-8")
-              try:
-                  mutated = mutate(original)
-                  self.assertNotEqual(mutated, original)
-                  path.write_text(mutated, encoding="utf-8")
-                  return V.validate()
-              finally:
-                  path.write_text(original, encoding="utf-8")
-
-          '''), "    ")
-          replace_once(
-              tests,
-              "    def test_undeclared_contract_field_fails_closed(self):\n",
-              mutate_text_helper + "    def test_undeclared_contract_field_fails_closed(self):\n",
-              "text mutation helper insertion",
-          )
-
-          authority_tests = textwrap.indent(textwrap.dedent('''\
-          def test_csp_base_authority_is_validated_as_complete_contract(self):
-              def mutate(payload):
-                  payload["hard_boundaries"] = ["BROKEN-CSP-BOUNDARY"]
-              result = self._mutate_json("machine/continuum_stochastic_prevalence_contract.json", mutate)
-              self.assertEqual(result["status"], "error")
-              self.assertIn("EFP CSP base authority validation failed", result["errors"])
-
-          def test_efp_workflow_command_chain_is_exact_bound(self):
-              attacks = (
-                  ("run: python scripts/validate_empirical_falsification_profile.py", "run: python -c 'print(1)'", "validation"),
-                  ("python experiments/run_empirical_falsification_profile.py --hash-only > /tmp/empirical-falsification-profile-receipt.json", "python -c 'print(2)' > /tmp/empirical-falsification-profile-receipt.json", "witness_receipt"),
-                  ("python experiments/run_empirical_falsification_profile.py --json > artifacts/empirical-falsification-profile-receipt.json 2> artifacts/empirical-falsification-profile-receipt.stderr.txt || true", "python -c 'print(3)' > artifacts/empirical-falsification-profile-receipt.json || true", "evidence_bundle"),
-                  ("run: python scripts/verify_empirical_falsification_profile_artifacts.py artifacts", "run: python -c 'print(4)'", "retained_verification"),
-              )
-              for old, new, label in attacks:
-                  with self.subTest(label=label):
-                      result = self._mutate_text(
-                          ".github/workflows/finite-adversarial.yml",
-                          lambda text, old=old, new=new: text.replace(old, new, 1),
-                      )
-                      self.assertEqual(result["status"], "error")
-                      self.assertIn(f"EFP workflow {label} command-chain drift", result["errors"])
-
-          '''), "    ")
-          replace_once(
-              tests,
-              "    def test_future_snapshot_dates_fail_closed(self):\n",
-              authority_tests + "    def test_future_snapshot_dates_fail_closed(self):\n",
-              "CSP/workflow regression insertion",
-          )
-
-          canonical = subprocess.check_output([
-              "git", "show", "b3d36c8789fc30421add1bd8b29f63d23213f9f9:.github/workflows/vopson-corpus.yml"
-          ], text=True)
-          (root / ".github/workflows/vopson-corpus.yml").write_text(canonical, encoding="utf-8")
-          PY
-
-          python -m compileall -q experiments scripts tests
-          python scripts/validate_reproducibility.py
-          python scripts/validate_empirical_falsification_profile.py
-          python -m unittest tests.test_empirical_falsification_profile -v
-
-      - name: Commit repaired source
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add experiments/empirical_falsification_profile/run.py scripts/validate_empirical_falsification_profile.py tests/test_empirical_falsification_profile.py .github/workflows/vopson-corpus.yml
-          actual="$(git diff --cached --name-only | sort)"
-          expected="$(printf '%s\n' .github/workflows/vopson-corpus.yml experiments/empirical_falsification_profile/run.py scripts/validate_empirical_falsification_profile.py tests/test_empirical_falsification_profile.py | sort)"
-          test "$actual" = "$expected"
-          git commit -m "Bind EFP CSP and workflow authority"
-          git push origin HEAD:agent/pr18-empirical-falsification-profile
+      - name: Retain corpus evidence bundle
+        if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: vopson-corpus-py${{ matrix.python-version }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 30

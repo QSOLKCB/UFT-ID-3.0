@@ -17,6 +17,7 @@ PATHS = {
     "human": ROOT / "theory/EMPIRICAL_FALSIFICATION_PROFILE.md",
     "base_falsification": ROOT / "machine/falsification_contract.json",
     "csp_base": ROOT / "machine/continuum_stochastic_prevalence_contract.json",
+    "csp_validator": ROOT / "scripts/validate_continuum_stochastic_prevalence.py",
     "base_contract": ROOT / "machine/contract.json",
     "roadmap_state": ROOT / "machine/roadmap_state.json",
     "roadmap": ROOT / "ROADMAP.md",
@@ -64,6 +65,8 @@ EXPECTED_BASE_PROJECTION = {
     ],
     "status": "synthetic-conformance",
 }
+
+EXPECTED_WORKFLOW_ANCHORS = {'validation': '      - name: Validate Empirical Falsification Profile authority surface\n        run: python scripts/validate_empirical_falsification_profile.py\n', 'witness_receipt': '      - name: Run Empirical Falsification Profile witnesses\n        run: |\n          python experiments/empirical_falsification_profile/run.py --json > /tmp/empirical-falsification-profile.json\n          python experiments/run_empirical_falsification_profile.py --hash-only > /tmp/empirical-falsification-profile-receipt.json\n', 'evidence_bundle': '      - name: Generate Empirical Falsification Profile evidence bundle\n        if: always()\n        run: |\n          mkdir -p artifacts\n          python scripts/validate_empirical_falsification_profile.py --json > artifacts/empirical-falsification-profile-validation.json 2> artifacts/empirical-falsification-profile-validation.stderr.txt || true\n          python experiments/empirical_falsification_profile/run.py --json > artifacts/empirical-falsification-profile-witness.json 2> artifacts/empirical-falsification-profile-witness.stderr.txt || true\n          python experiments/run_empirical_falsification_profile.py --json > artifacts/empirical-falsification-profile-receipt.json 2> artifacts/empirical-falsification-profile-receipt.stderr.txt || true\n', 'retained_verification': '      - name: Verify retained Empirical Falsification Profile evidence\n        if: always()\n        run: python scripts/verify_empirical_falsification_profile_artifacts.py artifacts\n'}
 
 EXPECTED_PRIMARY_TYPES = {
     "profile": "EmpiricalFalsificationProfile=(profile_id,hypothesis_id,hypothesis_version,claim_class,scope,observable_id,measurement_spec_id,calibration_id,uncertainty_model,prediction,null_model,rejection_rule,evidence_requirements,decision_policy,prior_registration_status,profile_version)",
@@ -385,6 +388,7 @@ def validate() -> dict[str, object]:
     readme = PATHS["readme"].read_text(encoding="utf-8")
     claims = PATHS["claims"].read_text(encoding="utf-8")
     repro = PATHS["repro"].read_text(encoding="utf-8")
+    workflow = PATHS["workflow"].read_text(encoding="utf-8")
 
     snapshot_values = {
         "EFP contract snapshot": contract.get("snapshot_date"),
@@ -420,6 +424,9 @@ def validate() -> dict[str, object]:
     mapping_payload = contract.get("base_falsification_field_mapping")
     if not isinstance(mapping_payload, dict) or set(mapping_payload) != set(EXPECTED_BASE_FALSIFICATION["required_fields"]): errors.append("EFP base mapping does not cover PR8 required fields")
     if csp_base.get("type") != "uft-id-continuum-stochastic-prevalence-contract": errors.append("EFP CSP base authority drift")
+    csp_validator = load_module("efp_csp_base_validator", PATHS["csp_validator"])
+    csp_validation = csp_validator.validate()
+    if csp_validation.get("status") != "ok": errors.append("EFP CSP base authority validation failed")
 
     if base_contract.get("empirical_falsification_profile_authority") != EXPECTED_CENTRAL_AUTHORITY:
         errors.append("central EFP authority registration drift")
@@ -533,6 +540,10 @@ def validate() -> dict[str, object]:
     ):
         for anchor in anchors:
             if anchor not in text: errors.append(f"{label} missing EFP anchor: {anchor}")
+
+    for label, anchor in EXPECTED_WORKFLOW_ANCHORS.items():
+        if workflow.count(anchor) != 1:
+            errors.append(f"EFP workflow {label} command-chain drift")
 
     experiment = load_module("efp_validator_experiment", PATHS["experiment"])
     runtime_mapping = getattr(experiment, "BASE_FALSIFICATION_FIELD_MAPPING", None)
