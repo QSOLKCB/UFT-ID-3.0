@@ -1,0 +1,103 @@
+{
+  "type": "uft-id-recovery-specialization-result-registry",
+  "schema_version": "1.0.0",
+  "snapshot_date": "2026-08-24",
+  "records": [
+    {
+      "id": "UFT-REC-001",
+      "name": "A deterministic selector induces a right-unique effective relation",
+      "claim_class": "PROVED",
+      "statement": "For any total selector sigma:X->X, the effective selector relation Sel_sigma(x,y) iff sigma(x)=y and y!=x is right-unique.",
+      "hypotheses": ["sigma:X->X is a total function"],
+      "proof_reference": "theory/RECOVERY_SPECIALIZATIONS.md#uft-rec-001-a-deterministic-selector-induces-a-right-unique-effective-relation",
+      "executable_evidence": ["experiments/recovery_specializations/run.py", "tests/test_recovery_specializations.py"],
+      "nonclaims": ["Right-uniqueness of the selector-induced relation does not make the underlying generic stepRel right-unique, terminating, or confluent."]
+    },
+    {
+      "id": "UFT-REC-002",
+      "name": "Relation-sound selector iteration preserves base reachability",
+      "claim_class": "PROVED",
+      "statement": "If every non-fixed selector step sigma(u)=v is a stepRel(u,v), then every finite selector iterate sigma^k(x) is reachable from x by the reflexive-transitive closure of stepRel.",
+      "hypotheses": ["sigma:X->X is total", "for all u, sigma(u)!=u implies stepRel(u,sigma(u))", "k is a natural number"],
+      "proof_reference": "theory/RECOVERY_SPECIALIZATIONS.md#uft-rec-002-relation-sound-selector-iteration-preserves-base-reachability",
+      "executable_evidence": ["experiments/recovery_specializations/run.py", "tests/test_recovery_specializations.py"],
+      "nonclaims": ["Relation-soundness does not imply that selector iteration terminates or that all branches of stepRel follow the selector."]
+    },
+    {
+      "id": "UFT-REC-003",
+      "name": "Natural-rank descent terminates deterministic selector iteration",
+      "claim_class": "PROVED",
+      "statement": "If rho:X->N and every non-fixed selector step strictly decreases rho, then selector iteration from x reaches a fixed point after at most rho(x) non-fixed steps.",
+      "hypotheses": ["sigma:X->X is total", "rho:X->N", "for all u, sigma(u)!=u implies rho(sigma(u))<rho(u)"],
+      "proof_reference": "theory/RECOVERY_SPECIALIZATIONS.md#uft-rec-003-natural-rank-descent-terminates-deterministic-selector-iteration",
+      "executable_evidence": ["experiments/recovery_specializations/run.py", "tests/test_recovery_specializations.py"],
+      "nonclaims": ["Termination under a declared natural-number rank does not establish confluence of the base relation or applicability to continuum and stochastic systems."]
+    },
+    {
+      "id": "UFT-REC-004",
+      "name": "Sound rank-certified selectors give executable normalizers",
+      "claim_class": "PROVED",
+      "statement": "If a total selector is relation-sound, its fixed points are exactly the stepRel-normal states, and a natural-number rank strictly decreases on every non-fixed selector step, then deterministic selector iteration defines an executable normalizer that returns a reachable normal form for every input.",
+      "hypotheses": ["sigma:X->X is total", "for all u, sigma(u)!=u implies stepRel(u,sigma(u))", "for all u, sigma(u)=u iff u is stepRel-normal", "rho:X->N", "for all u, sigma(u)!=u implies rho(sigma(u))<rho(u)"],
+      "proof_reference": "theory/RECOVERY_SPECIALIZATIONS.md#uft-rec-004-sound-rank-certified-selectors-give-executable-normalizers",
+      "executable_evidence": ["experiments/recovery_specializations/run.py", "tests/test_recovery_specializations.py"],
+      "nonclaims": ["The returned selector normal form need not be the unique normal form reachable under the underlying relation when that relation branches."]
+    },
+    {
+      "id": "UFT-REC-005",
+      "name": "Finite lexicographic recovery is unique with a final total tie-break",
+      "claim_class": "PROVED",
+      "statement": "For a finite nonempty candidate set, lexicographic minimization of a finite ordered objective tuple followed by a fixed total candidate order returns exactly one candidate.",
+      "hypotheses": ["the candidate set is finite and nonempty", "each objective is defined on every candidate", "the objective list is finite and ordered", "the final tie-break is a fixed total order containing every candidate exactly once"],
+      "proof_reference": "theory/RECOVERY_SPECIALIZATIONS.md#uft-rec-005-finite-lexicographic-recovery-is-unique-with-a-final-total-tie-break",
+      "executable_evidence": ["experiments/recovery_specializations/run.py", "tests/test_recovery_specializations.py"],
+      "nonclaims": ["A unique lexicographic selector result is a property of the declared objectives and tie-break contract, not a unique-selection theorem for the unspecialized relation or for nature."]
+    },
+    {
+      "id": "CX-REC-001",
+      "name": "Existential normalization is not an executable normalizer",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "The terminating fork a->b and a->c has reachable normal forms b and c, so normal-form existence alone does not specify which normal form an executable recovery procedure must return.",
+      "fixture": "three-state terminating fork with two distinct normals and no selector",
+      "evidence": ["experiments/recovery_specializations/run.py", "tests/test_recovery_specializations.py"],
+      "nonclaims": ["The fixture does not prevent adding a separately declared deterministic selector; it shows that the relation alone does not contain one."]
+    },
+    {
+      "id": "CX-REC-002",
+      "name": "Deterministic does not imply relation-sound",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "A total deterministic selector can map a to c even when the declared base relation contains only a->b, so determinism alone does not make selector steps licensed relation steps.",
+      "fixture": "selector sigma(a)=c over base relation containing only a->b",
+      "evidence": ["experiments/recovery_specializations/run.py", "tests/test_recovery_specializations.py"],
+      "nonclaims": ["The counterexample concerns relation soundness only; an unrelated deterministic function remains a valid function."]
+    },
+    {
+      "id": "CX-REC-003",
+      "name": "A relation-sound deterministic selector can loop",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "On the two-cycle 0->1->0, the deterministic selector sigma(0)=1 and sigma(1)=0 is relation-sound but never reaches a fixed point.",
+      "fixture": "two-state deterministic selector cycle",
+      "evidence": ["experiments/recovery_specializations/run.py", "tests/test_recovery_specializations.py"],
+      "nonclaims": ["The fixture does not refute termination when a valid well-founded progress certificate is supplied."]
+    },
+    {
+      "id": "CX-REC-004",
+      "name": "Objective minimization without a total tie-break can remain set-valued",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "If two finite recovery candidates have identical values for every declared objective and no final total tie-break is supplied, objective minimization leaves both candidates tied and does not define a unique selector result.",
+      "fixture": "two candidates with equal objective tuples and no final total order",
+      "evidence": ["experiments/recovery_specializations/run.py", "tests/test_recovery_specializations.py"],
+      "nonclaims": ["Equal objective values are not a defect; the counterexample rejects only an undeclared promotion from a tied argmin set to a unique selector."]
+    },
+    {
+      "id": "CX-REC-005",
+      "name": "A deterministic selector does not make the base relation confluent",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "Adding a selector that chooses b on the fork a->b and a->c yields a deterministic terminating selector path to b while c remains a distinct reachable normal form of the base relation, so selector determinism does not prove base-relation confluence or unique normal form.",
+      "fixture": "three-state fork with selector choosing one branch",
+      "evidence": ["experiments/recovery_specializations/run.py", "tests/test_recovery_specializations.py"],
+      "nonclaims": ["The selector specialization may intentionally choose one branch; it simply must not rewrite the semantics of the underlying relation."]
+    }
+  ],
+  "claim_boundary": "GENERIC_RELATION != DETERMINISTIC_SELECTOR; EXISTENTIAL_NORMALIZATION != EXECUTABLE_NORMALIZER; TERMINATING_SELECTOR != BASE_RELATION_CONFLUENT; EXECUTABLE_NORMALIZER != EMPIRICAL_RECOVERY"
+}
