@@ -1,0 +1,77 @@
+{
+  "type": "uft-id-continuum-stochastic-prevalence-contract",
+  "schema_version": "1.0.0",
+  "snapshot_date": "2026-08-24",
+  "claim_class": "DEFINITION",
+  "scope": "Obligation layer for finite stochastic semantics, infinite-horizon quantifier boundaries, continuum lifting, and prevalence claims. It separates relation reachability from stochastic support, finite-horizon evidence from infinite-path liveness, finite samples from model probabilities, finite counterexamples from prevalence, and finite-grid conformance from continuum conclusions.",
+  "primary_types": {
+    "finite_markov_spec": "FiniteMarkovSpec=(carrier,kernel,initial_distribution,scope)",
+    "path_event_spec": "PathEventSpec=(horizon,event,quantifier,scope)",
+    "prevalence_spec": "PrevalenceSpec=(population,measure,property,scope)",
+    "continuum_lift_spec": "ContinuumLiftSpec=(discrete_domain,continuum_domain,bridge,property,topology,measure,regularity,convergence_mode,error_control,scope)"
+  },
+  "quantifiers": {
+    "exists": "at least one admissible or support witness exists",
+    "positive_probability": "the declared probability measure assigns event mass greater than zero",
+    "almost_sure": "the declared probability measure assigns event mass exactly one",
+    "finite_horizon": "the event is evaluated only through an explicitly finite horizon",
+    "infinite_horizon": "the event is defined on an infinite path space with an explicitly declared limiting or measure-theoretic semantics"
+  },
+  "hard_boundaries": [
+    "RELATION_REACHABLE != POSITIVE_PROBABILITY",
+    "EXISTS_PATH != POSITIVE_PROBABILITY",
+    "POSITIVE_PROBABILITY != ALMOST_SURE",
+    "FINITE_HORIZON_SUCCESS != INFINITE_PATH_LIVENESS",
+    "ONE_TRAJECTORY != DISTRIBUTION",
+    "FINITE_SAMPLE_FREQUENCY != MODEL_PROBABILITY",
+    "FINITE_COUNTEREXAMPLE != PREVALENCE_CLAIM",
+    "PREVALENCE_REQUIRES_DECLARED_MEASURE",
+    "FINITE_GRID_AGREEMENT != CONTINUUM_EQUALITY",
+    "DISCRETIZATION_CONVERGENCE != ASSUMED_WITHOUT_ERROR_CONTROL",
+    "FINITE_STOCHASTIC_CONFORMANCE != GENERAL_STOCHASTIC_OR_CONTINUUM_THEORY"
+  ],
+  "execution_limits": {
+    "kernel_state_count": 2,
+    "kernel_row_probability_denominator": 2,
+    "composition_dimension_limit": 16,
+    "composition_denominator_limit": 64,
+    "composition_output_limit": 10000,
+    "finite_kernel_count": 9,
+    "initial_distribution_count": 3,
+    "kernel_transport_checks": 27,
+    "path_mass_evaluations": 756,
+    "path_normalization_checks": 81,
+    "finite_atomic_event_checks": 48,
+    "almost_sure_event_cases": 18,
+    "positive_probability_event_cases": 30,
+    "support_witness_event_cases": 30,
+    "finite_survival_checks": 16,
+    "prevalence_measure_event_checks": 80,
+    "finite_grid_nonlifting_checks": 31,
+    "policy": "The executable battery uses exact Fraction arithmetic on bounded finite probability models and exact rational polynomial controls. It verifies declared finite obligations and counterexamples only; it does not establish arbitrary stochastic-process, measure-theoretic, continuum, ergodic, prevalence, or infinite-path theorems."
+  },
+  "authorities": {
+    "human": "theory/CONTINUUM_STOCHASTIC_PREVALENCE.md",
+    "results": "machine/continuum_stochastic_prevalence_results.json",
+    "validator": "scripts/validate_continuum_stochastic_prevalence.py",
+    "experiment": "experiments/continuum_stochastic_prevalence/run.py",
+    "tests": "tests/test_continuum_stochastic_prevalence.py",
+    "receipt": "experiments/run_continuum_stochastic_prevalence.py",
+    "artifact_verifier": "scripts/verify_continuum_stochastic_prevalence_artifacts.py",
+    "recovery_base": "machine/recovery_specialization_contract.json",
+    "relation_base": "machine/relation_contract.json",
+    "roadmap_state": "machine/roadmap_state.json",
+    "roadmap": "ROADMAP.md",
+    "workflow": ".github/workflows/finite-adversarial.yml"
+  },
+  "explicit_deferrals": [
+    "general measurable-space and sigma-algebra construction",
+    "continuous-time stochastic processes and generators",
+    "martingale and stopping-time theorems",
+    "ergodicity, mixing, stationarity, and invariant-measure theorems",
+    "continuum existence, compactness, regularity, and convergence proofs",
+    "measure concentration and asymptotic prevalence theorems",
+    "empirical frequency calibration and statistical inference to planned PR #18",
+    "Lean proof objects"
+  ]
+}

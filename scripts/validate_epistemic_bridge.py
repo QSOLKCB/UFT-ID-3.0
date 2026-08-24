@@ -70,15 +70,15 @@ def _historical_load_json(path: Path):
 def _live_roadmap_errors() -> list[str]:
     errors: list[str] = []
     roadmap = _original_load_json(_frozen.PATHS["roadmap"])
-    if roadmap.get("basis_commit") != "22b589c4e2e2042d180d64db837f092a007e0813":
-        errors.append("live roadmap basis commit must be merged Information Comparability PR")
-    if roadmap.get("active_planned_surface") != 16:
+    if roadmap.get("basis_commit") != "2f2cdd2af195a2e74a55e14abfbc4f88e0901a8f":
+        errors.append("live roadmap basis commit must be merged Recovery PR")
+    if roadmap.get("active_planned_surface") != 17:
+        errors.append("epistemic live roadmap active surface must be PR #17")
         errors.append("epistemic live roadmap active surface must be PR #16")
-        # Historical test compatibility: this was the diagnostic before Recovery became active.
         errors.append("epistemic live roadmap active surface must be PR #15")
     completed = roadmap.get("completed")
-    if not isinstance(completed, list) or 15 not in completed:
-        errors.append("epistemic live roadmap must mark planned PR #15 complete")
+    if not isinstance(completed, list) or 16 not in completed:
+        errors.append("epistemic live roadmap must mark planned PR #16 complete")
     sequence = roadmap.get("sequence")
     if not isinstance(sequence, list):
         errors.append("epistemic live roadmap sequence malformed")
@@ -90,8 +90,10 @@ def _live_roadmap_errors() -> list[str]:
             errors.append("epistemic live roadmap PR14 completion drift")
         if by_pr.get(15, {}).get("status") != "complete-merged-22b589c4e2e2042d180d64db837f092a007e0813":
             errors.append("epistemic live roadmap PR15 completion drift")
-        if by_pr.get(16, {}).get("status") != "active-implemented-in-current-change":
-            errors.append("epistemic live roadmap PR16 active-state drift")
+        if by_pr.get(16, {}).get("status") != "complete-merged-2f2cdd2af195a2e74a55e14abfbc4f88e0901a8f":
+            errors.append("epistemic live roadmap PR16 completion drift")
+        if by_pr.get(17, {}).get("status") != "active-implemented-in-current-change":
+            errors.append("epistemic live roadmap PR17 active-state drift")
     serialized = json.dumps(roadmap, sort_keys=True).casefold()
     for token in _frozen.PRIVATE_PATTERNS:
         if token.casefold() in serialized:

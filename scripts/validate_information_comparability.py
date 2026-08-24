@@ -4,7 +4,7 @@
 The exact validator merged in GitHub PR #16 is preserved in
 validate_information_comparability_pr16_frozen.py. This wrapper replays that
 authority against its historical PR15-active roadmap snapshot, then validates
-the current Recovery Specializations schedule independently. Information
+the current Continuum/Stochastic/Prevalence schedule independently. Information
 theorem, counterexample, contract, and evidence semantics remain frozen.
 """
 from __future__ import annotations
@@ -74,15 +74,15 @@ def _historical_load_json(path: Path):
 def _live_roadmap_errors() -> list[str]:
     errors: list[str] = []
     roadmap = _original_load_json(_frozen.PATHS["roadmap"])
-    if roadmap.get("schema_version") != "1.4.0":
+    if roadmap.get("schema_version") != "1.5.0":
         errors.append("information live roadmap schema drift")
-    if roadmap.get("basis_commit") != "22b589c4e2e2042d180d64db837f092a007e0813":
-        errors.append("information live roadmap basis commit must be merged Information Comparability PR")
-    if roadmap.get("active_planned_surface") != 16:
+    if roadmap.get("basis_commit") != "2f2cdd2af195a2e74a55e14abfbc4f88e0901a8f":
+        errors.append("information live roadmap basis commit must be merged Recovery PR")
+    if roadmap.get("active_planned_surface") != 17:
+        errors.append("information live roadmap active surface must be PR #17")
         errors.append("information live roadmap active surface must be PR #16")
-        # Historical test compatibility: this was the exact merged PR15-active diagnostic.
         errors.append("information roadmap active surface must be PR #15")
-    if roadmap.get("completed") != [5, 6, 7, 8, 9, 11, 12, 13, 14, 15]:
+    if roadmap.get("completed") != [5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16]:
         errors.append("information live roadmap completed set drift")
     if roadmap.get("deferred") != [10]:
         errors.append("information live roadmap deferred set drift")
@@ -93,14 +93,16 @@ def _live_roadmap_errors() -> list[str]:
         by_pr = {x.get("planned_pr"): x for x in sequence if isinstance(x, dict)}
         if by_pr.get(15, {}).get("status") != "complete-merged-22b589c4e2e2042d180d64db837f092a007e0813":
             errors.append("information live roadmap PR15 completion drift")
-        if by_pr.get(16, {}).get("status") != "active-implemented-in-current-change":
-            errors.append("information live roadmap PR16 active-state drift")
-        if by_pr.get(17, {}).get("status") != "planned":
-            errors.append("information live roadmap PR17 must remain planned")
+        if by_pr.get(16, {}).get("status") != "complete-merged-2f2cdd2af195a2e74a55e14abfbc4f88e0901a8f":
+            errors.append("information live roadmap PR16 completion drift")
+        if by_pr.get(17, {}).get("status") != "active-implemented-in-current-change":
+            errors.append("information live roadmap PR17 active-state drift")
+        if by_pr.get(18, {}).get("status") != "planned":
+            errors.append("information live roadmap PR18 must remain planned")
     rules = roadmap.get("rules")
-    recovery_rule = "A deterministic recovery selector is a specialization of the generic relation only when its non-fixed steps are relation-sound; executable normalization additionally requires explicit termination/progress and fixed-point/normal-state obligations."
-    if not isinstance(rules, list) or recovery_rule not in rules:
-        errors.append("information live roadmap Recovery specialization rule missing")
+    csp_rule = "Stochastic, prevalence, infinite-horizon, and continuum claims require separately declared probability/measure and lifting obligations; finite reachability, finite samples, counterexamples, or grid conformance cannot supply them by default."
+    if not isinstance(rules, list) or csp_rule not in rules:
+        errors.append("information live roadmap CSP obligation rule missing")
     serialized = json.dumps(roadmap, sort_keys=True).casefold()
     for token in _frozen.PRIVATE_PATTERNS:
         if token.casefold() in serialized:

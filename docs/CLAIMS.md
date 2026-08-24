@@ -194,6 +194,30 @@ EXECUTABLE_NORMALIZER != EMPIRICAL_RECOVERY
 FINITE_SELECTOR_CONFORMANCE != GENERAL_RECOVERY_THEORY
 ```
 
+### C13 - Stochastic, prevalence, and continuum lifting require explicit obligations
+
+**Status:** PROVED
+
+**Qualifier:** finite rational stochastic controls, finite prevalence measures, and finite-grid non-lifting mathematics only; not a general stochastic-process, continuum, ergodic, asymptotic, statistical-inference, or empirical-prevalence theory.
+
+The canonical Continuum/Stochastic/Prevalence authority registers `UFT-CSP-001` through `UFT-CSP-005`. Finite row-stochastic kernels preserve total probability. In finite atomic models, almost-sure events imply positive probability while positive probability is exactly support intersection. Finite path mass is the declared initial mass times the product of transition probabilities. Prevalence is indexed by a declared measure, so a counterexample's existence alone does not determine prevalence. Finally, agreement on any finite real grid cannot imply continuum equality without additional lifting assumptions.
+
+The exact finite reference surface checks 9 two-state rational kernels, 27 kernel transports, 756 finite path masses, 81 path-normalization totals, 48 finite-atomic event/quantifier cases, 16 finite survival controls, 80 prevalence measure/event evaluations, and 31 finite-grid non-lifting polynomial controls.
+
+```text
+RELATION_REACHABLE != POSITIVE_PROBABILITY
+EXISTS_PATH != POSITIVE_PROBABILITY
+POSITIVE_PROBABILITY != ALMOST_SURE
+FINITE_HORIZON_SUCCESS != INFINITE_PATH_LIVENESS
+ONE_TRAJECTORY != DISTRIBUTION
+FINITE_SAMPLE_FREQUENCY != MODEL_PROBABILITY
+FINITE_COUNTEREXAMPLE != PREVALENCE_CLAIM
+PREVALENCE_REQUIRES_DECLARED_MEASURE
+FINITE_GRID_AGREEMENT != CONTINUUM_EQUALITY
+DISCRETIZATION_CONVERGENCE != ASSUMED_WITHOUT_ERROR_CONTROL
+FINITE_STOCHASTIC_CONFORMANCE != GENERAL_STOCHASTIC_OR_CONTINUUM_THEORY
+```
+
 ## Claims requiring future proof or evidence
 
 The following remain future theorem/evidence targets:
@@ -205,6 +229,8 @@ The following remain future theorem/evidence targets:
 - observer-relative inaccessible-information identities;
 - admissible fixed-point theorems;
 - a universal failure trajectory for inference systems;
+- general measurable-space, continuous-time stochastic, ergodic, mixing, and concentration results beyond the bounded CSP authority;
+- empirical prevalence, frequency calibration, confidence, and sampling claims reserved for the empirical falsification phase;
 - any physical identification of UFT-ID fields with fundamental forces or spacetime.
 
 ## Promotion rule
@@ -218,4 +244,5 @@ A claim may move upward only when the evidence type matches the claim type.
 - transport, retrieval, inference, execution, and verification receipts remain distinct authority events;
 - representation equivalence remains scoped to its declared transformation class and does not imply semantic or physical identity;
 - information comparison remains scoped to an explicit `InformationSpec` relation or registered conversion and cannot be inferred from shared vocabulary, units, scalar values, or functional names alone;
-- deterministic recovery requires an explicit selector specialization, relation soundness, termination/progress, and normal-state obligations; a selector result does not promote the base relation to confluence or empirical recovery.
+- deterministic recovery requires an explicit selector specialization, relation soundness, termination/progress, and normal-state obligations; a selector result does not promote the base relation to confluence or empirical recovery;
+- stochastic and continuum promotion requires explicit probability/measure, quantifier, topology, regularity, convergence, and error-control obligations; finite reachability, finite samples, formal counterexamples, and finite-grid agreement do not supply them automatically.

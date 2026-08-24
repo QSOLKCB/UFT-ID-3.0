@@ -16,7 +16,7 @@ The mnemonic remains:
 U = (S, A, F, Pi_lex, O, T, I, C)
 ```
 
-but relation, observation, bridge, epistemic, representation, information, recovery, stochastic, and empirical semantics remain separately typed.
+but relation, observation, bridge, epistemic, representation, information, recovery, stochastic, continuum, prevalence, and empirical semantics remain separately typed.
 
 ---
 
@@ -39,6 +39,7 @@ but relation, observation, bridge, epistemic, representation, information, recov
 - [x] Planned PR #13 — Epistemic Bridge specialization, delivered in GitHub PR #14 and merged at `083aa9ae9e812cae86302d856f70ad83e5cf806b`.
 - [x] Planned PR #14 — Representation and congruence calculus, delivered in GitHub PR #15 and merged at `a094ec469f311bc6cc11442ee5f850f5dc130e2f`.
 - [x] Planned PR #15 — Information Comparability core, delivered in GitHub PR #16 and merged at `22b589c4e2e2042d180d64db837f092a007e0813`.
+- [x] Planned PR #16 — Recovery Specializations, delivered in GitHub PR #17 and merged at `2f2cdd2af195a2e74a55e14abfbc4f88e0901a8f`.
 
 ## Deferred independent proof track
 
@@ -49,88 +50,109 @@ MATHEMATICAL_PROOF != LEAN_PROOF
 LEAN_PROOF != RUNTIME_CONFORMANCE != EMPIRICAL_VALIDATION
 ```
 
-## Active now — planned PR #16
+## Active now — planned PR #17
 
-### Recovery specializations
+### Continuum, stochastic, and prevalence obligations
 
 **Status:** ACTIVE, implemented by the current change.
 
-Mission: specialize the existing relation-first recovery core with explicit deterministic selectors and executable normalizers without rewriting a generic relation as deterministic, confluent, uniquely normalizing, or empirically valid.
+Mission: prevent finite relation, finite-path, finite-sample, finite-counterexample, and finite-grid results from being silently promoted into stochastic, infinite-horizon, prevalence, or continuum claims without the additional structures those claims require.
 
-Canonical specialization:
-
-```text
-stepRel : X -> X -> Prop
-sigma   : X -> X
-Sel_sigma(x,y) iff sigma(x)=y and y!=x
-```
-
-A selector fixed point is halting semantics for the selector. It is not silently inserted as a self-loop into `stepRel`.
-
-Relation soundness and progress are separate obligations:
+Canonical obligation layers:
 
 ```text
-sigma(x) != x => stepRel(x, sigma(x))
-rho : X -> N
-sigma(x) != x => rho(sigma(x)) < rho(x)
+StochasticSpec = (
+  carrier,
+  initial_distribution,
+  transition_kernel,
+  event,
+  horizon,
+  quantifier
+)
+
+PrevalenceSpec = (
+  carrier,
+  declared_measure,
+  property_set
+)
+
+ContinuumLift = (
+  discrete_family,
+  target_space,
+  topology_or_norm,
+  approximation_map,
+  convergence_mode,
+  error_control
+)
 ```
 
-An executable normalizer is licensed only when non-fixed selector steps are relation-sound, selector fixed points are exactly the base-relation normal states, and the declared natural-number rank strictly decreases on every non-fixed selector step.
+The generic relation and Recovery selector remain separate bases. A relation edge can exist with stochastic probability zero. A finite selector or finite reachability witness does not create a stochastic kernel, probability measure, path-space law, infinite-horizon theorem, or continuum limit.
 
 Advertised result surface:
 
-1. `UFT-REC-001` every deterministic selector induces a right-unique effective selector relation;
-2. `UFT-REC-002` relation-sound finite selector iteration remains inside base-relation reachability;
-3. `UFT-REC-003` strict natural-rank descent terminates selector iteration;
-4. `UFT-REC-004` sound rank-certified selectors with exact fixed-point/normal correspondence define executable normalizers;
-5. `UFT-REC-005` finite lexicographic recovery is unique only with an explicit final total tie-break.
+1. `UFT-CSP-001` finite rational row-stochastic kernels preserve total probability mass;
+2. `UFT-CSP-002` in finite atomic probability spaces, almost-sure implies positive probability, and positive probability is equivalent to intersecting the positive-mass support;
+3. `UFT-CSP-003` finite-horizon path probability equals initial mass times the ordered transition product, and the complete finite path family has total mass one;
+4. `UFT-CSP-004` prevalence is measure-indexed, so existence of a counterexample cannot determine prevalence without a declared measure;
+5. `UFT-CSP-005` agreement on a finite real grid cannot establish equality of two functions on a continuum without additional lifting assumptions.
 
 Adversarial counterexamples:
 
 ```text
-CX-REC-001 existential-normalization-without-executable-choice
-CX-REC-002 deterministic-but-relation-unsound-selector
-CX-REC-003 relation-sound-deterministic-selector-loop
-CX-REC-004 tied-objective-without-total-tiebreak
-CX-REC-005 selector-choice-does-not-make-base-relation-confluent
+CX-CSP-001 relation-reachable-transition-with-zero-probability
+CX-CSP-002 positive-probability-event-not-almost-sure
+CX-CSP-003 every-finite-survival-horizon-positive-but-infinite-survival-zero
+CX-CSP-004 one-trajectory-frequency-does-not-identify-distribution
+CX-CSP-005 same-counterexample-different-prevalence-under-different-measures
+CX-CSP-006 finite-grid-agreement-does-not-imply-continuum-equality
 ```
 
 Exact finite conformance checks:
 
 ```text
-32 total selectors on Fin1, Fin2, and Fin3
-13,890 selector/relation pairs
-4,134 relation-sound selector/relation pairs
-739 relation-sound pairs with selector fixed points exactly equal to relation normals
-9 natural-index-rank-decreasing selector controls
-23 state-level executable-normalization checks
-336 finite lexicographic selection checks
+9 rational two-state kernels
+3 exact initial distributions
+27 probability-mass transport checks
+756 finite-path mass evaluations through horizon 3
+81 finite-path normalization checks
+48 finite-atomic event/quantifier checks
+18 almost-sure event cases
+30 positive-probability event cases
+30 support-witness event cases
+16 finite-survival checks
+2 explicit infinite-survival zero controls
+10 declared finite prevalence measures
+80 measure/event prevalence evaluations
+31 finite-grid non-lifting controls
 ```
 
 Required boundaries:
 
 ```text
-GENERIC_RELATION != DETERMINISTIC_SELECTOR
-EXISTENTIAL_NORMALIZATION != EXECUTABLE_NORMALIZER
-DETERMINISTIC != RELATION_SOUND
-RELATION_SOUND != TERMINATING
-TERMINATING_SELECTOR != BASE_RELATION_CONFLUENT
-SELECTOR_NORMAL_FORM != UNIQUE_RELATION_NORMAL_FORM
-OBJECTIVE_MINIMUM != UNIQUE_SELECTION_WITHOUT_TIEBREAK
-EXECUTABLE_NORMALIZER != EMPIRICAL_RECOVERY
-FINITE_SELECTOR_CONFORMANCE != GENERAL_RECOVERY_THEORY
+RELATION_REACHABLE != POSITIVE_PROBABILITY
+EXISTS_PATH != POSITIVE_PROBABILITY
+POSITIVE_PROBABILITY != ALMOST_SURE
+FINITE_HORIZON_SUCCESS != INFINITE_PATH_LIVENESS
+ONE_TRAJECTORY != DISTRIBUTION
+FINITE_SAMPLE_FREQUENCY != MODEL_PROBABILITY
+FINITE_COUNTEREXAMPLE != PREVALENCE_CLAIM
+PREVALENCE_REQUIRES_DECLARED_MEASURE
+FINITE_GRID_AGREEMENT != CONTINUUM_EQUALITY
+DISCRETIZATION_CONVERGENCE != ASSUMED_WITHOUT_ERROR_CONTROL
+FINITE_STOCHASTIC_CONFORMANCE != GENERAL_STOCHASTIC_OR_CONTINUUM_THEORY
 ```
 
-**Exit criterion:** the selector remains an explicit specialization of `stepRel`; relation soundness, termination/progress, fixed-point/normal correspondence, and tie-breaking remain separately checkable; the five adversarial counterexamples stay executable; exact finite conformance, human/machine authority, deterministic receipts, retained artifacts, compatibility wrappers, and CI remain synchronized.
+Explicitly deferred beyond this phase are general path-space measure construction, ergodicity and mixing, stopping-time and martingale theory, continuous-time stochastic processes, SDE/PDE existence or regularity, statistical estimation from finite samples, empirical prevalence, discretization convergence theorems, and Lean proof objects.
 
-## Next planned phases
+**Exit criterion:** stochastic quantifiers remain probability-measure-relative; infinite-horizon claims remain distinct from every finite horizon; prevalence remains measure-indexed; finite counterexamples do not acquire frequency semantics; finite-grid evidence does not become a continuum theorem; the six counterexamples stay executable; exact finite conformance, human/machine authority, deterministic receipts, retained artifacts, compatibility wrappers, and CI remain synchronized.
 
-- [ ] PR #17 — Continuum, stochastic, and prevalence obligations. **NEXT.**
-- [ ] PR #18 — Empirical falsification profile.
+## Next planned phase
+
+- [ ] PR #18 — Empirical falsification profile. **NEXT.**
 
 ```text
-FINITE_REACHABILITY != INFINITE_PATH_LIVENESS
 FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION
+EMPIRICAL_FIT != UNIQUE_EXPLANATION
 ```
 
 ---
@@ -138,6 +160,20 @@ FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION
 # Historical post-audit grammar retained for validator compatibility
 
 The block below is a frozen planning-language compatibility surface. Its embedded historical statuses are not current scheduling authority. Current status is the live section above plus `machine/roadmap_state.json`.
+
+## Active now — planned PR #16
+
+### Recovery specializations
+
+**Status:** HISTORICAL COMPATIBILITY ANCHOR ONLY. Planned PR #16 is complete and merged at `2f2cdd2af195a2e74a55e14abfbc4f88e0901a8f`; this exact heading is retained so the frozen Recovery authority can replay its merged roadmap assumptions.
+
+Historical canonical commands:
+
+```bash
+python scripts/validate_recovery_specializations.py
+python experiments/recovery_specializations/run.py --json
+python experiments/run_recovery_specializations.py --json
+```
 
 # Current formal grammar programme
 
@@ -237,7 +273,7 @@ COMPARABLE != IDENTICAL_SPEC
 
 ## PR #16 — Recovery specializations
 
-**Status:** PLANNED.
+**Status:** PLANNED in this historical snapshot.
 
 ```text
 GENERIC_RELATION != DETERMINISTIC_SELECTOR
@@ -248,7 +284,7 @@ EXISTENTIAL_NORMALIZATION != EXECUTABLE_NORMALIZER
 
 ## PR #17 — Continuum, stochastic, and prevalence obligations
 
-**Status:** PLANNED.
+**Status:** PLANNED in this historical snapshot.
 
 ```text
 FINITE_REACHABILITY != INFINITE_PATH_LIVENESS
@@ -441,6 +477,9 @@ python experiments/run_information_comparability.py --json
 python scripts/validate_recovery_specializations.py
 python experiments/recovery_specializations/run.py --json
 python experiments/run_recovery_specializations.py --json
+python scripts/validate_continuum_stochastic_prevalence.py
+python experiments/continuum_stochastic_prevalence/run.py --json
+python experiments/run_continuum_stochastic_prevalence.py --json
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 ```
@@ -629,4 +668,4 @@ NUMBER != ROLE != STRUCTURE != MECHANISM != ONTOLOGY
 
 # Release-level exit criteria
 
-A future formalization release should not be cut until every advertised theorem has an inspectable proof or is explicitly a theorem target; machine and human statements agree; counterexamples remain executable; source-specific critiques identify exact sources; private locators do not leak; proof/runtime/empirical/physical layers stay separate; unique-selection claims survive alternate-realization tests; CI evidence is retained; and all deferrals remain visible.
+A future formalization release should not be cut until every advertised theorem has an inspectable proof or is explicitly a theorem target; machine and human statements agree; counterexamples remain executable; source-specific critiques identify exact sources; private locators do not leak; proof/runtime/empirical/physical layers stay separate; unique-selection claims survive alternate-realization tests; stochastic and prevalence claims carry explicit probability/measure semantics; continuum claims carry explicit lifting obligations; CI evidence is retained; and all deferrals remain visible.

@@ -60,11 +60,11 @@ HISTORICAL_ROADMAP_STATE = {
 
 EXPECTED_LIVE_ROADMAP = {
     "type": "uft-id-roadmap-state",
-    "schema_version": "1.4.0",
+    "schema_version": "1.5.0",
     "snapshot_date": "2026-08-24",
-    "basis_commit": "22b589c4e2e2042d180d64db837f092a007e0813",
-    "completed": [5, 6, 7, 8, 9, 11, 12, 13, 14, 15],
-    "active_planned_surface": 16,
+    "basis_commit": "2f2cdd2af195a2e74a55e14abfbc4f88e0901a8f",
+    "completed": [5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16],
+    "active_planned_surface": 17,
     "deferred": [10],
 }
 
@@ -99,8 +99,10 @@ def validate() -> dict[str, object]:
             errors.append("BridgeCore live roadmap must mark planned PR #14 complete")
         if by_pr.get(15, {}).get("status") != "complete-merged-22b589c4e2e2042d180d64db837f092a007e0813":
             errors.append("BridgeCore live roadmap must mark planned PR #15 complete")
-        if by_pr.get(16, {}).get("status") != "active-implemented-in-current-change":
-            errors.append("BridgeCore live roadmap active surface must be PR #16")
+        if by_pr.get(16, {}).get("status") != "complete-merged-2f2cdd2af195a2e74a55e14abfbc4f88e0901a8f":
+            errors.append("BridgeCore live roadmap must mark planned PR #16 complete")
+        if by_pr.get(17, {}).get("status") != "active-implemented-in-current-change":
+            errors.append("BridgeCore live roadmap active surface must be PR #17")
     return {**result, "status": "error" if errors else "ok", "errors": errors}
 
 

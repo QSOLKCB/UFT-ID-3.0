@@ -1,0 +1,133 @@
+{
+  "type": "uft-id-continuum-stochastic-prevalence-result-registry",
+  "schema_version": "1.0.0",
+  "snapshot_date": "2026-08-24",
+  "records": [
+    {
+      "id": "UFT-CSP-001",
+      "name": "Finite stochastic kernels preserve total probability",
+      "claim_class": "PROVED",
+      "statement": "For a finite carrier, a row-stochastic kernel K with nonnegative entries and unit row sums maps every probability distribution p to a probability distribution p' defined by p'(y)=sum_x p(x)K(x,y).",
+      "hypotheses": [
+        "X is finite",
+        "p:X->Q_{>=0} has sum_x p(x)=1",
+        "K:XxX->Q_{>=0}",
+        "for every x, sum_y K(x,y)=1"
+      ],
+      "proof_reference": "theory/CONTINUUM_STOCHASTIC_PREVALENCE.md#uft-csp-001-finite-stochastic-kernels-preserve-total-probability",
+      "executable_evidence": ["experiments/continuum_stochastic_prevalence/run.py", "tests/test_continuum_stochastic_prevalence.py"],
+      "nonclaims": ["Finite row-stochastic mass preservation does not establish stationarity, ergodicity, continuum dynamics, empirical calibration, or physical randomness."]
+    },
+    {
+      "id": "UFT-CSP-002",
+      "name": "Finite atomic stochastic quantifiers are not interchangeable",
+      "claim_class": "PROVED",
+      "statement": "For a finite probability distribution p and event E, p(E)=1 implies p(E)>0, and p(E)>0 holds exactly when E intersects the positive-mass support of p; the converses from positive probability or support existence to almost-sure truth do not hold in general.",
+      "hypotheses": [
+        "X is finite",
+        "p:X->Q_{>=0} has total mass one",
+        "E is a subset of X"
+      ],
+      "proof_reference": "theory/CONTINUUM_STOCHASTIC_PREVALENCE.md#uft-csp-002-finite-atomic-stochastic-quantifiers-are-not-interchangeable",
+      "executable_evidence": ["experiments/continuum_stochastic_prevalence/run.py", "tests/test_continuum_stochastic_prevalence.py"],
+      "nonclaims": ["This finite atomic statement is not a substitute for general measure-theoretic support, almost-everywhere, or infinite-path semantics."]
+    },
+    {
+      "id": "UFT-CSP-003",
+      "name": "Finite-horizon path mass is the product of declared stochastic factors",
+      "claim_class": "PROVED",
+      "statement": "For a finite Markov specification with initial distribution p and row-stochastic kernel K, the probability of a finite path (x0,...,xh) is p(x0) times the product of K(xt,xt+1), and the masses of all length-h paths sum exactly to one.",
+      "hypotheses": [
+        "X is finite",
+        "p is a probability distribution on X",
+        "K is a row-stochastic kernel on X",
+        "h is a finite natural-number horizon"
+      ],
+      "proof_reference": "theory/CONTINUUM_STOCHASTIC_PREVALENCE.md#uft-csp-003-finite-horizon-path-mass-is-the-product-of-declared-stochastic-factors",
+      "executable_evidence": ["experiments/continuum_stochastic_prevalence/run.py", "tests/test_continuum_stochastic_prevalence.py"],
+      "nonclaims": ["A finite-horizon path formula does not by itself define an infinite path-space measure or prove infinite-horizon liveness."]
+    },
+    {
+      "id": "UFT-CSP-004",
+      "name": "Prevalence is indexed by a declared measure",
+      "claim_class": "PROVED",
+      "statement": "For a declared probability measure mu on a finite population X and failure property F subseteq X, prevalence is mu(F); therefore the same failure set can have different prevalence under different declared measures, and existence of a counterexample alone does not determine prevalence.",
+      "hypotheses": [
+        "X is finite",
+        "mu is a probability measure on X",
+        "F is a subset of X"
+      ],
+      "proof_reference": "theory/CONTINUUM_STOCHASTIC_PREVALENCE.md#uft-csp-004-prevalence-is-indexed-by-a-declared-measure",
+      "executable_evidence": ["experiments/continuum_stochastic_prevalence/run.py", "tests/test_continuum_stochastic_prevalence.py"],
+      "nonclaims": ["A formal finite prevalence value is not an empirical population estimate, confidence interval, causal rate, or universal frequency."]
+    },
+    {
+      "id": "UFT-CSP-005",
+      "name": "Finite-grid agreement does not determine continuum equality",
+      "claim_class": "PROVED",
+      "statement": "For every finite set G of real grid points, the zero function and the nonzero polynomial q(x)=product_{a in G}(x-a) agree at every point of G while differing at every real point b not in G; finite-grid equality therefore does not imply continuum equality without additional assumptions.",
+      "hypotheses": [
+        "G is a finite set of real numbers",
+        "b is a real number not in G"
+      ],
+      "proof_reference": "theory/CONTINUUM_STOCHASTIC_PREVALENCE.md#uft-csp-005-finite-grid-agreement-does-not-determine-continuum-equality",
+      "executable_evidence": ["experiments/continuum_stochastic_prevalence/run.py", "tests/test_continuum_stochastic_prevalence.py"],
+      "nonclaims": ["The theorem does not deny convergence when a discretization is accompanied by sufficient regularity, topology, approximation, and error-control hypotheses."]
+    },
+    {
+      "id": "CX-CSP-001",
+      "name": "Relation reachability can have zero stochastic probability",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "A base relation may contain the edge 0->1 while a stochastic kernel assigns K(0,1)=0, so relation reachability alone does not imply positive stochastic path probability.",
+      "fixture": "two-state relation edge with zero-probability stochastic transition",
+      "evidence": ["experiments/continuum_stochastic_prevalence/run.py", "tests/test_continuum_stochastic_prevalence.py"],
+      "nonclaims": ["The counterexample does not make the relation edge invalid; it separates relational possibility from the declared stochastic support."]
+    },
+    {
+      "id": "CX-CSP-002",
+      "name": "Positive probability is not almost-sure truth",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "Under a fair two-outcome distribution, the event {H} has probability 1/2, which is positive but not one.",
+      "fixture": "fair binary event with probability one half",
+      "evidence": ["experiments/continuum_stochastic_prevalence/run.py", "tests/test_continuum_stochastic_prevalence.py"],
+      "nonclaims": ["The example concerns quantifier strength only and does not imply that positive-probability events are empirically common."]
+    },
+    {
+      "id": "CX-CSP-003",
+      "name": "Finite-horizon survival can coexist with zero infinite-survival probability",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "If independent survival at each step has probability q=1/2, then survival through every finite horizon n has positive probability 2^{-n}, while the probability of surviving forever is lim_{n->infinity}2^{-n}=0.",
+      "fixture": "geometric survival process with q one half",
+      "evidence": ["experiments/continuum_stochastic_prevalence/run.py", "tests/test_continuum_stochastic_prevalence.py"],
+      "nonclaims": ["The fixture does not claim that every infinite stochastic process has this limit or that finite-horizon evidence is useless."]
+    },
+    {
+      "id": "CX-CSP-004",
+      "name": "One trajectory frequency is not the model probability",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "The length-three trajectory HHH has empirical head frequency 1 under a fair coin model whose declared single-step head probability is 1/2; one observed path therefore does not identify the generating distribution.",
+      "fixture": "HHH under a fair Bernoulli model",
+      "evidence": ["experiments/continuum_stochastic_prevalence/run.py", "tests/test_continuum_stochastic_prevalence.py"],
+      "nonclaims": ["The example does not deny statistical consistency under independently justified sampling assumptions and asymptotic theorems."]
+    },
+    {
+      "id": "CX-CSP-005",
+      "name": "One finite counterexample does not determine prevalence",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "On the same two-point carrier with the same failure set {x}, one probability measure can assign failure prevalence 1/100 while another assigns 99/100, so existence of x does not determine how prevalent failure is.",
+      "fixture": "same failure set under low-mass and high-mass measures",
+      "evidence": ["experiments/continuum_stochastic_prevalence/run.py", "tests/test_continuum_stochastic_prevalence.py"],
+      "nonclaims": ["The construction is a formal measure-dependence control, not an empirical estimate of any real population."]
+    },
+    {
+      "id": "CX-CSP-006",
+      "name": "Perfect finite-grid agreement can fail between grid points",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "The functions f(x)=0 and g(x)=x(x-1/2)(x-1) agree on the grid {0,1/2,1} but differ at x=1/4, so perfect grid conformance does not license continuum equality.",
+      "fixture": "three-point rational grid with off-grid polynomial witness",
+      "evidence": ["experiments/continuum_stochastic_prevalence/run.py", "tests/test_continuum_stochastic_prevalence.py"],
+      "nonclaims": ["The example does not refute a separately proved convergence theorem with explicit regularity and error bounds."]
+    }
+  ],
+  "claim_boundary": "FINITE_REACHABILITY != INFINITE_PATH_LIVENESS; FINITE_COUNTEREXAMPLE != PREVALENCE_CLAIM; FINITE_GRID_AGREEMENT != CONTINUUM_EQUALITY; FINITE_STOCHASTIC_CONFORMANCE != GENERAL_STOCHASTIC_OR_CONTINUUM_THEORY"
+}

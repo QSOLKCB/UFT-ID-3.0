@@ -2,7 +2,7 @@
 
 The merged PR11 test module remains byte-for-byte in
 pr11_relation_core_tests_frozen.py. Only assertions inherently tied to the live
-roadmap clock/state are advanced to the current Recovery Specializations phase.
+roadmap clock/state are advanced to the current Continuum/Stochastic/Prevalence phase.
 """
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ _FROZEN = _load_frozen()
 def _updated_active_surface_test(self):
     value = _FROZEN.canonical_documents()
     value["roadmap_state"]["active_planned_surface"] = 11
-    self.assert_error_contains(value, "active planned surface must be PR16")
+    self.assert_error_contains(value, "active planned surface must be PR17")
 
 
 def _updated_future_snapshot_test(self):

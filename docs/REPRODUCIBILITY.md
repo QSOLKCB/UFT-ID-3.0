@@ -56,6 +56,9 @@ python experiments/run_information_comparability.py --json
 python scripts/validate_recovery_specializations.py
 python experiments/recovery_specializations/run.py --json
 python experiments/run_recovery_specializations.py --json
+python scripts/validate_continuum_stochastic_prevalence.py
+python experiments/continuum_stochastic_prevalence/run.py --json
+python experiments/run_continuum_stochastic_prevalence.py --json
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 python experiments/run_pr2.py --json
@@ -78,6 +81,7 @@ experiments/run_epistemic_bridge.py
 experiments/run_representation_calculus.py
 experiments/run_information_comparability.py
 experiments/run_recovery_specializations.py
+experiments/run_continuum_stochastic_prevalence.py
 ```
 
 All receipt families bind deterministic repository files and canonical result payloads while keeping runtime metadata outside portable fingerprints.
@@ -315,6 +319,61 @@ FINITE_SELECTOR_CONFORMANCE != GENERAL_RECOVERY_THEORY
 
 The deterministic Recovery source set binds the base relation contract and human relation calculus, central machine authority, live roadmap, AI bootstrap, claims, reproducibility contract, validator, executable, tests, receipt runner, retained-artifact verifier, and the existing `finite-adversarial` workflow.
 
+## Continuum-stochastic-prevalence conformance boundary
+
+The Continuum/Stochastic/Prevalence layer makes quantifier and lifting obligations explicit before finite relation/recovery evidence can be promoted into stochastic, infinite-horizon, prevalence, or continuum conclusions.
+
+Canonical commands:
+
+```bash
+python scripts/validate_continuum_stochastic_prevalence.py
+python experiments/continuum_stochastic_prevalence/run.py --json
+python experiments/run_continuum_stochastic_prevalence.py --json
+```
+
+Retained files:
+
+```text
+continuum-stochastic-prevalence-validation.json
+continuum-stochastic-prevalence-witness.json
+continuum-stochastic-prevalence-receipt.json
+```
+
+The exact bounded battery checks:
+
+```text
+9 exact rational two-state kernels
+3 exact initial distributions
+27 probability-mass transport checks
+756 finite-path mass evaluations through horizon 3
+81 finite-path normalization checks
+48 finite-atomic event/quantifier checks
+18 almost-sure event cases
+30 positive-probability event cases
+30 support-witness event cases
+16 positive finite-survival controls
+80 exact prevalence measure/event evaluations
+31 finite-grid non-lifting polynomial controls
+```
+
+All executable probability arithmetic uses exact `fractions.Fraction` values. The finite-horizon controls do not manufacture an infinite path-space theorem, and the finite-grid controls do not manufacture a continuum convergence theorem.
+
+```text
+RELATION_REACHABLE != POSITIVE_PROBABILITY
+EXISTS_PATH != POSITIVE_PROBABILITY
+POSITIVE_PROBABILITY != ALMOST_SURE
+FINITE_HORIZON_SUCCESS != INFINITE_PATH_LIVENESS
+ONE_TRAJECTORY != DISTRIBUTION
+FINITE_SAMPLE_FREQUENCY != MODEL_PROBABILITY
+FINITE_COUNTEREXAMPLE != PREVALENCE_CLAIM
+PREVALENCE_REQUIRES_DECLARED_MEASURE
+FINITE_GRID_AGREEMENT != CONTINUUM_EQUALITY
+DISCRETIZATION_CONVERGENCE != ASSUMED_WITHOUT_ERROR_CONTROL
+FINITE_STOCHASTIC_CONFORMANCE != GENERAL_STOCHASTIC_OR_CONTINUUM_THEORY
+```
+
+The deterministic CSP source set binds its machine/human authority, the frozen Recovery and Relation base contracts, central machine authority, live roadmap, AI bootstrap, claims, reproducibility contract, validator, executable, tests, receipt runner, retained-artifact verifier, and the existing `finite-adversarial` workflow.
+
 ## VOP-2019-MEI reproduction boundary
 
 ```text
@@ -369,6 +428,9 @@ information-comparability-receipt.json
 recovery-specialization-validation.json
 recovery-specialization-witness.json
 recovery-specialization-receipt.json
+continuum-stochastic-prevalence-validation.json
+continuum-stochastic-prevalence-witness.json
+continuum-stochastic-prevalence-receipt.json
 vopson-corpus-validation.json
 vopson-doc-sync.json
 reproducibility-validation.json
@@ -378,7 +440,7 @@ Generated CI artifacts are workflow evidence and are not automatically committed
 
 ## GitHub Actions provenance
 
-Workflow actions remain pinned to the full 40-character SHAs in `machine/contract.json`. Checkout credentials are not persisted and workflow permissions remain read-only. Recovery uses the existing declared `finite-adversarial.yml` workflow rather than introducing an undeclared third workflow.
+Workflow actions remain pinned to the full 40-character SHAs in `machine/contract.json`. Checkout credentials are not persisted and workflow permissions remain read-only. Recovery and CSP use the existing declared `finite-adversarial.yml` workflow rather than introducing undeclared workflows.
 
 ## Bounded exhaustive computation
 
@@ -403,6 +465,11 @@ Finite exhaustive batteries prove only their declared bounded conformance domain
 4134 relation-sound recovery selector/relation pairs
 739 exact fixed-point/normal recovery pairs
 336 finite lexicographic selections
+9 exact rational CSP kernels
+756 CSP finite-path mass evaluations
+48 CSP finite-atomic event/quantifier checks
+80 CSP prevalence measure/event evaluations
+31 CSP finite-grid non-lifting controls
 ```
 
 ```text
@@ -423,6 +490,8 @@ Information Comparability is synchronized across `machine/information_comparabil
 
 Recovery Specializations is synchronized across `machine/recovery_specialization_contract.json`, `machine/recovery_specialization_results.json`, `theory/RECOVERY_SPECIALIZATIONS.md`, `docs/CLAIMS.md`, `README4AI.md`, `docs/REPRODUCIBILITY.md`, `machine/contract.json`, `machine/roadmap_state.json`, `ROADMAP.md`, the base relation authority, and its deterministic receipt.
 
+Continuum/Stochastic/Prevalence is synchronized across `machine/continuum_stochastic_prevalence_contract.json`, `machine/continuum_stochastic_prevalence_results.json`, `theory/CONTINUUM_STOCHASTIC_PREVALENCE.md`, `docs/CLAIMS.md`, `README4AI.md`, `docs/REPRODUCIBILITY.md`, `machine/contract.json`, `machine/roadmap_state.json`, `ROADMAP.md`, the Recovery and Relation base authorities, and its deterministic receipt.
+
 ## Nonclaims
 
-This contract does not claim that deterministic output proves a physical law, that a hash proves scientific correctness, that correct arithmetic validates a physical premise, that finite conformance proves unrestricted mathematics, that transport/retrieval/inference/execution creates verification, that verification establishes truth, that representation equivalence establishes semantic or physical identity, that two numbers called information are comparable without a declared specification relation, that a deterministic selector establishes base-relation confluence or empirical recovery, or that CI replaces independent scientific review.
+This contract does not claim that deterministic output proves a physical law, that a hash proves scientific correctness, that correct arithmetic validates a physical premise, that finite conformance proves unrestricted mathematics, that transport/retrieval/inference/execution creates verification, that verification establishes truth, that representation equivalence establishes semantic or physical identity, that two numbers called information are comparable without a declared specification relation, that a deterministic selector establishes base-relation confluence or empirical recovery, that finite stochastic conformance establishes infinite-path liveness, population prevalence, continuum convergence, empirical probability, or physical randomness, or that CI replaces independent scientific review.

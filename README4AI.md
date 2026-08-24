@@ -268,7 +268,7 @@ FINITE_INFORMATION_CONFORMANCE != GENERAL_INFORMATION_THEORY
 
 ## Recovery Specializations authority
 
-The active planned PR #16 surface specializes the generic relation core with an explicitly declared deterministic selector rather than replacing relation semantics by a function.
+The completed planned PR #16 surface specializes the generic relation core with an explicitly declared deterministic selector rather than replacing relation semantics by a function.
 
 ```text
 stepRel : X -> X -> Prop
@@ -303,6 +303,41 @@ SELECTOR_NORMAL_FORM != UNIQUE_RELATION_NORMAL_FORM
 OBJECTIVE_MINIMUM != UNIQUE_SELECTION_WITHOUT_TIEBREAK
 EXECUTABLE_NORMALIZER != EMPIRICAL_RECOVERY
 FINITE_SELECTOR_CONFORMANCE != GENERAL_RECOVERY_THEORY
+```
+
+## Continuum, stochastic, and prevalence obligations authority
+
+The active planned PR #17 surface defines the additional obligations required before finite relation/recovery evidence can be promoted into stochastic, infinite-horizon, prevalence, or continuum conclusions.
+
+Canonical CSP surfaces:
+
+```text
+machine/continuum_stochastic_prevalence_contract.json
+machine/continuum_stochastic_prevalence_results.json
+theory/CONTINUUM_STOCHASTIC_PREVALENCE.md
+scripts/validate_continuum_stochastic_prevalence.py
+experiments/continuum_stochastic_prevalence/run.py
+experiments/run_continuum_stochastic_prevalence.py
+scripts/verify_continuum_stochastic_prevalence_artifacts.py
+tests/test_continuum_stochastic_prevalence.py
+```
+
+The layer separates relation possibility from stochastic support, existential witnesses from probability quantifiers, finite horizons from infinite-path liveness, trajectories from generating distributions, formal counterexamples from prevalence, and finite grids from continuum conclusions.
+
+The exact finite battery checks 9 rational two-state kernels, 27 probability-mass transports, 756 finite-path masses, 81 path normalizations, 48 finite-atomic event/quantifier cases, 16 finite survival controls, 80 prevalence measure/event evaluations, and 31 finite-grid non-lifting polynomial controls.
+
+```text
+RELATION_REACHABLE != POSITIVE_PROBABILITY
+EXISTS_PATH != POSITIVE_PROBABILITY
+POSITIVE_PROBABILITY != ALMOST_SURE
+FINITE_HORIZON_SUCCESS != INFINITE_PATH_LIVENESS
+ONE_TRAJECTORY != DISTRIBUTION
+FINITE_SAMPLE_FREQUENCY != MODEL_PROBABILITY
+FINITE_COUNTEREXAMPLE != PREVALENCE_CLAIM
+PREVALENCE_REQUIRES_DECLARED_MEASURE
+FINITE_GRID_AGREEMENT != CONTINUUM_EQUALITY
+DISCRETIZATION_CONVERGENCE != ASSUMED_WITHOUT_ERROR_CONTROL
+FINITE_STOCHASTIC_CONFORMANCE != GENERAL_STOCHASTIC_OR_CONTINUUM_THEORY
 ```
 
 ## Cross-repository formal pattern authority
@@ -406,6 +441,9 @@ python experiments/run_information_comparability.py --json
 python scripts/validate_recovery_specializations.py
 python experiments/recovery_specializations/run.py --json
 python experiments/run_recovery_specializations.py --json
+python scripts/validate_continuum_stochastic_prevalence.py
+python experiments/continuum_stochastic_prevalence/run.py --json
+python experiments/run_continuum_stochastic_prevalence.py --json
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 python experiments/run_pr2.py --json
@@ -444,6 +482,13 @@ python experiments/run_pr6.py --json
 26. A selector result does not establish base-relation confluence or a unique reachable normal form.
 27. Objective minimization is not unique selection without an explicit final total tie-break.
 28. An executable normalizer is not empirical or physical recovery evidence.
+29. Relation reachability or path existence does not imply positive stochastic probability.
+30. Positive probability does not imply almost-sure truth.
+31. Finite-horizon success does not establish infinite-path liveness.
+32. One trajectory or finite sample frequency does not identify the generating distribution.
+33. A finite counterexample refutes a universal claim but does not determine prevalence.
+34. Prevalence requires a declared population measure or sampling model.
+35. Finite-grid agreement does not establish continuum equality or convergence without explicit regularity and error control.
 
 ## Lean
 
@@ -486,11 +531,16 @@ Lean remains deferred until source reproduction, notation freeze, theorem freeze
 33. `machine/recovery_specialization_results.json`
 34. `scripts/validate_recovery_specializations.py`
 35. `experiments/run_recovery_specializations.py`
-36. `theory/CROSS_REPO_RESULTS.md`
-37. `research/CROSS_REPO_PATTERN_ATLAS.md`
-38. `machine/cross_repo_patterns.json`
-39. `machine/cross_repo_results.json`
-40. `research/vopson/CORPUS.md`
-41. `research/vopson/CLAIM_GRAPH.md`
-42. `research/vopson/DEFINITIONS.md`
-43. `ROADMAP.md`
+36. `theory/CONTINUUM_STOCHASTIC_PREVALENCE.md`
+37. `machine/continuum_stochastic_prevalence_contract.json`
+38. `machine/continuum_stochastic_prevalence_results.json`
+39. `scripts/validate_continuum_stochastic_prevalence.py`
+40. `experiments/run_continuum_stochastic_prevalence.py`
+41. `theory/CROSS_REPO_RESULTS.md`
+42. `research/CROSS_REPO_PATTERN_ATLAS.md`
+43. `machine/cross_repo_patterns.json`
+44. `machine/cross_repo_results.json`
+45. `research/vopson/CORPUS.md`
+46. `research/vopson/CLAIM_GRAPH.md`
+47. `research/vopson/DEFINITIONS.md`
+48. `ROADMAP.md`

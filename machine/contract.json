@@ -69,7 +69,9 @@
     "information_comparability_receipt_runner": "experiments/run_information_comparability.py",
     "information_comparability_receipt_version": "1.0.0",
     "recovery_specialization_receipt_runner": "experiments/run_recovery_specializations.py",
-    "recovery_specialization_receipt_version": "1.0.0"
+    "recovery_specialization_receipt_version": "1.0.0",
+    "continuum_stochastic_prevalence_receipt_runner": "experiments/run_continuum_stochastic_prevalence.py",
+    "continuum_stochastic_prevalence_receipt_version": "1.0.0"
   },
   "finite_result_authority": {
     "human": "theory/FINITE_RESULTS.md",
@@ -172,6 +174,22 @@
     "roadmap_state": "machine/roadmap_state.json",
     "workflow": ".github/workflows/finite-adversarial.yml",
     "rule": "Deterministic recovery is a specialization of the generic relation only under explicit relation soundness; executable normalization additionally requires totality, a termination/progress certificate, and exact fixed-point/normal-state obligations, while selector choice never upgrades the base relation to confluence or empirical recovery."
+  },
+  "continuum_stochastic_prevalence_authority": {
+    "human": "theory/CONTINUUM_STOCHASTIC_PREVALENCE.md",
+    "machine_contract": "machine/continuum_stochastic_prevalence_contract.json",
+    "machine_results": "machine/continuum_stochastic_prevalence_results.json",
+    "validator": "scripts/validate_continuum_stochastic_prevalence.py",
+    "experiment": "experiments/continuum_stochastic_prevalence/run.py",
+    "tests": "tests/test_continuum_stochastic_prevalence.py",
+    "receipt_runner": "experiments/run_continuum_stochastic_prevalence.py",
+    "receipt_version": "1.0.0",
+    "artifact_verifier": "scripts/verify_continuum_stochastic_prevalence_artifacts.py",
+    "recovery_base_authority": "machine/recovery_specialization_contract.json",
+    "relation_base_authority": "machine/relation_contract.json",
+    "roadmap_state": "machine/roadmap_state.json",
+    "workflow": ".github/workflows/finite-adversarial.yml",
+    "rule": "Stochastic, infinite-horizon, prevalence, and continuum conclusions require separately declared probability, measure, quantifier, topology, regularity, convergence, and error-control obligations; bounded finite evidence cannot silently supply them."
   },
   "vopson_corpus_authority": {
     "author": "research/vopson/AUTHOR.json",
@@ -291,7 +309,14 @@
     "relation_sound_selector_implies_termination": false,
     "selector_normal_form_implies_unique_relation_normal_form": false,
     "objective_minimum_implies_unique_selection_without_tiebreak": false,
-    "executable_normalizer_implies_empirical_recovery": false
+    "executable_normalizer_implies_empirical_recovery": false,
+    "relation_reachability_implies_positive_probability": false,
+    "positive_probability_implies_almost_sure": false,
+    "finite_horizon_success_implies_infinite_liveness": false,
+    "single_trajectory_identifies_distribution": false,
+    "finite_counterexample_implies_prevalence": false,
+    "finite_grid_agreement_implies_continuum_equality": false,
+    "discretization_implies_convergence_without_error_control": false
   },
   "vopson": {
     "orcid": "0000-0002-8073-5538",
@@ -314,6 +339,7 @@
     "theory/REPRESENTATION_CALCULUS.md", "machine/representation_contract.json", "machine/representation_results.json", "scripts/validate_representation_calculus.py", "experiments/run_representation_calculus.py",
     "theory/INFORMATION_COMPARABILITY.md", "machine/information_comparability_contract.json", "machine/information_comparability_results.json", "scripts/validate_information_comparability.py", "experiments/run_information_comparability.py",
     "theory/RECOVERY_SPECIALIZATIONS.md", "machine/recovery_specialization_contract.json", "machine/recovery_specialization_results.json", "scripts/validate_recovery_specializations.py", "experiments/run_recovery_specializations.py",
+    "theory/CONTINUUM_STOCHASTIC_PREVALENCE.md", "machine/continuum_stochastic_prevalence_contract.json", "machine/continuum_stochastic_prevalence_results.json", "scripts/validate_continuum_stochastic_prevalence.py", "experiments/run_continuum_stochastic_prevalence.py",
     "research/CROSS_REPO_PATTERN_ATLAS.md", "research/GRAPH_REALIZATION_SOURCES.md", "research/vopson/AUTHOR.json", "research/vopson/CORPUS.md", "research/vopson/corpus.json", "research/vopson/CLAIM_GRAPH.md",
     "research/vopson/CLAIM_GRAPH.json", "research/vopson/DEFINITIONS.md", "research/vopson/REPRODUCTION_MATRIX.md", "research/vopson/COUNTEREXAMPLE_MATRIX.md", "research/vopson/RESPONSE_HISTORY.md",
     "research/vopson/reproduction/2019-mei/SOURCE_MAP.md", "research/vopson/reproduction/2019-mei/DERIVATION.md", "research/vopson/reproduction/2019-mei/ASSUMPTION_GRAPH.json",

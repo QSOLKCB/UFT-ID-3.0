@@ -24,6 +24,8 @@ on:
       - "scripts/verify_information_comparability_artifacts.py"
       - "scripts/validate_recovery_specializations.py"
       - "scripts/verify_recovery_specialization_artifacts.py"
+      - "scripts/validate_continuum_stochastic_prevalence.py"
+      - "scripts/verify_continuum_stochastic_prevalence_artifacts.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -42,6 +44,7 @@ on:
       - "theory/REPRESENTATION_CALCULUS.md"
       - "theory/INFORMATION_COMPARABILITY.md"
       - "theory/RECOVERY_SPECIALIZATIONS.md"
+      - "theory/CONTINUUM_STOCHASTIC_PREVALENCE.md"
       - "research/CROSS_REPO_PATTERN_ATLAS.md"
       - "research/GRAPH_REALIZATION_SOURCES.md"
       - "research/HISTORICAL_LINEAGE.md"
@@ -77,6 +80,8 @@ on:
       - "scripts/verify_information_comparability_artifacts.py"
       - "scripts/validate_recovery_specializations.py"
       - "scripts/verify_recovery_specialization_artifacts.py"
+      - "scripts/validate_continuum_stochastic_prevalence.py"
+      - "scripts/verify_continuum_stochastic_prevalence_artifacts.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -95,6 +100,7 @@ on:
       - "theory/REPRESENTATION_CALCULUS.md"
       - "theory/INFORMATION_COMPARABILITY.md"
       - "theory/RECOVERY_SPECIALIZATIONS.md"
+      - "theory/CONTINUUM_STOCHASTIC_PREVALENCE.md"
       - "research/CROSS_REPO_PATTERN_ATLAS.md"
       - "research/GRAPH_REALIZATION_SOURCES.md"
       - "research/HISTORICAL_LINEAGE.md"
@@ -211,6 +217,14 @@ jobs:
           python experiments/recovery_specializations/run.py --json > /tmp/recovery-specialization.json
           python experiments/run_recovery_specializations.py --hash-only > /tmp/recovery-specialization-receipt.json
 
+      - name: Validate Continuum Stochastic Prevalence authority surface
+        run: python scripts/validate_continuum_stochastic_prevalence.py
+
+      - name: Run Continuum Stochastic Prevalence witnesses
+        run: |
+          python experiments/continuum_stochastic_prevalence/run.py --json > /tmp/continuum-stochastic-prevalence.json
+          python experiments/run_continuum_stochastic_prevalence.py --hash-only > /tmp/continuum-stochastic-prevalence-receipt.json
+
       - name: Validate Vopson 2019 MEI authority surface
         run: python scripts/validate_vopson_2019_mei.py
 
@@ -294,6 +308,14 @@ jobs:
           python experiments/recovery_specializations/run.py --json > artifacts/recovery-specialization-witness.json 2> artifacts/recovery-specialization-witness.stderr.txt || true
           python experiments/run_recovery_specializations.py --json > artifacts/recovery-specialization-receipt.json 2> artifacts/recovery-specialization-receipt.stderr.txt || true
 
+      - name: Generate Continuum Stochastic Prevalence evidence bundle
+        if: always()
+        run: |
+          mkdir -p artifacts
+          python scripts/validate_continuum_stochastic_prevalence.py --json > artifacts/continuum-stochastic-prevalence-validation.json 2> artifacts/continuum-stochastic-prevalence-validation.stderr.txt || true
+          python experiments/continuum_stochastic_prevalence/run.py --json > artifacts/continuum-stochastic-prevalence-witness.json 2> artifacts/continuum-stochastic-prevalence-witness.stderr.txt || true
+          python experiments/run_continuum_stochastic_prevalence.py --json > artifacts/continuum-stochastic-prevalence-receipt.json 2> artifacts/continuum-stochastic-prevalence-receipt.stderr.txt || true
+
       - name: Verify retained graph evidence
         if: always()
         run: |
@@ -323,6 +345,11 @@ jobs:
         if: always()
         run: |
           python scripts/verify_recovery_specialization_artifacts.py artifacts
+
+      - name: Verify retained Continuum Stochastic Prevalence evidence
+        if: always()
+        run: |
+          python scripts/verify_continuum_stochastic_prevalence_artifacts.py artifacts
 
       - name: Retain finite evidence bundle
         if: always()
