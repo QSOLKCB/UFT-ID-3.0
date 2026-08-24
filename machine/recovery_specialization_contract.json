@@ -1,0 +1,60 @@
+{
+  "type": "uft-id-recovery-specialization-contract",
+  "schema_version": "1.0.0",
+  "snapshot_date": "2026-08-24",
+  "claim_class": "DEFINITION",
+  "scope": "Deterministic selector specializations of the existing relation-first recovery core, including relation-sound selector iteration, natural-number progress certificates, executable normalization, and finite lexicographic recovery. The specialization does not replace or strengthen the semantics of the underlying generic relation.",
+  "base_relation_authority": "machine/relation_contract.json",
+  "primary_types": {
+    "selector": "sigma:X->X",
+    "effective_selector_step": "Sel_sigma(x,y) iff sigma(x)=y and y!=x",
+    "relation_soundness": "for all x, sigma(x)!=x implies stepRel(x,sigma(x))",
+    "natural_rank": "rho:X->N with sigma(x)!=x implying rho(sigma(x))<rho(x)",
+    "executable_normalizer": "normalize_sigma(x)=the first fixed point reached by deterministic selector iteration under the declared rank certificate",
+    "lexicographic_selector": "finite nonempty candidate minimization by an ordered objective tuple with a final fixed total order"
+  },
+  "hard_boundaries": [
+    "GENERIC_RELATION != DETERMINISTIC_SELECTOR",
+    "EXISTENTIAL_NORMALIZATION != EXECUTABLE_NORMALIZER",
+    "DETERMINISTIC != RELATION_SOUND",
+    "RELATION_SOUND != TERMINATING",
+    "TERMINATING_SELECTOR != BASE_RELATION_CONFLUENT",
+    "SELECTOR_NORMAL_FORM != UNIQUE_RELATION_NORMAL_FORM",
+    "OBJECTIVE_MINIMUM != UNIQUE_SELECTION_WITHOUT_TIEBREAK",
+    "EXECUTABLE_NORMALIZER != EMPIRICAL_RECOVERY",
+    "FINITE_SELECTOR_CONFORMANCE != GENERAL_RECOVERY_THEORY"
+  ],
+  "execution_limits": {
+    "carrier_sizes": [1, 2, 3],
+    "total_selector_count": 32,
+    "selector_relation_pair_count": 13890,
+    "relation_sound_selector_pairs": 4134,
+    "fixed_point_normal_exact_pairs": 739,
+    "rank_decreasing_selector_count": 9,
+    "state_normalization_checks": 23,
+    "lexicographic_selection_checks": 336,
+    "policy": "The bounded battery exhausts total selectors on Fin1, Fin2, and Fin3 and their relation-soundness against all labelled binary relations on those carriers, plus a finite lexicographic control. It is conformance evidence only and does not prove arbitrary infinite or stochastic recovery systems normalize."
+  },
+  "authorities": {
+    "human": "theory/RECOVERY_SPECIALIZATIONS.md",
+    "results": "machine/recovery_specialization_results.json",
+    "validator": "scripts/validate_recovery_specializations.py",
+    "experiment": "experiments/recovery_specializations/run.py",
+    "tests": "tests/test_recovery_specializations.py",
+    "receipt": "experiments/run_recovery_specializations.py",
+    "artifact_verifier": "scripts/verify_recovery_specialization_artifacts.py",
+    "base_relation": "machine/relation_contract.json",
+    "roadmap_state": "machine/roadmap_state.json",
+    "roadmap": "ROADMAP.md",
+    "workflow": ".github/workflows/finite-adversarial.yml"
+  },
+  "explicit_deferrals": [
+    "infinite-path fairness and liveness",
+    "stochastic selector or rewrite kernels",
+    "schedule-independence for concurrent recovery",
+    "history-dependent recovery semantics",
+    "continuum existence and regularity obligations",
+    "empirical calibration or physical recovery claims",
+    "Lean proof objects"
+  ]
+}

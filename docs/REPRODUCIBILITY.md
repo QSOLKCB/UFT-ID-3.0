@@ -53,6 +53,9 @@ python experiments/run_representation_calculus.py --json
 python scripts/validate_information_comparability.py
 python experiments/information_comparability/run.py --json
 python experiments/run_information_comparability.py --json
+python scripts/validate_recovery_specializations.py
+python experiments/recovery_specializations/run.py --json
+python experiments/run_recovery_specializations.py --json
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 python experiments/run_pr2.py --json
@@ -74,6 +77,7 @@ experiments/run_bridge_core.py
 experiments/run_epistemic_bridge.py
 experiments/run_representation_calculus.py
 experiments/run_information_comparability.py
+experiments/run_recovery_specializations.py
 ```
 
 All receipt families bind deterministic repository files and canonical result payloads while keeping runtime metadata outside portable fingerprints.
@@ -263,6 +267,54 @@ FINITE_INFORMATION_CONFORMANCE != GENERAL_INFORMATION_THEORY
 
 The deterministic Information Comparability source set binds the existing information primitives plus observation and Representation contracts because comparison cannot silently discard either the information-functional identity or the observation/representation boundary.
 
+## Recovery-specializations conformance boundary
+
+Recovery Specializations adds an explicit deterministic selector layer on top of the frozen generic relation core. Selector fixed points are halting semantics and are not silently inserted as self-loops into `stepRel`.
+
+Canonical commands:
+
+```bash
+python scripts/validate_recovery_specializations.py
+python experiments/recovery_specializations/run.py --json
+python experiments/run_recovery_specializations.py --json
+```
+
+Retained files:
+
+```text
+recovery-specialization-validation.json
+recovery-specialization-witness.json
+recovery-specialization-receipt.json
+```
+
+The exact bounded battery checks:
+
+```text
+32 total selectors
+13890 selector/relation pairs
+4134 relation-sound selector/relation pairs
+739 relation-sound pairs with selector fixed points exactly equal to relation normals
+9 natural-index-rank-decreasing selector controls
+23 state-level executable-normalization checks
+336 finite lexicographic selection checks
+```
+
+The executable normalizer fails closed unless the selector is total on exactly the declared carrier, every target stays inside that carrier, every non-fixed step is relation-sound, fixed points exactly match relation normals, and a natural-number rank strictly decreases on every non-fixed step. Lexicographic objective vectors are finite integer tuples; malformed or partially ordered values such as NaN are rejected before selection.
+
+```text
+GENERIC_RELATION != DETERMINISTIC_SELECTOR
+EXISTENTIAL_NORMALIZATION != EXECUTABLE_NORMALIZER
+DETERMINISTIC != RELATION_SOUND
+RELATION_SOUND != TERMINATING
+TERMINATING_SELECTOR != BASE_RELATION_CONFLUENT
+SELECTOR_NORMAL_FORM != UNIQUE_RELATION_NORMAL_FORM
+OBJECTIVE_MINIMUM != UNIQUE_SELECTION_WITHOUT_TIEBREAK
+EXECUTABLE_NORMALIZER != EMPIRICAL_RECOVERY
+FINITE_SELECTOR_CONFORMANCE != GENERAL_RECOVERY_THEORY
+```
+
+The deterministic Recovery source set binds the base relation contract and human relation calculus, central machine authority, live roadmap, AI bootstrap, claims, reproducibility contract, validator, executable, tests, receipt runner, retained-artifact verifier, and the existing `finite-adversarial` workflow.
+
 ## VOP-2019-MEI reproduction boundary
 
 ```text
@@ -314,6 +366,9 @@ representation-receipt.json
 information-comparability-validation.json
 information-comparability-witness.json
 information-comparability-receipt.json
+recovery-specialization-validation.json
+recovery-specialization-witness.json
+recovery-specialization-receipt.json
 vopson-corpus-validation.json
 vopson-doc-sync.json
 reproducibility-validation.json
@@ -323,7 +378,7 @@ Generated CI artifacts are workflow evidence and are not automatically committed
 
 ## GitHub Actions provenance
 
-Workflow actions remain pinned to the full 40-character SHAs in `machine/contract.json`. Checkout credentials are not persisted and workflow permissions remain read-only.
+Workflow actions remain pinned to the full 40-character SHAs in `machine/contract.json`. Checkout credentials are not persisted and workflow permissions remain read-only. Recovery uses the existing declared `finite-adversarial.yml` workflow rather than introducing an undeclared third workflow.
 
 ## Bounded exhaustive computation
 
@@ -343,6 +398,11 @@ Finite exhaustive batteries prove only their declared bounded conformance domain
 9216 ordered information-specification pairs
 224 direct information-comparability pairs
 224 explicit unit-convertible information pairs
+32 total recovery selectors
+13890 recovery selector/relation pairs
+4134 relation-sound recovery selector/relation pairs
+739 exact fixed-point/normal recovery pairs
+336 finite lexicographic selections
 ```
 
 ```text
@@ -361,6 +421,8 @@ Representation and Congruence is synchronized across `machine/representation_con
 
 Information Comparability is synchronized across `machine/information_comparability_contract.json`, `machine/information_comparability_results.json`, `theory/INFORMATION_COMPARABILITY.md`, `docs/CLAIMS.md`, `README4AI.md`, `docs/REPRODUCIBILITY.md`, `machine/contract.json`, `machine/roadmap_state.json`, and its deterministic receipt.
 
+Recovery Specializations is synchronized across `machine/recovery_specialization_contract.json`, `machine/recovery_specialization_results.json`, `theory/RECOVERY_SPECIALIZATIONS.md`, `docs/CLAIMS.md`, `README4AI.md`, `docs/REPRODUCIBILITY.md`, `machine/contract.json`, `machine/roadmap_state.json`, `ROADMAP.md`, the base relation authority, and its deterministic receipt.
+
 ## Nonclaims
 
-This contract does not claim that deterministic output proves a physical law, that a hash proves scientific correctness, that correct arithmetic validates a physical premise, that finite conformance proves unrestricted mathematics, that transport/retrieval/inference/execution creates verification, that verification establishes truth, that representation equivalence establishes semantic or physical identity, that two numbers called information are comparable without a declared specification relation, or that CI replaces independent scientific review.
+This contract does not claim that deterministic output proves a physical law, that a hash proves scientific correctness, that correct arithmetic validates a physical premise, that finite conformance proves unrestricted mathematics, that transport/retrieval/inference/execution creates verification, that verification establishes truth, that representation equivalence establishes semantic or physical identity, that two numbers called information are comparable without a declared specification relation, that a deterministic selector establishes base-relation confluence or empirical recovery, or that CI replaces independent scientific review.
