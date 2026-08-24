@@ -38,6 +38,7 @@ but relation, observation, bridge, epistemic, representation, information, recov
 - [x] Planned PR #12 — BridgeCore, delivered in GitHub PR #13 and merged at `2242f96564f4d27af4ba641b45f45f011a49a7c7`.
 - [x] Planned PR #13 — Epistemic Bridge specialization, delivered in GitHub PR #14 and merged at `083aa9ae9e812cae86302d856f70ad83e5cf806b`.
 - [x] Planned PR #14 — Representation and congruence calculus, delivered in GitHub PR #15 and merged at `a094ec469f311bc6cc11442ee5f850f5dc130e2f`.
+- [x] Planned PR #15 — Information Comparability core, delivered in GitHub PR #16 and merged at `22b589c4e2e2042d180d64db837f092a007e0813`.
 
 ## Deferred independent proof track
 
@@ -48,110 +49,86 @@ MATHEMATICAL_PROOF != LEAN_PROOF
 LEAN_PROOF != RUNTIME_CONFORMANCE != EMPIRICAL_VALIDATION
 ```
 
-## Active now — planned PR #15, delivered in GitHub PR #16
+## Active now — planned PR #16
 
-### Information comparability core
+### Recovery specializations
 
 **Status:** ACTIVE, implemented by the current change.
 
-Mission: define when two quantities called information are actually licensed to be compared, without letting shared vocabulary, scalar codomain, units, or coincident numeric values masquerade as specification-level equivalence.
+Mission: specialize the existing relation-first recovery core with explicit deterministic selectors and executable normalizers without rewriting a generic relation as deterministic, confluent, uniquely normalizing, or empirically valid.
 
-Canonical object:
-
-```text
-InformationSpec = (
-  source_type,
-  functional,
-  observation,
-  unit,
-  normalization,
-  conditioning,
-  scope
-)
-```
-
-The bounded `observation` and `conditioning` values are stable identity-bearing references bound to exact maps/events, not generic category labels.
-
-Explicit unit conversion:
+Canonical specialization:
 
 ```text
-UnitConversion = (
-  functional,
-  source_unit,
-  target_unit,
-  positive_scale,
-  scope
-)
+stepRel : X -> X -> Prop
+sigma   : X -> X
+Sel_sigma(x,y) iff sigma(x)=y and y!=x
 ```
 
-Direct comparability requires equality of `source_type`, `functional`, stable `observation` identity, `unit`, `normalization`, and stable `conditioning` identity, plus nonempty scope overlap. Unit-converted comparability permits only a declared unit mismatch with an exact registered positive conversion and nonempty common scope across both specifications and the conversion.
+A selector fixed point is halting semantics for the selector. It is not silently inserted as a self-loop into `stepRel`.
+
+Relation soundness and progress are separate obligations:
+
+```text
+sigma(x) != x => stepRel(x, sigma(x))
+rho : X -> N
+sigma(x) != x => rho(sigma(x)) < rho(x)
+```
+
+An executable normalizer is licensed only when non-fixed selector steps are relation-sound, selector fixed points are exactly the base-relation normal states, and the declared natural-number rank strictly decreases on every non-fixed selector step.
 
 Advertised result surface:
 
-1. `UFT-INF-001` identical valid specifications are directly comparable;
-2. `UFT-INF-002` direct comparability is symmetric;
-3. `UFT-INF-003` direct comparability preserves every comparison-defining field and requires scope overlap;
-4. `UFT-INF-004` positive unit conversion preserves scalar equality/order/sign;
-5. `UFT-INF-005` explicit bit/base4 logarithm-base conversion licenses non-identical unit-converted comparability only under common specification/conversion scope.
+1. `UFT-REC-001` every deterministic selector induces a right-unique effective selector relation;
+2. `UFT-REC-002` relation-sound finite selector iteration remains inside base-relation reachability;
+3. `UFT-REC-003` strict natural-rank descent terminates selector iteration;
+4. `UFT-REC-004` sound rank-certified selectors with exact fixed-point/normal correspondence define executable normalizers;
+5. `UFT-REC-005` finite lexicographic recovery is unique only with an explicit final total tie-break.
 
 Adversarial counterexamples:
 
 ```text
-CX-INF-001 same-word-and-unit-different-functionals
-CX-INF-002 same-functional-and-unit-different-observations
-CX-INF-003 different-units-require-explicit-conversion
-CX-INF-004 scope-overlap-comparability-not-transitive
-CX-INF-005 numeric-equality-does-not-erase-normalization
+CX-REC-001 existential-normalization-without-executable-choice
+CX-REC-002 deterministic-but-relation-unsound-selector
+CX-REC-003 relation-sound-deterministic-selector-loop
+CX-REC-004 tied-objective-without-total-tiebreak
+CX-REC-005 selector-choice-does-not-make-base-relation-confluent
 ```
 
-Exact finite conformance uses standard-library exact arithmetic and checks:
+Exact finite conformance checks:
 
 ```text
-2 functionals
-2 stable observation identities
-2 units
-2 normalizations
-2 stable conditioning identities
-3 nonempty scopes
-96 InformationSpec values
-9216 ordered specification pairs
-224 directly comparable ordered pairs
-224 explicit unit-convertible ordered pairs
-96 reflexive checks
-9216 symmetry checks
-224 inverse conversion checks
-75 positive-scale order/sign checks
-5 exact power-of-two bit/base4 conversion checks
-1 canonical Shannon primitive cross-check
+32 total selectors on Fin1, Fin2, and Fin3
+13,890 selector/relation pairs
+4,134 relation-sound selector/relation pairs
+739 relation-sound pairs with selector fixed points exactly equal to relation normals
+9 natural-index-rank-decreasing selector controls
+23 state-level executable-normalization checks
+336 finite lexicographic selection checks
 ```
 
 Required boundaries:
 
 ```text
-SAME_WORD_INFORMATION != SAME_FUNCTIONAL
-SAME_SCALAR_CODOMAIN != COMPARABLE_INFORMATION
-SAME_UNIT != COMPARABLE_INFORMATION
-SAME_FUNCTIONAL != SAME_OBSERVATION
-IDENTICAL_SPEC => COMPARABLE
-COMPARABLE != IDENTICAL_SPEC
-NUMERIC_EQUALITY != INFORMATIONAL_EQUIVALENCE
-POSITIVE_UNIT_CONVERSION != SEMANTIC_BRIDGE
-PAIRWISE_SCOPE_COMPARABILITY != TRANSITIVE_COMPARABILITY
-DIRECT_COMPARABILITY != EMPIRICAL_COMMENSURABILITY
-FINITE_INFORMATION_CONFORMANCE != GENERAL_INFORMATION_THEORY
+GENERIC_RELATION != DETERMINISTIC_SELECTOR
+EXISTENTIAL_NORMALIZATION != EXECUTABLE_NORMALIZER
+DETERMINISTIC != RELATION_SOUND
+RELATION_SOUND != TERMINATING
+TERMINATING_SELECTOR != BASE_RELATION_CONFLUENT
+SELECTOR_NORMAL_FORM != UNIQUE_RELATION_NORMAL_FORM
+OBJECTIVE_MINIMUM != UNIQUE_SELECTION_WITHOUT_TIEBREAK
+EXECUTABLE_NORMALIZER != EMPIRICAL_RECOVERY
+FINITE_SELECTOR_CONFORMANCE != GENERAL_RECOVERY_THEORY
 ```
 
-**Exit criterion:** every comparison is licensed by an explicit `InformationSpec` relation or registered conversion; observation, normalization, conditioning, unit, functional, and scope differences remain visible; the five counterexamples stay executable; exact finite conformance, human/machine authority, deterministic receipts, retained artifacts, compatibility wrappers, and CI remain synchronized.
+**Exit criterion:** the selector remains an explicit specialization of `stepRel`; relation soundness, termination/progress, fixed-point/normal correspondence, and tie-breaking remain separately checkable; the five adversarial counterexamples stay executable; exact finite conformance, human/machine authority, deterministic receipts, retained artifacts, compatibility wrappers, and CI remain synchronized.
 
 ## Next planned phases
 
-- [ ] PR #16 — Recovery specializations. **NEXT.**
-- [ ] PR #17 — Continuum, stochastic, and prevalence obligations.
+- [ ] PR #17 — Continuum, stochastic, and prevalence obligations. **NEXT.**
 - [ ] PR #18 — Empirical falsification profile.
 
 ```text
-GENERIC_RELATION != DETERMINISTIC_SELECTOR
-EXISTENTIAL_NORMALIZATION != EXECUTABLE_NORMALIZER
 FINITE_REACHABILITY != INFINITE_PATH_LIVENESS
 FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION
 ```
@@ -461,6 +438,9 @@ python experiments/run_representation_calculus.py --json
 python scripts/validate_information_comparability.py
 python experiments/information_comparability/run.py --json
 python experiments/run_information_comparability.py --json
+python scripts/validate_recovery_specializations.py
+python experiments/recovery_specializations/run.py --json
+python experiments/run_recovery_specializations.py --json
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 ```
