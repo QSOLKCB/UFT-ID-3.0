@@ -1,6 +1,6 @@
 {
   "type": "uft-id-empirical-falsification-profile-contract",
-  "schema_version": "1.0.0",
+  "schema_version": "1.0.1",
   "snapshot_date": "2026-08-24",
   "claim_class": "DEFINITION",
   "scope": "Typed decision and evidence obligations for a synthetic conformance evaluator that classifies whether calibrated profile-matched evidence crosses a versioned scoped rejection boundary. The profile separates formal counterexamples from empirical falsification, non-rejection from confirmation, calibrated measurement from bare numeric observation, and model fit from unique explanation while treating preregistration chronology as an external unverified assumption.",
@@ -71,5 +71,18 @@
     "population prevalence estimation",
     "automated rejection of broader theories from one scoped hypothesis",
     "Lean proof objects"
-  ]
+  ],
+  "base_falsification_field_mapping": {
+    "hypothesis_id": "profile.hypothesis_id",
+    "claim_class": "profile.claim_class",
+    "independent_variables": "constant:[]; no intervention variable is claimed by this synthetic interval specialization",
+    "perturbations": "constant:[]; no controlled perturbation is claimed by this synthetic interval specialization",
+    "observables": "[profile.observable_id]",
+    "predictions": "[profile.prediction]",
+    "null_model": "profile.null_model",
+    "rejection_conditions": "[profile.rejection_rule]",
+    "evidence_required": "profile.evidence_requirements",
+    "scope_limits": "[profile.scope, synthetic conformance only, no empirical-rejection licence]",
+    "status": "constant:synthetic-conformance"
+  }
 }

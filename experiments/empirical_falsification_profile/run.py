@@ -36,6 +36,32 @@ NULL_MODEL_KIND = "boundary-equality"
 REJECTION_RULE_KIND = "interval-entirely-above-threshold"
 UNCERTAINTY_MODEL = "symmetric-closed-interval-radius"
 PRIOR_REGISTRATION_STATUS = "EXTERNAL_UNVERIFIED_ASSUMPTION"
+SYNTHETIC_HYPOTHESIS_ID = "H-SYN-BOUND-001"
+SYNTHETIC_HYPOTHESIS_VERSION = "1.0.0"
+SYNTHETIC_CLAIM_CLASS = "DIAGNOSTIC"
+SYNTHETIC_SCOPE = "synthetic exact interval decision semantics only"
+SYNTHETIC_OBSERVABLE_ID = "OBS-SYN-Y-V1"
+SYNTHETIC_MEASUREMENT_SPEC_ID = "MEAS-SYN-Y-V1"
+SYNTHETIC_CALIBRATION_ID = "CAL-SYN-Y-V1"
+SYNTHETIC_PROFILE_VERSION = "1.0.0"
+SYNTHETIC_STATUS = "synthetic-conformance"
+BASE_FALSIFICATION_REQUIRED_FIELDS = (
+    "hypothesis_id", "claim_class", "independent_variables", "perturbations", "observables",
+    "predictions", "null_model", "rejection_conditions", "evidence_required", "scope_limits", "status",
+)
+BASE_FALSIFICATION_FIELD_MAPPING = {
+    "hypothesis_id": "profile.hypothesis_id",
+    "claim_class": "profile.claim_class",
+    "independent_variables": "constant:[]; no intervention variable is claimed by this synthetic interval specialization",
+    "perturbations": "constant:[]; no controlled perturbation is claimed by this synthetic interval specialization",
+    "observables": "[profile.observable_id]",
+    "predictions": "[profile.prediction]",
+    "null_model": "profile.null_model",
+    "rejection_conditions": "[profile.rejection_rule]",
+    "evidence_required": "profile.evidence_requirements",
+    "scope_limits": "[profile.scope, synthetic conformance only, no empirical-rejection licence]",
+    "status": "constant:synthetic-conformance",
+}
 EXPECTED_EVIDENCE_REQUIREMENTS = [
     "matching observable_id",
     "matching measurement_spec_id",
@@ -91,29 +117,55 @@ def profile_fingerprint(profile: Mapping[str, object]) -> str:
     return hashlib.sha256(canonical_bytes(dict(profile))).hexdigest()
 
 
+def _synthetic_profile_id(threshold: Fraction) -> str:
+    suffix = f"{threshold.numerator}_{threshold.denominator}".replace("-", "m")
+    return f"EFP-SYN-THRESH-{suffix}"
+
+
 def make_profile(threshold: object = 0, *, profile_id: str | None = None) -> dict[str, object]:
     exact_threshold = _exact(threshold, "rejection threshold")
-    suffix = f"{exact_threshold.numerator}_{exact_threshold.denominator}".replace("-", "m")
+    expected_profile_id = _synthetic_profile_id(exact_threshold)
     profile = {
-        "profile_id": profile_id or f"EFP-SYN-THRESH-{suffix}",
-        "hypothesis_id": "H-SYN-BOUND-001",
-        "hypothesis_version": "1.0.0",
-        "claim_class": "DIAGNOSTIC",
-        "scope": "synthetic exact interval decision semantics only",
-        "observable_id": "OBS-SYN-Y-V1",
-        "measurement_spec_id": "MEAS-SYN-Y-V1",
-        "calibration_id": "CAL-SYN-Y-V1",
+        "profile_id": profile_id or expected_profile_id,
+        "hypothesis_id": SYNTHETIC_HYPOTHESIS_ID,
+        "hypothesis_version": SYNTHETIC_HYPOTHESIS_VERSION,
+        "claim_class": SYNTHETIC_CLAIM_CLASS,
+        "scope": SYNTHETIC_SCOPE,
+        "observable_id": SYNTHETIC_OBSERVABLE_ID,
+        "measurement_spec_id": SYNTHETIC_MEASUREMENT_SPEC_ID,
+        "calibration_id": SYNTHETIC_CALIBRATION_ID,
         "uncertainty_model": UNCERTAINTY_MODEL,
-        "prediction": {"kind": PREDICTION_KIND, "observable_id": "OBS-SYN-Y-V1", "upper_bound": exact_threshold},
-        "null_model": {"kind": NULL_MODEL_KIND, "observable_id": "OBS-SYN-Y-V1", "value": exact_threshold},
+        "prediction": {"kind": PREDICTION_KIND, "observable_id": SYNTHETIC_OBSERVABLE_ID, "upper_bound": exact_threshold},
+        "null_model": {"kind": NULL_MODEL_KIND, "observable_id": SYNTHETIC_OBSERVABLE_ID, "value": exact_threshold},
         "rejection_rule": {"kind": REJECTION_RULE_KIND, "threshold": exact_threshold},
         "evidence_requirements": list(EXPECTED_EVIDENCE_REQUIREMENTS),
         "decision_policy": dict(EXPECTED_DECISION_POLICY),
         "prior_registration_status": PRIOR_REGISTRATION_STATUS,
-        "profile_version": "1.0.0",
+        "profile_version": SYNTHETIC_PROFILE_VERSION,
     }
     _validate_profile(profile)
     return profile
+
+
+def _base_falsification_projection(profile: Mapping[str, object]) -> dict[str, object]:
+    return {
+        "hypothesis_id": profile["hypothesis_id"],
+        "claim_class": profile["claim_class"],
+        "independent_variables": [],
+        "perturbations": [],
+        "observables": [profile["observable_id"]],
+        "predictions": [dict(profile["prediction"])],
+        "null_model": dict(profile["null_model"]),
+        "rejection_conditions": [dict(profile["rejection_rule"])],
+        "evidence_required": list(profile["evidence_requirements"]),
+        "scope_limits": [profile["scope"], "synthetic conformance only", "no empirical-rejection licence"],
+        "status": SYNTHETIC_STATUS,
+    }
+
+
+def base_falsification_spec(profile: Mapping[str, object]) -> dict[str, object]:
+    _validate_profile(profile)
+    return _base_falsification_projection(profile)
 
 
 def _validate_profile(profile: Mapping[str, object]) -> None:
@@ -124,10 +176,22 @@ def _validate_profile(profile: Mapping[str, object]) -> None:
         "observable_id", "measurement_spec_id", "calibration_id", "uncertainty_model",
         "prior_registration_status", "profile_version",
     ):
-        if not isinstance(profile[key], str) or not profile[key]:
+        if not isinstance(profile[key], str) or not profile[key].strip():
             raise ValueError(f"empirical profile {key} must be a nonempty string")
-    if profile["claim_class"] != "DIAGNOSTIC":
+    if profile["claim_class"] != SYNTHETIC_CLAIM_CLASS:
         raise ValueError("synthetic profile claim class must remain DIAGNOSTIC")
+    exact_identity = {
+        "hypothesis_id": SYNTHETIC_HYPOTHESIS_ID,
+        "hypothesis_version": SYNTHETIC_HYPOTHESIS_VERSION,
+        "scope": SYNTHETIC_SCOPE,
+        "observable_id": SYNTHETIC_OBSERVABLE_ID,
+        "measurement_spec_id": SYNTHETIC_MEASUREMENT_SPEC_ID,
+        "calibration_id": SYNTHETIC_CALIBRATION_ID,
+        "profile_version": SYNTHETIC_PROFILE_VERSION,
+    }
+    for key, expected in exact_identity.items():
+        if profile[key] != expected:
+            raise ValueError(f"synthetic profile {key} drift")
     if profile["uncertainty_model"] != UNCERTAINTY_MODEL:
         raise ValueError("unsupported uncertainty-model kind")
     if profile["prior_registration_status"] != PRIOR_REGISTRATION_STATUS:
@@ -148,6 +212,8 @@ def _validate_profile(profile: Mapping[str, object]) -> None:
     if rejection["kind"] != REJECTION_RULE_KIND:
         raise ValueError("unsupported rejection-rule kind")
     threshold = _exact(rejection["threshold"], "rejection threshold")
+    if profile["profile_id"] != _synthetic_profile_id(threshold):
+        raise ValueError("synthetic profile profile_id drift")
     if _exact(prediction["upper_bound"], "prediction upper bound") != threshold or _exact(null_model["value"], "null-model value") != threshold:
         raise ValueError("prediction/null/rejection threshold disagreement")
     if prediction["observable_id"] != profile["observable_id"] or null_model["observable_id"] != profile["observable_id"]:
@@ -156,6 +222,9 @@ def _validate_profile(profile: Mapping[str, object]) -> None:
         raise ValueError("evidence requirement registry drift")
     if profile["decision_policy"] != EXPECTED_DECISION_POLICY:
         raise ValueError("decision policy semantic drift")
+    projection = _base_falsification_projection(profile)
+    if tuple(projection) != BASE_FALSIFICATION_REQUIRED_FIELDS:
+        raise ValueError("base falsification projection field order/set drift")
 
 
 def make_evidence(
@@ -195,7 +264,7 @@ def evaluate(profile: Mapping[str, object], evidence: object) -> dict[str, objec
     if not isinstance(evidence, Mapping) or set(evidence) != EVIDENCE_FIELDS:
         return _invalid("empirical-evidence-record-required")
     for key in ("observable_id", "measurement_spec_id", "calibration_id", "profile_fingerprint"):
-        if not isinstance(evidence[key], str) or not evidence[key]:
+        if not isinstance(evidence[key], str) or not evidence[key].strip():
             return _invalid(f"malformed-{key}")
     if evidence["observable_id"] != profile["observable_id"]:
         return _invalid("observable-id-mismatch")
@@ -248,7 +317,7 @@ def compatible_models(observation: object, model_intervals: Mapping[str, Sequenc
         raise ValueError("model interval registry must be a nonempty mapping")
     compatible: list[str] = []
     for model_id, interval in model_intervals.items():
-        if not isinstance(model_id, str) or not model_id:
+        if not isinstance(model_id, str) or not model_id.strip():
             raise ValueError("model id must be a nonempty string")
         if not isinstance(interval, Sequence) or isinstance(interval, (str, bytes)) or len(interval) != 2:
             raise ValueError("model prediction interval must have exactly two endpoints")

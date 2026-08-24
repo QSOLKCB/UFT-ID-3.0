@@ -106,6 +106,51 @@ class EmpiricalFalsificationProfileTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "decision policy semantic drift"):
             E.profile_fingerprint(mutated)
 
+    def test_profile_identifiers_and_scope_are_exact_bound(self):
+        profile = E.make_profile(0)
+        for key, value, diagnostic in (
+            ("hypothesis_id", "H-OTHER", "hypothesis_id drift"),
+            ("hypothesis_version", "2.0.0", "hypothesis_version drift"),
+            ("scope", "global UFT-ID theory refutation", "scope drift"),
+            ("profile_version", "2.0.0", "profile_version drift"),
+        ):
+            with self.subTest(key=key):
+                mutated = deepcopy(profile)
+                mutated[key] = value
+                with self.assertRaisesRegex(ValueError, diagnostic):
+                    E.profile_fingerprint(mutated)
+        for key in ("measurement_spec_id", "calibration_id"):
+            with self.subTest(whitespace_profile_key=key):
+                mutated = deepcopy(profile)
+                mutated[key] = "   "
+                with self.assertRaisesRegex(ValueError, "nonempty string"):
+                    E.profile_fingerprint(mutated)
+            evidence = E.make_evidence(profile, 1, 0)
+            evidence[key] = "   "
+            self.assertEqual(E.evaluate(profile, evidence)["decision"], "INVALID_EVIDENCE")
+        with self.assertRaisesRegex(ValueError, "profile_id drift"):
+            E.make_profile(0, profile_id="EFP-SYN-UNREGISTERED")
+
+    def test_base_falsification_projection_and_authority_are_exact_bound(self):
+        profile = E.make_profile(0)
+        base = json.loads((ROOT / "machine/falsification_contract.json").read_text(encoding="utf-8"))
+        projection = E.base_falsification_spec(profile)
+        self.assertEqual(tuple(projection), tuple(base["required_fields"]))
+        self.assertEqual(set(E.BASE_FALSIFICATION_FIELD_MAPPING), set(base["required_fields"]))
+        self.assertEqual(projection["observables"], [profile["observable_id"]])
+        self.assertEqual(projection["predictions"], [profile["prediction"]])
+        self.assertEqual(projection["null_model"], profile["null_model"])
+        self.assertEqual(projection["rejection_conditions"], [profile["rejection_rule"]])
+        self.assertEqual(projection["status"], "synthetic-conformance")
+        for mutate in (
+            lambda payload: payload.__setitem__("schema_version", "9.9.9"),
+            lambda payload: payload.__setitem__("required_fields", []),
+            lambda payload: payload.__setitem__("semantics", {"prediction": "rewritten"}),
+        ):
+            result = self._mutate_json("machine/falsification_contract.json", mutate)
+            self.assertEqual(result["status"], "error")
+            self.assertIn("EFP PR8 falsification base authority drift", result["errors"])
+
     def test_string_and_bytes_provenance_are_rejected_before_list_coercion(self):
         profile = E.make_profile(0)
         for refs in ("SYN-PROV-001", b"SYN-PROV-001"):

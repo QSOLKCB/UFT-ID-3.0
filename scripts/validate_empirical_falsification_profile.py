@@ -36,6 +36,9 @@ EXPECTED_SCOPE = (
     "from empirical falsification, non-rejection from confirmation, calibrated measurement from bare numeric observation, "
     "and model fit from unique explanation while treating preregistration chronology as an external unverified assumption."
 )
+EXPECTED_BASE_FALSIFICATION = {'nonclaims': ['A FalsificationSpec makes a claim testable; it does not make the claim true.', 'A failed synthetic fixture does not validate or refute any external scientific theory.', "Controlled perturbation structure imported from author-supplied research does not import the paper's consciousness or physical ontology."], 'required_fields': ['hypothesis_id', 'claim_class', 'independent_variables', 'perturbations', 'observables', 'predictions', 'null_model', 'rejection_conditions', 'evidence_required', 'scope_limits', 'status'], 'schema_version': '1.0.1', 'semantics': {'evidence_required': 'The data/measurement/provenance needed before evaluating the condition.', 'null_model': 'A separately declared model of behavior absent the claimed mechanism.', 'perturbation': 'A declared controlled change, not an interpretive label.', 'prediction': 'A direction/range/relation fixed before observing the target outcome.', 'rejection_condition': 'An observable result that counts against the scoped hypothesis.'}, 'snapshot_date': '2026-08-20', 'status': 'scaffold-active', 'synthetic_conformance_example': {'claim_class': 'DIAGNOSTIC', 'evidence_required': ['both q(0) and q(1) from the declared synthetic fixture'], 'fixture_values': {'q0': 1.0, 'q1': 2.0}, 'hypothesis_id': 'FALS-SYN-001', 'independent_variables': ['alpha in {0,1}'], 'null_model': ['q(1) = q(0)'], 'observables': ['q(alpha)'], 'perturbations': ['set alpha from 0 to 1'], 'predictions': ['q(1) < q(0)'], 'rejection_conditions': ['q(1) >= q(0)'], 'scope_limits': ['schema semantics only', 'not an empirical scientific hypothesis'], 'status': 'synthetic-conformance'}, 'type': 'uft-id-falsification-contract'}
+EXPECTED_BASE_FIELD_MAPPING = {'hypothesis_id': 'profile.hypothesis_id', 'claim_class': 'profile.claim_class', 'independent_variables': 'constant:[]; no intervention variable is claimed by this synthetic interval specialization', 'perturbations': 'constant:[]; no controlled perturbation is claimed by this synthetic interval specialization', 'observables': '[profile.observable_id]', 'predictions': '[profile.prediction]', 'null_model': 'profile.null_model', 'rejection_conditions': '[profile.rejection_rule]', 'evidence_required': 'profile.evidence_requirements', 'scope_limits': '[profile.scope, synthetic conformance only, no empirical-rejection licence]', 'status': 'constant:synthetic-conformance'}
+
 EXPECTED_PRIMARY_TYPES = {
     "profile": "EmpiricalFalsificationProfile=(profile_id,hypothesis_id,hypothesis_version,claim_class,scope,observable_id,measurement_spec_id,calibration_id,uncertainty_model,prediction,null_model,rejection_rule,evidence_requirements,decision_policy,prior_registration_status,profile_version)",
     "evidence": "EmpiricalEvidence=(observable_id,measurement_spec_id,calibration_id,value,uncertainty_radius,provenance_refs,profile_fingerprint)",
@@ -133,7 +136,7 @@ EXPECTED_DEFERRALS = [
 ]
 EXPECTED_CONTRACT_TOP_LEVEL = {
     "type", "schema_version", "snapshot_date", "claim_class", "scope", "base_falsification_authority",
-    "primary_types", "decision_semantics", "hard_boundaries", "execution_limits", "authorities", "explicit_deferrals",
+    "primary_types", "base_falsification_field_mapping", "decision_semantics", "hard_boundaries", "execution_limits", "authorities", "explicit_deferrals",
 }
 EXPECTED_RESULTS_TOP_LEVEL = {"type", "schema_version", "snapshot_date", "records", "claim_boundary"}
 EXPECTED_THEOREM_FIELDS = {"id", "name", "claim_class", "statement", "hypotheses", "proof_reference", "executable_evidence", "nonclaims"}
@@ -372,10 +375,11 @@ def validate() -> dict[str, object]:
 
     if set(contract) != EXPECTED_CONTRACT_TOP_LEVEL: errors.append("EFP contract top-level field set drift")
     if contract.get("type") != "uft-id-empirical-falsification-profile-contract": errors.append("EFP contract type drift")
-    if contract.get("schema_version") != "1.0.0": errors.append("EFP contract schema drift")
+    if contract.get("schema_version") != "1.0.1": errors.append("EFP contract schema drift")
     if contract.get("claim_class") != "DEFINITION": errors.append("EFP contract claim class drift")
     if contract.get("scope") != EXPECTED_SCOPE: errors.append("EFP contract scope drift")
     if contract.get("base_falsification_authority") != "machine/falsification_contract.json": errors.append("EFP base falsification authority drift")
+    if contract.get("base_falsification_field_mapping") != EXPECTED_BASE_FIELD_MAPPING: errors.append("EFP base falsification field mapping drift")
     if contract.get("primary_types") != EXPECTED_PRIMARY_TYPES: errors.append("EFP primary type registry drift")
     if contract.get("decision_semantics") != EXPECTED_DECISION_SEMANTICS: errors.append("EFP decision semantics drift")
     if contract.get("hard_boundaries") != EXPECTED_BOUNDARIES: errors.append("EFP hard-boundary registry drift")
@@ -386,8 +390,9 @@ def validate() -> dict[str, object]:
         for key, value in EXPECTED_AUTHORITIES.items(): safe_path(value, f"EFP authority {key}", errors)
     if contract.get("explicit_deferrals") != EXPECTED_DEFERRALS: errors.append("EFP explicit deferrals drift")
 
-    if base_falsification.get("type") != "uft-id-falsification-contract": errors.append("EFP PR8 falsification base type drift")
-    if base_falsification.get("status") != "scaffold-active": errors.append("EFP PR8 falsification scaffold status drift")
+    if base_falsification != EXPECTED_BASE_FALSIFICATION: errors.append("EFP PR8 falsification base authority drift")
+    mapping_payload = contract.get("base_falsification_field_mapping")
+    if not isinstance(mapping_payload, dict) or set(mapping_payload) != set(EXPECTED_BASE_FALSIFICATION["required_fields"]): errors.append("EFP base mapping does not cover PR8 required fields")
     if csp_base.get("type") != "uft-id-continuum-stochastic-prevalence-contract": errors.append("EFP CSP base authority drift")
 
     if base_contract.get("empirical_falsification_profile_authority") != EXPECTED_CENTRAL_AUTHORITY:
@@ -504,6 +509,17 @@ def validate() -> dict[str, object]:
             if anchor not in text: errors.append(f"{label} missing EFP anchor: {anchor}")
 
     experiment = load_module("efp_validator_experiment", PATHS["experiment"])
+    runtime_mapping = getattr(experiment, "BASE_FALSIFICATION_FIELD_MAPPING", None)
+    if runtime_mapping != EXPECTED_BASE_FIELD_MAPPING:
+        errors.append("EFP runtime base-field mapping drift")
+    projection_fn = getattr(experiment, "base_falsification_spec", None)
+    make_profile_fn = getattr(experiment, "make_profile", None)
+    if not callable(projection_fn) or not callable(make_profile_fn):
+        errors.append("EFP runtime base projection authority missing")
+    else:
+        canonical_projection = projection_fn(make_profile_fn(0))
+        if tuple(canonical_projection) != tuple(EXPECTED_BASE_FALSIFICATION["required_fields"]):
+            errors.append("EFP runtime base projection drift")
     witness = experiment.run_suite()
     if witness.get("hard_boundaries") != EXPECTED_BOUNDARIES: errors.append("EFP witness hard-boundary drift")
     if witness.get("bounded_checks") != EXPECTED_BOUNDED: errors.append("EFP bounded witness count drift")
