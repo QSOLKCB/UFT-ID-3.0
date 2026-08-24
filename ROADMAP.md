@@ -2,7 +2,7 @@
 
 UFT-ID 3.0 is a constraint-governed, observer-explicit formalization programme with reproducible adversarial tests.
 
-The first section is the **live schedule authority**. Historical programme text retained later in this file exists for validator/receipt compatibility and does not override the live schedule or `machine/roadmap_state.json`.
+The first section is the **live schedule authority and progress tracker**. Historical programme text retained later in this file exists for validator/receipt compatibility and does not override the live schedule or `machine/roadmap_state.json`.
 
 ```text
 COMPACT_SUMMARY != COMPLETE_FORMAL_TYPE_SYSTEM
@@ -16,23 +16,19 @@ The mnemonic remains:
 U = (S, A, F, Pi_lex, O, T, I, C)
 ```
 
-but relation, observation, bridge, epistemic, representation, information, recovery, stochastic, continuum, prevalence, and empirical semantics remain separately typed.
+but relation, observation, bridge, epistemic, representation, information, recovery, stochastic, continuum, prevalence, empirical-decision, and physical semantics remain separately typed.
 
 ---
 
 # Live implementation status
 
-## Completed
-
-### Phase 0: lineage and provenance — COMPLETE
-
-### 2019 MEI reproduction — COMPLETE
+## Completed roadmap surfaces
 
 - [x] Phase 0 — lineage and provenance.
 - [x] PR #5 — cross-repository formal patterns.
 - [x] PR #6 — VOP-2019-MEI arithmetic reproduction.
 - [x] PR #7 — historical lineage and methodological inheritance.
-- [x] PR #8 — invariant calculus, assurance graph, and model obligations.
+- [x] PR #8 — invariant calculus, assurance graph, model obligations, and the base `FalsificationSpec` scaffold.
 - [x] PR #9 — deterministic observation calculus, merged at `091405c136fd8dc936e6bd3a544ab22433d04782`.
 - [x] PR #11 — relation-first recovery core and graph-realization interlude, merged at `a72dab3170e9880ca8bf120766d8547d6cc0110b`.
 - [x] Planned PR #12 — BridgeCore, delivered in GitHub PR #13 and merged at `2242f96564f4d27af4ba641b45f45f011a49a7c7`.
@@ -40,6 +36,7 @@ but relation, observation, bridge, epistemic, representation, information, recov
 - [x] Planned PR #14 — Representation and congruence calculus, delivered in GitHub PR #15 and merged at `a094ec469f311bc6cc11442ee5f850f5dc130e2f`.
 - [x] Planned PR #15 — Information Comparability core, delivered in GitHub PR #16 and merged at `22b589c4e2e2042d180d64db837f092a007e0813`.
 - [x] Planned PR #16 — Recovery Specializations, delivered in GitHub PR #17 and merged at `2f2cdd2af195a2e74a55e14abfbc4f88e0901a8f`.
+- [x] Planned PR #17 — Continuum, stochastic, and prevalence obligations, delivered in GitHub PR #18 and merged at `353e55a11a8cb6d6bcf571110e0fd6f32823fc77`.
 
 ## Deferred independent proof track
 
@@ -50,110 +47,134 @@ MATHEMATICAL_PROOF != LEAN_PROOF
 LEAN_PROOF != RUNTIME_CONFORMANCE != EMPIRICAL_VALIDATION
 ```
 
-## Active now — planned PR #17
+## Active now — planned PR #18
 
-### Continuum, stochastic, and prevalence obligations
+### Empirical falsification profile
 
 **Status:** ACTIVE, implemented by the current change.
 
-Mission: prevent finite relation, finite-path, finite-sample, finite-counterexample, and finite-grid results from being silently promoted into stochastic, infinite-horizon, prevalence, or continuum claims without the additional structures those claims require.
+Mission: specialize the PR8 `FalsificationSpec` scaffold into a versioned, calibrated, uncertainty-aware empirical decision profile without promoting formal counterexamples, synthetic fixtures, non-rejection, reproducible analysis, or model fit into empirical falsification, confirmation, independent replication, or unique explanation.
 
-Canonical obligation layers:
+Canonical profile:
 
 ```text
-StochasticSpec = (
-  carrier,
-  initial_distribution,
-  transition_kernel,
-  event,
-  horizon,
-  quantifier
+EmpiricalFalsificationProfile = (
+  profile_id,
+  hypothesis_id,
+  hypothesis_version,
+  claim_class,
+  scope,
+  observable_id,
+  measurement_spec_id,
+  calibration_id,
+  uncertainty_model,
+  prediction,
+  null_model,
+  rejection_rule,
+  evidence_requirements,
+  decision_policy,
+  profile_version
 )
 
-PrevalenceSpec = (
-  carrier,
-  declared_measure,
-  property_set
-)
-
-ContinuumLift = (
-  discrete_family,
-  target_space,
-  topology_or_norm,
-  approximation_map,
-  convergence_mode,
-  error_control
+EmpiricalEvidence = (
+  observable_id,
+  measurement_spec_id,
+  calibration_id,
+  value,
+  uncertainty_radius,
+  provenance_refs,
+  profile_fingerprint
 )
 ```
 
-The generic relation and Recovery selector remain separate bases. A relation edge can exist with stochastic probability zero. A finite selector or finite reachability witness does not create a stochastic kernel, probability measure, path-space law, infinite-horizon theorem, or continuum limit.
+Decision envelope:
+
+```text
+INVALID_EVIDENCE
+INCONCLUSIVE
+REJECTED_IN_SCOPE
+NOT_REJECTED_IN_SCOPE
+```
+
+`NOT_REJECTED_IN_SCOPE` is not a confirmation state. `REJECTED_IN_SCOPE` applies only to the declared hypothesis/profile version and scope. Profile identity binds all decision-bearing metadata, including the rejection threshold.
 
 Advertised result surface:
 
-1. `UFT-CSP-001` finite rational row-stochastic kernels preserve total probability mass;
-2. `UFT-CSP-002` in finite atomic probability spaces, almost-sure implies positive probability, and positive probability is equivalent to intersecting the positive-mass support;
-3. `UFT-CSP-003` finite-horizon path probability equals initial mass times the ordered transition product, and the complete finite path family has total mass one;
-4. `UFT-CSP-004` prevalence is measure-indexed, so existence of a counterexample cannot determine prevalence without a declared measure;
-5. `UFT-CSP-005` agreement on a finite real grid cannot establish equality of two functions on a continuum without additional lifting assumptions.
+1. `UFT-EFP-001` empirical rejection requires complete profile-matched evidence;
+2. `UFT-EFP-002` a rejection decision is scoped to one hypothesis/profile version;
+3. `UFT-EFP-003` failure to reject is not confirmation;
+4. `UFT-EFP-004` uncertainty overlapping a rejection boundary is inconclusive under the declared exact interval rule;
+5. `UFT-EFP-005` empirical fit does not imply a unique explanation when multiple candidate prediction sets contain the observation.
 
 Adversarial counterexamples:
 
 ```text
-CX-CSP-001 relation-reachable-transition-with-zero-probability
-CX-CSP-002 positive-probability-event-not-almost-sure
-CX-CSP-003 every-finite-survival-horizon-positive-but-infinite-survival-zero
-CX-CSP-004 one-trajectory-frequency-does-not-identify-distribution
-CX-CSP-005 same-counterexample-different-prevalence-under-different-measures
-CX-CSP-006 finite-grid-agreement-does-not-imply-continuum-equality
+CX-EFP-001 formal-counterexample-without-empirical-evidence
+CX-EFP-002 rejection-side-number-with-wrong-calibration
+CX-EFP-003 rejection-side-point-estimate-with-boundary-crossing-uncertainty
+CX-EFP-004 non-rejected-synthetic-measurement-is-not-confirmation
+CX-EFP-005 one-observation-fits-multiple-models
+CX-EFP-006 post-hoc-threshold-change-changes-profile-identity-and-decision
 ```
 
-Exact finite conformance checks:
+Exact synthetic conformance checks:
 
 ```text
-9 rational two-state kernels
-3 exact initial distributions
-27 probability-mass transport checks
-756 finite-path mass evaluations through horizon 3
-81 finite-path normalization checks
-48 finite-atomic event/quantifier checks
-18 almost-sure event cases
-30 positive-probability event cases
-30 support-witness event cases
-16 finite-survival checks
-2 explicit infinite-survival zero controls
-10 declared finite prevalence measures
-80 measure/event prevalence evaluations
-31 finite-grid non-lifting controls
+15 valid exact interval decisions
+5 REJECTED_IN_SCOPE
+7 NOT_REJECTED_IN_SCOPE
+3 INCONCLUSIVE
+60 invalid-evidence mutation checks
+15 candidate-model fit membership checks
+3 ambiguous-fit observations
+3 profile-fingerprint pair checks
 ```
 
 Required boundaries:
 
 ```text
-RELATION_REACHABLE != POSITIVE_PROBABILITY
-EXISTS_PATH != POSITIVE_PROBABILITY
-POSITIVE_PROBABILITY != ALMOST_SURE
-FINITE_HORIZON_SUCCESS != INFINITE_PATH_LIVENESS
-ONE_TRAJECTORY != DISTRIBUTION
-FINITE_SAMPLE_FREQUENCY != MODEL_PROBABILITY
-FINITE_COUNTEREXAMPLE != PREVALENCE_CLAIM
-PREVALENCE_REQUIRES_DECLARED_MEASURE
-FINITE_GRID_AGREEMENT != CONTINUUM_EQUALITY
-DISCRETIZATION_CONVERGENCE != ASSUMED_WITHOUT_ERROR_CONTROL
-FINITE_STOCHASTIC_CONFORMANCE != GENERAL_STOCHASTIC_OR_CONTINUUM_THEORY
-```
-
-Explicitly deferred beyond this phase are general path-space measure construction, ergodicity and mixing, stopping-time and martingale theory, continuous-time stochastic processes, SDE/PDE existence or regularity, statistical estimation from finite samples, empirical prevalence, discretization convergence theorems, and Lean proof objects.
-
-**Exit criterion:** stochastic quantifiers remain probability-measure-relative; infinite-horizon claims remain distinct from every finite horizon; prevalence remains measure-indexed; finite counterexamples do not acquire frequency semantics; finite-grid evidence does not become a continuum theorem; the six counterexamples stay executable; exact finite conformance, human/machine authority, deterministic receipts, retained artifacts, compatibility wrappers, and CI remain synchronized.
-
-## Next planned phase
-
-- [ ] PR #18 — Empirical falsification profile. **NEXT.**
-
-```text
 FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION
+SYNTHETIC_FIXTURE != EMPIRICAL_EVIDENCE
+FAILURE_TO_REJECT != CONFIRMATION
 EMPIRICAL_FIT != UNIQUE_EXPLANATION
+REJECTION_IN_SCOPE != GLOBAL_THEORY_REFUTATION
+NUMERIC_OBSERVATION != CALIBRATED_MEASUREMENT
+MISSING_UNCERTAINTY != ZERO_UNCERTAINTY
+POST_HOC_THRESHOLD != PREREGISTERED_REJECTION_RULE
+INCONCLUSIVE != NOT_REJECTED
+REPRODUCIBLE_ANALYSIS != INDEPENDENT_REPLICATION
+FINITE_EMPIRICAL_PROFILE_CONFORMANCE != GENERAL_STATISTICAL_INFERENCE
 ```
+
+### PR #18 implementation checklist
+
+- [x] Define the closed machine `EmpiricalFalsificationProfile` contract.
+- [x] Define the machine theorem/counterexample result registry.
+- [x] Write the canonical human theorem and counterexample surface.
+- [x] Implement the exact synthetic decision evaluator.
+- [x] Separate `INVALID_EVIDENCE`, `INCONCLUSIVE`, `REJECTED_IN_SCOPE`, and `NOT_REJECTED_IN_SCOPE`.
+- [x] Bind calibration, measurement identity, uncertainty, provenance, and profile fingerprint before rejection.
+- [x] Bind rejection-threshold changes into profile identity.
+- [x] Add the empirical-fit/non-unique-explanation control.
+- [x] Add direct adversarial regressions and closed-schema tests.
+- [x] Add the fail-closed EFP validator with independent fixture payload authority.
+- [x] Add deterministic receipt generation and retained-artifact replay.
+- [x] Register EFP in `machine/contract.json`, `README4AI.md`, `docs/CLAIMS.md`, and `docs/REPRODUCIBILITY.md`.
+- [x] Freeze the merged CSP validator and advance its live compatibility wrapper without rewriting CSP semantics.
+- [x] Advance `machine/roadmap_state.json` to mark PR #17 complete and PR #18 active.
+- [x] Update this human roadmap tracker.
+- [ ] Integrate EFP into the existing `finite-adversarial` workflow.
+- [ ] Advance all earlier live-roadmap compatibility wrappers to PR #18.
+- [ ] Refresh graph human-authority blob pins after the central docs settle.
+- [ ] Pass the complete Python 3.12 and 3.13 ordinary test suites.
+- [ ] Pass the complete Python 3.12 and 3.13 `python -O` test suites.
+- [ ] Pass every retained-artifact replay, including EFP.
+- [ ] Pass `vopson-corpus` on the exact PR head.
+- [ ] Complete a fresh hostile Codex P1/P2 review on the exact green head.
+
+Explicitly deferred beyond this phase are source-specific empirical claim instantiation without exact source reconstruction, statistical power/sample-size design, framework-specific frequentist or Bayesian inference, multiple-testing/sequential procedures, causal identification, real dataset/calibration execution, independent replication/meta-analysis, population prevalence estimation, automatic global-theory rejection, and Lean proof objects.
+
+**Exit criterion:** an empirical rejection cannot exist without complete calibrated profile-matched evidence; non-rejection remains distinct from confirmation; inconclusive remains distinct from non-rejection; profile changes remain versioned and identity-bearing; model fit remains distinct from unique explanation; synthetic conformance remains non-empirical; exact receipts, retained replay, compatibility wrappers, human/machine authority, roadmap tracking, CI, and hostile review remain synchronized.
 
 ---
 
@@ -173,6 +194,20 @@ Historical canonical commands:
 python scripts/validate_recovery_specializations.py
 python experiments/recovery_specializations/run.py --json
 python experiments/run_recovery_specializations.py --json
+```
+
+## Active now — planned PR #17
+
+### Continuum, stochastic, and prevalence obligations
+
+**Status:** HISTORICAL COMPATIBILITY ANCHOR ONLY. Planned PR #17 is complete and merged at `353e55a11a8cb6d6bcf571110e0fd6f32823fc77`; this exact heading is retained so the frozen CSP authority can replay its merged roadmap assumptions.
+
+Historical canonical commands:
+
+```bash
+python scripts/validate_continuum_stochastic_prevalence.py
+python experiments/continuum_stochastic_prevalence/run.py --json
+python experiments/run_continuum_stochastic_prevalence.py --json
 ```
 
 # Current formal grammar programme
@@ -208,7 +243,7 @@ stepRel : X -> X -> Prop
 A : X -> Prop
 ```
 
-The generic relation keeps admissibility separate from normality and fixed-point semantics.
+The generic relation keeps admissibility separate from rewriting. The graph-realization layer is a finite/set-theoretic representation of `stepRel`, not a physical ontology.
 
 ```text
 NORMAL != ADMISSIBLE != FIXED_POINT
@@ -295,7 +330,7 @@ FINITE_COUNTEREXAMPLE != PREVALENCE_CLAIM
 
 ## PR #18 — Empirical falsification profile
 
-**Status:** PLANNED.
+**Status:** PLANNED in this historical snapshot.
 
 ```text
 FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION
@@ -480,6 +515,9 @@ python experiments/run_recovery_specializations.py --json
 python scripts/validate_continuum_stochastic_prevalence.py
 python experiments/continuum_stochastic_prevalence/run.py --json
 python experiments/run_continuum_stochastic_prevalence.py --json
+python scripts/validate_empirical_falsification_profile.py
+python experiments/empirical_falsification_profile/run.py --json
+python experiments/run_empirical_falsification_profile.py --json
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 ```
@@ -668,4 +706,4 @@ NUMBER != ROLE != STRUCTURE != MECHANISM != ONTOLOGY
 
 # Release-level exit criteria
 
-A future formalization release should not be cut until every advertised theorem has an inspectable proof or is explicitly a theorem target; machine and human statements agree; counterexamples remain executable; source-specific critiques identify exact sources; private locators do not leak; proof/runtime/empirical/physical layers stay separate; unique-selection claims survive alternate-realization tests; stochastic and prevalence claims carry explicit probability/measure semantics; continuum claims carry explicit lifting obligations; CI evidence is retained; and all deferrals remain visible.
+A future formalization release should not be cut until every advertised theorem has an inspectable proof or is explicitly a theorem target; machine and human statements agree; counterexamples remain executable; source-specific critiques identify exact sources; private locators do not leak; proof/runtime/empirical/physical layers stay separate; unique-selection claims survive alternate-realization tests; stochastic and prevalence claims carry explicit probability/measure semantics; continuum claims carry explicit lifting obligations; empirical rejection claims carry complete calibrated profile identity, uncertainty, provenance, and scope; CI evidence is retained; and all deferrals remain visible.
