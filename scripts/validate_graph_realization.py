@@ -25,7 +25,7 @@ _frozen.EXPECTED_HUMAN_BLOBS.update({
     "claims": "04083ecc4650fb686bb0ee4533ab0f3115559de5",
     "readme4ai": "48670380064eb92f4bdf55870682d5c5bc8bcaf7",
     "reproducibility": "b9afbdf9cee18a7aa3a6532d8f7e9bec32f8236d",
-    "roadmap": "6307bc1dbb19c1e20f5adc09794a445683c28405",
+    "roadmap": "23aebe173e3abc6faf5a13a85f8c17c4c66b4afd",
 })
 
 for _name in dir(_frozen):
