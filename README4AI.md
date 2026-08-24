@@ -221,7 +221,7 @@ FINITE_REPRESENTATION_CONFORMANCE != GENERAL_PROOF
 
 ## Information comparability authority
 
-The active planned PR #15 surface defines when two quantities called information are licensed to be compared under one declared specification grammar.
+The completed planned PR #15 surface defines when two quantities called information are licensed to be compared under one declared specification grammar.
 
 ```text
 InformationSpec = (
@@ -264,6 +264,45 @@ POSITIVE_UNIT_CONVERSION != SEMANTIC_BRIDGE
 PAIRWISE_SCOPE_COMPARABILITY != TRANSITIVE_COMPARABILITY
 DIRECT_COMPARABILITY != EMPIRICAL_COMMENSURABILITY
 FINITE_INFORMATION_CONFORMANCE != GENERAL_INFORMATION_THEORY
+```
+
+## Recovery Specializations authority
+
+The active planned PR #16 surface specializes the generic relation core with an explicitly declared deterministic selector rather than replacing relation semantics by a function.
+
+```text
+stepRel : X -> X -> Prop
+sigma   : X -> X
+Sel_sigma(x,y) iff sigma(x)=y and y!=x
+```
+
+Canonical Recovery surfaces:
+
+```text
+machine/recovery_specialization_contract.json
+machine/recovery_specialization_results.json
+theory/RECOVERY_SPECIALIZATIONS.md
+scripts/validate_recovery_specializations.py
+experiments/recovery_specializations/run.py
+experiments/run_recovery_specializations.py
+scripts/verify_recovery_specialization_artifacts.py
+tests/test_recovery_specializations.py
+```
+
+Executable normalization requires selector totality on the declared carrier, relation-sound non-fixed steps, exact selector-fixed-point/normal-state correspondence, and a natural-number rank that strictly decreases on every non-fixed selector step. Finite lexicographic recovery requires objective tuples plus an explicit final total tie-break.
+
+The exact finite battery checks 32 total selectors, 13,890 selector/relation pairs, 4,134 relation-sound pairs, 739 relation-sound pairs with exact fixed-point/normal agreement, 9 rank-decreasing selector controls, 23 state normalization checks, and 336 lexicographic selections.
+
+```text
+GENERIC_RELATION != DETERMINISTIC_SELECTOR
+EXISTENTIAL_NORMALIZATION != EXECUTABLE_NORMALIZER
+DETERMINISTIC != RELATION_SOUND
+RELATION_SOUND != TERMINATING
+TERMINATING_SELECTOR != BASE_RELATION_CONFLUENT
+SELECTOR_NORMAL_FORM != UNIQUE_RELATION_NORMAL_FORM
+OBJECTIVE_MINIMUM != UNIQUE_SELECTION_WITHOUT_TIEBREAK
+EXECUTABLE_NORMALIZER != EMPIRICAL_RECOVERY
+FINITE_SELECTOR_CONFORMANCE != GENERAL_RECOVERY_THEORY
 ```
 
 ## Cross-repository formal pattern authority
@@ -364,6 +403,9 @@ python experiments/run_representation_calculus.py --json
 python scripts/validate_information_comparability.py
 python experiments/information_comparability/run.py --json
 python experiments/run_information_comparability.py --json
+python scripts/validate_recovery_specializations.py
+python experiments/recovery_specializations/run.py --json
+python experiments/run_recovery_specializations.py --json
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 python experiments/run_pr2.py --json
@@ -397,6 +439,11 @@ python experiments/run_pr6.py --json
 21. A unit conversion does not supply an observation, semantic, epistemic, empirical, or physical bridge.
 22. `COMPARABLE != IDENTICAL_SPEC`.
 23. `PAIRWISE_SCOPE_COMPARABILITY != TRANSITIVE_COMPARABILITY`.
+24. Do not reinterpret a generic relation as a deterministic selector without an explicit specialization.
+25. Determinism does not establish relation soundness or termination.
+26. A selector result does not establish base-relation confluence or a unique reachable normal form.
+27. Objective minimization is not unique selection without an explicit final total tie-break.
+28. An executable normalizer is not empirical or physical recovery evidence.
 
 ## Lean
 
@@ -434,11 +481,16 @@ Lean remains deferred until source reproduction, notation freeze, theorem freeze
 28. `machine/information_comparability_results.json`
 29. `scripts/validate_information_comparability.py`
 30. `experiments/run_information_comparability.py`
-31. `theory/CROSS_REPO_RESULTS.md`
-32. `research/CROSS_REPO_PATTERN_ATLAS.md`
-33. `machine/cross_repo_patterns.json`
-34. `machine/cross_repo_results.json`
-35. `research/vopson/CORPUS.md`
-36. `research/vopson/CLAIM_GRAPH.md`
-37. `research/vopson/DEFINITIONS.md`
-38. `ROADMAP.md`
+31. `theory/RECOVERY_SPECIALIZATIONS.md`
+32. `machine/recovery_specialization_contract.json`
+33. `machine/recovery_specialization_results.json`
+34. `scripts/validate_recovery_specializations.py`
+35. `experiments/run_recovery_specializations.py`
+36. `theory/CROSS_REPO_RESULTS.md`
+37. `research/CROSS_REPO_PATTERN_ATLAS.md`
+38. `machine/cross_repo_patterns.json`
+39. `machine/cross_repo_results.json`
+40. `research/vopson/CORPUS.md`
+41. `research/vopson/CLAIM_GRAPH.md`
+42. `research/vopson/DEFINITIONS.md`
+43. `ROADMAP.md`
