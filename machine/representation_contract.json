@@ -1,0 +1,74 @@
+{
+  "type": "uft-id-representation-contract",
+  "schema_version": "1.0.0",
+  "snapshot_date": "2026-08-24",
+  "claim_class": "DEFINITION",
+  "scope": "Finite-dimensional linear representation changes and finite receiver re-encodings. The contract distinguishes similarity, orthogonal/unitary similarity, congruence, coordinate change, and receiver transformation without promoting representation equivalence into semantic, epistemic, empirical, or physical identity.",
+  "primary_type": "RepresentationSpec=(object_type,source_representation,target_representation,transform_class,transform,inverse_or_adjoint,scope,declared_invariants)",
+  "transform_classes": {
+    "similarity": "B=P^{-1} A P with P invertible",
+    "orthogonal_similarity_real": "B=Q^T A Q with Q^T Q=I",
+    "unitary_similarity_complex": "B=U^* A U with U^* U=I",
+    "congruence_real": "B=P^T A P with P invertible",
+    "coordinate_change": "v'=P^{-1}v and A'=P^{-1}AP for one abstract vector/operator pair",
+    "receiver_reencoding": "O'=R o O on the observation codomain; equivalence preservation requires R injective on im(O)"
+  },
+  "invariant_discipline": {
+    "rule": "Every invariant claim names the transformation class and hypotheses under which it is preserved.",
+    "similarity": ["characteristic polynomial", "trace", "determinant", "rank"],
+    "orthogonal_or_unitary_similarity": ["all similarity invariants", "Frobenius norm"],
+    "congruence": ["rank", "symmetry/Hermitian type when applicable"],
+    "coordinate_change": ["abstract action relation A(v) represented covariantly"],
+    "injective_receiver_reencoding": ["observation equivalence classes/fibres"]
+  },
+  "hard_boundaries": [
+    "SIMILARITY != CONGRUENCE",
+    "SIMILARITY != ORTHOGONAL_OR_UNITARY_SIMILARITY",
+    "SAME_CHARACTERISTIC_POLYNOMIAL != SIMILARITY",
+    "CONGRUENCE != SPECTRAL_EQUIVALENCE",
+    "COORDINATE_TUPLE != ABSTRACT_OBJECT",
+    "REPRESENTATION_CHANGE != PHYSICAL_CHANGE",
+    "RECEIVER_REENCODING != STATE_TRANSFORMATION",
+    "NONINJECTIVE_RECEIVER_REENCODING != OBSERVATIONAL_EQUIVALENCE_PRESERVATION",
+    "INVARIANT_UNDER_CLASS_C != UNQUALIFIED_REPRESENTATION_INDEPENDENCE",
+    "FINITE_REPRESENTATION_CONFORMANCE != GENERAL_PROOF"
+  ],
+  "execution_limits": {
+    "matrix_dimension": 2,
+    "matrix_entry_alphabet": [-1, 0, 1],
+    "matrix_count": 81,
+    "unimodular_transform_count": 40,
+    "orthogonal_transform_count": 8,
+    "similarity_checks": 3240,
+    "congruence_rank_checks": 3240,
+    "orthogonal_frobenius_checks": 648,
+    "coordinate_covariance_checks": 29160,
+    "fin3_function_count": 27,
+    "receiver_function_pairs": 729,
+    "injective_on_image_receiver_pairs": 441,
+    "receiver_equivalence_pair_checks": 3969,
+    "policy": "The finite battery is exact conformance evidence for the declared 2x2/Fin3 fixtures only; it is not a substitute for the repository-contained general proofs."
+  },
+  "authorities": {
+    "human": "theory/REPRESENTATION_CALCULUS.md",
+    "results": "machine/representation_results.json",
+    "validator": "scripts/validate_representation_calculus.py",
+    "experiment": "experiments/representation_calculus/run.py",
+    "tests": "tests/test_representation_calculus.py",
+    "receipt": "experiments/run_representation_calculus.py",
+    "artifact_verifier": "scripts/verify_representation_artifacts.py",
+    "roadmap_state": "machine/roadmap_state.json",
+    "observation_base": "machine/observation_contract.json",
+    "bridge_base": "machine/bridge_core_contract.json",
+    "epistemic_base": "machine/epistemic_bridge_contract.json"
+  },
+  "explicit_deferrals": [
+    "canonical forms beyond the bounded counterexamples",
+    "Sylvester inertia theorem as an advertised UFT-ID theorem",
+    "infinite-dimensional operator equivalence",
+    "stochastic receiver kernels",
+    "information-functional comparability to planned PR #15",
+    "empirical coordinate/receiver validity to planned PR #18",
+    "Lean proof objects"
+  ]
+}
