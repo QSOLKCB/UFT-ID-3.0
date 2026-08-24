@@ -30,6 +30,7 @@ CORE_FILES = [
     "docs/REPRODUCIBILITY.md",
     "ROADMAP.md",
     "scripts/validate_information_comparability.py",
+    "scripts/validate_information_comparability_pr16_frozen.py",
     "scripts/verify_information_comparability_artifacts.py",
     "experiments/information_comparability/__init__.py",
     "experiments/information_comparability/run.py",
