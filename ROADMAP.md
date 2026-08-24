@@ -170,10 +170,10 @@ FINITE_EMPIRICAL_PROFILE_CONFORMANCE != GENERAL_STATISTICAL_INFERENCE
 - [x] Integrate EFP into the existing `finite-adversarial` workflow.
 - [x] Advance all earlier live-roadmap compatibility wrappers to PR #18.
 - [x] Refresh graph human-authority blob pins after the central docs settle.
-- [ ] Pass the complete Python 3.12 and 3.13 ordinary test suites.
-- [ ] Pass the complete Python 3.12 and 3.13 `python -O` test suites.
-- [ ] Pass every retained-artifact replay, including EFP.
-- [ ] Pass `vopson-corpus` on the exact PR head.
+- [x] Pass the complete Python 3.12 and 3.13 ordinary test suites.
+- [x] Pass the complete Python 3.12 and 3.13 `python -O` test suites.
+- [x] Pass every retained-artifact replay, including EFP.
+- [x] Pass `vopson-corpus` on the exact PR head.
 - [ ] Complete a fresh hostile Codex P1/P2 review on the exact green head.
 
 Explicitly deferred beyond this phase are source-specific empirical claim instantiation without exact source reconstruction, statistical power/sample-size design, framework-specific frequentist or Bayesian inference, multiple-testing/sequential procedures, causal identification, real dataset/calibration execution, independent replication/meta-analysis, population prevalence estimation, automatic global-theory rejection, and Lean proof objects.
