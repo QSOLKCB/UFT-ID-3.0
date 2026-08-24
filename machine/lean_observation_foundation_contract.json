@@ -1,0 +1,211 @@
+{
+  "type": "uft-id-lean-observation-foundation-freeze",
+  "schema_version": "1.0.0",
+  "snapshot_date": "2026-08-24",
+  "claim_class": "DEFINITION",
+  "status": "SOURCE_THEOREM_BATCH_FROZEN_NO_LEAN_PROOF",
+  "batch_id": "LEAN-OBS-BATCH-001",
+  "basis_commit": "6f3aeb7f4ac14389e7a08d2976c8c0d16549c093",
+  "source_authorities": [
+    {
+      "path": "machine/observation_contract.json",
+      "git_blob_sha": "8eede68aa53c92666d7a25641a9e7e699668aea0"
+    },
+    {
+      "path": "machine/observation_specs.json",
+      "git_blob_sha": "1f1868054763fa3c9e84c9a8664b0c3134ffcee8"
+    },
+    {
+      "path": "machine/observation_theorems.json",
+      "git_blob_sha": "fbb1d1081fe2fed6980068f9630a8890b31794b9"
+    },
+    {
+      "path": "machine/observation_counterexamples.json",
+      "git_blob_sha": "1b8551ffb124076b9d50de4f13b4e9ceb0246a04"
+    },
+    {
+      "path": "theory/OBSERVATION_CALCULUS.md",
+      "git_blob_sha": "8bf8fb39c3b7b6d08fdab24261efa455b2ee3b4a"
+    },
+    {
+      "path": "scripts/validate_observation_specs.py",
+      "git_blob_sha": "bdd68c1f7ff183f0efd7ae142c5ffcdc721dfd87"
+    },
+    {
+      "path": "experiments/observation/run.py",
+      "git_blob_sha": "55e02cee0b33136fb8ee22896fdd923b281e8a9c"
+    },
+    {
+      "path": "tests/test_pr9_observation.py",
+      "git_blob_sha": "5373773686d97d280d0a89c2bb0a6a953f6d7ec8"
+    },
+    {
+      "path": "experiments/run_pr9.py",
+      "git_blob_sha": "78d7bf1e6d5998f8665b99207559876350bbb639"
+    }
+  ],
+  "theorem_ids": [
+    "UFT-OBS-001",
+    "UFT-OBS-002",
+    "UFT-OBS-003",
+    "UFT-OBS-004"
+  ],
+  "deferred_theorem_ids": [
+    "UFT-OBS-005"
+  ],
+  "theorems": [
+    {
+      "id": "UFT-OBS-001",
+      "name": "Observational equivalence",
+      "source_claim_class": "PROVED",
+      "statement": "For any function O:S->Y, define x~_O y iff O(x)=O(y). Then ~_O is an equivalence relation on S, and the equivalence class of x equals the fibre O^{-1}({O(x)}).",
+      "hypotheses": [
+        "O is a total deterministic function S->Y"
+      ],
+      "formalization_scope": "set-theoretic deterministic observation only",
+      "nonclaims": [
+        "Observational equivalence is not physical identity."
+      ],
+      "proof_reference": "theory/OBSERVATION_CALCULUS.md#uft-obs-001-observational-equivalence",
+      "theorem_dependencies": [],
+      "counterexample_dependencies": [],
+      "lean_module": "UFTID.Observation.Basic",
+      "lean_path": "UFTID/Observation/Basic.lean",
+      "lean_declaration": "uft_obs_001_observational_equivalence",
+      "lean_status": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "UFT-OBS-002",
+      "name": "Quotient-to-image correspondence",
+      "source_claim_class": "PROVED",
+      "statement": "For any function O:S->Y, the quotient S/~_O is canonically bijective with im(O), via [x] |-> O(x).",
+      "hypotheses": [
+        "O is a total deterministic function S->Y"
+      ],
+      "formalization_scope": "set-theoretic deterministic observation only",
+      "nonclaims": [
+        "The quotient is not canonically the full codomain Y unless O is surjective."
+      ],
+      "proof_reference": "theory/OBSERVATION_CALCULUS.md#uft-obs-002-quotient-to-image-correspondence",
+      "theorem_dependencies": [
+        "UFT-OBS-001"
+      ],
+      "counterexample_dependencies": [
+        "CX-OBS-002"
+      ],
+      "lean_module": "UFTID.Observation.Quotient",
+      "lean_path": "UFTID/Observation/Quotient.lean",
+      "lean_declaration": "uft_obs_002_quotient_to_image",
+      "lean_status": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "UFT-OBS-003",
+      "name": "Image-scoped exact reconstruction iff injective",
+      "source_claim_class": "PROVED",
+      "statement": "For any function O:S->Y, O is injective iff there exists R:im(O)->S such that R(O(x))=x for every x in S.",
+      "hypotheses": [
+        "O is a total deterministic function S->Y",
+        "Reconstruction is scoped to im(O)"
+      ],
+      "formalization_scope": "set-theoretic deterministic observation only",
+      "nonclaims": [
+        "Exact mathematical reconstruction does not establish that an original physical state persisted or was observed directly."
+      ],
+      "proof_reference": "theory/OBSERVATION_CALCULUS.md#uft-obs-003-image-scoped-exact-reconstruction",
+      "theorem_dependencies": [],
+      "counterexample_dependencies": [
+        "CX-OBS-001"
+      ],
+      "lean_module": "UFTID.Observation.Reconstruction",
+      "lean_path": "UFTID/Observation/Reconstruction.lean",
+      "lean_declaration": "uft_obs_003_image_reconstruction_iff_injective",
+      "lean_status": "NOT_IMPLEMENTED"
+    },
+    {
+      "id": "UFT-OBS-004",
+      "name": "Noninjective observation blocks global exact reconstruction",
+      "source_claim_class": "PROVED",
+      "statement": "If O:S->Y is noninjective, no function R:Y->S can satisfy R(O(x))=x for every x in S.",
+      "hypotheses": [
+        "O is a total deterministic function S->Y",
+        "O is noninjective"
+      ],
+      "formalization_scope": "set-theoretic deterministic observation only",
+      "nonclaims": [
+        "Noninjectivity does not forbid partial, representative, probabilistic, or task-specific reconstruction."
+      ],
+      "proof_reference": "theory/OBSERVATION_CALCULUS.md#uft-obs-004-noninjective-observation-blocks-global-exact-reconstruction",
+      "theorem_dependencies": [
+        "UFT-OBS-003"
+      ],
+      "counterexample_dependencies": [
+        "CX-OBS-001"
+      ],
+      "lean_module": "UFTID.Observation.Reconstruction",
+      "lean_path": "UFTID/Observation/Reconstruction.lean",
+      "lean_declaration": "uft_obs_004_noninjective_no_global_left_inverse",
+      "lean_status": "NOT_IMPLEMENTED"
+    }
+  ],
+  "dependency_graph": {
+    "UFT-OBS-001": [],
+    "UFT-OBS-002": [
+      "UFT-OBS-001"
+    ],
+    "UFT-OBS-003": [],
+    "UFT-OBS-004": [
+      "UFT-OBS-003"
+    ]
+  },
+  "lean_module_map": [
+    {
+      "module": "UFTID.Observation.Basic",
+      "path": "UFTID/Observation/Basic.lean",
+      "depends_on": [],
+      "theorem_ids": [
+        "UFT-OBS-001"
+      ]
+    },
+    {
+      "module": "UFTID.Observation.Quotient",
+      "path": "UFTID/Observation/Quotient.lean",
+      "depends_on": [
+        "UFTID.Observation.Basic"
+      ],
+      "theorem_ids": [
+        "UFT-OBS-002"
+      ]
+    },
+    {
+      "module": "UFTID.Observation.Reconstruction",
+      "path": "UFTID/Observation/Reconstruction.lean",
+      "depends_on": [
+        "UFTID.Observation.Basic"
+      ],
+      "theorem_ids": [
+        "UFT-OBS-003",
+        "UFT-OBS-004"
+      ]
+    }
+  ],
+  "toolchain": {
+    "status": "UNPINNED",
+    "lean": null,
+    "lake": null,
+    "mathlib": null,
+    "policy": "No Lean/Lake/Mathlib version is selected by this source-freeze PR."
+  },
+  "release_gate": {
+    "status": "PENDING_POST_MERGE",
+    "source_tag": null,
+    "target_policy": "After this freeze PR merges, pass exact merged-main CI and hostile review, then tag that exact commit/tree before any Lean proof implementation."
+  },
+  "hard_boundaries": [
+    "MATHEMATICAL_PROOF != LEAN_PROOF",
+    "SOURCE_THEOREM != LEAN_ARTIFACT",
+    "THEOREM_BATCH_FREEZE != SOURCE_RELEASE_TAG",
+    "SOURCE_RELEASE_TAG != LEAN_VERIFIED",
+    "LEAN_PROOF != RUNTIME_CONFORMANCE != EMPIRICAL_VALIDATION",
+    "UFT-OBS-005_DEFERRED != UFT-OBS-005_DROPPED"
+  ]
+}
