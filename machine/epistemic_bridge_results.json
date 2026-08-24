@@ -48,7 +48,7 @@
       "name": "Scope is non-expansive under transport",
       "claim_class": "PROVED",
       "statement": "For licensed transport E -> E', scope(E') is a subset of both scope(E) and the bridge scope.",
-      "hypotheses": ["scope(E) intersect scope(B) is nonempty"],
+      "hypotheses": ["E is a valid EpistemicState", "B is a BridgeCore bridge", "scope(E) intersect scope(B) is nonempty"],
       "proof_reference": "theory/EPISTEMIC_BRIDGE.md#uft-ep-005-scope-is-non-expansive-under-transport",
       "executable_evidence": ["experiments/epistemic_bridge/run.py", "tests/test_epistemic_bridge.py"],
       "nonclaims": ["Scope overlap licenses bookkeeping transport only; it does not validate a claim in the target domain."]
