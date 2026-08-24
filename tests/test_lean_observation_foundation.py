@@ -172,6 +172,18 @@ class LeanObservationFoundationFreezeTests(unittest.TestCase):
         docs["roadmap"] += promotion
         self.assert_error_contains(docs, "ROADMAP Lean verification promotion")
 
+    def test_theorem_id_and_batch_scoped_lean_promotion_fail_closed(self):
+        attacks = (
+            "\nUFT-OBS-001 through UFT-OBS-004 have been proved in Lean.\n",
+            "\nLEAN-OBS-BATCH-001 has been formally verified in Lean.\n",
+        )
+        for field, label in (("human", "human freeze"), ("readme", "README4AI"), ("roadmap", "ROADMAP")):
+            for attack in attacks:
+                with self.subTest(field=field, attack=attack.strip()):
+                    docs = documents()
+                    docs[field] += attack
+                    self.assert_error_contains(docs, f"{label} theorem-scoped Lean verification promotion")
+
     def test_pretag_lean_source_and_toolchain_files_are_rejected(self):
         candidates = (
             ROOT / "UFTID/Observation/Basic.lean",
