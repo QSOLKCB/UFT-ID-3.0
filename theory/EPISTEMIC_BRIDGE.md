@@ -53,13 +53,13 @@ Therefore conflict and verification may coexist, while conflict and unknown cann
 
 ## 2. Structural transport specialization
 
-For a BridgeCore bridge `B` and epistemic state `E`, define authority-neutral transport by copying all epistemic evidence/authority fields exactly and restricting scope:
+For a production-valid BridgeCore bridge `B` and epistemic state `E`, define authority-neutral transport by copying all epistemic evidence/authority fields exactly and restricting scope:
 
 ```text
 scope(E') = scope(E) intersect scope(B)
 ```
 
-Transport is licensed only when the intersection is nonempty.
+Transport is licensed only when `B` passes the canonical BridgeCore validator and the intersection is nonempty.
 
 No retrieval, inference, verification, execution, conflict, or evidence reference is created merely because bytes or structure crossed a valid BridgeCore bridge.
 
@@ -77,7 +77,7 @@ DETERMINISTIC_TRANSPORT != VERIFICATION
 
 **Canonical hypotheses:** `["E is a valid EpistemicState", "B is a BridgeCore bridge", "scope(E) intersect scope(B) is nonempty"]`
 
-**Proof.** By definition, transport copies `evidence_refs`, `retrieved_refs`, `inference_refs`, `verification_receipts`, `execution_receipts`, and `conflict_refs` unchanged. Only the scope field is replaced by an intersection. Hence no authority-bearing field is promoted, demoted, or invented by structural transport.
+**Proof.** By definition, transport first validates `B` against the production BridgeCore contract, then copies `evidence_refs`, `retrieved_refs`, `inference_refs`, `verification_receipts`, `execution_receipts`, and `conflict_refs` unchanged. Only the scope field is replaced by an intersection. Hence no authority-bearing field is promoted, demoted, or invented by structural transport.
 
 ## UFT-EP-002 Verification requires an explicit verification receipt
 
@@ -115,15 +115,17 @@ DETERMINISTIC_TRANSPORT != VERIFICATION
 
 **Canonical statement:** `For licensed transport E -> E', scope(E') is a subset of both scope(E) and the bridge scope.`
 
-**Canonical hypotheses:** `["scope(E) intersect scope(B) is nonempty"]`
+**Canonical hypotheses:** `["E is a valid EpistemicState", "B is a BridgeCore bridge", "scope(E) intersect scope(B) is nonempty"]`
 
-**Proof.** Immediate from the definition `scope(E') = scope(E) intersect scope(B)`.
+**Proof.** After the production BridgeCore bridge is validated, the result is immediate from the definition `scope(E') = scope(E) intersect scope(B)`.
 
 ## 3. Counterexamples
 
 ### CX-EP-001 Retrieved is not verified
 
 **Claim class:** `COUNTEREXAMPLE`
+
+**Canonical statement:** `A state can contain retrieved evidence while verification_receipts remains empty.`
 
 A state may contain a retrieved source reference and evidence reference while `verification_receipts` remains empty.
 
@@ -135,6 +137,8 @@ RETRIEVED != VERIFIED
 
 **Claim class:** `COUNTEREXAMPLE`
 
+**Canonical statement:** `A state can record an inference and evidence while verification_receipts remains empty.`
+
 A state may record an inference and its premise/evidence reference without a verification receipt.
 
 ```text
@@ -144,6 +148,8 @@ INFERRED != VERIFIED
 ### CX-EP-003 Executed is not verified
 
 **Claim class:** `COUNTEREXAMPLE`
+
+**Canonical statement:** `A state can contain an execution receipt and evidence while verification_receipts remains empty.`
 
 A state may contain an execution receipt and evidence reference while remaining unverified.
 
@@ -155,6 +161,8 @@ EXECUTED != VERIFIED
 
 **Claim class:** `COUNTEREXAMPLE`
 
+**Canonical statement:** `An evidence-backed conflict state is not unknown under the EpistemicState definition.`
+
 A state with evidence-backed incompatible observations has `Conflict(E)` true and `Unknown(E)` false.
 
 ```text
@@ -164,6 +172,8 @@ CONFLICT != UNKNOWN
 ### CX-EP-005 Verified conflict is representable
 
 **Claim class:** `COUNTEREXAMPLE`
+
+**Canonical statement:** `A valid state can contain both verification_receipts and conflict_refs.`
 
 A verification receipt can establish that a particular source/evidence object was checked while incompatible evidence remains recorded. Thus `Verified(E)` and `Conflict(E)` may both be true.
 
@@ -195,7 +205,7 @@ Validity requires any non-evidence activity bit to imply the evidence bit. The v
 = 33 valid shapes
 ```
 
-The executable battery checks all 64 raw vectors, all 33 valid shapes, each counterexample, explicit verification, neutral transport, repeated transport, and scope non-expansion.
+The executable battery checks all 64 raw vectors, all 33 valid shapes, each counterexample, explicit verification, production BridgeCore validation, neutral transport, repeated transport, and scope non-expansion.
 
 ```text
 FINITE_EPISTEMIC_CONFORMANCE != GENERAL_EPISTEMOLOGY
