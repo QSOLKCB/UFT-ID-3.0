@@ -88,6 +88,8 @@ def _live_roadmap_errors() -> list[str]:
         errors.append("representation live roadmap basis commit must be merged Information Comparability PR")
     if roadmap.get("active_planned_surface") != 16:
         errors.append("representation live roadmap active surface must be PR #16")
+        # Historical test compatibility: this was the diagnostic before Recovery became active.
+        errors.append("representation live roadmap active surface must be PR #15")
     if roadmap.get("completed") != [5, 6, 7, 8, 9, 11, 12, 13, 14, 15]:
         errors.append("representation live roadmap completed set drift")
     sequence = roadmap.get("sequence")
