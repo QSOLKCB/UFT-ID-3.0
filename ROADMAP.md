@@ -70,6 +70,8 @@ InformationSpec = (
 )
 ```
 
+The bounded `observation` and `conditioning` values are stable identity-bearing references bound to exact maps/events, not generic category labels.
+
 Explicit unit conversion:
 
 ```text
@@ -82,7 +84,7 @@ UnitConversion = (
 )
 ```
 
-Direct comparability requires equality of `source_type`, `functional`, `observation`, `unit`, `normalization`, and `conditioning`, plus nonempty scope overlap. Unit-converted comparability permits only a declared unit mismatch with an exact registered positive conversion and common scope.
+Direct comparability requires equality of `source_type`, `functional`, stable `observation` identity, `unit`, `normalization`, and stable `conditioning` identity, plus nonempty scope overlap. Unit-converted comparability permits only a declared unit mismatch with an exact registered positive conversion and nonempty common scope across both specifications and the conversion.
 
 Advertised result surface:
 
@@ -90,7 +92,7 @@ Advertised result surface:
 2. `UFT-INF-002` direct comparability is symmetric;
 3. `UFT-INF-003` direct comparability preserves every comparison-defining field and requires scope overlap;
 4. `UFT-INF-004` positive unit conversion preserves scalar equality/order/sign;
-5. `UFT-INF-005` explicit bit/base4 logarithm-base conversion licenses non-identical unit-converted comparability.
+5. `UFT-INF-005` explicit bit/base4 logarithm-base conversion licenses non-identical unit-converted comparability only under common specification/conversion scope.
 
 Adversarial counterexamples:
 
@@ -106,10 +108,10 @@ Exact finite conformance uses standard-library exact arithmetic and checks:
 
 ```text
 2 functionals
-2 observations
+2 stable observation identities
 2 units
 2 normalizations
-2 conditioning conventions
+2 stable conditioning identities
 3 nonempty scopes
 96 InformationSpec values
 9216 ordered specification pairs
@@ -120,6 +122,7 @@ Exact finite conformance uses standard-library exact arithmetic and checks:
 224 inverse conversion checks
 75 positive-scale order/sign checks
 5 exact power-of-two bit/base4 conversion checks
+1 canonical Shannon primitive cross-check
 ```
 
 Required boundaries:
@@ -452,6 +455,12 @@ python experiments/run_bridge_core.py --json
 python scripts/validate_epistemic_bridge.py
 python experiments/epistemic_bridge/run.py --json
 python experiments/run_epistemic_bridge.py --json
+python scripts/validate_representation_calculus.py
+python experiments/representation_calculus/run.py --json
+python experiments/run_representation_calculus.py --json
+python scripts/validate_information_comparability.py
+python experiments/information_comparability/run.py --json
+python experiments/run_information_comparability.py --json
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 ```
