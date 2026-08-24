@@ -17,7 +17,7 @@
     "rule": "Every invariant claim names the transformation class and hypotheses under which it is preserved.",
     "similarity": ["characteristic polynomial", "trace", "determinant", "rank"],
     "orthogonal_or_unitary_similarity": ["all similarity invariants", "Frobenius norm"],
-    "congruence": ["rank", "symmetry/Hermitian type when applicable"],
+    "congruence": ["rank", "symmetry type for real symmetric matrices"],
     "coordinate_change": ["abstract action relation A(v) represented covariantly"],
     "injective_receiver_reencoding": ["observation equivalence classes/fibres"]
   },
