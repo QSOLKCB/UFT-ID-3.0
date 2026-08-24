@@ -196,7 +196,7 @@ class EpistemicBridgeTests(unittest.TestCase):
     def test_roadmap_cannot_reactivate_bridgecore(self):
         def mutate(payload):
             payload["active_planned_surface"] = 12
-        self.assert_error(self.mutate_json("machine/roadmap_state.json", mutate), "epistemic live roadmap active surface must be PR #14")
+        self.assert_error(self.mutate_json("machine/roadmap_state.json", mutate), "epistemic live roadmap active surface must be PR #15")
 
 
 if __name__ == "__main__":
