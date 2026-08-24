@@ -6,6 +6,7 @@ import argparse
 from fractions import Fraction
 from itertools import product
 import json
+from math import comb
 from typing import Hashable, Iterable, Mapping, Sequence
 
 State = Hashable
@@ -23,6 +24,10 @@ BOUNDARIES = [
     "DISCRETIZATION_CONVERGENCE != ASSUMED_WITHOUT_ERROR_CONTROL",
     "FINITE_STOCHASTIC_CONFORMANCE != GENERAL_STOCHASTIC_OR_CONTINUUM_THEORY",
 ]
+
+MAX_COMPOSITION_DIMENSION = 16
+MAX_COMPOSITION_DENOMINATOR = 64
+MAX_COMPOSITION_OUTPUTS = 10_000
 
 
 def _carrier(states: Iterable[State]) -> tuple[State, ...]:
@@ -47,7 +52,7 @@ def _fraction(value: object, label: str) -> Fraction:
 
 def make_distribution(states: Iterable[State], weights: Mapping[State, object]) -> dict[State, Fraction]:
     carrier = _carrier(states)
-    if set(weights) != set(carrier):
+    if not isinstance(weights, Mapping) or set(weights) != set(carrier):
         raise ValueError("distribution must assign exactly one mass to every carrier state")
     result = {state: _fraction(weights[state], "distribution mass") for state in carrier}
     if sum(result.values(), Fraction(0)) != 1:
@@ -57,7 +62,7 @@ def make_distribution(states: Iterable[State], weights: Mapping[State, object]) 
 
 def make_kernel(states: Iterable[State], rows: Mapping[State, Mapping[State, object]]) -> dict[State, dict[State, Fraction]]:
     carrier = _carrier(states)
-    if set(rows) != set(carrier):
+    if not isinstance(rows, Mapping) or set(rows) != set(carrier):
         raise ValueError("kernel must contain exactly one row for every carrier state")
     kernel: dict[State, dict[State, Fraction]] = {}
     for source in carrier:
@@ -93,8 +98,12 @@ def event_probability(states: Sequence[State], distribution: Mapping[State, Frac
     return sum((p[state] for state in event_set), Fraction(0))
 
 
-def support(distribution: Mapping[State, Fraction]) -> set[State]:
-    return {state for state, mass in distribution.items() if mass > 0}
+def support(distribution: Mapping[State, object]) -> set[State]:
+    if not isinstance(distribution, Mapping):
+        raise ValueError("support requires a probability-distribution mapping")
+    carrier = tuple(distribution)
+    validated = make_distribution(carrier, distribution)
+    return {state for state, mass in validated.items() if mass > 0}
 
 
 def path_mass(states: Sequence[State], distribution: Mapping[State, Fraction], kernel: Mapping[State, Mapping[State, Fraction]], path: Sequence[State]) -> Fraction:
@@ -126,7 +135,9 @@ def geometric_survival_probability(q: object, horizon: int) -> Fraction:
 
 def geometric_infinite_survival_is_zero(q: object) -> bool:
     exact_q = _fraction(q, "survival probability")
-    if exact_q >= 1:
+    if exact_q > 1:
+        raise ValueError("survival probability cannot exceed one")
+    if exact_q == 1:
         return False
     return True
 
@@ -143,8 +154,18 @@ def vanishing_polynomial(grid: Iterable[object], x: object) -> Fraction:
 
 
 def integer_composition_distributions(n: int, denominator: int) -> list[tuple[Fraction, ...]]:
+    if isinstance(n, bool) or not isinstance(n, int) or isinstance(denominator, bool) or not isinstance(denominator, int):
+        raise ValueError("distribution dimensions and denominator must be integers")
     if n <= 0 or denominator <= 0:
         raise ValueError("distribution dimensions and denominator must be positive")
+    if n > MAX_COMPOSITION_DIMENSION:
+        raise ValueError("distribution dimension exceeds declared composition bound")
+    if denominator > MAX_COMPOSITION_DENOMINATOR:
+        raise ValueError("distribution denominator exceeds declared composition bound")
+    output_count = comb(denominator + n - 1, n - 1)
+    if output_count > MAX_COMPOSITION_OUTPUTS:
+        raise ValueError("composition enumeration exceeds declared output bound")
+
     out: list[tuple[Fraction, ...]] = []
 
     def visit(prefix: list[int], remaining: int, slots: int) -> None:
@@ -155,6 +176,8 @@ def integer_composition_distributions(n: int, denominator: int) -> list[tuple[Fr
             visit(prefix + [value], remaining - value, slots - 1)
 
     visit([], denominator, n)
+    if len(out) != output_count:
+        raise RuntimeError("composition enumeration count drift")
     return out
 
 
