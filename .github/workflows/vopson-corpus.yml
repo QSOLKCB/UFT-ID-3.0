@@ -6,6 +6,7 @@ on:
       - ".github/workflows/**"
       - "tools/pr21_latest_codex_fix.py"
       - "tools/pr21_latest_codex_fix_wrapper.py"
+      - "tools/pr21_latest_codex_fix_v2.py"
 
 permissions:
   contents: write
@@ -29,14 +30,19 @@ jobs:
         run: |
           set -euo pipefail
           cp .github/workflows/vopson-corpus.yml /tmp/pr21-staging.yml
-          python tools/pr21_latest_codex_fix_wrapper.py
+          python tools/pr21_latest_codex_fix_v2.py
           git show 5e1f8f1ad62e52cf9521dcef151645127eab8fc8:.github/workflows/vopson-corpus.yml > .github/workflows/vopson-corpus.yml
           python - <<'PY'
           from pathlib import Path
           p = Path('.github/workflows/vopson-corpus.yml')
           text = p.read_text()
+          old = '      - "scripts/validate_lean_observation_foundation.py"\n'
+          new = old + '      - "scripts/validate_lean_observation_foundation_pr21_frozen.py"\n'
+          if text.count(old) != 2:
+              raise SystemExit('freeze validator path anchor drift')
+          text = text.replace(old, new)
           old = '        with:\n          persist-credentials: false\n\n      - uses: actions/setup-python@'
-          new = '        with:\n          persist-credentials: false\n          fetch-depth: 2\n\n      - uses: actions/setup-python@'
+          new = '        with:\n          persist-credentials: false\n          fetch-depth: 0\n\n      - uses: actions/setup-python@'
           if text.count(old) != 1:
               raise SystemExit('checkout anchor drift')
           text = text.replace(old, new, 1)
@@ -44,6 +50,7 @@ jobs:
           new = '      - name: Validate Lean observation source freeze\n        env:\n          UFT_REQUIRE_BASIS_COMMIT_OBJECT: "1"\n        run: python scripts/validate_lean_observation_foundation.py\n'
           if text.count(old) != 1:
               raise SystemExit('freeze step anchor drift')
+          text = text.replace(old, new, 1)
           p.write_text(text)
           PY
 
@@ -79,12 +86,13 @@ jobs:
         run: |
           set -euo pipefail
           cp /tmp/pr21-staging.yml .github/workflows/vopson-corpus.yml
-          rm tools/pr21_latest_codex_fix.py tools/pr21_latest_codex_fix_wrapper.py
+          rm tools/pr21_latest_codex_fix.py tools/pr21_latest_codex_fix_wrapper.py tools/pr21_latest_codex_fix_v2.py
           git diff --exit-code HEAD -- .github/workflows/vopson-corpus.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           test ! -e tools/pr21_latest_codex_fix.py
           test ! -e tools/pr21_latest_codex_fix_wrapper.py
+          test ! -e tools/pr21_latest_codex_fix_v2.py
           git commit -m "Close latest PR21 Codex authority gaps"
           git push origin HEAD:agent/pr21-freeze-lean-observation-batch
