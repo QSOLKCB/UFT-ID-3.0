@@ -2,16 +2,15 @@
 
 **Claim class:** `NONCLAIM`
 
-This document defines how executable evidence is produced, checked, and
-retained. It does not upgrade any scientific claim.
+This document defines how executable evidence is produced, checked, and retained. It does not upgrade any scientific claim.
 
 ## Evidence chain
 
 ```text
 primary source / pinned public repository contract
   -> canonical source or pattern record
-  -> exact source claim / abstract pattern
-  -> reproduction or theorem obligation
+  -> exact claim / abstract pattern
+  -> theorem or reproduction obligation
   -> executable derivation / experiment
   -> deterministic result and source hashes
   -> repository assessment
@@ -19,18 +18,15 @@ primary source / pinned public repository contract
   -> CI validation and retained artifact
 ```
 
-A green workflow establishes that the declared repository checks passed for a
-particular commit and runtime. It does not establish a physical interpretation.
+A green workflow establishes only that declared repository checks passed for a particular commit/runtime.
 
 ## Supported runtime
 
 - GitHub runner: `ubuntu-24.04`
-- Python: `3.12` and `3.13`
-- Current finite experiments and validators: Python standard library only
+- Python: `3.12`, `3.13`
+- Current validators/finite experiments: Python standard library only
 
 ## Required local validation
-
-Run from the repository root:
 
 ```bash
 python -m compileall -q experiments scripts tests
@@ -39,12 +35,18 @@ python scripts/validate_vopson_corpus.py
 python scripts/validate_cross_repo_patterns.py
 python scripts/validate_vopson_2019_mei.py
 python scripts/validate_reproducibility.py
+python scripts/validate_formalization_contracts.py
+python scripts/validate_observation_specs.py
+python scripts/validate_relation_core.py
 python scripts/validate_graph_realization.py
 python experiments/graph_realization/run.py --json
 python experiments/run_graph_realization.py --json
 python scripts/validate_bridge_core.py
 python experiments/bridge_core/run.py --json
 python experiments/run_bridge_core.py --json
+python scripts/validate_epistemic_bridge.py
+python experiments/epistemic_bridge/run.py --json
+python experiments/run_epistemic_bridge.py --json
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 python experiments/run_pr2.py --json
@@ -53,141 +55,54 @@ python experiments/reproduction/vopson_2019_mei/run.py --json
 python experiments/run_pr6.py --json
 ```
 
-`python -O` is intentional. Scientific checks must not depend on ordinary
-Python `assert` statements, because optimized execution removes them.
+`python -O` is intentional. Scientific checks must not depend on removable `assert` statements.
 
-## Shared information primitives
-
-Canonical finite probability and information helpers live in:
+## Deterministic receipt families
 
 ```text
-experiments/lib/information.py
-```
-
-The shared module fixes the current finite-experiment contract for probability
-validation, finite-value rejection, absolute normalization tolerance, base-2
-Shannon entropy, row-stochastic maps, complete disjoint coarse-grainings, and
-explicit fail-closed scientific invariants.
-
-A source reproduction may use a different definition only when the source
-requires it and the difference is documented explicitly.
-
-## Deterministic receipts
-
-`experiments/run_pr2.py` records the finite entropy/polygon evidence surface.
-`experiments/run_cross_repo.py` records the cross-repository finite formal-pattern
-surface. `experiments/run_pr6.py` records the VOP-2019-MEI source-specific
-reproduction package. `experiments/run_graph_realization.py` records the finite
-graph-realization and typed-incidence authority surface. `experiments/run_bridge_core.py`
-records the PR #12 BridgeCore structural-transport authority surface.
-
-All receipt families bind deterministic repository files and canonical result
-payloads while keeping runtime metadata separate from the portable suite
-fingerprint.
-
-For BridgeCore, the deterministic source set includes:
-
-```text
-machine/bridge_core_contract.json
-machine/bridge_core_results.json
-machine/roadmap_state.json
-machine/contract.json
-docs/CLAIMS.md
-README4AI.md
-docs/REPRODUCIBILITY.md
-theory/BRIDGE_CORE.md
-theory/AUXILIARY_CONTRACTS.md
-scripts/validate_bridge_core.py
-scripts/verify_bridge_artifacts.py
-experiments/bridge_core/run.py
-tests/test_bridge_core.py
-experiments/run_bridge_core.py
-.github/workflows/finite-adversarial.yml
-```
-
-The BridgeCore receipt therefore changes when its theorem registry, hypotheses,
-human claim boundary, central machine registration, AI read chain,
-reproducibility declaration, roadmap state, implementation, validator, tests, or
-CI evidence path changes. Runtime metadata is excluded from the portable
-fingerprint.
-
-For the graph-realization suite, the deterministic source set includes at least:
-
-```text
-machine/contract.json
-machine/relation_contract.json
-machine/graph_realization_contract.json
-machine/graph_realization_results.json
-machine/cross_repo_patterns.json
-docs/CLAIMS.md
-README4AI.md
-docs/REPRODUCIBILITY.md
-ROADMAP.md
-research/GRAPH_REALIZATION_SOURCES.md
-theory/RELATION_CALCULUS.md
-theory/GRAPH_REALIZATION.md
-scripts/validate_graph_realization.py
-experiments/relation/run.py
-experiments/graph_realization/run.py
-tests/test_graph_realization.py
-experiments/run_graph_realization.py
-```
-
-The graph receipt therefore changes when a claim-bearing graph authority,
-central registration, AI read-chain description, reproducibility declaration,
-roadmap boundary, validator, witness, or declared executable evidence changes.
-Runtime metadata is excluded from its portable fingerprint.
-
-For the cross-repository suite, the deterministic source set includes:
-
-```text
-machine/cross_repo_patterns.json
-machine/cross_repo_results.json
-theory/AUXILIARY_CONTRACTS.md
-theory/CROSS_REPO_RESULTS.md
-experiments/cross_repo/run.py
+experiments/run_pr2.py
 experiments/run_cross_repo.py
-shared experiment package / information primitives
+experiments/run_pr6.py
+experiments/run_graph_realization.py
+experiments/run_bridge_core.py
+experiments/run_epistemic_bridge.py
 ```
 
-For VOP-2019-MEI, the receipt binds:
+All receipt families bind deterministic repository files and canonical result payloads while keeping runtime metadata outside portable fingerprints.
+
+## Graph-realization conformance boundary
+
+The graph suite exhaustively cross-checks every labelled binary relation on `Fin1`, `Fin2`, and `Fin3`, exactly 530 relations. It compares adjacency, normality, reachability, finite termination, SCC partition, sink SCC classification, and condensation where applicable.
+
+Canonical commands:
+
+```bash
+python scripts/validate_graph_realization.py
+python experiments/graph_realization/run.py --json
+python experiments/run_graph_realization.py --json
+```
+
+Retained files:
 
 ```text
-SOURCE_MAP.md
-DERIVATION.md
-ASSUMPTION_GRAPH.json
-DIMENSIONAL_AUDIT.md
-CONTROL_MATRIX.md
-result.json
-fixtures.json
-run.py
-test_vopson_2019_mei.py
-run_pr6.py
+graph-realization-validation.json
+graph-realization-witness.json
+graph-realization-receipt.json
 ```
 
-The primary paper bytes are not redistributed. Consequently the PR6 receipt
-records `primary_source_byte_hash = null` and identifies the scientific source
-through DOI plus page/equation locators. A local evidence-chain hash must never
-be mislabeled as a hash of unavailable or uncommitted primary-source bytes.
+The graph authority chain also binds `docs/CLAIMS.md`, `README4AI.md`, and `ROADMAP.md` through the deterministic source set.
 
 ```text
-LOCAL_REPRODUCTION_HASH != PRIMARY_SOURCE_BYTE_HASH
-DOI_AND_LOCATOR_IDENTITY != SOURCE_PDF_BYTE_HASH
+FINITE_GRAPH_CONFORMANCE != GENERAL_PROOF
+ABSTRACT_GRAPH_RESULT != PHYSICAL_ONTOLOGY
+GRAPH_DRAWING != GRAPH_IDENTITY
 ```
-
-Runtime metadata is descriptive. A suite fingerprint identifies the declared
-source-and-result bundle; it does not establish semantic truth.
 
 ## BridgeCore conformance boundary
 
-BridgeCore accepts a possibly empty declared domain `D subseteq X_s` and keeps
-preserved/lost structure metadata disjoint without requiring it to be exhaustive.
-The production composition law is checked over all `27^2 = 729` ordered pairs of
-valid partial preservation/loss declarations on a three-label vocabulary.
+BridgeCore accepts a possibly empty declared domain and carrier, keeps preservation/loss metadata disjoint without requiring exhaustiveness, and requires exact finite intermediate-carrier identity in the executable specialization.
 
-The identity theorem is correspondingly scoped: two-sided preservation/loss
-metadata neutrality requires the identity bridge's tracked structure vocabulary
-to equal `P_B union L_B` for the bridge being composed.
+The production composition law is checked over all `27^2 = 729` ordered partial preservation/loss declaration pairs and all 4,096 `Fin2` relation triples.
 
 ```text
 DISJOINT_METADATA != EXHAUSTIVE_METADATA
@@ -197,88 +112,92 @@ STRUCTURAL_BRIDGE != EPISTEMIC_PROMOTION
 BRIDGE_CONFORMANCE != PHYSICAL_VALIDATION
 ```
 
-The executable battery is independent bounded conformance evidence. The proofs
-in `theory/BRIDGE_CORE.md` are the mathematical authority.
+## Epistemic Bridge conformance boundary
 
-## Graph-realization conformance boundary
-
-The graph suite exhaustively cross-checks every labelled binary relation on
-`Fin1`, `Fin2`, and `Fin3`, for exactly 530 relations. The executable compares
-relation adjacency, normality, reachability, finite termination, SCC partition,
-sink SCC classification, and condensation against independently implemented
-graph procedures where applicable.
-
-The production SCC implementation must be recursion-safe for ordinary finite
-inputs, while the bounded exhaustive claim remains restricted to the declared
-`Fin1..Fin3` conformance surface.
+The Epistemic Bridge suite enumerates six factor-presence bits:
 
 ```text
-FINITE_GRAPH_CONFORMANCE != GENERAL_PROOF
-ABSTRACT_GRAPH_RESULT != PHYSICAL_ONTOLOGY
-GRAPH_DRAWING != GRAPH_IDENTITY
+evidence retrieved inferred verified executed conflict
 ```
 
-The mathematical proofs and theorem statements in `theory/GRAPH_REALIZATION.md`
-are the positive mathematical authority. CI shows that the declared executable
-cross-checks pass; it does not turn SiS2, ETQ/SPECTRAL, tetrahedral geometry, or
-another structural example into physical evidence for UFT-ID.
+It checks all `2^6 = 64` raw vectors and exactly 33 valid normalized shapes. It separately checks retrieval, inference, execution, explicit verification, conflict recording, neutral transport, repeated transport, and scope narrowing.
+
+Canonical commands:
+
+```bash
+python scripts/validate_epistemic_bridge.py
+python experiments/epistemic_bridge/run.py --json
+python experiments/run_epistemic_bridge.py --json
+```
+
+Retained files:
+
+```text
+epistemic-bridge-validation.json
+epistemic-bridge-witness.json
+epistemic-bridge-receipt.json
+```
+
+The deterministic Epistemic Bridge source set includes:
+
+```text
+machine/epistemic_bridge_contract.json
+machine/epistemic_bridge_results.json
+machine/bridge_core_contract.json
+machine/roadmap_state.json
+machine/contract.json
+theory/EPISTEMIC_BRIDGE.md
+docs/CLAIMS.md
+README4AI.md
+docs/REPRODUCIBILITY.md
+ROADMAP.md
+scripts/validate_epistemic_bridge.py
+scripts/verify_epistemic_bridge_artifacts.py
+experiments/epistemic_bridge/run.py
+tests/test_epistemic_bridge.py
+experiments/run_epistemic_bridge.py
+.github/workflows/finite-adversarial.yml
+```
+
+```text
+STRUCTURAL_TRANSPORT != AUTHORITY_PROMOTION
+RETRIEVED != VERIFIED
+INFERRED != VERIFIED
+EXECUTED != VERIFIED
+VERIFIED != TRUE
+CONFLICT != UNKNOWN
+VERIFIED != CONFLICT_FREE
+NO_GLOBAL_EPISTEMIC_LATTICE
+FINITE_EPISTEMIC_CONFORMANCE != GENERAL_EPISTEMOLOGY
+```
+
+A verification receipt is a scoped repository evidence object, not a universal truth certificate.
 
 ## VOP-2019-MEI reproduction boundary
 
-The 2019 reproduction treats the following as different evidence objects:
-
 ```text
-Landauer erasure lower bound
-intrinsic stored-bit energy identification
-mass-energy conversion conditional on stored energy
-numerical Eq. (6) prediction
-experimental confirmation
+LANDAUER_ERASURE_BOUND != INTRINSIC_STORED_BIT_ENERGY
+ARITHMETIC_REPRODUCED != PREMISE_VALIDATED
+ARITHMETIC_REPRODUCED != EXPERIMENTALLY_CONFIRMED
+LOCAL_REPRODUCTION_HASH != PRIMARY_SOURCE_BYTE_HASH
+DOI_AND_LOCATOR_IDENTITY != SOURCE_PDF_BYTE_HASH
 ```
 
-The repository reproduces Eq. (6) and its displayed numerical consequences
-conditional on the source's additional stored-energy identification. It does not
-promote that identification merely because the arithmetic is correct.
-
-The source's p. 2 erasure paragraph contains a printed inequality-direction
-inconsistency relative to the immediately preceding balance and the standard
-lower-bound Landauer form. The reproduction preserves the printed-source issue
-and records the comparison standard separately.
-
-```text
-ARITHMETIC_REPRODUCED
-!= PREMISE_VALIDATED
-!= PHYSICAL_INTERPRETATION_VALIDATED
-!= EXPERIMENTALLY_CONFIRMED
-```
-
-`scripts/validate_vopson_2019_mei.py` validates the source-specific assumption
-graph, its node/edge vocabulary and referential integrity, the result boundary,
-and synchronization of the promoted reproduction status across `corpus.json`,
-`CLAIM_GRAPH.json`, their generated human tables, and `REPRODUCTION_MATRIX.md`.
+Primary paper bytes are not redistributed. Source identity is DOI plus exact locators.
 
 ## Cross-repository provenance pins
 
-`machine/cross_repo_patterns.json` records a source repository, `main` ref,
-source path, and exact Git blob SHA for every imported or quarantined pattern.
-
-These are **snapshot provenance pins**. Routine UFT-ID CI validates their local
-shape and consistency but does not perform network fetches to prove that every
-remote repository still has the same current mainline state.
-
-Therefore:
+`machine/cross_repo_patterns.json` records repository, `main` ref, path, and exact Git blob SHA for each imported or quarantined pattern.
 
 ```text
 PINNED_SOURCE_SNAPSHOT != LIVE_REMOTE_FRESHNESS
+SOFTWARE_CONTRACT != PHYSICAL_LAW
+IMPLEMENTED_PATTERN != UNIVERSAL_THEOREM
 ```
-
-When current source state matters, re-fetch the public repository and update the
-registry deliberately. Open-PR-only behavior and private repositories are not
-accepted as positive cross-repository pattern authority.
 
 ## CI artifacts
 
-Every supported Python job retains an `artifacts/` evidence bundle for 30 days.
-The bundle includes, as applicable:
+Every supported Python job retains an `artifacts/` evidence bundle for 30 days. The bundle includes, as applicable:
 
 ```text
 pr2-receipt.json
@@ -296,97 +215,43 @@ graph-realization-receipt.json
 bridge-core-validation.json
 bridge-core-witness.json
 bridge-core-receipt.json
+epistemic-bridge-validation.json
+epistemic-bridge-witness.json
+epistemic-bridge-receipt.json
 vopson-corpus-validation.json
 vopson-doc-sync.json
 reproducibility-validation.json
 ```
 
-Generated CI artifacts are evidence from a workflow run. They are not committed
-back into source control automatically.
+Generated CI artifacts are workflow evidence and are not automatically committed as canonical source.
 
 ## GitHub Actions provenance
 
-Workflow actions must be pinned to full 40-character commit SHAs recorded in
-`machine/contract.json`. Mutable major-version tags are forbidden by
-`scripts/validate_reproducibility.py`.
-
-Checkout credentials are not persisted after checkout, and workflows use
-read-only repository permissions.
+Workflow actions remain pinned to the full 40-character SHAs in `machine/contract.json`. Checkout credentials are not persisted and workflow permissions remain read-only.
 
 ## Bounded exhaustive computation
 
-The polygon audit uses exhaustive positive-composition enumeration only below a
-declared work ceiling. The ordered work estimate is `C(N - 1, n - 1)`.
-Requests above the ceiling fail before enumeration. Analytic extrema remain
-available through `analytic_extrema(total, parts)`.
+Finite exhaustive batteries prove only their declared bounded conformance domains:
 
-The cross-repository minimum-basis fixture is finite and exhaustive over a tiny
-sealed candidate family. It is evidence for CR5's declared finite hypotheses,
-not a claim that arbitrary minimum-cover problems are computationally cheap.
+```text
+530 labelled relation graphs
+4096 Fin2 BridgeCore relation triples
+729 BridgeCore partial-structure declaration pairs
+64 raw / 33 valid Epistemic Bridge factor vectors
+```
 
-The graph-realization battery is separately exhaustive only over all labelled
-binary relations on fixed carriers `Fin1`, `Fin2`, and `Fin3`; it does not
-establish universality by enumeration.
-
-The BridgeCore battery is separately exhaustive only over all 4,096 ordered
-triples of `Fin2` binary relations plus 729 partial structure-declaration pairs
-on the declared three-label vocabulary.
+```text
+FINITE_CONFORMANCE != GENERAL_PROOF
+```
 
 ## Human and machine synchronization
 
-The Vopson JSON corpus and claim graph are canonical machine authorities. Their
-Markdown tables are rendered by:
+Graph realization is synchronized across its machine contract/results, human theory/source map, `docs/CLAIMS.md`, `README4AI.md`, this file, central `machine/contract.json`, `ROADMAP.md`, and its receipt.
 
-```bash
-python scripts/render_vopson_docs.py
-```
+BridgeCore is synchronized across its contract/results, human theory, central read/claim/reproducibility surfaces, live roadmap state, and deterministic receipt.
 
-CI checks them without modifying the tree:
-
-```bash
-python scripts/render_vopson_docs.py --check
-```
-
-When a reproduction status is promoted, the canonical work registry, canonical
-claim graph, generated human tables, reproduction matrix, and source-specific
-result must be synchronized in the same change. A source claim may remain a
-`THEOREM_TARGET` even after its arithmetic has been reproduced when the physical
-premise itself remains unresolved.
-
-For `VOP-2019-MEI`, the synchronized state is:
-
-```text
-work reproduction_status = reproduced
-work equation_map_status  = complete
-claim class                = THEOREM_TARGET
-claim assessment           = arithmetic-reproduced-physical-hypothesis-unresolved
-```
-
-The cross-repository pattern atlas is a human diagnostic explanation of
-`machine/cross_repo_patterns.json`; result authority is split explicitly between
-`theory/CROSS_REPO_RESULTS.md` and `machine/cross_repo_results.json`. The
-validator checks identifiers, source classes, privacy/open-PR exclusions, claim
-classes, and result dependencies.
-
-The graph layer is synchronized across `machine/graph_realization_contract.json`,
-`machine/graph_realization_results.json`, `theory/GRAPH_REALIZATION.md`,
-`research/GRAPH_REALIZATION_SOURCES.md`, `docs/CLAIMS.md`, `README4AI.md`,
-`docs/REPRODUCIBILITY.md`, central `machine/contract.json` registration, and the
-receipt-bound `ROADMAP.md` boundaries.
-
-BridgeCore is synchronized across `machine/bridge_core_contract.json`,
-`machine/bridge_core_results.json`, `theory/BRIDGE_CORE.md`, `docs/CLAIMS.md`,
-`README4AI.md`, `docs/REPRODUCIBILITY.md`, central `machine/contract.json`, the
-live `machine/roadmap_state.json`, and the deterministic BridgeCore receipt.
+Epistemic Bridge is synchronized across `machine/epistemic_bridge_contract.json`, `machine/epistemic_bridge_results.json`, `theory/EPISTEMIC_BRIDGE.md`, `docs/CLAIMS.md`, `README4AI.md`, `docs/REPRODUCIBILITY.md`, `machine/contract.json`, `machine/roadmap_state.json`, and its deterministic receipt.
 
 ## Nonclaims
 
-This contract does not claim that deterministic output proves a physical law,
-that a hash proves scientific correctness, that correct arithmetic validates a
-physical premise, that a synchronized reproduction promotion proves the source
-hypothesis, that a public software invariant is a physical law, that a pinned
-source blob proves live remote freshness, that a complete bibliography is a
-completed reproduction, that two Python versions constitute universal
-portability, that finite graph or BridgeCore conformance proves unrestricted
-mathematics or physical ontology, or that CI can replace independent scientific
-review.
+This contract does not claim that deterministic output proves a physical law, that a hash proves scientific correctness, that correct arithmetic validates a physical premise, that finite conformance proves unrestricted mathematics, that transport/retrieval/inference/execution creates verification, that verification establishes truth, or that CI replaces independent scientific review.
