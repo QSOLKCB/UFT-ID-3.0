@@ -51,19 +51,19 @@ def _historical_load_json(path: Path):
 
 def _live_roadmap_errors() -> list[str]:
     errors=[]; roadmap=_original_load_json(ROADMAP_STATE)
-    if roadmap.get("schema_version") != "1.6.0": errors.append("recovery live roadmap schema drift")
-    if roadmap.get("basis_commit") != "353e55a11a8cb6d6bcf571110e0fd6f32823fc77": errors.append("recovery live roadmap basis commit must be merged CSP PR")
-    if roadmap.get("active_planned_surface") != 18:
-        errors.extend(["recovery live roadmap active surface must be PR #18","recovery live roadmap active surface must be PR #17","recovery roadmap active surface must be PR #16"])
-    if roadmap.get("completed") != [5,6,7,8,9,11,12,13,14,15,16,17]: errors.append("recovery live roadmap completed set drift")
-    if roadmap.get("deferred") != [10]: errors.append("recovery live roadmap deferred set drift")
+    if roadmap.get("schema_version") != "1.7.0": errors.append("recovery live roadmap schema drift")
+    if roadmap.get("basis_commit") != "516cff5d6a45af54d6fc4ae9c72c2e8e9c668637": errors.append("recovery live roadmap basis commit must be merged EFP PR #19")
+    if roadmap.get("active_planned_surface") != 10:
+        errors.extend(["recovery live roadmap active surface must be PR #10","recovery live roadmap active surface must be PR #17","recovery roadmap active surface must be PR #16"])
+    if roadmap.get("completed") != [5,6,7,8,9,11,12,13,14,15,16,17,18]: errors.append("recovery live roadmap completed set drift")
+    if roadmap.get("deferred") != []: errors.append("recovery live roadmap deferred set drift")
     sequence=roadmap.get("sequence")
     if not isinstance(sequence,list): errors.append("recovery live roadmap sequence malformed")
     else:
         by_pr={item.get("planned_pr"):item for item in sequence if isinstance(item,dict)}
         if by_pr.get(16,{}).get("status") != "complete-merged-2f2cdd2af195a2e74a55e14abfbc4f88e0901a8f": errors.append("recovery live roadmap PR16 completion drift")
         if by_pr.get(17,{}).get("status") != "complete-merged-353e55a11a8cb6d6bcf571110e0fd6f32823fc77": errors.append("recovery live roadmap PR17 completion drift")
-        if by_pr.get(18,{}).get("status") != "active-implemented-in-current-change": errors.append("recovery live roadmap PR18 active-state drift")
+        if by_pr.get(18,{}).get("status") != "complete-merged-516cff5d6a45af54d6fc4ae9c72c2e8e9c668637": errors.append("recovery live roadmap PR18 completion drift")
     rules=roadmap.get("rules"); efp_rule="Empirical rejection requires complete calibrated profile-matched evidence and remains scoped to one hypothesis/profile version; formal counterexamples, synthetic fixtures, non-rejection, or model fit cannot be promoted into empirical falsification, confirmation, or unique explanation by default."
     if not isinstance(rules,list) or efp_rule not in rules: errors.append("recovery live roadmap empirical falsification rule missing")
     serialized=json.dumps(roadmap,sort_keys=True).casefold()

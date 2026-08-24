@@ -79,17 +79,17 @@ def _historical_load_json(path: Path):
 def _live_roadmap_errors() -> list[str]:
     errors: list[str] = []
     roadmap = _original_load_json(ROADMAP_STATE)
-    if roadmap.get("schema_version") != "1.6.0":
+    if roadmap.get("schema_version") != "1.7.0":
         errors.append("CSP live roadmap schema drift")
-    if roadmap.get("basis_commit") != "353e55a11a8cb6d6bcf571110e0fd6f32823fc77":
-        errors.append("CSP live roadmap basis commit must be merged CSP PR")
-    if roadmap.get("active_planned_surface") != 18:
-        errors.append("CSP live roadmap active surface must be PR #18")
+    if roadmap.get("basis_commit") != "516cff5d6a45af54d6fc4ae9c72c2e8e9c668637":
+        errors.append("CSP live roadmap basis commit must be merged EFP PR #19")
+    if roadmap.get("active_planned_surface") != 10:
+        errors.append("CSP live roadmap active surface must be PR #10")
         # Historical adversarial-test compatibility from the merged PR17 surface.
         errors.append("CSP roadmap active surface must be PR #17")
-    if roadmap.get("completed") != [5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17]:
+    if roadmap.get("completed") != [5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18]:
         errors.append("CSP live roadmap completed set drift")
-    if roadmap.get("deferred") != [10]:
+    if roadmap.get("deferred") != []:
         errors.append("CSP live roadmap deferred set drift")
     sequence = roadmap.get("sequence")
     if not isinstance(sequence, list):
@@ -98,8 +98,8 @@ def _live_roadmap_errors() -> list[str]:
         by_pr = {item.get("planned_pr"): item for item in sequence if isinstance(item, dict)}
         if by_pr.get(17, {}).get("status") != "complete-merged-353e55a11a8cb6d6bcf571110e0fd6f32823fc77":
             errors.append("CSP live roadmap PR17 completion drift")
-        if by_pr.get(18, {}).get("status") != "active-implemented-in-current-change":
-            errors.append("CSP live roadmap PR18 active-state drift")
+        if by_pr.get(18, {}).get("status") != "complete-merged-516cff5d6a45af54d6fc4ae9c72c2e8e9c668637":
+            errors.append("CSP live roadmap PR18 completion drift")
     rules = roadmap.get("rules")
     efp_rule = "Empirical rejection requires complete calibrated profile-matched evidence and remains scoped to one hypothesis/profile version; formal counterexamples, synthetic fixtures, non-rejection, or model fit cannot be promoted into empirical falsification, confirmation, or unique explanation by default."
     if not isinstance(rules, list) or efp_rule not in rules:

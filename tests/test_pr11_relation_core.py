@@ -2,7 +2,7 @@
 
 The merged PR11 test module remains byte-for-byte in
 pr11_relation_core_tests_frozen.py. Only assertions inherently tied to the live
-roadmap clock/state are advanced to the current Empirical Falsification Profile
+roadmap clock/state are advanced to the current PR #10 theorem-batch-freeze
 phase.
 """
 from __future__ import annotations
@@ -29,7 +29,21 @@ _FROZEN = _load_frozen()
 def _updated_active_surface_test(self):
     value = _FROZEN.canonical_documents()
     value["roadmap_state"]["active_planned_surface"] = 11
-    self.assert_error_contains(value, "active planned surface must be PR18")
+    self.assert_error_contains(value, "active planned surface must be PR10")
+
+
+def _updated_complete_roadmap_state_semantic_drift(self):
+    mutations = {
+        "deferred": [10],
+        "compatibility_note": "PR8 and PR9 authority is obsolete.",
+        "fixture_policy": "Any decorative example is sufficient proof.",
+        "rules": ["COMPATIBILITY => UNIQUE_PHYSICAL_SELECTION"],
+    }
+    for field, replacement in mutations.items():
+        with self.subTest(field=field):
+            value = _FROZEN.canonical_documents()
+            value["roadmap_state"][field] = replacement
+            self.assert_error_contains(value, "live roadmap state canonical payload drift")
 
 
 def _updated_future_snapshot_test(self):
@@ -48,6 +62,7 @@ def _updated_future_snapshot_test(self):
 
 
 _FROZEN.PR11RelationMutationTests.test_rejects_live_roadmap_active_surface_drift = _updated_active_surface_test
+_FROZEN.PR11RelationMutationTests.test_rejects_complete_roadmap_state_semantic_drift = _updated_complete_roadmap_state_semantic_drift
 _FROZEN.PR11RelationMutationTests.test_rejects_pr11_future_utc_snapshot_dates = _updated_future_snapshot_test
 
 PR11RelationCoreTests = _FROZEN.PR11RelationCoreTests

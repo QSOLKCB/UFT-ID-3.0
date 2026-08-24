@@ -3,62 +3,84 @@ name: vopson-corpus
 on:
   pull_request:
     paths:
+      - "research/vopson/**"
+      - "scripts/validate_vopson_corpus.py"
+      - "scripts/render_vopson_docs.py"
+      - "scripts/validate_reproducibility.py"
+      - "tests/**"
+      - "machine/**"
+      - "README.md"
+      - "README4AI.md"
+      - "AGENTS.md"
+      - "docs/REPRODUCIBILITY.md"
       - ".github/workflows/**"
-      - "tools/post_efp_rollover_patch.py"
-      - "tools/post_efp_rollover_testfix.py"
+  push:
+    branches: [main]
+    paths:
+      - "research/vopson/**"
+      - "scripts/validate_vopson_corpus.py"
+      - "scripts/render_vopson_docs.py"
+      - "scripts/validate_reproducibility.py"
+      - "tests/**"
+      - "machine/**"
+      - "README.md"
+      - "README4AI.md"
+      - "AGENTS.md"
+      - "docs/REPRODUCIBILITY.md"
+      - ".github/workflows/**"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  post-efp-roadmap-rollover:
+  validate-corpus:
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: agent/post-efp-roadmap-rollover
-          persist-credentials: true
-          fetch-depth: 128
+          persist-credentials: false
 
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
 
-      - name: Apply roadmap rollover
-        shell: bash
-        run: |
-          set -euo pipefail
-          python tools/post_efp_rollover_patch.py
-          python tools/post_efp_rollover_testfix.py
-          git show 516cff5d6a45af54d6fc4ae9c72c2e8e9c668637:.github/workflows/vopson-corpus.yml > .github/workflows/vopson-corpus.yml
-          rm tools/post_efp_rollover_patch.py tools/post_efp_rollover_testfix.py
+      - name: Compile Python
+        run: python -m compileall -q experiments scripts tests
 
-      - name: Validate rollover authority
-        shell: bash
-        run: |
-          set -euo pipefail
-          python -m compileall -q experiments scripts tests
-          python scripts/validate_reproducibility.py
-          python scripts/validate_relation_core.py
-          python scripts/validate_graph_realization.py
-          python scripts/validate_bridge_core.py
-          python scripts/validate_epistemic_bridge.py
-          python scripts/validate_representation_calculus.py
-          python scripts/validate_information_comparability.py
-          python scripts/validate_recovery_specializations.py
-          python scripts/validate_continuum_stochastic_prevalence.py
-          python scripts/validate_empirical_falsification_profile.py
-          python -m unittest discover -s tests -v
+      - name: Check generated Vopson documentation
+        run: python scripts/render_vopson_docs.py --check
 
-      - name: Commit rollover
-        shell: bash
+      - name: Validate canonical Vopson corpus
+        run: python scripts/validate_vopson_corpus.py
+
+      - name: Validate reproducibility contract
+        run: python scripts/validate_reproducibility.py
+
+      - name: Unit and adversarial tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Optimized-Python tests
+        run: python -O -m unittest discover -s tests -v
+
+      - name: Generate corpus evidence bundle
+        if: always()
         run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          test ! -e tools/post_efp_rollover_patch.py
-          test ! -e tools/post_efp_rollover_testfix.py
-          git diff --cached --name-only
-          git commit -m "Roll roadmap from EFP to Lean theorem freeze"
-          git push origin HEAD:agent/post-efp-roadmap-rollover
+          mkdir -p artifacts
+          python scripts/validate_vopson_corpus.py --json > artifacts/vopson-corpus-validation.json 2> artifacts/vopson-corpus-validation.stderr.txt || true
+          python scripts/render_vopson_docs.py --check --json > artifacts/vopson-doc-sync.json 2> artifacts/vopson-doc-sync.stderr.txt || true
+          python scripts/validate_reproducibility.py --json > artifacts/reproducibility-validation.json 2> artifacts/reproducibility-validation.stderr.txt || true
+          python experiments/run_pr2.py --json > artifacts/pr2-receipt.json 2> artifacts/pr2-receipt.stderr.txt || true
+
+      - name: Retain corpus evidence bundle
+        if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: vopson-corpus-py${{ matrix.python-version }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 30
