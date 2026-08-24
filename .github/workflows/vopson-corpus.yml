@@ -7,6 +7,7 @@ on:
       - "tools/pr21_latest_codex_fix.py"
       - "tools/pr21_latest_codex_fix_wrapper.py"
       - "tools/pr21_latest_codex_fix_v2.py"
+      - "tools/pr21_v2_escape_wrapper.py"
 
 permissions:
   contents: write
@@ -30,7 +31,7 @@ jobs:
         run: |
           set -euo pipefail
           cp .github/workflows/vopson-corpus.yml /tmp/pr21-staging.yml
-          python tools/pr21_latest_codex_fix_v2.py
+          python tools/pr21_v2_escape_wrapper.py
           git show 5e1f8f1ad62e52cf9521dcef151645127eab8fc8:.github/workflows/vopson-corpus.yml > .github/workflows/vopson-corpus.yml
           python - <<'PY'
           from pathlib import Path
@@ -86,7 +87,7 @@ jobs:
         run: |
           set -euo pipefail
           cp /tmp/pr21-staging.yml .github/workflows/vopson-corpus.yml
-          rm tools/pr21_latest_codex_fix.py tools/pr21_latest_codex_fix_wrapper.py tools/pr21_latest_codex_fix_v2.py
+          rm tools/pr21_latest_codex_fix.py tools/pr21_latest_codex_fix_wrapper.py tools/pr21_latest_codex_fix_v2.py tools/pr21_v2_escape_wrapper.py
           git diff --exit-code HEAD -- .github/workflows/vopson-corpus.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -94,5 +95,6 @@ jobs:
           test ! -e tools/pr21_latest_codex_fix.py
           test ! -e tools/pr21_latest_codex_fix_wrapper.py
           test ! -e tools/pr21_latest_codex_fix_v2.py
+          test ! -e tools/pr21_v2_escape_wrapper.py
           git commit -m "Close latest PR21 Codex authority gaps"
           git push origin HEAD:agent/pr21-freeze-lean-observation-batch
