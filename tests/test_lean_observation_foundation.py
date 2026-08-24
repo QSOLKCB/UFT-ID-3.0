@@ -78,6 +78,37 @@ class LeanObservationFoundationFreezeTests(unittest.TestCase):
         mutated = workflow.replace("        run: python scripts/validate_lean_observation_foundation.py\n", "        run: python -c 'pass'\n", 1)
         self.assertTrue(any("direct validator/policy drift" in e for e in V.workflow_contract_errors(mutated)))
 
+    def test_workflow_paths_are_validated_per_event_not_by_global_count(self):
+        workflow = (ROOT / ".github/workflows/vopson-corpus.yml").read_text(encoding="utf-8")
+        required = '- "ROADMAP.md"'
+        for event in ("pull_request", "push"):
+            paths = V.workflow_event_paths(workflow, event)
+            self.assertIsNotNone(paths)
+            self.assertEqual(paths.count(required), 1)
+
+        pull, push = workflow.split("  push:\n", 1)
+        pull_duplicate = pull.replace(
+            '      - "ROADMAP.md"\n',
+            '      - "ROADMAP.md"\n      - "ROADMAP.md"\n',
+            1,
+        )
+        push_missing = push.replace('      - "ROADMAP.md"\n', "", 1)
+        mutated = pull_duplicate + "  push:\n" + push_missing
+        errors = V.workflow_contract_errors(mutated)
+        self.assertTrue(any("pull_request path trigger drift" in e for e in errors), errors)
+        self.assertTrue(any("push path trigger drift" in e for e in errors), errors)
+
+        pull_missing = pull.replace('      - "ROADMAP.md"\n', "", 1)
+        push_duplicate = push.replace(
+            '      - "ROADMAP.md"\n',
+            '      - "ROADMAP.md"\n      - "ROADMAP.md"\n',
+            1,
+        )
+        mutated = pull_missing + "  push:\n" + push_duplicate
+        errors = V.workflow_contract_errors(mutated)
+        self.assertTrue(any("pull_request path trigger drift" in e for e in errors), errors)
+        self.assertTrue(any("push path trigger drift" in e for e in errors), errors)
+
     def test_basis_commit_object_mapping_logic_is_fail_closed(self):
         original = V.basis_git_blob_sha
         try:
@@ -176,6 +207,8 @@ class LeanObservationFoundationFreezeTests(unittest.TestCase):
         attacks = (
             "\nUFT-OBS-001 through UFT-OBS-004 have been proved in Lean.\n",
             "\nLEAN-OBS-BATCH-001 has been formally verified in Lean.\n",
+            "\nLean proves UFT-OBS-001 through UFT-OBS-004.\n",
+            "\nUFT-OBS-001 through UFT-OBS-004 now have Lean proofs.\n",
         )
         for field, label in (("human", "human freeze"), ("readme", "README4AI"), ("roadmap", "ROADMAP")):
             for attack in attacks:
@@ -183,6 +216,16 @@ class LeanObservationFoundationFreezeTests(unittest.TestCase):
                     docs = documents()
                     docs[field] += attack
                     self.assert_error_contains(docs, f"{label} theorem-scoped Lean verification promotion")
+
+    def test_readme_required_validation_sequence_includes_freeze(self):
+        readme = documents()["readme"]
+        required = readme.split("## Required validation commands\n", 1)[1].split("\n## ", 1)[0]
+        observation = "python scripts/validate_observation_specs.py"
+        freeze = "python scripts/validate_lean_observation_foundation.py"
+        relation = "python scripts/validate_relation_core.py"
+        self.assertEqual(required.count(freeze), 1)
+        self.assertLess(required.index(observation), required.index(freeze))
+        self.assertLess(required.index(freeze), required.index(relation))
 
     def test_pretag_lean_source_and_toolchain_files_are_rejected(self):
         candidates = (
