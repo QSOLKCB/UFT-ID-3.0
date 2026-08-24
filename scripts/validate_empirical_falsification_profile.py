@@ -19,6 +19,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 FROZEN = ROOT / "scripts/validate_empirical_falsification_profile_pr19_frozen.py"
 ROADMAP_STATE = ROOT / "machine/roadmap_state.json"
+README4AI = ROOT / "README4AI.md"
 
 _spec = importlib.util.spec_from_file_location("efp_validator_pr19_frozen", FROZEN)
 if _spec is None or _spec.loader is None:
@@ -195,6 +196,27 @@ def _live_roadmap_errors() -> list[str]:
         if token.casefold() in serialized: errors.append(f"EFP live roadmap contains forbidden private locator: {token}")
     return errors
 
+def _live_bootstrap_errors() -> list[str]:
+    errors: list[str] = []
+    text = README4AI.read_text(encoding="utf-8")
+    required = (
+        "The completed planned PR #18 surface defines a synthetic conformance procedure",
+        "Live scheduling authority is PR #10 Lean observation foundation, active only for first-theorem-batch and dependency-graph freezing.",
+        "PR #10 Lean observation foundation is active only for theorem-batch and dependency-graph freezing.",
+    )
+    for phrase in required:
+        if text.count(phrase) != 1:
+            errors.append(f"README4AI live schedule anchor drift: {phrase}")
+    forbidden = (
+        "The active planned PR #18 surface",
+        "Lean remains deferred until source reproduction",
+    )
+    for phrase in forbidden:
+        if phrase in text:
+            errors.append(f"README4AI stale schedule anchor present: {phrase}")
+    return errors
+
+
 def validate() -> dict[str, object]:
     old_json = _frozen.load_json
     old_module = _frozen.load_module
@@ -207,6 +229,7 @@ def validate() -> dict[str, object]:
         _frozen.load_module = old_module
     errors = list(result.get("errors", []))
     errors.extend(_live_roadmap_errors())
+    errors.extend(_live_bootstrap_errors())
     result["errors"] = errors
     result["status"] = "error" if errors else "ok"
     return result
