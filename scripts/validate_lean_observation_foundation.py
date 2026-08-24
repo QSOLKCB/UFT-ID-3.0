@@ -3,7 +3,8 @@
 
 The frozen module preserves all theorem, human-status, pre-tag Lean embargo, and
 roadmap checks already reviewed on the previous clean head. This wrapper adds
-complete PR9 basis dependency closure and registered-workflow enforcement.
+complete PR9 basis dependency closure, registered-workflow enforcement, and
+cross-surface human promotion guards.
 """
 from __future__ import annotations
 
@@ -113,6 +114,8 @@ def workflow_contract_errors(text: str) -> list[str]:
         '      - "scripts/validate_lean_observation_foundation.py"',
         '      - "scripts/validate_lean_observation_foundation_pr21_frozen.py"',
         '      - "theory/LEAN_OBSERVATION_FOUNDATION.md"',
+        '      - "README4AI.md"',
+        '      - "ROADMAP.md"',
         '      - "UFTID/**"',
         '      - "**/*.lean"',
         '      - "lean-toolchain"',
@@ -158,6 +161,14 @@ def validate_documents(freeze, source_theorems, source_counterexamples, base_con
         human, roadmap, readme, check_paths=check_paths,
     )
     errors = list(result.get("errors", []))
+
+    # The frozen validator already promotion-scans the dedicated Lean human
+    # authority. README4AI and ROADMAP are also human authority inputs to this
+    # live wrapper, so they must be equally unable to claim completed Lean
+    # verification while the release gate and every theorem remain unverified.
+    for surface_name, surface_text in (("README4AI", readme), ("ROADMAP", roadmap)):
+        if _frozen.human_promotion_errors(surface_text):
+            errors.append(f"Lean observation {surface_name} Lean verification promotion")
 
     if freeze.get("schema_version") != "1.0.1":
         errors.append("Lean observation freeze schema drift")
