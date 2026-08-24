@@ -30,5 +30,13 @@ if text.count(old_import_patch) != 1:
     raise RuntimeError("staging helper import patch anchor drifted")
 text = text.replace(old_import_patch, new_import_patch, 1)
 
+old_step_check = '''    step = """      - name: Validate Lean observation source freeze\\n        env:\\n          UFT_REQUIRE_BASIS_COMMIT_OBJECT: "1"\\n        run: python scripts/validate_lean_observation_foundation.py\\n"""\\n    if text.count(step) != 1:\\n        errors.append("registered Lean-freeze workflow direct validator step drift")
+'''
+new_step_check = '''    direct_anchors = (\\n        '      - name: Validate Lean observation source freeze',\\n        '          UFT_REQUIRE_BASIS_COMMIT_OBJECT: "1"',\\n        '        run: python scripts/validate_lean_observation_foundation.py',\\n    )\\n    if any(text.count(anchor) != 1 for anchor in direct_anchors):\\n        errors.append("registered Lean-freeze workflow direct validator step drift")
+'''
+if text.count(old_step_check) != 1:
+    raise RuntimeError("staging helper direct-step check anchor drifted")
+text = text.replace(old_step_check, new_step_check, 1)
+
 namespace = {"__name__": "__main__", "__file__": str(source_path)}
 exec(compile(text, str(source_path), "exec"), namespace)
