@@ -1,6 +1,6 @@
 {
   "type": "uft-id-information-comparability-contract",
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "snapshot_date": "2026-08-24",
   "claim_class": "DEFINITION",
   "scope": "Finite information-quantity specification comparability. The contract distinguishes direct comparability from explicit unit-converted comparability and forbids scalar coincidence, shared vocabulary, or shared units from silently substituting for functional, observation, convention, scope, semantic, epistemic, empirical, or physical equivalence.",
@@ -9,16 +9,46 @@
   "spec_fields": {
     "source_type": "declared source/carrier type on which the information quantity is defined",
     "functional": "exact information functional identity; shared use of the word information is insufficient",
-    "observation": "exact observation/measurement contract presented to the functional",
+    "observation": "stable observation-contract identity bound to an exact source type, target type, kind, and map reference; a generic category label is insufficient",
     "unit": "declared scalar unit or logarithm-base convention",
     "normalization": "declared normalization convention",
-    "conditioning": "declared conditioning convention",
+    "conditioning": "stable conditioning-model identity bound to the conditioned variable/event or to an explicit unconditional identity; a generic category label is insufficient",
     "scope": "nonempty contexts/regimes in which the specification is licensed"
   },
   "comparability_modes": {
-    "direct": "source_type, functional, observation, unit, normalization, and conditioning are equal and scopes overlap",
-    "unit_converted": "all direct-comparability fields except unit are equal, scopes overlap, and an exact registered positive unit conversion matches the functional and unit direction",
-    "not_authorized": "numeric equality, matching codomain, matching unit, matching functional name, or shared use of the word information alone"
+    "direct": "source_type, functional, stable observation identity, unit, normalization, and stable conditioning identity are equal and scopes overlap",
+    "unit_converted": "all direct-comparability fields except unit are equal, the two specifications and conversion have nonempty common scope, and an exact registered positive unit conversion matches the functional and unit direction",
+    "not_authorized": "numeric equality, matching codomain, matching unit, matching functional name, generic observation/conditioning categories, or shared use of the word information alone"
+  },
+  "observation_registry": {
+    "OBS-REF-FIN2-IDENTITY-V1": {
+      "base_authority": "machine/observation_specs.json#OBS-SPEC-001",
+      "source_type": "Fin2",
+      "target_type": "Fin2",
+      "kind": "deterministic-total",
+      "map_ref": "O_id(0)=0; O_id(1)=1"
+    },
+    "OBS-REF-FIN2-CONSTANT0-V1": {
+      "base_authority": "machine/observation_specs.json#OBS-SPEC-002",
+      "source_type": "Fin2",
+      "target_type": "Fin1",
+      "kind": "deterministic-total",
+      "map_ref": "O_const(0)=0; O_const(1)=0"
+    }
+  },
+  "conditioning_registry": {
+    "COND-REF-UNCONDITIONAL-V1": {
+      "kind": "unconditional",
+      "source_type": "Fin2",
+      "variable_ref": null,
+      "event_ref": null
+    },
+    "COND-REF-FIN2-X-EQ-0-V1": {
+      "kind": "conditioned",
+      "source_type": "Fin2",
+      "variable_ref": "x@Fin2",
+      "event_ref": "x=0"
+    }
   },
   "unit_conversion_registry": {
     "bit->base4-digit": "scale=1/2 for logarithmic functionals",
@@ -54,6 +84,7 @@
     "unit_convertible_ordered_pairs": 224,
     "positive_scale_order_checks": 75,
     "log_base_conversion_checks": 5,
+    "shared_shannon_primitive_checks": 1,
     "policy": "The bounded battery is exact conformance evidence for the declared finite specification grammar and bit/base4 conversion registry only; it is not a universal theorem that arbitrary quantities called information are comparable."
   },
   "authorities": {
@@ -67,6 +98,7 @@
     "roadmap_state": "machine/roadmap_state.json",
     "information_primitives": "experiments/lib/information.py",
     "observation_base": "machine/observation_contract.json",
+    "observation_specs": "machine/observation_specs.json",
     "representation_base": "machine/representation_contract.json"
   },
   "explicit_deferrals": [
