@@ -47,6 +47,9 @@ python experiments/run_bridge_core.py --json
 python scripts/validate_epistemic_bridge.py
 python experiments/epistemic_bridge/run.py --json
 python experiments/run_epistemic_bridge.py --json
+python scripts/validate_representation_calculus.py
+python experiments/representation_calculus/run.py --json
+python experiments/run_representation_calculus.py --json
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 python experiments/run_pr2.py --json
@@ -66,6 +69,7 @@ experiments/run_pr6.py
 experiments/run_graph_realization.py
 experiments/run_bridge_core.py
 experiments/run_epistemic_bridge.py
+experiments/run_representation_calculus.py
 ```
 
 All receipt families bind deterministic repository files and canonical result payloads while keeping runtime metadata outside portable fingerprints.
@@ -138,26 +142,7 @@ epistemic-bridge-witness.json
 epistemic-bridge-receipt.json
 ```
 
-The deterministic Epistemic Bridge source set includes:
-
-```text
-machine/epistemic_bridge_contract.json
-machine/epistemic_bridge_results.json
-machine/bridge_core_contract.json
-machine/roadmap_state.json
-machine/contract.json
-theory/EPISTEMIC_BRIDGE.md
-docs/CLAIMS.md
-README4AI.md
-docs/REPRODUCIBILITY.md
-ROADMAP.md
-scripts/validate_epistemic_bridge.py
-scripts/verify_epistemic_bridge_artifacts.py
-experiments/epistemic_bridge/run.py
-tests/test_epistemic_bridge.py
-experiments/run_epistemic_bridge.py
-.github/workflows/finite-adversarial.yml
-```
+The deterministic Epistemic Bridge source set includes its machine authority, human theorem surface, central authority/read surfaces, live roadmap, validator, executable, tests, retained-artifact verifier, receipt runner, and workflow.
 
 ```text
 STRUCTURAL_TRANSPORT != AUTHORITY_PROMOTION
@@ -172,6 +157,57 @@ FINITE_EPISTEMIC_CONFORMANCE != GENERAL_EPISTEMOLOGY
 ```
 
 A verification receipt is a scoped repository evidence object, not a universal truth certificate.
+
+## Representation-calculus conformance boundary
+
+The Representation and Congruence suite uses exact `fractions.Fraction` arithmetic for its finite 2x2 fixtures and exhaustive finite receiver maps. No floating tolerance is used.
+
+Canonical commands:
+
+```bash
+python scripts/validate_representation_calculus.py
+python experiments/representation_calculus/run.py --json
+python experiments/run_representation_calculus.py --json
+```
+
+Retained files:
+
+```text
+representation-validation.json
+representation-witness.json
+representation-receipt.json
+```
+
+The exact bounded battery checks:
+
+```text
+81 small 2x2 matrices
+40 unimodular change-of-basis matrices
+8 orthogonal signed-permutation matrices
+3240 similarity invariant instances
+3240 congruence-rank instances
+648 orthogonal Frobenius instances
+29160 coordinate-covariance instances
+27 Fin3 endofunctions
+729 ordered observation/receiver function pairs
+441 receiver pairs injective on the observation image
+3969 source-pair equivalence checks
+```
+
+```text
+SIMILARITY != CONGRUENCE
+SIMILARITY != ORTHOGONAL_OR_UNITARY_SIMILARITY
+SAME_CHARACTERISTIC_POLYNOMIAL != SIMILARITY
+CONGRUENCE != SPECTRAL_EQUIVALENCE
+COORDINATE_TUPLE != ABSTRACT_OBJECT
+REPRESENTATION_CHANGE != PHYSICAL_CHANGE
+RECEIVER_REENCODING != STATE_TRANSFORMATION
+NONINJECTIVE_RECEIVER_REENCODING != OBSERVATIONAL_EQUIVALENCE_PRESERVATION
+INVARIANT_UNDER_CLASS_C != UNQUALIFIED_REPRESENTATION_INDEPENDENCE
+FINITE_REPRESENTATION_CONFORMANCE != GENERAL_PROOF
+```
+
+The deterministic Representation source set binds the observation, BridgeCore, and Epistemic contracts as dependencies because the receiver and authority boundaries must remain explicit across phase transitions.
 
 ## VOP-2019-MEI reproduction boundary
 
@@ -218,6 +254,9 @@ bridge-core-receipt.json
 epistemic-bridge-validation.json
 epistemic-bridge-witness.json
 epistemic-bridge-receipt.json
+representation-validation.json
+representation-witness.json
+representation-receipt.json
 vopson-corpus-validation.json
 vopson-doc-sync.json
 reproducibility-validation.json
@@ -238,6 +277,11 @@ Finite exhaustive batteries prove only their declared bounded conformance domain
 4096 Fin2 BridgeCore relation triples
 729 BridgeCore partial-structure declaration pairs
 64 raw / 33 valid Epistemic Bridge factor vectors
+3240 similarity checks
+3240 congruence-rank checks
+648 orthogonal Frobenius checks
+29160 coordinate-covariance checks
+3969 receiver-equivalence checks
 ```
 
 ```text
@@ -252,6 +296,8 @@ BridgeCore is synchronized across its contract/results, human theory, central re
 
 Epistemic Bridge is synchronized across `machine/epistemic_bridge_contract.json`, `machine/epistemic_bridge_results.json`, `theory/EPISTEMIC_BRIDGE.md`, `docs/CLAIMS.md`, `README4AI.md`, `docs/REPRODUCIBILITY.md`, `machine/contract.json`, `machine/roadmap_state.json`, and its deterministic receipt.
 
+Representation and Congruence is synchronized across `machine/representation_contract.json`, `machine/representation_results.json`, `theory/REPRESENTATION_CALCULUS.md`, `docs/CLAIMS.md`, `README4AI.md`, `docs/REPRODUCIBILITY.md`, `machine/contract.json`, `machine/roadmap_state.json`, `ROADMAP.md`, and its deterministic receipt.
+
 ## Nonclaims
 
-This contract does not claim that deterministic output proves a physical law, that a hash proves scientific correctness, that correct arithmetic validates a physical premise, that finite conformance proves unrestricted mathematics, that transport/retrieval/inference/execution creates verification, that verification establishes truth, or that CI replaces independent scientific review.
+This contract does not claim that deterministic output proves a physical law, that a hash proves scientific correctness, that correct arithmetic validates a physical premise, that finite conformance proves unrestricted mathematics, that transport/retrieval/inference/execution creates verification, that verification establishes truth, that representation equivalence establishes semantic or physical identity, or that CI replaces independent scientific review.
