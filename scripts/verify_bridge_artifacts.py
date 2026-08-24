@@ -43,6 +43,7 @@ EXPECTED_CORE_FILES = (
     "theory/BRIDGE_CORE.md",
     "theory/AUXILIARY_CONTRACTS.md",
     "scripts/validate_bridge_core.py",
+    "scripts/validate_bridge_core_pr13_frozen.py",
     "scripts/validate_bridge_core_precodex2_frozen.py",
     "scripts/verify_bridge_artifacts.py",
     "experiments/bridge_core/__init__.py",
@@ -92,21 +93,15 @@ def load_object(path: Path) -> dict[str, object]:
 
 def registered_receipt_version() -> str:
     payload = json.loads(BASE_CONTRACT.read_text(encoding="utf-8"))
-    if not isinstance(payload, dict):
-        raise RuntimeError("machine/contract.json must be an object")
     authority = payload.get("bridge_core_authority")
     library = payload.get("experiment_library")
     if not isinstance(authority, dict) or not isinstance(library, dict):
         raise RuntimeError("BridgeCore receipt version registries must be objects")
-    authority_version = authority.get("receipt_version")
-    library_version = library.get("bridge_core_receipt_version")
-    if not isinstance(authority_version, str) or not authority_version:
-        raise RuntimeError("BridgeCore authority receipt_version must be a non-empty string")
-    if not isinstance(library_version, str) or not library_version:
-        raise RuntimeError("BridgeCore experiment-library receipt version must be a non-empty string")
-    if authority_version != library_version:
+    a = authority.get("receipt_version")
+    b = library.get("bridge_core_receipt_version")
+    if not isinstance(a, str) or not a or a != b:
         raise RuntimeError("BridgeCore receipt version registry disagreement")
-    return authority_version
+    return a
 
 
 def fingerprint_identity(receipt: dict[str, object]) -> dict[str, object]:
@@ -182,8 +177,7 @@ def verify(artifact_dir: Path) -> dict[str, object]:
     evidence = receipt.get("declared_evidence_paths")
     if not isinstance(evidence, list) or tuple(evidence) != EXPECTED_EVIDENCE:
         raise RuntimeError("retained BridgeCore declared evidence set drift")
-    expected_result_hash = sha256_bytes(canonical_bytes(witness))
-    if receipt.get("result_sha256") != expected_result_hash:
+    if receipt.get("result_sha256") != sha256_bytes(canonical_bytes(witness)):
         raise RuntimeError("retained BridgeCore receipt does not bind witness")
 
     expected_summary = {

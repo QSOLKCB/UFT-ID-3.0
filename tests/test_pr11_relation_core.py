@@ -1,8 +1,8 @@
 """Compatibility wrapper for the frozen PR #11 relation-core tests.
 
-The merged PR11 test module is preserved byte-for-byte in
-pr11_relation_core_tests_frozen.py. Only the two assertions whose expected
-values are inherently tied to the live roadmap clock/state are updated here.
+The merged PR11 test module remains byte-for-byte in
+pr11_relation_core_tests_frozen.py. Only assertions inherently tied to the live
+roadmap clock/state are advanced to the post-BridgeCore schedule.
 """
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ _FROZEN = _load_frozen()
 def _updated_active_surface_test(self):
     value = _FROZEN.canonical_documents()
     value["roadmap_state"]["active_planned_surface"] = 11
-    self.assert_error_contains(value, "active planned surface must be PR12")
+    self.assert_error_contains(value, "active planned surface must be PR13")
 
 
 def _updated_future_snapshot_test(self):
@@ -37,7 +37,7 @@ def _updated_future_snapshot_test(self):
         "theorems": ("2026-08-21", "relation theorem registry shape/snapshot mismatch"),
         "counterexamples": ("2026-08-21", "relation counterexample registry shape/snapshot mismatch"),
         "selection": ("2026-08-21", "genus selection specimen canonical payload drift"),
-        "roadmap_state": ("2026-08-22", "live roadmap state canonical payload drift"),
+        "roadmap_state": ("2026-08-25", "live roadmap state canonical payload drift"),
     }
     for key, (future_date, diagnostic) in cases.items():
         with self.subTest(key=key):
@@ -49,7 +49,5 @@ def _updated_future_snapshot_test(self):
 _FROZEN.PR11RelationMutationTests.test_rejects_live_roadmap_active_surface_drift = _updated_active_surface_test
 _FROZEN.PR11RelationMutationTests.test_rejects_pr11_future_utc_snapshot_dates = _updated_future_snapshot_test
 
-# Export only the test classes. Their methods continue to use the frozen
-# module's helper functions and all unchanged assertions remain byte-identical.
 PR11RelationCoreTests = _FROZEN.PR11RelationCoreTests
 PR11RelationMutationTests = _FROZEN.PR11RelationMutationTests

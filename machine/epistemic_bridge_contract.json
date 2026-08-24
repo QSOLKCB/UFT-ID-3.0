@@ -1,0 +1,67 @@
+{
+  "type": "uft-id-epistemic-bridge-contract",
+  "schema_version": "1.0.0",
+  "snapshot_date": "2026-08-24",
+  "claim_class": "DEFINITION",
+  "scope": "Factorized epistemic bookkeeping specialized over BridgeCore structural transport. The contract records evidence, retrieval, inference, verification, execution, conflict, and scope without defining a universal epistemic ladder or physical truth oracle.",
+  "primary_type": "EpistemicState=(evidence_refs,retrieved_refs,inference_refs,verification_receipts,execution_receipts,conflict_refs,scope)",
+  "fields": {
+    "evidence_refs": "declared evidence/source identifiers supporting the represented state",
+    "retrieved_refs": "retrieval events or source references; retrieval is not verification",
+    "inference_refs": "declared inference/premise references; inference is not verification",
+    "verification_receipts": "explicit verification receipts only",
+    "execution_receipts": "execution receipts; execution is not verification",
+    "conflict_refs": "declared incompatible-evidence/conflict records",
+    "scope": "nonempty contexts/regimes for which the epistemic bookkeeping is licensed"
+  },
+  "validity": {
+    "scope_nonempty": true,
+    "activity_requires_evidence": "any nonempty retrieved_refs, inference_refs, verification_receipts, execution_receipts, or conflict_refs requires nonempty evidence_refs",
+    "unknown_definition": "all evidence and authority fields are empty",
+    "conflict_definition": "conflict_refs is nonempty",
+    "verified_definition": "verification_receipts is nonempty"
+  },
+  "transport_contract": {
+    "authority_fields": ["evidence_refs", "retrieved_refs", "inference_refs", "verification_receipts", "execution_receipts", "conflict_refs"],
+    "authority_rule": "authority-neutral structural transport copies every authority field exactly",
+    "scope_rule": "target scope equals source scope intersect BridgeCore scope and must be nonempty",
+    "promotion_rule": "structural transport cannot add verification, execution, inference, retrieval, conflict, or evidence records"
+  },
+  "hard_boundaries": [
+    "STRUCTURAL_TRANSPORT != AUTHORITY_PROMOTION",
+    "RETRIEVED != VERIFIED",
+    "INFERRED != VERIFIED",
+    "EXECUTED != VERIFIED",
+    "VERIFIED != TRUE",
+    "CONFLICT != UNKNOWN",
+    "CONFLICT != FALSE",
+    "VERIFIED != CONFLICT_FREE",
+    "NO_GLOBAL_EPISTEMIC_LATTICE",
+    "FINITE_EPISTEMIC_CONFORMANCE != GENERAL_EPISTEMOLOGY"
+  ],
+  "execution_limits": {
+    "raw_presence_vectors": 64,
+    "valid_normalized_shapes": 33,
+    "presence_bits": ["evidence", "retrieved", "inferred", "verified", "executed", "conflict"],
+    "policy": "Finite enumeration validates the declared factorized bookkeeping model only; it is not a general theory of knowledge or truth."
+  },
+  "authorities": {
+    "human": "theory/EPISTEMIC_BRIDGE.md",
+    "results": "machine/epistemic_bridge_results.json",
+    "validator": "scripts/validate_epistemic_bridge.py",
+    "experiment": "experiments/epistemic_bridge/run.py",
+    "tests": "tests/test_epistemic_bridge.py",
+    "receipt": "experiments/run_epistemic_bridge.py",
+    "artifact_verifier": "scripts/verify_epistemic_bridge_artifacts.py",
+    "base_bridge": "machine/bridge_core_contract.json",
+    "roadmap_state": "machine/roadmap_state.json"
+  },
+  "explicit_deferrals": [
+    "global confidence ordering or epistemic lattice",
+    "probabilistic evidence combination",
+    "representation and congruence calculus to planned PR #14",
+    "information comparability to planned PR #15",
+    "empirical measurement validity to planned PR #18",
+    "Lean proof objects"
+  ]
+}

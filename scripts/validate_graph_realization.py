@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Compatibility wrapper around the frozen PR11 graph validator.
 
-PR #12 advances only the centrally synchronized human authority blobs that now
-include BridgeCore. The PR11 graph validation logic itself remains byte-for-byte
-preserved in validate_graph_realization_pr11_frozen.py.
+The PR11 graph validation logic remains byte-for-byte preserved in
+validate_graph_realization_pr11_frozen.py. Later formal phases may extend the
+central human authority surfaces; this wrapper advances only those exact blob
+pins while retaining every frozen graph theorem, donor, workflow, and semantic
+boundary check.
 """
 from __future__ import annotations
 
@@ -20,9 +22,10 @@ _frozen = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_frozen)
 
 _frozen.EXPECTED_HUMAN_BLOBS.update({
-    "claims": "65d6bc887f33a9e264623ad50eb4ad4e9ed3b07f",
-    "readme4ai": "e0b0f1bb2ee49f70bb1b1386747ad28b5d7b1b84",
-    "reproducibility": "bde33763383a099c32002a6a6d1d949dfefbdfe7",
+    "claims": "04083ecc4650fb686bb0ee4533ab0f3115559de5",
+    "readme4ai": "48670380064eb92f4bdf55870682d5c5bc8bcaf7",
+    "reproducibility": "b9afbdf9cee18a7aa3a6532d8f7e9bec32f8236d",
+    "roadmap": "23aebe173e3abc6faf5a13a85f8c17c4c66b4afd",
 })
 
 for _name in dir(_frozen):
