@@ -26,6 +26,8 @@ on:
       - "scripts/verify_recovery_specialization_artifacts.py"
       - "scripts/validate_continuum_stochastic_prevalence.py"
       - "scripts/verify_continuum_stochastic_prevalence_artifacts.py"
+      - "scripts/validate_empirical_falsification_profile.py"
+      - "scripts/verify_empirical_falsification_profile_artifacts.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -45,6 +47,7 @@ on:
       - "theory/INFORMATION_COMPARABILITY.md"
       - "theory/RECOVERY_SPECIALIZATIONS.md"
       - "theory/CONTINUUM_STOCHASTIC_PREVALENCE.md"
+      - "theory/EMPIRICAL_FALSIFICATION_PROFILE.md"
       - "research/CROSS_REPO_PATTERN_ATLAS.md"
       - "research/GRAPH_REALIZATION_SOURCES.md"
       - "research/HISTORICAL_LINEAGE.md"
@@ -82,6 +85,8 @@ on:
       - "scripts/verify_recovery_specialization_artifacts.py"
       - "scripts/validate_continuum_stochastic_prevalence.py"
       - "scripts/verify_continuum_stochastic_prevalence_artifacts.py"
+      - "scripts/validate_empirical_falsification_profile.py"
+      - "scripts/verify_empirical_falsification_profile_artifacts.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -101,6 +106,7 @@ on:
       - "theory/INFORMATION_COMPARABILITY.md"
       - "theory/RECOVERY_SPECIALIZATIONS.md"
       - "theory/CONTINUUM_STOCHASTIC_PREVALENCE.md"
+      - "theory/EMPIRICAL_FALSIFICATION_PROFILE.md"
       - "research/CROSS_REPO_PATTERN_ATLAS.md"
       - "research/GRAPH_REALIZATION_SOURCES.md"
       - "research/HISTORICAL_LINEAGE.md"
@@ -225,6 +231,14 @@ jobs:
           python experiments/continuum_stochastic_prevalence/run.py --json > /tmp/continuum-stochastic-prevalence.json
           python experiments/run_continuum_stochastic_prevalence.py --hash-only > /tmp/continuum-stochastic-prevalence-receipt.json
 
+      - name: Validate Empirical Falsification Profile authority surface
+        run: python scripts/validate_empirical_falsification_profile.py
+
+      - name: Run Empirical Falsification Profile witnesses
+        run: |
+          python experiments/empirical_falsification_profile/run.py --json > /tmp/empirical-falsification-profile.json
+          python experiments/run_empirical_falsification_profile.py --hash-only > /tmp/empirical-falsification-profile-receipt.json
+
       - name: Validate Vopson 2019 MEI authority surface
         run: python scripts/validate_vopson_2019_mei.py
 
@@ -316,40 +330,45 @@ jobs:
           python experiments/continuum_stochastic_prevalence/run.py --json > artifacts/continuum-stochastic-prevalence-witness.json 2> artifacts/continuum-stochastic-prevalence-witness.stderr.txt || true
           python experiments/run_continuum_stochastic_prevalence.py --json > artifacts/continuum-stochastic-prevalence-receipt.json 2> artifacts/continuum-stochastic-prevalence-receipt.stderr.txt || true
 
-      - name: Verify retained graph evidence
+      - name: Generate Empirical Falsification Profile evidence bundle
         if: always()
         run: |
-          python scripts/verify_graph_artifacts.py artifacts
+          mkdir -p artifacts
+          python scripts/validate_empirical_falsification_profile.py --json > artifacts/empirical-falsification-profile-validation.json 2> artifacts/empirical-falsification-profile-validation.stderr.txt || true
+          python experiments/empirical_falsification_profile/run.py --json > artifacts/empirical-falsification-profile-witness.json 2> artifacts/empirical-falsification-profile-witness.stderr.txt || true
+          python experiments/run_empirical_falsification_profile.py --json > artifacts/empirical-falsification-profile-receipt.json 2> artifacts/empirical-falsification-profile-receipt.stderr.txt || true
+
+      - name: Verify retained graph evidence
+        if: always()
+        run: python scripts/verify_graph_artifacts.py artifacts
 
       - name: Verify retained BridgeCore evidence
         if: always()
-        run: |
-          python scripts/verify_bridge_artifacts.py artifacts
+        run: python scripts/verify_bridge_artifacts.py artifacts
 
       - name: Verify retained Epistemic Bridge evidence
         if: always()
-        run: |
-          python scripts/verify_epistemic_bridge_artifacts.py artifacts
+        run: python scripts/verify_epistemic_bridge_artifacts.py artifacts
 
       - name: Verify retained Representation evidence
         if: always()
-        run: |
-          python scripts/verify_representation_artifacts.py artifacts
+        run: python scripts/verify_representation_artifacts.py artifacts
 
       - name: Verify retained Information Comparability evidence
         if: always()
-        run: |
-          python scripts/verify_information_comparability_artifacts.py artifacts
+        run: python scripts/verify_information_comparability_artifacts.py artifacts
 
       - name: Verify retained Recovery Specializations evidence
         if: always()
-        run: |
-          python scripts/verify_recovery_specialization_artifacts.py artifacts
+        run: python scripts/verify_recovery_specialization_artifacts.py artifacts
 
       - name: Verify retained Continuum Stochastic Prevalence evidence
         if: always()
-        run: |
-          python scripts/verify_continuum_stochastic_prevalence_artifacts.py artifacts
+        run: python scripts/verify_continuum_stochastic_prevalence_artifacts.py artifacts
+
+      - name: Verify retained Empirical Falsification Profile evidence
+        if: always()
+        run: python scripts/verify_empirical_falsification_profile_artifacts.py artifacts
 
       - name: Retain finite evidence bundle
         if: always()
