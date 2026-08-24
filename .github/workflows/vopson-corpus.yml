@@ -28,7 +28,7 @@ jobs:
         run: |
           set -euo pipefail
           python tools/post_efp_rollover_patch.py
-          git show origin/main:.github/workflows/vopson-corpus.yml > .github/workflows/vopson-corpus.yml
+          git show 516cff5d6a45af54d6fc4ae9c72c2e8e9c668637:.github/workflows/vopson-corpus.yml > .github/workflows/vopson-corpus.yml
           rm tools/post_efp_rollover_patch.py
 
       - name: Validate rollover authority
