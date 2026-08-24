@@ -32,11 +32,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          cp .github/workflows/vopson-corpus.yml /tmp/pr21-vopson-temp.yml
           python tools/pr21_freeze_patch.py
           python tools/pr21_freeze_patch_fix.py
           git show 6f3aeb7f4ac14389e7a08d2976c8c0d16549c093:.github/workflows/vopson-corpus.yml > .github/workflows/vopson-corpus.yml
-          rm tools/pr21_freeze_patch.py tools/pr21_freeze_patch_fix.py
-          git diff --exit-code 6f3aeb7f4ac14389e7a08d2976c8c0d16549c093 -- .github/workflows/vopson-corpus.yml
 
       - name: Validate PR21 freeze authority
         shell: bash
@@ -69,6 +68,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          cp /tmp/pr21-vopson-temp.yml .github/workflows/vopson-corpus.yml
+          rm tools/pr21_freeze_patch.py tools/pr21_freeze_patch_fix.py
+          git diff --exit-code HEAD -- .github/workflows/vopson-corpus.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
