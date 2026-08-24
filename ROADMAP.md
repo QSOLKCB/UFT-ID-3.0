@@ -2,7 +2,7 @@
 
 UFT-ID 3.0 is a constraint-governed, observer-explicit formalization programme with reproducible adversarial tests.
 
-This file is now the **live concise roadmap**. Historical planning snapshots remain preserved by their frozen validators and receipts; they are not allowed to dictate current scheduling.
+The first section is the **live schedule authority**. Historical programme text retained later in this file exists for validator/receipt compatibility and does not override the live schedule or `machine/roadmap_state.json`.
 
 ```text
 COMPACT_SUMMARY != COMPLETE_FORMAL_TYPE_SYSTEM
@@ -41,8 +41,6 @@ but relation, observation, bridge, epistemic, representation, information, recov
 
 - [ ] PR #10 — Lean observation foundation.
 
-Lean remains deferred until theorem surfaces and counterexamples are sufficiently frozen. Repository-contained mathematical proofs are not described as machine checked until a pinned Lean toolchain builds them.
-
 ```text
 MATHEMATICAL_PROOF != LEAN_PROOF
 LEAN_PROOF != RUNTIME_CONFORMANCE != EMPIRICAL_VALIDATION
@@ -53,8 +51,6 @@ LEAN_PROOF != RUNTIME_CONFORMANCE != EMPIRICAL_VALIDATION
 ### Epistemic Bridge specialization
 
 **Status:** ACTIVE, implemented by the current change.
-
-Mission: specialize BridgeCore for evidence/authority bookkeeping without creating an unsupported global ladder over unknown, retrieved, inferred, verified, executed, or conflict states.
 
 Canonical object:
 
@@ -92,23 +88,7 @@ Advertised result surface:
 4. `UFT-EP-004` repeated neutral transport cannot accumulate authority;
 5. `UFT-EP-005` scope is non-expansive under transport.
 
-Adversarial counterexamples:
-
-```text
-CX-EP-001 retrieved-but-unverified
-CX-EP-002 inferred-but-unverified
-CX-EP-003 executed-but-unverified
-CX-EP-004 evidence-backed-conflict-is-not-unknown
-CX-EP-005 verified-conflict-remains-conflict
-```
-
-Finite conformance enumerates six presence bits:
-
-```text
-evidence retrieved inferred verified executed conflict
-```
-
-for exactly `2^6 = 64` raw vectors. Requiring every non-evidence activity bit to imply evidence yields exactly `33` valid normalized shapes.
+Finite conformance enumerates exactly 64 raw six-bit vectors and 33 valid normalized shapes.
 
 ```text
 FINITE_EPISTEMIC_CONFORMANCE != GENERAL_EPISTEMOLOGY
@@ -117,29 +97,116 @@ FORMAL_VERIFICATION_RECEIPT != TRUTH
 
 **Exit criterion:** byte/structure transport cannot manufacture stronger evidence authority; conflict remains distinct from unknown; verification is receipt-explicit; verified conflict remains representable; scope can narrow but not silently expand; human and machine authorities, mutation tests, receipts, retained artifacts, and CI remain synchronized.
 
----
+## Next planned phases
 
-# Next planned phases
-
-## PR #14 — Representation and congruence calculus
-
-**Status:** PLANNED NEXT.
-
-Separate similarity, orthogonal/unitary similarity, congruence, coordinate change, receiver transformation, and representation-map robustness. Every invariant must name the transformation class and hypotheses over which it is preserved.
+- [ ] PR #14 — Representation and congruence calculus. **NEXT.**
+- [ ] PR #15 — Information comparability core.
+- [ ] PR #16 — Recovery specializations.
+- [ ] PR #17 — Continuum, stochastic, and prevalence obligations.
+- [ ] PR #18 — Empirical falsification profile.
 
 ```text
 SIMILARITY != CONGRUENCE
 COORDINATE_CHANGE != OBJECT_IDENTITY
-MAP_NONUNIQUENESS != OBSERVABLE_NONROBUSTNESS
+SAME_WORD_INFORMATION != SAME_FUNCTIONAL
+GENERIC_RELATION != DETERMINISTIC_SELECTOR
+FINITE_REACHABILITY != INFINITE_PATH_LIVENESS
+FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION
 ```
 
-**Exit criterion:** equality-like language cannot silently cross a representation boundary.
+---
+
+# Historical post-audit grammar retained for validator compatibility
+
+The block below is a frozen planning-language compatibility surface. Its embedded historical statuses are not current scheduling authority. Current status is the live section above plus `machine/roadmap_state.json`.
+
+# Current formal grammar programme
+
+## PR #9 — Deterministic observation calculus
+
+**Status:** COMPLETE.
+
+This heading remains in the ordered programme because later validators and theorem surfaces depend on its position.
+
+---
+
+## PR #10 — Lean observation foundation
+
+**Status:** DEFERRED as an independent formal-proof track.
+
+```text
+MATHLIB_THEOREM_EXISTS != OUR_LEAN_BUILD_PASSES
+MATHEMATICAL_PROOF != LEAN_PROOF
+LEAN_PROOF != RUNTIME_CONFORMANCE != EMPIRICAL_VALIDATION
+```
+
+---
+
+## PR #11 — Relation-first recovery core
+
+**Status:** ACTIVE, implemented by the historical PR #11 change.
+
+Historical relation grammar:
+
+```text
+stepRel : X -> X -> Prop
+A : X -> Prop
+```
+
+The generic relation keeps admissibility separate from normality and fixed-point semantics.
+
+```text
+NORMAL != ADMISSIBLE != FIXED_POINT
+REACHABLE != ADMISSIBLE != NORMAL != UNIQUE_REACHABLE_NORMAL
+```
+
+Advertised historical theorem/counterexample anchors include `UFT-SEL-001` and `CX-RW-FORK3`.
+
+The bounded conformance surface enumerates every labelled relation on `Fin 1`, `Fin 2`, and `Fin 3`:
+
+```text
+2 + 16 + 512 = 530 relations
+FINITE_CONFORMANCE != GENERAL_PROOF
+```
+
+Public compatibility context is referenced only through `XR-P17` and `XR-P18`.
+
+```text
+PARAMETER != REALIZATION != INVARIANT != DISCRIMINANT != SELECTION
+COMPATIBILITY != UNIQUE_SELECTION
+GOLDEN_SPIRAL_PLACEMENT != GENUS_DERIVATION
+INTERNAL_STRESS_TEST != EXTERNAL_PAPER_REFUTATION
+```
+
+---
+
+## PR #12 — BridgeCore
+
+**Status:** PLANNED in this historical snapshot.
+
+Define typed structural transport with explicit source/target types, domain, map or relation, preserved structure, lost structure, scope, and versions.
+
+---
+
+## PR #13 — Epistemic bridge specialization
+
+**Status:** PLANNED in this historical snapshot.
+
+Treat epistemic authority separately from structural transport. Conflict remains distinct from unknown.
+
+---
+
+## PR #14 — Representation and congruence calculus
+
+**Status:** PLANNED.
+
+Separate similarity, congruence, coordinate change, and receiver transformation.
+
+---
 
 ## PR #15 — Information comparability core
 
 **Status:** PLANNED.
-
-Freeze a typed `InfoSpec` and explicit `Comparable(I1,I2)` contract before information differences are licensed.
 
 ```text
 SAME_WORD_INFORMATION != SAME_FUNCTIONAL
@@ -147,33 +214,33 @@ IDENTICAL_SPEC => COMPARABLE
 COMPARABLE != IDENTICAL_SPEC
 ```
 
+---
+
 ## PR #16 — Recovery specializations
 
 **Status:** PLANNED.
-
-Add finite lexicographic selection, metric projection, decoder recovery, contractive/reference-relative recovery, selector soundness/completeness, and executable normalizers only where well-founded recursion is supplied.
 
 ```text
 GENERIC_RELATION != DETERMINISTIC_SELECTOR
 EXISTENTIAL_NORMALIZATION != EXECUTABLE_NORMALIZER
 ```
 
+---
+
 ## PR #17 — Continuum, stochastic, and prevalence obligations
 
 **Status:** PLANNED.
-
-Add stochastic kernels, measurable spaces, continuum/PDE obligations, well-posedness status, explicit infinite paths, fairness, and prevalence claims only after the finite deterministic core is stable.
 
 ```text
 FINITE_REACHABILITY != INFINITE_PATH_LIVENESS
 FINITE_COUNTEREXAMPLE != PREVALENCE_CLAIM
 ```
 
+---
+
 ## PR #18 — Empirical falsification profile
 
 **Status:** PLANNED.
-
-Connect formal structures to empirical hypotheses with controlled variables, observables, predictions, null models, rejection conditions, uncertainty, provenance, scope, and explicit formal-to-measurement bridges.
 
 ```text
 FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION
@@ -182,13 +249,136 @@ EMPIRICAL_FIT != UNIQUE_EXPLANATION
 
 ---
 
+# Future positive-control programme — history-dependent topological metastability
+
+**Status:** ROADMAP-ONLY RESEARCH TARGET. Not part of the current PR #11 theorem authority and not a renumbering of the PR #9-#18 schedule.
+
+### Primary empirical source
+
+Canonical citation:
+
+> Xin, F., Gelkop, Y., van der Veer, E. et al. *Spontaneous formation and optical manipulation of a woven domain fabric in a ferroelectric crystal.* Light: Science & Applications **15**, 315 (2026). DOI `10.1038/s41377-026-02374-7`. Published/version of record: 2026-07-14.
+
+The paper is treated as a **primary empirical source** for an observed history-dependent woven ferroelectric domain system with topological descriptors, metastability, thermal-history dependence, and optical manipulation. It is not a theorem premise for the current relation calculus.
+
+Public commentary provenance:
+
+```text
+Sabine Hossenfelder video:
+https://www.youtube.com/watch?v=NzQQXQK_Ngk
+```
+
+Her public commentary, including the stated `0/10` bullshit-meter assessment, is a commentary/calibration datum only. It is not scientific evidence and does not alter the paper's evidentiary status.
+
+```text
+PAPER_EVIDENCE != COMMENTARY != UFT_ID_DERIVED_RESULT
+PRIMARY_SOURCE != EXTERNAL_RATING
+```
+
+### Abstract donor pattern
+
+Study a history-dependent topological-metastability structure with typed components such as:
+
+```text
+X          realizable state carrier
+stepRel    transition/intervention relation
+H          preparation / thermal / intervention history
+E : X -> R energy-like or objective functional when physically justified
+tau : X -> T structural/topological descriptor
+```
+
+The ferroelectric domain ontology is not inherited. The reusable target is the abstract separation between state, history, stability, energy ordering, topology/structure, and intervention.
+
+### Candidate boundaries
+
+```text
+STABLE != GLOBAL_MINIMUM
+METASTABLE != UNIQUE
+SAME_MACRO_CONDITIONS != SAME_REALIZATION
+ENERGY_DESCENT != TOPOLOGY_PRESERVATION
+RESTORED_STATE_CLASS != RESTORED_ORIGINAL_STATE
+TOPOLOGICAL_PROTECTION != IMMUTABILITY
+HIGH_CONFIDENCE_IN_OBSERVATION != HIGH_CONFIDENCE_IN_EXTRAPOLATION
+FERROELECTRIC_RESULT != COSMOLOGICAL_VALIDATION
+```
+
+### Candidate theorem / counterexample target
+
+Introduce only after an independent mathematical fixture is supplied:
+
+```text
+E(y) < E(x)
+DOES NOT GENERALLY IMPLY
+tau(y) = tau(x)
+```
+
+The theorem or counterexample must stand on UFT-ID's own mathematics. Xin et al. may motivate the question and later serve as an empirical positive control, but the experiment must not be used as proof of the general statement.
+
+### Recovery and history target
+
+Model recovery of a state **class** separately from recovery of the original realization. A future finite fixture should permit:
+
+```text
+Woven(W1)
+Woven(W2)
+W1 != W2
+```
+
+with a history-dependent transition such as:
+
+```text
+W1 -> disentangled -> W2
+```
+
+This motivates:
+
+```text
+RECOVERY_OF_MACROCLASS != RECOVERY_OF_ORIGINAL_STATE
+CURRENT_STATE != STATE_PLUS_PREPARATION_HISTORY
+```
+
+and, only after the history semantics are defined, a possible augmented carrier:
+
+```text
+X_hat = X x H
+```
+
+This belongs naturally with the later trace/history, nonergodicity, stochastic, and empirical-bridge work rather than the current finite relation core.
+
+### Positive-control role
+
+Use the paper as a future **positive topology control** for evidentiary architecture: observable 3D crossing structure, explicit structural/topological descriptors, history-dependent reproducibility, and controlled physical intervention are qualitatively different from merely assigning a topology label or parameter in code.
+
+```text
+TOPOLOGICAL_TERMINOLOGY != TOPOLOGICAL_EVIDENCE
+OBSERVED_STRUCTURE != NOMINAL_PARAMETER
+CONTROLLED_INTERVENTION != UNIQUE_SELECTION
+```
+
+This positive control must not be promoted into genus, E8, quantum-field, cosmological, or universal-ontology claims. Any broader extrapolation requires its own bridge and evidence.
+
+### Future acceptance gate
+
+A later implementation slice may promote this roadmap target only if it supplies:
+
+- exact source provenance and claim-class separation;
+- an independent finite mathematical counterexample for energy descent versus structural preservation;
+- an explicit history model if history is theorem-relevant;
+- a clear definition of state identity versus macroclass identity;
+- a typed topological/structural descriptor rather than topology-themed prose;
+- a formal-to-empirical bridge that distinguishes paper observations from UFT-ID abstraction;
+- explicit nonclaims blocking transfer from ferroelectric materials to cosmology or fundamental physics.
+
+---
+
 # Formal fixture policy
 
 ```text
 NO_STANDALONE_FINITE_FIXTURE_ZOO
+GENIES_REQUIRED_FOR_GENOMIC_BRANCH_ONLY
 ```
 
-Minimal fixtures travel with the theorem or counterexample that requires them. A fixture must have theorem-conformance, counterexample, assumption-ablation, minimality, or deterministic-receipt purpose.
+Minimal fixtures travel with the theorem or counterexample that needs them. A fixture must have theorem-conformance, counterexample, assumption-ablation, minimality, or deterministic-receipt purpose.
 
 ---
 
@@ -236,8 +426,6 @@ DETERMINISTIC_RECEIPT != SCIENTIFIC_CONFIRMATION
 
 # Historical PR8 planning anchors retained for validator compatibility
 
-These phrases are historical planning provenance, not the live schedule:
-
 ```text
 PR #8 — Invariant calculus, assurance graph, and model obligations
 PR #9 — Observation fibres, quotients, and reconstruction
@@ -249,25 +437,9 @@ PR #14 — Lean foundation and theorem-surface audit
 PR #15 — Representation and receiver robustness
 ```
 
+The post-PR8 hostile audit superseded that order while preserving its provenance.
+
 ---
-
-# Legacy donor compatibility appendix
-
-The following compact donor sections retain the exact status, source-identity, and semantic-boundary anchors audited by the frozen graph/relation validators. They remain roadmap-only and do not renumber or override the live schedule above.
-
-# Future positive-control programme — history-dependent topological metastability
-
-**Status:** ROADMAP-ONLY RESEARCH TARGET. Not part of the current PR #11 theorem authority and not a renumbering of the PR #9-#18 schedule.
-
-```text
-STABLE != GLOBAL_MINIMUM
-METASTABLE != UNIQUE
-ENERGY_DESCENT != TOPOLOGY_PRESERVATION
-RECOVERY_OF_MACROCLASS != RECOVERY_OF_ORIGINAL_STATE
-TOPOLOGICAL_TERMINOLOGY != TOPOLOGICAL_EVIDENCE
-```
-
-The theorem or counterexample must stand on UFT-ID's own mathematics.
 
 # Future model-donor programme — typed causality, projection, and assumption structure
 
