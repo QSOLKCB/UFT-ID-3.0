@@ -479,6 +479,7 @@ python scripts/validate_vopson_2019_mei.py
 python scripts/validate_reproducibility.py
 python scripts/validate_formalization_contracts.py
 python scripts/validate_observation_specs.py
+python scripts/validate_lean_observation_foundation.py
 python scripts/validate_relation_core.py
 python scripts/validate_graph_realization.py
 python experiments/graph_realization/run.py --json
