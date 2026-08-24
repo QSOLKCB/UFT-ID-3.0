@@ -64,6 +64,9 @@ EXPECTED_BOUNDARIES = [
 EXPECTED_LIMITS = {
     "kernel_state_count": 2,
     "kernel_row_probability_denominator": 2,
+    "composition_dimension_limit": 16,
+    "composition_denominator_limit": 64,
+    "composition_output_limit": 10000,
     "finite_kernel_count": 9,
     "initial_distribution_count": 3,
     "kernel_transport_checks": 27,
@@ -214,6 +217,43 @@ EXPECTED_COUNTEREXAMPLES = {
         "statement": "The functions f(x)=0 and g(x)=x(x-1/2)(x-1) agree on the grid {0,1/2,1} but differ at x=1/4, so perfect grid conformance does not license continuum equality.",
         "fixture": "three-point rational grid with off-grid polynomial witness",
         "nonclaims": ["The example does not refute a separately proved convergence theorem with explicit regularity and error bounds."],
+    },
+}
+EXPECTED_FIXTURE_PAYLOADS = {
+    "CX-CSP-001": {
+        "relation_edge_present": True,
+        "kernel_transition_probability": "0",
+        "path_probability_0_to_1": "0",
+    },
+    "CX-CSP-002": {
+        "event": ["H"],
+        "event_probability": "1/2",
+        "positive_probability": True,
+        "almost_sure": False,
+    },
+    "CX-CSP-003": {
+        "q": "1/2",
+        "finite_horizon_probabilities": ["1/2", "1/4", "1/8", "1/16", "1/32", "1/64", "1/128", "1/256"],
+        "all_listed_finite_horizons_positive": True,
+        "infinite_survival_probability": "0",
+    },
+    "CX-CSP-004": {
+        "trajectory": "HHH",
+        "trajectory_empirical_head_frequency": "1",
+        "declared_single_step_head_probability": "1/2",
+        "trajectory_probability": "1/8",
+    },
+    "CX-CSP-005": {
+        "failure_set": ["x"],
+        "low_measure_prevalence": "1/100",
+        "high_measure_prevalence": "99/100",
+    },
+    "CX-CSP-006": {
+        "grid": ["0", "1/2", "1"],
+        "grid_values_zero": True,
+        "off_grid_point": "1/4",
+        "off_grid_polynomial_value": "3/64",
+        "off_grid_differs": True,
     },
 }
 EXPECTED_ROADMAP_SEQUENCE = [
@@ -488,7 +528,8 @@ def validate() -> dict[str, object]:
     }
     if witness.get("bounded_checks") != expected_bounded: errors.append("CSP bounded witness count drift")
     fixtures = witness.get("fixtures")
-    if not isinstance(fixtures, dict) or set(fixtures) != set(EXPECTED_COUNTEREXAMPLES): errors.append("CSP witness counterexample identity drift")
+    if fixtures != EXPECTED_FIXTURE_PAYLOADS:
+        errors.append("CSP witness counterexample payload drift")
 
     combined = "\n".join((
         json.dumps(contract, ensure_ascii=False), json.dumps(results, ensure_ascii=False),
