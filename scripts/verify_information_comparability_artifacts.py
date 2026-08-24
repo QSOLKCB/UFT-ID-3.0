@@ -35,6 +35,7 @@ EXPECTED_CORE_FILES = (
     "machine/information_comparability_contract.json",
     "machine/information_comparability_results.json",
     "machine/observation_contract.json",
+    "machine/observation_specs.json",
     "machine/representation_contract.json",
     "machine/roadmap_state.json",
     "machine/contract.json",
@@ -126,6 +127,7 @@ def verify(artifact_dir: Path) -> dict[str, object]:
     comparison = bounded.get("comparability")
     positive = bounded.get("positive_scale")
     base = bounded.get("log_base_conversion")
+    shared = bounded.get("shared_shannon_primitive")
     expected_comparison = {
         "information_spec_count": 96,
         "ordered_spec_pair_count": 9216,
@@ -141,6 +143,8 @@ def verify(artifact_dir: Path) -> dict[str, object]:
         raise RuntimeError("retained Information Comparability positive-scale count drift")
     if base != {"log_base_conversion_checks": 5}:
         raise RuntimeError("retained Information Comparability log-base count drift")
+    if shared != {"shared_shannon_primitive_checks": 1}:
+        raise RuntimeError("retained Information Comparability shared-Shannon count drift")
 
     if set(receipt) != EXPECTED_TOP_LEVEL:
         raise RuntimeError("retained Information Comparability receipt top-level schema drift")
@@ -193,6 +197,7 @@ def verify(artifact_dir: Path) -> dict[str, object]:
         "unit_convertible_ordered_pairs": 224,
         "positive_scale_order_checks": 75,
         "log_base_conversion_checks": 5,
+        "shared_shannon_primitive_checks": 1,
     }
     if receipt.get("summary") != expected_summary:
         raise RuntimeError("retained Information Comparability receipt summary drift")
@@ -209,6 +214,7 @@ def verify(artifact_dir: Path) -> dict[str, object]:
         "ordered_spec_pair_count": 9216,
         "directly_comparable_ordered_pairs": 224,
         "unit_convertible_ordered_pairs": 224,
+        "shared_shannon_primitive_checks": 1,
         "suite_fingerprint_sha256": fingerprint,
     }
 
