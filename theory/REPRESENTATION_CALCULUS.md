@@ -65,7 +65,7 @@ INVARIANT_WITH_RESPECT_TO_EVERY_REPRESENTATION_CHANGE
 
 **Claim class:** `PROVED`
 
-**Canonical statement:** `If B=P^{-1}AP for an invertible finite-dimensional change of basis P over R or C, then A and B have the same characteristic polynomial; therefore trace, determinant, and rank are preserved.`
+**Canonical statement:** `If B=P^{-1}AP for an invertible finite-dimensional change of basis P over R or C, then A and B have the same characteristic polynomial; trace, determinant, and rank are preserved under the same similarity transformation.`
 
 **Canonical hypotheses:** `["A and B are square matrices over R or C", "P is invertible", "B=P^{-1}AP"]`
 
@@ -85,7 +85,7 @@ det(lambda I-B)
 = det(lambda I-A).
 ```
 
-Hence the characteristic polynomials agree. Trace and determinant are their standard coefficients. Multiplication by invertible matrices on the left and right preserves rank, so `rank(B)=rank(A)`.
+Hence the characteristic polynomials agree, so trace and determinant agree through their standard coefficient identities. Separately, multiplication by invertible matrices on the left and right preserves rank, so `rank(B)=rank(A)`. Rank preservation is therefore a consequence of similarity itself, not of characteristic-polynomial equality alone.
 
 The converse is false in general. `CX-REP-003` supplies a two-dimensional counterexample.
 
