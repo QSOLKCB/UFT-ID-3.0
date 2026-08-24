@@ -278,11 +278,14 @@ def fixtures() -> dict[str, object]:
         "receiver_injective_on_image": receiver_injective_on_image(observation, receiver),
     }
 
+    coordinate_tuple = [1, 0]
+    standard_basis_vector = [1, 0]
+    swapped_basis_vector = [0, 1]
     cx5 = {
-        "coordinate_tuple": [1, 0],
-        "standard_basis_vector": [1, 0],
-        "swapped_basis_vector": [0, 1],
-        "same_abstract_vector": False,
+        "coordinate_tuple": coordinate_tuple,
+        "standard_basis_vector": standard_basis_vector,
+        "swapped_basis_vector": swapped_basis_vector,
+        "same_abstract_vector": standard_basis_vector == swapped_basis_vector,
     }
 
     if not (cx1["congruent"] and cx1["trace_differs"] and not cx1["similar"]):
@@ -293,6 +296,8 @@ def fixtures() -> dict[str, object]:
         raise RuntimeError("CX-REP-003 fixture drift")
     if cx4["before_equal_x0_x1"] or not cx4["after_equal_x0_x1"] or cx4["receiver_injective_on_image"]:
         raise RuntimeError("CX-REP-004 fixture drift")
+    if cx5["same_abstract_vector"] != (cx5["standard_basis_vector"] == cx5["swapped_basis_vector"]):
+        raise RuntimeError("CX-REP-005 derived conclusion drift")
     if cx5["same_abstract_vector"]:
         raise RuntimeError("CX-REP-005 fixture drift")
 
