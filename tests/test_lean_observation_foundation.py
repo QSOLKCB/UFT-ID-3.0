@@ -73,6 +73,8 @@ class LeanObservationFoundationFreezeTests(unittest.TestCase):
 
         mutated = workflow.replace('      - "theory/LEAN_OBSERVATION_FOUNDATION.md"\n', "", 1)
         self.assertTrue(any("path trigger drift" in e for e in V.workflow_contract_errors(mutated)))
+        mutated = workflow.replace('      - "ROADMAP.md"\n', "", 1)
+        self.assertTrue(any("path trigger drift" in e for e in V.workflow_contract_errors(mutated)))
         mutated = workflow.replace("        run: python scripts/validate_lean_observation_foundation.py\n", "        run: python -c 'pass'\n", 1)
         self.assertTrue(any("direct validator/policy drift" in e for e in V.workflow_contract_errors(mutated)))
 
@@ -158,6 +160,17 @@ class LeanObservationFoundationFreezeTests(unittest.TestCase):
         docs = documents()
         docs["human"] += "\nAll frozen theorems have checked Lean proofs.\n"
         self.assert_error_contains(docs, "human Lean verification promotion")
+
+    def test_readme_and_roadmap_lean_promotion_fail_closed(self):
+        promotion = "\nAll frozen theorems are now formally verified in Lean.\n"
+
+        docs = documents()
+        docs["readme"] += promotion
+        self.assert_error_contains(docs, "README4AI Lean verification promotion")
+
+        docs = documents()
+        docs["roadmap"] += promotion
+        self.assert_error_contains(docs, "ROADMAP Lean verification promotion")
 
     def test_pretag_lean_source_and_toolchain_files_are_rejected(self):
         candidates = (
