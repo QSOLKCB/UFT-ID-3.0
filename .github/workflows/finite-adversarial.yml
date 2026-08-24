@@ -20,6 +20,8 @@ on:
       - "scripts/verify_epistemic_bridge_artifacts.py"
       - "scripts/validate_representation_calculus.py"
       - "scripts/verify_representation_artifacts.py"
+      - "scripts/validate_information_comparability.py"
+      - "scripts/verify_information_comparability_artifacts.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -36,6 +38,7 @@ on:
       - "theory/BRIDGE_CORE.md"
       - "theory/EPISTEMIC_BRIDGE.md"
       - "theory/REPRESENTATION_CALCULUS.md"
+      - "theory/INFORMATION_COMPARABILITY.md"
       - "research/CROSS_REPO_PATTERN_ATLAS.md"
       - "research/GRAPH_REALIZATION_SOURCES.md"
       - "research/HISTORICAL_LINEAGE.md"
@@ -67,6 +70,8 @@ on:
       - "scripts/verify_epistemic_bridge_artifacts.py"
       - "scripts/validate_representation_calculus.py"
       - "scripts/verify_representation_artifacts.py"
+      - "scripts/validate_information_comparability.py"
+      - "scripts/verify_information_comparability_artifacts.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -83,6 +88,7 @@ on:
       - "theory/BRIDGE_CORE.md"
       - "theory/EPISTEMIC_BRIDGE.md"
       - "theory/REPRESENTATION_CALCULUS.md"
+      - "theory/INFORMATION_COMPARABILITY.md"
       - "research/CROSS_REPO_PATTERN_ATLAS.md"
       - "research/GRAPH_REALIZATION_SOURCES.md"
       - "research/HISTORICAL_LINEAGE.md"
@@ -183,6 +189,14 @@ jobs:
           python experiments/representation_calculus/run.py --json > /tmp/representation.json
           python experiments/run_representation_calculus.py --hash-only > /tmp/representation-receipt.json
 
+      - name: Validate Information Comparability authority surface
+        run: python scripts/validate_information_comparability.py
+
+      - name: Run Information Comparability witnesses
+        run: |
+          python experiments/information_comparability/run.py --json > /tmp/information-comparability.json
+          python experiments/run_information_comparability.py --hash-only > /tmp/information-comparability-receipt.json
+
       - name: Validate Vopson 2019 MEI authority surface
         run: python scripts/validate_vopson_2019_mei.py
 
@@ -250,6 +264,14 @@ jobs:
           python experiments/representation_calculus/run.py --json > artifacts/representation-witness.json 2> artifacts/representation-witness.stderr.txt || true
           python experiments/run_representation_calculus.py --json > artifacts/representation-receipt.json 2> artifacts/representation-receipt.stderr.txt || true
 
+      - name: Generate Information Comparability evidence bundle
+        if: always()
+        run: |
+          mkdir -p artifacts
+          python scripts/validate_information_comparability.py --json > artifacts/information-comparability-validation.json 2> artifacts/information-comparability-validation.stderr.txt || true
+          python experiments/information_comparability/run.py --json > artifacts/information-comparability-witness.json 2> artifacts/information-comparability-witness.stderr.txt || true
+          python experiments/run_information_comparability.py --json > artifacts/information-comparability-receipt.json 2> artifacts/information-comparability-receipt.stderr.txt || true
+
       - name: Verify retained graph evidence
         if: always()
         run: |
@@ -269,6 +291,11 @@ jobs:
         if: always()
         run: |
           python scripts/verify_representation_artifacts.py artifacts
+
+      - name: Verify retained Information Comparability evidence
+        if: always()
+        run: |
+          python scripts/verify_information_comparability_artifacts.py artifacts
 
       - name: Retain finite evidence bundle
         if: always()

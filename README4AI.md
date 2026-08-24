@@ -178,7 +178,7 @@ Transport preserves the authority vector and can only narrow scope. Verification
 
 ## Representation and congruence authority
 
-The active planned PR #14 surface requires every invariant claim to name the transformation class and its hypotheses.
+The completed planned PR #14 surface requires every invariant claim to name the transformation class and its hypotheses.
 
 Canonical Representation surfaces:
 
@@ -217,6 +217,53 @@ RECEIVER_REENCODING != STATE_TRANSFORMATION
 NONINJECTIVE_RECEIVER_REENCODING != OBSERVATIONAL_EQUIVALENCE_PRESERVATION
 INVARIANT_UNDER_CLASS_C != UNQUALIFIED_REPRESENTATION_INDEPENDENCE
 FINITE_REPRESENTATION_CONFORMANCE != GENERAL_PROOF
+```
+
+## Information comparability authority
+
+The active planned PR #15 surface defines when two quantities called information are licensed to be compared under one declared specification grammar.
+
+```text
+InformationSpec = (
+  source_type,
+  functional,
+  observation,
+  unit,
+  normalization,
+  conditioning,
+  scope
+)
+```
+
+Canonical Information Comparability surfaces:
+
+```text
+machine/information_comparability_contract.json
+machine/information_comparability_results.json
+theory/INFORMATION_COMPARABILITY.md
+scripts/validate_information_comparability.py
+experiments/information_comparability/run.py
+experiments/run_information_comparability.py
+scripts/verify_information_comparability_artifacts.py
+tests/test_information_comparability.py
+```
+
+Direct comparability requires exact equality of source type, functional, observation, unit, normalization, and conditioning plus nonempty scope overlap. Non-identical bit/base4 logarithmic specifications become comparable only through an explicit registered positive conversion.
+
+The exact finite battery enumerates 96 `InformationSpec` values and all 9,216 ordered pairs, yielding exactly 224 directly comparable ordered pairs and 224 unit-convertible ordered pairs. It additionally checks 75 positive-scale order/sign cases and five exact power-of-two bit/base4 conversions.
+
+```text
+SAME_WORD_INFORMATION != SAME_FUNCTIONAL
+SAME_SCALAR_CODOMAIN != COMPARABLE_INFORMATION
+SAME_UNIT != COMPARABLE_INFORMATION
+SAME_FUNCTIONAL != SAME_OBSERVATION
+IDENTICAL_SPEC => COMPARABLE
+COMPARABLE != IDENTICAL_SPEC
+NUMERIC_EQUALITY != INFORMATIONAL_EQUIVALENCE
+POSITIVE_UNIT_CONVERSION != SEMANTIC_BRIDGE
+PAIRWISE_SCOPE_COMPARABILITY != TRANSITIVE_COMPARABILITY
+DIRECT_COMPARABILITY != EMPIRICAL_COMMENSURABILITY
+FINITE_INFORMATION_CONFORMANCE != GENERAL_INFORMATION_THEORY
 ```
 
 ## Cross-repository formal pattern authority
@@ -314,6 +361,9 @@ python experiments/run_epistemic_bridge.py --json
 python scripts/validate_representation_calculus.py
 python experiments/representation_calculus/run.py --json
 python experiments/run_representation_calculus.py --json
+python scripts/validate_information_comparability.py
+python experiments/information_comparability/run.py --json
+python experiments/run_information_comparability.py --json
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 python experiments/run_pr2.py --json
@@ -343,6 +393,10 @@ python experiments/run_pr6.py --json
 17. Do not collapse conflict into unknown or treat verification as a truth oracle.
 18. Do not treat similarity, congruence, coordinate change, receiver re-encoding, or one preserved invariant as interchangeable equivalence notions.
 19. `INVARIANT_UNDER_CLASS_C != UNQUALIFIED_REPRESENTATION_INDEPENDENCE`.
+20. Do not infer information comparability from shared vocabulary, scalar codomain, unit, functional name, or numeric equality alone.
+21. A unit conversion does not supply an observation, semantic, epistemic, empirical, or physical bridge.
+22. `COMPARABLE != IDENTICAL_SPEC`.
+23. `PAIRWISE_SCOPE_COMPARABILITY != TRANSITIVE_COMPARABILITY`.
 
 ## Lean
 
@@ -375,11 +429,16 @@ Lean remains deferred until source reproduction, notation freeze, theorem freeze
 23. `machine/representation_results.json`
 24. `scripts/validate_representation_calculus.py`
 25. `experiments/run_representation_calculus.py`
-26. `theory/CROSS_REPO_RESULTS.md`
-27. `research/CROSS_REPO_PATTERN_ATLAS.md`
-28. `machine/cross_repo_patterns.json`
-29. `machine/cross_repo_results.json`
-30. `research/vopson/CORPUS.md`
-31. `research/vopson/CLAIM_GRAPH.md`
-32. `research/vopson/DEFINITIONS.md`
-33. `ROADMAP.md`
+26. `theory/INFORMATION_COMPARABILITY.md`
+27. `machine/information_comparability_contract.json`
+28. `machine/information_comparability_results.json`
+29. `scripts/validate_information_comparability.py`
+30. `experiments/run_information_comparability.py`
+31. `theory/CROSS_REPO_RESULTS.md`
+32. `research/CROSS_REPO_PATTERN_ATLAS.md`
+33. `machine/cross_repo_patterns.json`
+34. `machine/cross_repo_results.json`
+35. `research/vopson/CORPUS.md`
+36. `research/vopson/CLAIM_GRAPH.md`
+37. `research/vopson/DEFINITIONS.md`
+38. `ROADMAP.md`

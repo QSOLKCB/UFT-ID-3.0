@@ -65,7 +65,9 @@
     "epistemic_bridge_receipt_runner": "experiments/run_epistemic_bridge.py",
     "epistemic_bridge_receipt_version": "1.0.0",
     "representation_receipt_runner": "experiments/run_representation_calculus.py",
-    "representation_receipt_version": "1.0.0"
+    "representation_receipt_version": "1.0.0",
+    "information_comparability_receipt_runner": "experiments/run_information_comparability.py",
+    "information_comparability_receipt_version": "1.0.0"
   },
   "finite_result_authority": {
     "human": "theory/FINITE_RESULTS.md",
@@ -137,6 +139,22 @@
     "artifact_verifier": "scripts/verify_representation_artifacts.py",
     "roadmap_state": "machine/roadmap_state.json",
     "rule": "Representation equivalence is transformation-class-relative: similarity, orthogonal/unitary similarity, congruence, coordinate change, and receiver re-encoding preserve only their declared invariants and never imply semantic, epistemic, empirical, or physical identity by themselves."
+  },
+  "information_comparability_authority": {
+    "human": "theory/INFORMATION_COMPARABILITY.md",
+    "machine_contract": "machine/information_comparability_contract.json",
+    "machine_results": "machine/information_comparability_results.json",
+    "validator": "scripts/validate_information_comparability.py",
+    "experiment": "experiments/information_comparability/run.py",
+    "tests": "tests/test_information_comparability.py",
+    "receipt_runner": "experiments/run_information_comparability.py",
+    "receipt_version": "1.0.0",
+    "artifact_verifier": "scripts/verify_information_comparability_artifacts.py",
+    "roadmap_state": "machine/roadmap_state.json",
+    "information_primitives": "experiments/lib/information.py",
+    "observation_base": "machine/observation_contract.json",
+    "representation_base": "machine/representation_contract.json",
+    "rule": "Information quantities are comparable only under an explicit specification relation: shared vocabulary, scalar codomain, unit, functional name, or numeric equality alone never authorizes functional, observational, semantic, epistemic, empirical, or physical equivalence."
   },
   "vopson_corpus_authority": {
     "author": "research/vopson/AUTHOR.json",
@@ -246,7 +264,11 @@
     "congruence_implies_spectral_equivalence": false,
     "coordinate_tuple_implies_abstract_identity": false,
     "noninjective_receiver_reencoding_preserves_observation_equivalence": false,
-    "representation_equivalence_implies_physical_identity": false
+    "representation_equivalence_implies_physical_identity": false,
+    "same_information_word_implies_same_functional": false,
+    "numeric_equality_implies_information_equivalence": false,
+    "same_unit_implies_information_comparability": false,
+    "unit_conversion_implies_semantic_bridge": false
   },
   "vopson": {
     "orcid": "0000-0002-8073-5538",
@@ -267,6 +289,7 @@
     "theory/BRIDGE_CORE.md", "machine/bridge_core_contract.json", "machine/bridge_core_results.json", "scripts/validate_bridge_core.py", "experiments/run_bridge_core.py",
     "theory/EPISTEMIC_BRIDGE.md", "machine/epistemic_bridge_contract.json", "machine/epistemic_bridge_results.json", "scripts/validate_epistemic_bridge.py", "experiments/run_epistemic_bridge.py",
     "theory/REPRESENTATION_CALCULUS.md", "machine/representation_contract.json", "machine/representation_results.json", "scripts/validate_representation_calculus.py", "experiments/run_representation_calculus.py",
+    "theory/INFORMATION_COMPARABILITY.md", "machine/information_comparability_contract.json", "machine/information_comparability_results.json", "scripts/validate_information_comparability.py", "experiments/run_information_comparability.py",
     "research/CROSS_REPO_PATTERN_ATLAS.md", "research/GRAPH_REALIZATION_SOURCES.md", "research/vopson/AUTHOR.json", "research/vopson/CORPUS.md", "research/vopson/corpus.json", "research/vopson/CLAIM_GRAPH.md",
     "research/vopson/CLAIM_GRAPH.json", "research/vopson/DEFINITIONS.md", "research/vopson/REPRODUCTION_MATRIX.md", "research/vopson/COUNTEREXAMPLE_MATRIX.md", "research/vopson/RESPONSE_HISTORY.md",
     "research/vopson/reproduction/2019-mei/SOURCE_MAP.md", "research/vopson/reproduction/2019-mei/DERIVATION.md", "research/vopson/reproduction/2019-mei/ASSUMPTION_GRAPH.json",

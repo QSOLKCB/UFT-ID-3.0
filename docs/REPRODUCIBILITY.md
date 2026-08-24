@@ -50,6 +50,9 @@ python experiments/run_epistemic_bridge.py --json
 python scripts/validate_representation_calculus.py
 python experiments/representation_calculus/run.py --json
 python experiments/run_representation_calculus.py --json
+python scripts/validate_information_comparability.py
+python experiments/information_comparability/run.py --json
+python experiments/run_information_comparability.py --json
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 python experiments/run_pr2.py --json
@@ -70,6 +73,7 @@ experiments/run_graph_realization.py
 experiments/run_bridge_core.py
 experiments/run_epistemic_bridge.py
 experiments/run_representation_calculus.py
+experiments/run_information_comparability.py
 ```
 
 All receipt families bind deterministic repository files and canonical result payloads while keeping runtime metadata outside portable fingerprints.
@@ -209,6 +213,56 @@ FINITE_REPRESENTATION_CONFORMANCE != GENERAL_PROOF
 
 The deterministic Representation source set binds the observation, BridgeCore, and Epistemic contracts as dependencies because the receiver and authority boundaries must remain explicit across phase transitions.
 
+## Information-comparability conformance boundary
+
+The Information Comparability suite treats comparability as a typed relation between declared `InformationSpec` values rather than as an automatic consequence of two scalar outputs existing.
+
+Canonical commands:
+
+```bash
+python scripts/validate_information_comparability.py
+python experiments/information_comparability/run.py --json
+python experiments/run_information_comparability.py --json
+```
+
+Retained files:
+
+```text
+information-comparability-validation.json
+information-comparability-witness.json
+information-comparability-receipt.json
+```
+
+The exact bounded battery checks:
+
+```text
+96 InformationSpec values
+9216 ordered specification pairs
+224 directly comparable ordered pairs
+224 explicit unit-convertible ordered pairs
+96 direct-comparability reflexive checks
+9216 direct-comparability symmetry checks
+224 inverse unit-conversion checks
+75 positive-scale order/sign checks
+5 exact power-of-two bit/base4 conversion checks
+```
+
+```text
+SAME_WORD_INFORMATION != SAME_FUNCTIONAL
+SAME_SCALAR_CODOMAIN != COMPARABLE_INFORMATION
+SAME_UNIT != COMPARABLE_INFORMATION
+SAME_FUNCTIONAL != SAME_OBSERVATION
+IDENTICAL_SPEC => COMPARABLE
+COMPARABLE != IDENTICAL_SPEC
+NUMERIC_EQUALITY != INFORMATIONAL_EQUIVALENCE
+POSITIVE_UNIT_CONVERSION != SEMANTIC_BRIDGE
+PAIRWISE_SCOPE_COMPARABILITY != TRANSITIVE_COMPARABILITY
+DIRECT_COMPARABILITY != EMPIRICAL_COMMENSURABILITY
+FINITE_INFORMATION_CONFORMANCE != GENERAL_INFORMATION_THEORY
+```
+
+The deterministic Information Comparability source set binds the existing information primitives plus observation and Representation contracts because comparison cannot silently discard either the information-functional identity or the observation/representation boundary.
+
 ## VOP-2019-MEI reproduction boundary
 
 ```text
@@ -257,6 +311,9 @@ epistemic-bridge-receipt.json
 representation-validation.json
 representation-witness.json
 representation-receipt.json
+information-comparability-validation.json
+information-comparability-witness.json
+information-comparability-receipt.json
 vopson-corpus-validation.json
 vopson-doc-sync.json
 reproducibility-validation.json
@@ -282,6 +339,10 @@ Finite exhaustive batteries prove only their declared bounded conformance domain
 648 orthogonal Frobenius checks
 29160 coordinate-covariance checks
 3969 receiver-equivalence checks
+96 information specifications
+9216 ordered information-specification pairs
+224 direct information-comparability pairs
+224 explicit unit-convertible information pairs
 ```
 
 ```text
@@ -298,6 +359,8 @@ Epistemic Bridge is synchronized across `machine/epistemic_bridge_contract.json`
 
 Representation and Congruence is synchronized across `machine/representation_contract.json`, `machine/representation_results.json`, `theory/REPRESENTATION_CALCULUS.md`, `docs/CLAIMS.md`, `README4AI.md`, `docs/REPRODUCIBILITY.md`, `machine/contract.json`, `machine/roadmap_state.json`, `ROADMAP.md`, and its deterministic receipt.
 
+Information Comparability is synchronized across `machine/information_comparability_contract.json`, `machine/information_comparability_results.json`, `theory/INFORMATION_COMPARABILITY.md`, `docs/CLAIMS.md`, `README4AI.md`, `docs/REPRODUCIBILITY.md`, `machine/contract.json`, `machine/roadmap_state.json`, and its deterministic receipt.
+
 ## Nonclaims
 
-This contract does not claim that deterministic output proves a physical law, that a hash proves scientific correctness, that correct arithmetic validates a physical premise, that finite conformance proves unrestricted mathematics, that transport/retrieval/inference/execution creates verification, that verification establishes truth, that representation equivalence establishes semantic or physical identity, or that CI replaces independent scientific review.
+This contract does not claim that deterministic output proves a physical law, that a hash proves scientific correctness, that correct arithmetic validates a physical premise, that finite conformance proves unrestricted mathematics, that transport/retrieval/inference/execution creates verification, that verification establishes truth, that representation equivalence establishes semantic or physical identity, that two numbers called information are comparable without a declared specification relation, or that CI replaces independent scientific review.

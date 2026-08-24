@@ -37,6 +37,7 @@ but relation, observation, bridge, epistemic, representation, information, recov
 - [x] PR #11 — relation-first recovery core and graph-realization interlude, merged at `a72dab3170e9880ca8bf120766d8547d6cc0110b`.
 - [x] Planned PR #12 — BridgeCore, delivered in GitHub PR #13 and merged at `2242f96564f4d27af4ba641b45f45f011a49a7c7`.
 - [x] Planned PR #13 — Epistemic Bridge specialization, delivered in GitHub PR #14 and merged at `083aa9ae9e812cae86302d856f70ad83e5cf806b`.
+- [x] Planned PR #14 — Representation and congruence calculus, delivered in GitHub PR #15 and merged at `a094ec469f311bc6cc11442ee5f850f5dc130e2f`.
 
 ## Deferred independent proof track
 
@@ -47,103 +48,110 @@ MATHEMATICAL_PROOF != LEAN_PROOF
 LEAN_PROOF != RUNTIME_CONFORMANCE != EMPIRICAL_VALIDATION
 ```
 
-## Active now — planned PR #14, delivered in GitHub PR #15
+## Active now — planned PR #15, delivered in GitHub PR #16
 
-### Representation and congruence calculus
+### Information comparability core
 
 **Status:** ACTIVE, implemented by the current change.
 
-Mission: separate equality-like representation relations so no invariant or equivalence claim can silently change transformation class.
+Mission: define when two quantities called information are actually licensed to be compared, without letting shared vocabulary, scalar codomain, units, or coincident numeric values masquerade as specification-level equivalence.
 
 Canonical object:
 
 ```text
-RepresentationSpec = (
-  object_type,
-  source_representation,
-  target_representation,
-  transform_class,
-  transform,
-  inverse_or_adjoint,
-  scope,
-  declared_invariants
+InformationSpec = (
+  source_type,
+  functional,
+  observation,
+  unit,
+  normalization,
+  conditioning,
+  scope
 )
 ```
 
-Transformation classes:
+The bounded `observation` and `conditioning` values are stable identity-bearing references bound to exact maps/events, not generic category labels.
+
+Explicit unit conversion:
 
 ```text
-similarity:              B = P^{-1} A P
-orthogonal similarity:   B = Q^T A Q, Q^T Q = I
-unitary similarity:      B = U^* A U, U^* U = I
-real congruence:          B = P^T A P
-coordinate change:        v' = P^{-1}v, A' = P^{-1}AP
-receiver re-encoding:     O' = R o O
+UnitConversion = (
+  functional,
+  source_unit,
+  target_unit,
+  positive_scale,
+  scope
+)
 ```
+
+Direct comparability requires equality of `source_type`, `functional`, stable `observation` identity, `unit`, `normalization`, and stable `conditioning` identity, plus nonempty scope overlap. Unit-converted comparability permits only a declared unit mismatch with an exact registered positive conversion and nonempty common scope across both specifications and the conversion.
 
 Advertised result surface:
 
-1. `UFT-REP-001` similarity preserves characteristic polynomial;
-2. `UFT-REP-002` orthogonal/unitary similarity preserves Frobenius norm;
-3. `UFT-REP-003` invertible congruence preserves rank;
-4. `UFT-REP-004` coordinate change preserves abstract linear action covariantly;
-5. `UFT-REP-005` injective receiver re-encoding preserves observation equivalence.
+1. `UFT-INF-001` identical valid specifications are directly comparable;
+2. `UFT-INF-002` direct comparability is symmetric;
+3. `UFT-INF-003` direct comparability preserves every comparison-defining field and requires scope overlap;
+4. `UFT-INF-004` positive unit conversion preserves scalar equality/order/sign;
+5. `UFT-INF-005` explicit bit/base4 logarithm-base conversion licenses non-identical unit-converted comparability only under common specification/conversion scope.
 
 Adversarial counterexamples:
 
 ```text
-CX-REP-001 congruent-but-not-similar
-CX-REP-002 similar-but-not-orthogonally-similar
-CX-REP-003 same-characteristic-polynomial-but-not-similar
-CX-REP-004 noninjective-receiver-merges-fibres
-CX-REP-005 coordinate-tuple-requires-chart
+CX-INF-001 same-word-and-unit-different-functionals
+CX-INF-002 same-functional-and-unit-different-observations
+CX-INF-003 different-units-require-explicit-conversion
+CX-INF-004 scope-overlap-comparability-not-transitive
+CX-INF-005 numeric-equality-does-not-erase-normalization
 ```
 
-Exact finite conformance uses standard-library rational arithmetic and checks:
+Exact finite conformance uses standard-library exact arithmetic and checks:
 
 ```text
-81 small 2x2 matrices
-40 unimodular change-of-basis matrices
-8 orthogonal signed-permutation matrices
-3240 similarity invariant instances
-3240 congruence-rank instances
-648 orthogonal Frobenius instances
-29160 coordinate-covariance instances
-27 Fin3 endofunctions
-729 ordered observation/receiver pairs
-441 receiver pairs injective on im(O)
-3969 source-pair equivalence checks
+2 functionals
+2 stable observation identities
+2 units
+2 normalizations
+2 stable conditioning identities
+3 nonempty scopes
+96 InformationSpec values
+9216 ordered specification pairs
+224 directly comparable ordered pairs
+224 explicit unit-convertible ordered pairs
+96 reflexive checks
+9216 symmetry checks
+224 inverse conversion checks
+75 positive-scale order/sign checks
+5 exact power-of-two bit/base4 conversion checks
+1 canonical Shannon primitive cross-check
 ```
 
 Required boundaries:
 
 ```text
-SIMILARITY != CONGRUENCE
-SIMILARITY != ORTHOGONAL_OR_UNITARY_SIMILARITY
-SAME_CHARACTERISTIC_POLYNOMIAL != SIMILARITY
-CONGRUENCE != SPECTRAL_EQUIVALENCE
-COORDINATE_TUPLE != ABSTRACT_OBJECT
-REPRESENTATION_CHANGE != PHYSICAL_CHANGE
-RECEIVER_REENCODING != STATE_TRANSFORMATION
-NONINJECTIVE_RECEIVER_REENCODING != OBSERVATIONAL_EQUIVALENCE_PRESERVATION
-INVARIANT_UNDER_CLASS_C != UNQUALIFIED_REPRESENTATION_INDEPENDENCE
-FINITE_REPRESENTATION_CONFORMANCE != GENERAL_PROOF
+SAME_WORD_INFORMATION != SAME_FUNCTIONAL
+SAME_SCALAR_CODOMAIN != COMPARABLE_INFORMATION
+SAME_UNIT != COMPARABLE_INFORMATION
+SAME_FUNCTIONAL != SAME_OBSERVATION
+IDENTICAL_SPEC => COMPARABLE
+COMPARABLE != IDENTICAL_SPEC
+NUMERIC_EQUALITY != INFORMATIONAL_EQUIVALENCE
+POSITIVE_UNIT_CONVERSION != SEMANTIC_BRIDGE
+PAIRWISE_SCOPE_COMPARABILITY != TRANSITIVE_COMPARABILITY
+DIRECT_COMPARABILITY != EMPIRICAL_COMMENSURABILITY
+FINITE_INFORMATION_CONFORMANCE != GENERAL_INFORMATION_THEORY
 ```
 
-**Exit criterion:** every advertised invariant names its transformation class and hypotheses; similarity, orthogonal/unitary similarity, congruence, coordinate change, and receiver re-encoding remain separately typed; the five counterexamples stay executable; exact finite conformance, human/machine authority, deterministic receipts, retained artifacts, compatibility wrappers, and CI remain synchronized.
+**Exit criterion:** every comparison is licensed by an explicit `InformationSpec` relation or registered conversion; observation, normalization, conditioning, unit, functional, and scope differences remain visible; the five counterexamples stay executable; exact finite conformance, human/machine authority, deterministic receipts, retained artifacts, compatibility wrappers, and CI remain synchronized.
 
 ## Next planned phases
 
-- [ ] PR #15 — Information comparability core. **NEXT.**
-- [ ] PR #16 — Recovery specializations.
+- [ ] PR #16 — Recovery specializations. **NEXT.**
 - [ ] PR #17 — Continuum, stochastic, and prevalence obligations.
 - [ ] PR #18 — Empirical falsification profile.
 
 ```text
-SAME_WORD_INFORMATION != SAME_FUNCTIONAL
-IDENTICAL_SPEC => COMPARABLE
-COMPARABLE != IDENTICAL_SPEC
 GENERIC_RELATION != DETERMINISTIC_SELECTOR
+EXISTENTIAL_NORMALIZATION != EXECUTABLE_NORMALIZER
 FINITE_REACHABILITY != INFINITE_PATH_LIVENESS
 FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION
 ```
@@ -447,6 +455,12 @@ python experiments/run_bridge_core.py --json
 python scripts/validate_epistemic_bridge.py
 python experiments/epistemic_bridge/run.py --json
 python experiments/run_epistemic_bridge.py --json
+python scripts/validate_representation_calculus.py
+python experiments/representation_calculus/run.py --json
+python experiments/run_representation_calculus.py --json
+python scripts/validate_information_comparability.py
+python experiments/information_comparability/run.py --json
+python experiments/run_information_comparability.py --json
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 ```
