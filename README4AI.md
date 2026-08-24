@@ -562,7 +562,25 @@ python experiments/run_pr6.py --json
 
 ## Lean
 
-PR #10 Lean observation foundation is active only for theorem-batch and dependency-graph freezing. Lean proof implementation, source tagging, QSOL-CONTEXT target binding, and Zenodo publication are not claimed by this rollover and remain gated by the ordered workflow in `ROADMAP.md`. Detailed formalization/publication workflow planning remains ROADMAP-only and is not promoted into current proof, empirical, or publication authority.
+PR #10 Lean observation foundation is active. Source batch `LEAN-OBS-BATCH-001` is frozen in `machine/lean_observation_foundation_contract.json`, covering `UFT-OBS-001` through `UFT-OBS-004`; `UFT-OBS-005` remains deferred to a later arithmetic-focused batch.
+
+No Lean proof object is claimed by this freeze. Lean/Lake/Mathlib remain unpinned. After PR #21 merges, the next gate is exact merged-`main` CI plus hostile review, then tag that exact merged commit/tree before Lean proof implementation. QSOL-CONTEXT target binding and Zenodo publication remain later ordered gates in `ROADMAP.md`.
+
+Canonical source-freeze surfaces:
+
+```text
+machine/lean_observation_foundation_contract.json
+theory/LEAN_OBSERVATION_FOUNDATION.md
+scripts/validate_lean_observation_foundation.py
+tests/test_lean_observation_foundation.py
+```
+
+```text
+MATHEMATICAL_PROOF != LEAN_PROOF
+SOURCE_THEOREM != LEAN_ARTIFACT
+THEOREM_BATCH_FREEZE != SOURCE_RELEASE_TAG
+SOURCE_RELEASE_TAG != LEAN_VERIFIED
+```
 
 ## Read next
 

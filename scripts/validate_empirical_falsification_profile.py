@@ -202,7 +202,7 @@ def _live_bootstrap_errors() -> list[str]:
     required = (
         "The completed planned PR #18 surface defines a synthetic conformance procedure",
         "Live scheduling authority is PR #10 Lean observation foundation, active only for first-theorem-batch and dependency-graph freezing.",
-        "PR #10 Lean observation foundation is active only for theorem-batch and dependency-graph freezing.",
+        "PR #10 Lean observation foundation is active. Source batch `LEAN-OBS-BATCH-001` is frozen in `machine/lean_observation_foundation_contract.json`, covering `UFT-OBS-001` through `UFT-OBS-004`; `UFT-OBS-005` remains deferred to a later arithmetic-focused batch.",
     )
     for phrase in required:
         if text.count(phrase) != 1:
@@ -210,6 +210,7 @@ def _live_bootstrap_errors() -> list[str]:
     forbidden = (
         "The active planned PR #18 surface",
         "Lean remains deferred until source reproduction",
+        "PR #10 Lean observation foundation is active only for theorem-batch and dependency-graph freezing.",
     )
     for phrase in forbidden:
         if phrase in text:

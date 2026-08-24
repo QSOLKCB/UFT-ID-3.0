@@ -209,6 +209,17 @@
     "workflow": ".github/workflows/finite-adversarial.yml",
     "rule": "Empirical decision eligibility requires complete calibrated profile-matched evidence and remains scoped to one hypothesis/profile version; the synthetic REJECTED_IN_SCOPE label carries external-unverified registration status and no empirical-rejection licence until independent immutable preregistration provenance is verified. Non-rejection is not confirmation, fit is not unique explanation, and synthetic conformance is not empirical evidence."
   },
+  "lean_observation_foundation_authority": {
+    "machine_contract": "machine/lean_observation_foundation_contract.json",
+    "human": "theory/LEAN_OBSERVATION_FOUNDATION.md",
+    "validator": "scripts/validate_lean_observation_foundation.py",
+    "tests": "tests/test_lean_observation_foundation.py",
+    "source_theorems": "machine/observation_theorems.json",
+    "source_counterexamples": "machine/observation_counterexamples.json",
+    "source_observation_contract": "machine/observation_contract.json",
+    "workflow": ".github/workflows/finite-adversarial.yml",
+    "rule": "The first Lean observation batch freezes source theorem identity and dependency/module mapping only; it does not claim Lean proof, select a toolchain, or create the immutable source-release tag."
+  },
   "vopson_corpus_authority": {
     "author": "research/vopson/AUTHOR.json",
     "human_corpus": "research/vopson/CORPUS.md",

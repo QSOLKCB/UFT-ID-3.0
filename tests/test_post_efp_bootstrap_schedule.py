@@ -26,7 +26,7 @@ class PostEfpBootstrapScheduleTests(unittest.TestCase):
         text = README.read_text(encoding="utf-8")
         self.assertIn("The completed planned PR #18 surface defines a synthetic conformance procedure", text)
         self.assertIn("Live scheduling authority is PR #10 Lean observation foundation, active only for first-theorem-batch and dependency-graph freezing.", text)
-        self.assertIn("PR #10 Lean observation foundation is active only for theorem-batch and dependency-graph freezing.", text)
+        self.assertIn("PR #10 Lean observation foundation is active. Source batch `LEAN-OBS-BATCH-001` is frozen in `machine/lean_observation_foundation_contract.json`, covering `UFT-OBS-001` through `UFT-OBS-004`; `UFT-OBS-005` remains deferred to a later arithmetic-focused batch.", text)
         self.assertNotIn("The active planned PR #18 surface", text)
         self.assertNotIn("Lean remains deferred until source reproduction", text)
 
