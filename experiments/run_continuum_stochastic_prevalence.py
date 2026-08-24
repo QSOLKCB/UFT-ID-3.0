@@ -28,6 +28,7 @@ CORE_FILES = [
     "docs/REPRODUCIBILITY.md",
     "ROADMAP.md",
     "scripts/validate_continuum_stochastic_prevalence.py",
+    "scripts/validate_continuum_stochastic_prevalence_pr18_frozen.py",
     "scripts/verify_continuum_stochastic_prevalence_artifacts.py",
     "experiments/continuum_stochastic_prevalence/__init__.py",
     "experiments/continuum_stochastic_prevalence/run.py",
