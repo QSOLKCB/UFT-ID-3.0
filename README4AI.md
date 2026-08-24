@@ -562,7 +562,7 @@ python experiments/run_pr6.py --json
 
 ## Lean
 
-Lean remains deferred until source reproduction, notation freeze, theorem freeze, and counterexample freeze. When it begins, `QSOLKCB/QSOL-CONTEXT` is the provenance and supersession spine. The Lean target is an immutable post-merge source tag bound to its exact commit/tree and CI provenance; Lean is a later scholarly layer, not part of the original source-release identity. The Zenodo surface is a deterministic source ZIP, Overview PDF, and release notes with cross-bound checksums. GitHub CI, source tagging, Lean proof, empirical validation, Zenodo archival status, and current canonical theory remain separately classified.
+Lean remains deferred until source reproduction, notation freeze, theorem freeze, and counterexample freeze. Detailed formalization/publication workflow planning is ROADMAP-only; see `ROADMAP.md`. This bootstrap surface does not promote deferred QSOL-CONTEXT, source-tag, Lean, or Zenodo planning into current canonical implementation authority.
 
 ## Read next
 

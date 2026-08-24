@@ -112,9 +112,14 @@ class EmpiricalFalsificationProfileTests(unittest.TestCase):
             with self.subTest(refs_type=type(refs).__name__):
                 with self.assertRaisesRegex(ValueError, "nonempty string sequence"):
                     E.make_evidence(profile, 1, 0, provenance_refs=refs)
+        with self.assertRaisesRegex(ValueError, "nonempty string sequence"):
+            E.make_evidence(profile, 1, 0, provenance_refs=["   "])
         evidence = E.make_evidence(profile, 1, 0)
         evidence["provenance_refs"] = "SYN-PROV-001"
         self.assertEqual(E.evaluate(profile, evidence)["decision"], "INVALID_EVIDENCE")
+        whitespace_evidence = E.make_evidence(profile, 1, 0)
+        whitespace_evidence["provenance_refs"] = ["   "]
+        self.assertEqual(E.evaluate(profile, whitespace_evidence)["decision"], "INVALID_EVIDENCE")
 
     def test_prior_registration_is_explicitly_external_and_unverified(self):
         profile = E.make_profile(0)

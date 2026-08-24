@@ -173,7 +173,7 @@ def make_evidence(
     if isinstance(provenance_refs, (str, bytes)) or not isinstance(provenance_refs, Sequence):
         raise ValueError("provenance refs must be a nonempty string sequence")
     refs = list(provenance_refs)
-    if not refs or any(not isinstance(ref, str) or not ref for ref in refs):
+    if not refs or any(not isinstance(ref, str) or not ref.strip() for ref in refs):
         raise ValueError("provenance refs must be a nonempty string sequence")
     return {
         "observable_id": profile["observable_id"],
@@ -206,7 +206,7 @@ def evaluate(profile: Mapping[str, object], evidence: object) -> dict[str, objec
     if evidence["profile_fingerprint"] != profile_fingerprint(profile):
         return _invalid("profile-fingerprint-mismatch")
     refs = evidence["provenance_refs"]
-    if not isinstance(refs, list) or not refs or any(not isinstance(ref, str) or not ref for ref in refs):
+    if not isinstance(refs, list) or not refs or any(not isinstance(ref, str) or not ref.strip() for ref in refs):
         return _invalid("provenance-missing-or-malformed")
     try:
         value = _exact(evidence["value"], "measurement value")
