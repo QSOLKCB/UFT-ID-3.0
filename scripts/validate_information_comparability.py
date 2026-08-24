@@ -1,546 +1,127 @@
 #!/usr/bin/env python3
-"""Fail-closed validation for the UFT-ID Information Comparability authority."""
+"""Live compatibility wrapper for the merged Information Comparability validator.
+
+The exact validator merged in GitHub PR #16 is preserved in
+validate_information_comparability_pr16_frozen.py. This wrapper replays that
+authority against its historical PR15-active roadmap snapshot, then validates
+the current Recovery Specializations schedule independently. Information
+theorem, counterexample, contract, and evidence semantics remain frozen.
+"""
 from __future__ import annotations
 
-import argparse
 import importlib.util
 import json
-import re
 from pathlib import Path
-from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-PATHS = {
-    "contract": ROOT / "machine/information_comparability_contract.json",
-    "results": ROOT / "machine/information_comparability_results.json",
-    "human": ROOT / "theory/INFORMATION_COMPARABILITY.md",
-    "roadmap": ROOT / "machine/roadmap_state.json",
-    "base_contract": ROOT / "machine/contract.json",
-    "claims": ROOT / "docs/CLAIMS.md",
-    "readme": ROOT / "README4AI.md",
-    "repro": ROOT / "docs/REPRODUCIBILITY.md",
-    "experiment": ROOT / "experiments/information_comparability/run.py",
-    "tests": ROOT / "tests/test_information_comparability.py",
-    "receipt": ROOT / "experiments/run_information_comparability.py",
-    "artifact_verifier": ROOT / "scripts/verify_information_comparability_artifacts.py",
-    "information_primitives": ROOT / "experiments/lib/information.py",
-    "observation_base": ROOT / "machine/observation_contract.json",
-    "observation_specs": ROOT / "machine/observation_specs.json",
-    "representation_base": ROOT / "machine/representation_contract.json",
+FROZEN = ROOT / "scripts/validate_information_comparability_pr16_frozen.py"
+
+_spec = importlib.util.spec_from_file_location("information_comparability_validator_pr16_frozen", FROZEN)
+if _spec is None or _spec.loader is None:
+    raise RuntimeError(f"cannot load frozen Information Comparability validator: {FROZEN}")
+_frozen = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_frozen)
+
+for _name in dir(_frozen):
+    if not _name.startswith("__") and _name not in {"validate", "main", "load_json"}:
+        globals()[_name] = getattr(_frozen, _name)
+
+HISTORICAL_ROADMAP_STATE = {
+    "type": "uft-id-roadmap-state",
+    "schema_version": "1.3.0",
+    "snapshot_date": "2026-08-24",
+    "basis_commit": "a094ec469f311bc6cc11442ee5f850f5dc130e2f",
+    "completed": [5, 6, 7, 8, 9, 11, 12, 13, 14],
+    "active_planned_surface": 15,
+    "deferred": [10],
+    "sequence": [
+        {"planned_pr": 9, "surface": "deterministic-observation-calculus", "status": "complete"},
+        {"planned_pr": 10, "surface": "lean-observation-foundation", "status": "deferred-independent-formal-proof-track"},
+        {"planned_pr": 11, "surface": "relation-first-recovery-core-plus-graph-realization-interlude", "status": "complete-merged-a72dab3170e9880ca8bf120766d8547d6cc0110b"},
+        {"planned_pr": 12, "surface": "bridge-core", "status": "complete-merged-2242f96564f4d27af4ba641b45f45f011a49a7c7"},
+        {"planned_pr": 13, "surface": "epistemic-bridge-specialization", "status": "complete-merged-083aa9ae9e812cae86302d856f70ad83e5cf806b"},
+        {"planned_pr": 14, "surface": "representation-and-congruence-calculus", "status": "complete-merged-a094ec469f311bc6cc11442ee5f850f5dc130e2f"},
+        {"planned_pr": 15, "surface": "information-comparability-core", "status": "active-implemented-in-current-change"},
+        {"planned_pr": 16, "surface": "recovery-specializations", "status": "planned"},
+        {"planned_pr": 17, "surface": "continuum-stochastic-prevalence-obligations", "status": "planned"},
+        {"planned_pr": 18, "surface": "empirical-falsification-profile", "status": "planned"},
+    ],
+    "compatibility_note": "machine/formalization_contract.json retains the PR9-era roadmap_rebase snapshot; frozen PR11, BridgeCore, Epistemic Bridge, and Representation validators retain their own historical schedule snapshots. This file is the live post-Representation schedule authority.",
+    "fixture_policy": "Minimal fixtures travel with the theorem or counterexample that requires them.",
+    "rules": [
+        "NO_GIANT_FORMALIZATION_PR",
+        "NO_STANDALONE_FINITE_FIXTURE_ZOO",
+        "Lean deferral does not prevent repository-contained mathematical proofs, finite conformance witnesses, or later theorem targets from being frozen.",
+        "A unique-selection claim requires an actual discriminating theorem or uniqueness proof, not compatibility or one successful construction.",
+        "No semantic lifting is licensed without an explicit typed bridge declaring preserved structure, lost structure, scope, and version compatibility.",
+        "Structural transport, retrieval, inference, execution, storage, or replay cannot create verification authority without an explicit epistemic operation and receipt.",
+        "Conflict and unknown remain separately represented; verified and conflict may coexist.",
+        "Every representation invariant must name the transformation class and hypotheses under which it is preserved.",
+        "Similarity, congruence, coordinate change, and receiver re-encoding remain separately typed and cannot imply semantic or physical identity by name alone.",
+        "No information comparison is licensed by shared vocabulary, scalar codomain, unit, functional name, or numeric equality alone; comparison requires the declared InformationSpec relation or an explicit registered conversion.",
+    ],
 }
 
-EXPECTED_SCOPE = (
-    "Finite information-quantity specification comparability. The contract distinguishes direct comparability "
-    "from explicit unit-converted comparability and forbids scalar coincidence, shared vocabulary, or shared "
-    "units from silently substituting for functional, observation, convention, scope, semantic, epistemic, "
-    "empirical, or physical equivalence."
-)
-EXPECTED_PRIMARY_TYPE = "InformationSpec=(source_type,functional,observation,unit,normalization,conditioning,scope)"
-EXPECTED_CONVERSION_TYPE = "UnitConversion=(functional,source_unit,target_unit,positive_scale,scope)"
-EXPECTED_SPEC_FIELDS = {
-    "source_type": "declared source/carrier type on which the information quantity is defined",
-    "functional": "exact information functional identity; shared use of the word information is insufficient",
-    "observation": "stable observation-contract identity bound to an exact source type, target type, kind, and map reference; a generic category label is insufficient",
-    "unit": "declared scalar unit or logarithm-base convention",
-    "normalization": "declared normalization convention",
-    "conditioning": "stable conditioning-model identity bound to the conditioned variable/event or to an explicit unconditional identity; a generic category label is insufficient",
-    "scope": "nonempty contexts/regimes in which the specification is licensed",
-}
-EXPECTED_MODES = {
-    "direct": "source_type, functional, stable observation identity, unit, normalization, and stable conditioning identity are equal and scopes overlap",
-    "unit_converted": "all direct-comparability fields except unit are equal, the two specifications and conversion have nonempty common scope, and an exact registered positive unit conversion matches the functional and unit direction",
-    "not_authorized": "numeric equality, matching codomain, matching unit, matching functional name, generic observation/conditioning categories, or shared use of the word information alone",
-}
-EXPECTED_OBSERVATION_REGISTRY = {
-    "OBS-REF-FIN2-IDENTITY-V1": {
-        "base_authority": "machine/observation_specs.json#OBS-SPEC-001",
-        "source_type": "Fin2",
-        "target_type": "Fin2",
-        "kind": "deterministic-total",
-        "map_ref": "O_id(0)=0; O_id(1)=1",
-    },
-    "OBS-REF-FIN2-CONSTANT0-V1": {
-        "base_authority": "machine/observation_specs.json#OBS-SPEC-002",
-        "source_type": "Fin2",
-        "target_type": "Fin1",
-        "kind": "deterministic-total",
-        "map_ref": "O_const(0)=0; O_const(1)=0",
-    },
-}
-EXPECTED_CONDITIONING_REGISTRY = {
-    "COND-REF-UNCONDITIONAL-V1": {
-        "kind": "unconditional",
-        "source_type": "Fin2",
-        "variable_ref": None,
-        "event_ref": None,
-    },
-    "COND-REF-FIN2-X-EQ-0-V1": {
-        "kind": "conditioned",
-        "source_type": "Fin2",
-        "variable_ref": "x@Fin2",
-        "event_ref": "x=0",
-    },
-}
-EXPECTED_UNIT_REGISTRY = {
-    "bit->base4-digit": "scale=1/2 for logarithmic functionals",
-    "base4-digit->bit": "scale=2 for logarithmic functionals",
-}
-EXPECTED_FUNCTIONALS = {
-    "shannon_entropy": "finite Shannon entropy under the declared observation and logarithm-base/unit convention",
-    "hartley_entropy": "finite Hartley support entropy under the declared observation and logarithm-base/unit convention",
-}
-EXPECTED_BOUNDARIES = [
-    "SAME_WORD_INFORMATION != SAME_FUNCTIONAL",
-    "SAME_SCALAR_CODOMAIN != COMPARABLE_INFORMATION",
-    "SAME_UNIT != COMPARABLE_INFORMATION",
-    "SAME_FUNCTIONAL != SAME_OBSERVATION",
-    "IDENTICAL_SPEC => COMPARABLE",
-    "COMPARABLE != IDENTICAL_SPEC",
-    "NUMERIC_EQUALITY != INFORMATIONAL_EQUIVALENCE",
-    "POSITIVE_UNIT_CONVERSION != SEMANTIC_BRIDGE",
-    "PAIRWISE_SCOPE_COMPARABILITY != TRANSITIVE_COMPARABILITY",
-    "DIRECT_COMPARABILITY != EMPIRICAL_COMMENSURABILITY",
-    "FINITE_INFORMATION_CONFORMANCE != GENERAL_INFORMATION_THEORY",
-]
-EXPECTED_LIMITS = {
-    "functional_count": 2,
-    "observation_count": 2,
-    "unit_count": 2,
-    "normalization_count": 2,
-    "conditioning_count": 2,
-    "scope_count": 3,
-    "information_spec_count": 96,
-    "ordered_spec_pair_count": 9216,
-    "directly_comparable_ordered_pairs": 224,
-    "unit_convertible_ordered_pairs": 224,
-    "positive_scale_order_checks": 75,
-    "log_base_conversion_checks": 5,
-    "shared_shannon_primitive_checks": 1,
-    "policy": "The bounded battery is exact conformance evidence for the declared finite specification grammar and bit/base4 conversion registry only; it is not a universal theorem that arbitrary quantities called information are comparable.",
-}
-EXPECTED_AUTHORITIES = {
-    "human": "theory/INFORMATION_COMPARABILITY.md",
-    "results": "machine/information_comparability_results.json",
-    "validator": "scripts/validate_information_comparability.py",
-    "experiment": "experiments/information_comparability/run.py",
-    "tests": "tests/test_information_comparability.py",
-    "receipt": "experiments/run_information_comparability.py",
-    "artifact_verifier": "scripts/verify_information_comparability_artifacts.py",
-    "roadmap_state": "machine/roadmap_state.json",
-    "information_primitives": "experiments/lib/information.py",
-    "observation_base": "machine/observation_contract.json",
-    "observation_specs": "machine/observation_specs.json",
-    "representation_base": "machine/representation_contract.json",
-}
-EXPECTED_DEFERRALS = [
-    "mutual-information comparability across unmatched joint models",
-    "KL-divergence comparability across unmatched reference measures",
-    "stochastic channel comparability to planned PR #17",
-    "semantic equivalence between different observation contracts without an explicit bridge",
-    "empirical commensurability and calibration validity to planned PR #18",
-    "infinite-alphabet information measures",
-    "Lean proof objects",
-]
-EXPECTED_EVIDENCE = ["experiments/information_comparability/run.py", "tests/test_information_comparability.py"]
-EXPECTED_RESULT_BOUNDARY = (
-    "SAME_WORD_INFORMATION != SAME_FUNCTIONAL; NUMERIC_EQUALITY != INFORMATIONAL_EQUIVALENCE; "
-    "COMPARABLE != IDENTICAL_SPEC; FINITE_INFORMATION_CONFORMANCE != GENERAL_INFORMATION_THEORY"
-)
-EXPECTED_THEOREM_FIELDS = {
-    "id", "name", "claim_class", "statement", "hypotheses",
-    "proof_reference", "executable_evidence", "nonclaims",
-}
-EXPECTED_COUNTEREXAMPLE_FIELDS = {
-    "id", "name", "claim_class", "statement", "fixture", "evidence", "nonclaims",
-}
-EXPECTED_CONTRACT_TOP_LEVEL = {
-    "type", "schema_version", "snapshot_date", "claim_class", "scope", "primary_type",
-    "conversion_type", "spec_fields", "comparability_modes", "observation_registry",
-    "conditioning_registry", "unit_conversion_registry", "functional_registry", "hard_boundaries",
-    "execution_limits", "authorities", "explicit_deferrals",
-}
-EXPECTED_RESULTS_TOP_LEVEL = {"type", "schema_version", "snapshot_date", "records", "claim_boundary"}
-EXPECTED_THEOREMS = {
-    "UFT-INF-001": {
-        "name": "Identical valid specifications are directly comparable",
-        "statement": "Every valid InformationSpec is directly comparable with itself because all comparison-defining fields agree and its scope is nonempty.",
-        "hypotheses": ["A is a valid InformationSpec"],
-        "proof_reference": "theory/INFORMATION_COMPARABILITY.md#uft-inf-001-identical-valid-specifications-are-directly-comparable",
-        "nonclaims": ["Reflexive direct comparability does not make two independently specified quantities identical merely because their scalar values agree."],
-    },
-    "UFT-INF-002": {
-        "name": "Direct comparability is symmetric",
-        "statement": "For valid InformationSpec values A and B, if A is directly comparable with B then B is directly comparable with A.",
-        "hypotheses": ["A and B are valid InformationSpec values", "A and B satisfy the direct-comparability predicate"],
-        "proof_reference": "theory/INFORMATION_COMPARABILITY.md#uft-inf-002-direct-comparability-is-symmetric",
-        "nonclaims": ["Scope-relative direct comparability is not asserted to be transitive."],
-    },
-    "UFT-INF-003": {
-        "name": "Direct comparability preserves the comparison-defining specification",
-        "statement": "If two InformationSpec values are directly comparable, then source_type, functional, observation, unit, normalization, and conditioning agree exactly and their scopes have nonempty intersection.",
-        "hypotheses": ["A and B are valid InformationSpec values", "A and B are directly comparable"],
-        "proof_reference": "theory/INFORMATION_COMPARABILITY.md#uft-inf-003-direct-comparability-preserves-the-comparison-defining-specification",
-        "nonclaims": ["Matching one or several fields, including functional or unit alone, is not enough for direct comparability."],
-    },
-    "UFT-INF-004": {
-        "name": "Positive unit conversion preserves scalar order",
-        "statement": "For real scalar values x and y and a positive conversion scale a, equality and strict order are preserved by x -> ax and the sign of y-x equals the sign of a(y-x).",
-        "hypotheses": ["x and y are real scalars", "a>0"],
-        "proof_reference": "theory/INFORMATION_COMPARABILITY.md#uft-inf-004-positive-unit-conversion-preserves-scalar-order",
-        "nonclaims": ["A positive scalar conversion changes units only; it does not supply a semantic, epistemic, empirical, or physical bridge."],
-    },
-    "UFT-INF-005": {
-        "name": "Explicit logarithm-base conversion gives non-identical comparable specifications",
-        "statement": "For Shannon or Hartley logarithmic entropy specifications that agree in every comparison-defining field except bit versus base4-digit unit, and for a matching registered conversion whose scope has nonempty common intersection with both specification scopes, an exact scale of 1/2 from bits to base4-digits or 2 in the reverse direction licenses unit-converted comparability; the specifications remain non-identical.",
-        "hypotheses": ["A and B are valid InformationSpec values", "A and B differ only by bit versus base4-digit unit", "the registered unit conversion C matches the functional and unit direction", "A.scope intersect B.scope intersect C.scope is nonempty"],
-        "proof_reference": "theory/INFORMATION_COMPARABILITY.md#uft-inf-005-explicit-logarithm-base-conversion-gives-non-identical-comparable-specifications",
-        "nonclaims": ["Unit-converted comparability does not authorize comparison across different observations, normalizations, conditionings, functionals, or disjoint scopes."],
-    },
-}
-EXPECTED_COUNTEREXAMPLES = {
-    "CX-INF-001": {
-        "name": "Same word and unit can hide different information functionals",
-        "statement": "A Shannon-entropy specification and a Hartley-entropy specification can both be measured in bits and even return the same scalar on a uniform two-state distribution while remaining not directly comparable because their functional identities differ.",
-        "fixture": "uniform-two-state Shannon bits versus Hartley bits",
-        "nonclaims": ["The example does not say Shannon and Hartley quantities can never be related under a separately declared theorem or bridge."],
-    },
-    "CX-INF-002": {
-        "name": "Same functional and unit can use different observations",
-        "statement": "Two Shannon-entropy specifications in bits with different observation contracts are not directly comparable under the Information Comparability predicate.",
-        "fixture": "Shannon bits with OBS-REF-FIN2-IDENTITY-V1 versus OBS-REF-FIN2-CONSTANT0-V1",
-        "nonclaims": ["A separately proved observation bridge may establish a narrower relationship; direct comparability does not assume one."],
-    },
-    "CX-INF-003": {
-        "name": "Different units require an explicit conversion",
-        "statement": "Two otherwise matching logarithmic entropy specifications in bits and base4-digits are not directly comparable, although an explicit registered unit conversion can make them unit-converted comparable.",
-        "fixture": "matching Shannon specification in bits versus base4-digits",
-        "nonclaims": ["The availability of a unit conversion does not make the two specifications textually or semantically identical."],
-    },
-    "CX-INF-004": {
-        "name": "Scope-overlap comparability need not be transitive",
-        "statement": "With otherwise identical specifications, scope A={alpha}, B={alpha,beta}, and C={beta} gives A directly comparable with B and B directly comparable with C while A is not directly comparable with C.",
-        "fixture": "three identical semantic specs with overlapping-chain scopes",
-        "nonclaims": ["The counterexample concerns the scope-relative direct-comparability relation only; it does not refute transitivity of equality or of separately defined equivalence relations."],
-    },
-    "CX-INF-005": {
-        "name": "Numeric equality does not erase normalization differences",
-        "statement": "Two information quantities can both have scalar value 1 while their specifications use different normalization conventions, so numeric equality alone does not establish direct comparability or informational equivalence.",
-        "fixture": "equal scalar 1 under normalization none versus per-source-symbol",
-        "nonclaims": ["Equal numbers remain equal as numbers; the counterexample rejects only the promotion from numeric equality to specification-level comparability or equivalence."],
-    },
-}
-EXPECTED_CENTRAL_AUTHORITY = {
-    "human": "theory/INFORMATION_COMPARABILITY.md",
-    "machine_contract": "machine/information_comparability_contract.json",
-    "machine_results": "machine/information_comparability_results.json",
-    "validator": "scripts/validate_information_comparability.py",
-    "experiment": "experiments/information_comparability/run.py",
-    "tests": "tests/test_information_comparability.py",
-    "receipt_runner": "experiments/run_information_comparability.py",
-    "receipt_version": "1.0.0",
-    "artifact_verifier": "scripts/verify_information_comparability_artifacts.py",
-    "roadmap_state": "machine/roadmap_state.json",
-    "information_primitives": "experiments/lib/information.py",
-    "observation_base": "machine/observation_contract.json",
-    "representation_base": "machine/representation_contract.json",
-    "rule": "Information quantities are comparable only under an explicit specification relation: shared vocabulary, scalar codomain, unit, functional name, or numeric equality alone never authorizes functional, observational, semantic, epistemic, empirical, or physical equivalence.",
-}
-PRIVATE_PATTERNS = ("mail.google.com", "gmail", "connector_", "private-user-images", "attachment_id")
-PROMOTION_PATTERNS = (
-    "same number proves same information",
-    "same unit proves comparable information",
-    "unit conversion proves same physics",
-    "information comparability proves truth",
-    "shared information word proves same functional",
-)
+_original_load_json = _frozen.load_json
 
 
-def load_json(path: Path) -> dict[str, Any]:
-    value = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(value, dict):
-        raise ValueError(f"{path} must contain an object")
-    return value
+def _historical_load_json(path: Path):
+    if path.resolve() == _frozen.PATHS["roadmap"].resolve():
+        return json.loads(json.dumps(HISTORICAL_ROADMAP_STATE))
+    return _original_load_json(path)
 
 
-def load_module(name: str, path: Path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None:
-        raise RuntimeError(f"cannot load {path}")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-def safe_path(path: object, label: str, errors: list[str]) -> None:
-    if not isinstance(path, str) or not path:
-        errors.append(f"{label} must be a nonempty repository-relative path")
-        return
-    rel = Path(path)
-    if rel.is_absolute() or ".." in rel.parts:
-        errors.append(f"{label} escapes repository")
-        return
-    resolved = (ROOT / rel).resolve()
-    try:
-        resolved.relative_to(ROOT.resolve())
-    except ValueError:
-        errors.append(f"{label} escapes repository")
-        return
-    if not resolved.is_file():
-        errors.append(f"{label} missing: {path}")
-
-
-def section(text: str, heading: str) -> str | None:
-    lines = text.splitlines()
-    matches = [i for i, line in enumerate(lines) if line.strip() == heading]
-    if len(matches) != 1:
-        return None
-    start = matches[0]
-    match = re.match(r"^(#+)\s", heading)
-    if match is None:
-        return None
-    level = len(match.group(1))
-    out = [lines[start]]
-    for line in lines[start + 1:]:
-        candidate = re.match(r"^(#+)\s", line.strip())
-        if candidate is not None and len(candidate.group(1)) <= level:
-            break
-        out.append(line)
-    return "\n".join(out)
-
-
-def metadata(sec: str, label: str) -> str | None:
-    prefix = f"**{label}:** "
-    values = [line.strip()[len(prefix):] for line in sec.splitlines() if line.strip().startswith(prefix)]
-    return values[0] if len(values) == 1 else None
-
-
-def strip_code(value: str | None) -> str | None:
-    if value is None:
-        return None
-    value = value.strip()
-    if len(value) >= 2 and value[0] == value[-1] == "`":
-        return value[1:-1]
-    return value
-
-
-def parse_json_metadata(sec: str, label: str) -> object | None:
-    raw = strip_code(metadata(sec, label))
-    try:
-        return json.loads(raw) if raw is not None else None
-    except json.JSONDecodeError:
-        return None
+def _live_roadmap_errors() -> list[str]:
+    errors: list[str] = []
+    roadmap = _original_load_json(_frozen.PATHS["roadmap"])
+    if roadmap.get("schema_version") != "1.4.0":
+        errors.append("information live roadmap schema drift")
+    if roadmap.get("basis_commit") != "22b589c4e2e2042d180d64db837f092a007e0813":
+        errors.append("information live roadmap basis commit must be merged Information Comparability PR")
+    if roadmap.get("active_planned_surface") != 16:
+        errors.append("information live roadmap active surface must be PR #16")
+    if roadmap.get("completed") != [5, 6, 7, 8, 9, 11, 12, 13, 14, 15]:
+        errors.append("information live roadmap completed set drift")
+    if roadmap.get("deferred") != [10]:
+        errors.append("information live roadmap deferred set drift")
+    sequence = roadmap.get("sequence")
+    if not isinstance(sequence, list):
+        errors.append("information live roadmap sequence malformed")
+    else:
+        by_pr = {x.get("planned_pr"): x for x in sequence if isinstance(x, dict)}
+        if by_pr.get(15, {}).get("status") != "complete-merged-22b589c4e2e2042d180d64db837f092a007e0813":
+            errors.append("information live roadmap PR15 completion drift")
+        if by_pr.get(16, {}).get("status") != "active-implemented-in-current-change":
+            errors.append("information live roadmap PR16 active-state drift")
+        if by_pr.get(17, {}).get("status") != "planned":
+            errors.append("information live roadmap PR17 must remain planned")
+    rules = roadmap.get("rules")
+    recovery_rule = "A deterministic recovery selector is a specialization of the generic relation only when its non-fixed steps are relation-sound; executable normalization additionally requires explicit termination/progress and fixed-point/normal-state obligations."
+    if not isinstance(rules, list) or recovery_rule not in rules:
+        errors.append("information live roadmap Recovery specialization rule missing")
+    serialized = json.dumps(roadmap, sort_keys=True).casefold()
+    for token in _frozen.PRIVATE_PATTERNS:
+        if token.casefold() in serialized:
+            errors.append(f"information live roadmap contains forbidden private locator: {token}")
+    return errors
 
 
 def validate() -> dict[str, object]:
-    errors: list[str] = []
-    for name, path in PATHS.items():
-        if not path.is_file():
-            errors.append(f"missing Information Comparability authority file: {name}={path.relative_to(ROOT)}")
-    if errors:
-        return {"status": "error", "errors": errors, "result_count": 0, "boundary_count": 0}
-
-    contract = load_json(PATHS["contract"])
-    results = load_json(PATHS["results"])
-    roadmap = load_json(PATHS["roadmap"])
-    base = load_json(PATHS["base_contract"])
-    observation_specs = load_json(PATHS["observation_specs"])
-    human = PATHS["human"].read_text(encoding="utf-8")
-    claims = PATHS["claims"].read_text(encoding="utf-8")
-    readme = PATHS["readme"].read_text(encoding="utf-8")
-    repro = PATHS["repro"].read_text(encoding="utf-8")
-
-    if set(contract) != EXPECTED_CONTRACT_TOP_LEVEL:
-        errors.append("information contract top-level field set drift")
-    if contract.get("type") != "uft-id-information-comparability-contract": errors.append("information contract type drift")
-    if contract.get("schema_version") != "1.1.0": errors.append("information contract schema drift")
-    if contract.get("snapshot_date") != "2026-08-24": errors.append("information contract snapshot drift")
-    if contract.get("claim_class") != "DEFINITION": errors.append("information contract claim class drift")
-    if contract.get("scope") != EXPECTED_SCOPE: errors.append("information contract scope drift")
-    if contract.get("primary_type") != EXPECTED_PRIMARY_TYPE: errors.append("information primary type drift")
-    if contract.get("conversion_type") != EXPECTED_CONVERSION_TYPE: errors.append("information conversion type drift")
-    if contract.get("spec_fields") != EXPECTED_SPEC_FIELDS: errors.append("information spec field registry drift")
-    if contract.get("comparability_modes") != EXPECTED_MODES: errors.append("information comparability mode registry drift")
-    if contract.get("observation_registry") != EXPECTED_OBSERVATION_REGISTRY: errors.append("information observation identity registry drift")
-    if contract.get("conditioning_registry") != EXPECTED_CONDITIONING_REGISTRY: errors.append("information conditioning identity registry drift")
-    if contract.get("unit_conversion_registry") != EXPECTED_UNIT_REGISTRY: errors.append("information unit conversion registry drift")
-    if contract.get("functional_registry") != EXPECTED_FUNCTIONALS: errors.append("information functional registry drift")
-    if contract.get("hard_boundaries") != EXPECTED_BOUNDARIES: errors.append("information hard-boundary registry drift")
-    if contract.get("execution_limits") != EXPECTED_LIMITS: errors.append("information execution limits drift")
-    if contract.get("authorities") != EXPECTED_AUTHORITIES: errors.append("information authority registry drift")
-    else:
-        for key, value in EXPECTED_AUTHORITIES.items():
-            if key != "roadmap_state":
-                safe_path(value, f"information authority {key}", errors)
-    if contract.get("explicit_deferrals") != EXPECTED_DEFERRALS: errors.append("information explicit deferrals drift")
-
-    experiment = load_module("information_comparability_validator_experiment", PATHS["experiment"])
-    if getattr(experiment, "OBSERVATION_REGISTRY", None) != EXPECTED_OBSERVATION_REGISTRY:
-        errors.append("production observation identity registry drift")
-    if getattr(experiment, "CONDITIONING_REGISTRY", None) != EXPECTED_CONDITIONING_REGISTRY:
-        errors.append("production conditioning identity registry drift")
-
-    obs_records = observation_specs.get("records")
-    obs_by_id = {r.get("id"): r for r in obs_records if isinstance(r, dict)} if isinstance(obs_records, list) else {}
-    for ref in EXPECTED_OBSERVATION_REGISTRY.values():
-        authority = ref["base_authority"]
-        if not isinstance(authority, str) or not authority.startswith("machine/observation_specs.json#"):
-            errors.append("information observation base authority malformed")
-            continue
-        anchor = authority.split("#", 1)[1]
-        if anchor not in obs_by_id:
-            errors.append(f"information observation base authority missing: {anchor}")
-    const = obs_by_id.get("OBS-SPEC-002")
-    if not isinstance(const, dict) or const.get("map_ref") != "O_const(0)=0; O_const(1)=0":
-        errors.append("information constant observation base-map drift")
-
-    if set(results) != EXPECTED_RESULTS_TOP_LEVEL:
-        errors.append("information result registry top-level field set drift")
-    records = results.get("records")
-    if not isinstance(records, list):
-        errors.append("information result registry malformed")
-        records = []
-    by_id: dict[str, dict[str, Any]] = {}
-    ids: list[str] = []
-    for index, record in enumerate(records):
-        if not isinstance(record, dict) or not isinstance(record.get("id"), str) or not record["id"]:
-            errors.append(f"information result {index} malformed")
-            continue
-        rid = str(record["id"])
-        if rid in EXPECTED_THEOREMS and set(record) != EXPECTED_THEOREM_FIELDS:
-            errors.append(f"{rid} theorem field set drift")
-        if rid in EXPECTED_COUNTEREXAMPLES and set(record) != EXPECTED_COUNTEREXAMPLE_FIELDS:
-            errors.append(f"{rid} counterexample field set drift")
-        if rid in by_id:
-            errors.append(f"duplicate information result id: {rid}")
-        else:
-            by_id[rid] = record
-        ids.append(rid)
-    expected_ids = set(EXPECTED_THEOREMS) | set(EXPECTED_COUNTEREXAMPLES)
-    if set(ids) != expected_ids or len(ids) != len(expected_ids):
-        errors.append("information result identity set drift")
-
-    for rid, expected in EXPECTED_THEOREMS.items():
-        record = by_id.get(rid)
-        if record is None:
-            continue
-        if record.get("name") != expected["name"]: errors.append(f"{rid} name drift")
-        if record.get("claim_class") != "PROVED": errors.append(f"{rid} claim class drift")
-        if record.get("statement") != expected["statement"]: errors.append(f"{rid} statement drift")
-        if record.get("hypotheses") != expected["hypotheses"]: errors.append(f"{rid} hypotheses drift")
-        if record.get("proof_reference") != expected["proof_reference"]: errors.append(f"{rid} proof reference drift")
-        if record.get("executable_evidence") != EXPECTED_EVIDENCE: errors.append(f"{rid} executable evidence drift")
-        if record.get("nonclaims") != expected["nonclaims"]: errors.append(f"{rid} nonclaims drift")
-        sec = section(human, f"## {rid} {expected['name']}")
-        if sec is None:
-            errors.append(f"{rid} human theorem section missing or duplicated")
-            continue
-        if metadata(sec, "Claim class") != "`PROVED`": errors.append(f"{rid} human claim class drift")
-        if strip_code(metadata(sec, "Canonical statement")) != expected["statement"]: errors.append(f"{rid} human canonical statement drift")
-        if parse_json_metadata(sec, "Canonical hypotheses") != expected["hypotheses"]: errors.append(f"{rid} human canonical hypotheses drift")
-        if parse_json_metadata(sec, "Canonical nonclaims") != expected["nonclaims"]: errors.append(f"{rid} human canonical nonclaims drift")
-
-    for rid, expected in EXPECTED_COUNTEREXAMPLES.items():
-        record = by_id.get(rid)
-        if record is None:
-            continue
-        if record.get("name") != expected["name"]: errors.append(f"{rid} name drift")
-        if record.get("claim_class") != "COUNTEREXAMPLE": errors.append(f"{rid} claim class drift")
-        if record.get("statement") != expected["statement"]: errors.append(f"{rid} statement drift")
-        if record.get("fixture") != expected["fixture"]: errors.append(f"{rid} fixture drift")
-        if record.get("evidence") != EXPECTED_EVIDENCE: errors.append(f"{rid} evidence drift")
-        if record.get("nonclaims") != expected["nonclaims"]: errors.append(f"{rid} nonclaims drift")
-        sec = section(human, f"### {rid} {expected['name']}")
-        if sec is None:
-            errors.append(f"{rid} human counterexample section missing or duplicated")
-            continue
-        if metadata(sec, "Claim class") != "`COUNTEREXAMPLE`": errors.append(f"{rid} human claim class drift")
-        if strip_code(metadata(sec, "Canonical statement")) != expected["statement"]: errors.append(f"{rid} human canonical statement drift")
-        if parse_json_metadata(sec, "Canonical nonclaims") != expected["nonclaims"]: errors.append(f"{rid} human canonical nonclaims drift")
-
-    unit_section = section(human, "## 3. Explicit unit-converted comparability")
-    if unit_section is None:
-        errors.append("human unit-converted comparability section missing or duplicated")
-    else:
-        if "This mode licenses unit conversion only." not in unit_section:
-            errors.append("human unit-conversion-only boundary drift")
-        boundary_block = "UNIT_CONVERSION\n!=\nOBSERVATION_BRIDGE\n!=\nSEMANTIC_BRIDGE\n!=\nEMPIRICAL_CALIBRATION"
-        if boundary_block not in unit_section:
-            errors.append("human unit-conversion boundary chain drift")
-
-    if results.get("type") != "uft-id-information-comparability-result-registry": errors.append("information result type drift")
-    if results.get("schema_version") != "1.0.0": errors.append("information result schema drift")
-    if results.get("snapshot_date") != "2026-08-24": errors.append("information result snapshot drift")
-    if results.get("claim_boundary") != EXPECTED_RESULT_BOUNDARY: errors.append("information result claim boundary drift")
-
-    if roadmap.get("schema_version") != "1.3.0": errors.append("information roadmap schema drift")
-    if roadmap.get("basis_commit") != "a094ec469f311bc6cc11442ee5f850f5dc130e2f": errors.append("information roadmap basis commit drift")
-    if roadmap.get("active_planned_surface") != 15: errors.append("information roadmap active surface must be PR #15")
-    completed = roadmap.get("completed")
-    if not isinstance(completed, list) or 14 not in completed: errors.append("information roadmap must mark planned PR #14 complete")
-    sequence = roadmap.get("sequence")
-    if not isinstance(sequence, list):
-        errors.append("information roadmap sequence malformed")
-    else:
-        by_pr = {x.get("planned_pr"): x for x in sequence if isinstance(x, dict)}
-        if by_pr.get(14, {}).get("status") != "complete-merged-a094ec469f311bc6cc11442ee5f850f5dc130e2f": errors.append("planned PR #14 completion state drift")
-        if by_pr.get(15, {}).get("status") != "active-implemented-in-current-change": errors.append("planned PR #15 active state drift")
-        if by_pr.get(16, {}).get("status") != "planned": errors.append("planned PR #16 must remain planned")
-    rules = roadmap.get("rules")
-    required_rule = "No information comparison is licensed by shared vocabulary, scalar codomain, unit, functional name, or numeric equality alone; comparison requires the declared InformationSpec relation or an explicit registered conversion."
-    if not isinstance(rules, list) or required_rule not in rules:
-        errors.append("information roadmap comparability hard rule missing")
-
-    if base.get("information_comparability_authority") != EXPECTED_CENTRAL_AUTHORITY:
-        errors.append("central Information Comparability authority registration drift")
-    library = base.get("experiment_library")
-    if not isinstance(library, dict) or library.get("information_comparability_receipt_runner") != "experiments/run_information_comparability.py" or library.get("information_comparability_receipt_version") != "1.0.0":
-        errors.append("central Information Comparability receipt registry drift")
-    hard_rules = base.get("hard_rules")
-    expected_hard_rules = {
-        "same_information_word_implies_same_functional": False,
-        "numeric_equality_implies_information_equivalence": False,
-        "same_unit_implies_information_comparability": False,
-        "unit_conversion_implies_semantic_bridge": False,
-    }
-    if not isinstance(hard_rules, dict) or any(hard_rules.get(k) is not v for k, v in expected_hard_rules.items()):
-        errors.append("central Information Comparability hard-rule registration drift")
-    reads = base.get("required_agent_reads")
-    required_reads = {
-        "theory/INFORMATION_COMPARABILITY.md",
-        "machine/information_comparability_contract.json",
-        "machine/information_comparability_results.json",
-        "scripts/validate_information_comparability.py",
-        "experiments/run_information_comparability.py",
-    }
-    if not isinstance(reads, list) or not required_reads.issubset(set(reads)):
-        errors.append("central Information Comparability agent-read registration drift")
-
-    for text, anchors, label in (
-        (claims, ("### C11 - Information comparability is specification-relative", "SAME_WORD_INFORMATION != SAME_FUNCTIONAL", "NUMERIC_EQUALITY != INFORMATIONAL_EQUIVALENCE"), "claims"),
-        (readme, ("## Information comparability authority", "machine/information_comparability_contract.json", "COMPARABLE != IDENTICAL_SPEC"), "README4AI"),
-        (repro, ("## Information-comparability conformance boundary", "information-comparability-validation.json", "python scripts/validate_information_comparability.py"), "reproducibility"),
-    ):
-        for anchor in anchors:
-            if anchor not in text:
-                errors.append(f"{label} missing Information Comparability anchor: {anchor}")
-
-    combined = "\n".join((json.dumps(contract, ensure_ascii=False), json.dumps(results, ensure_ascii=False), human, claims, readme, repro))
-    lower = combined.casefold()
-    for token in PRIVATE_PATTERNS:
-        if token in lower: errors.append(f"information authority contains forbidden private locator: {token}")
-    for phrase in PROMOTION_PATTERNS:
-        if phrase in lower: errors.append(f"information authority contains forbidden promotion: {phrase}")
-
-    return {
-        "status": "error" if errors else "ok",
-        "errors": errors,
-        "result_count": len(by_id),
-        "boundary_count": len(contract.get("hard_boundaries", [])) if isinstance(contract.get("hard_boundaries"), list) else 0,
-    }
+    old_loader = _frozen.load_json
+    try:
+        _frozen.load_json = _historical_load_json
+        result = _frozen.validate()
+    finally:
+        _frozen.load_json = old_loader
+    errors = list(result.get("errors", []))
+    errors.extend(_live_roadmap_errors())
+    result["errors"] = errors
+    result["status"] = "error" if errors else "ok"
+    return result
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser()
+    parser = __import__("argparse").ArgumentParser()
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
     result = validate()
