@@ -1,0 +1,103 @@
+{
+  "type": "uft-id-epistemic-bridge-result-registry",
+  "schema_version": "1.0.0",
+  "snapshot_date": "2026-08-24",
+  "records": [
+    {
+      "id": "UFT-EP-001",
+      "name": "Authority-neutral structural transport",
+      "claim_class": "PROVED",
+      "statement": "A licensed authority-neutral BridgeCore transport preserves every epistemic evidence/authority field exactly and may only restrict scope by intersection.",
+      "hypotheses": ["E is a valid EpistemicState", "B is a BridgeCore bridge", "scope(E) intersect scope(B) is nonempty"],
+      "proof_reference": "theory/EPISTEMIC_BRIDGE.md#uft-ep-001-authority-neutral-structural-transport",
+      "executable_evidence": ["experiments/epistemic_bridge/run.py", "tests/test_epistemic_bridge.py"],
+      "nonclaims": ["Structural transport does not increase truth, credibility, verification, or empirical validity."]
+    },
+    {
+      "id": "UFT-EP-002",
+      "name": "Verification requires an explicit verification receipt",
+      "claim_class": "PROVED",
+      "statement": "Within the Epistemic Bridge operations, retrieve, infer, execute, conflict-recording, and structural transport do not create verification receipts; verification status changes only through an explicit verification operation carrying a receipt.",
+      "hypotheses": ["all operations start from valid EpistemicState values", "verification is represented only by verification_receipts"],
+      "proof_reference": "theory/EPISTEMIC_BRIDGE.md#uft-ep-002-verification-requires-an-explicit-verification-receipt",
+      "executable_evidence": ["experiments/epistemic_bridge/run.py", "tests/test_epistemic_bridge.py"],
+      "nonclaims": ["A verification receipt records a checked operation under declared scope; it is not a universal truth certificate."]
+    },
+    {
+      "id": "UFT-EP-003",
+      "name": "Conflict is distinct from unknown",
+      "claim_class": "PROVED",
+      "statement": "For every valid EpistemicState, Conflict(E) implies not Unknown(E).",
+      "hypotheses": ["E is a valid EpistemicState", "nonempty conflict_refs requires nonempty evidence_refs"],
+      "proof_reference": "theory/EPISTEMIC_BRIDGE.md#uft-ep-003-conflict-is-distinct-from-unknown",
+      "executable_evidence": ["experiments/epistemic_bridge/run.py", "tests/test_epistemic_bridge.py"],
+      "nonclaims": ["Conflict does not imply that every conflicting source is false or that one side has been adjudicated."]
+    },
+    {
+      "id": "UFT-EP-004",
+      "name": "Repeated neutral transport cannot accumulate authority",
+      "claim_class": "PROVED",
+      "statement": "Any finite composition of licensed authority-neutral transports preserves the epistemic authority vector exactly; only scope may monotonically narrow.",
+      "hypotheses": ["every transport step is licensed", "every step uses authority-neutral Epistemic Bridge transport"],
+      "proof_reference": "theory/EPISTEMIC_BRIDGE.md#uft-ep-004-repeated-neutral-transport-cannot-accumulate-authority",
+      "executable_evidence": ["experiments/epistemic_bridge/run.py", "tests/test_epistemic_bridge.py"],
+      "nonclaims": ["Repeated copying, retrieval, or transport does not create independent corroboration by itself."]
+    },
+    {
+      "id": "UFT-EP-005",
+      "name": "Scope is non-expansive under transport",
+      "claim_class": "PROVED",
+      "statement": "For licensed transport E -> E', scope(E') is a subset of both scope(E) and the bridge scope.",
+      "hypotheses": ["scope(E) intersect scope(B) is nonempty"],
+      "proof_reference": "theory/EPISTEMIC_BRIDGE.md#uft-ep-005-scope-is-non-expansive-under-transport",
+      "executable_evidence": ["experiments/epistemic_bridge/run.py", "tests/test_epistemic_bridge.py"],
+      "nonclaims": ["Scope overlap licenses bookkeeping transport only; it does not validate a claim in the target domain."]
+    },
+    {
+      "id": "CX-EP-001",
+      "name": "Retrieved is not verified",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "A state can contain retrieved evidence while verification_receipts remains empty.",
+      "fixture": "retrieved-source-without-verification",
+      "evidence": ["experiments/epistemic_bridge/run.py", "tests/test_epistemic_bridge.py"],
+      "nonclaims": ["Retrieval success says nothing by itself about source truth or correctness."]
+    },
+    {
+      "id": "CX-EP-002",
+      "name": "Inferred is not verified",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "A state can record an inference and evidence while verification_receipts remains empty.",
+      "fixture": "inference-without-verification",
+      "evidence": ["experiments/epistemic_bridge/run.py", "tests/test_epistemic_bridge.py"],
+      "nonclaims": ["Inference provenance does not certify the inference as true."]
+    },
+    {
+      "id": "CX-EP-003",
+      "name": "Executed is not verified",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "A state can contain an execution receipt and evidence while verification_receipts remains empty.",
+      "fixture": "execution-without-verification",
+      "evidence": ["experiments/epistemic_bridge/run.py", "tests/test_epistemic_bridge.py"],
+      "nonclaims": ["Successful execution is not empirical validation or semantic verification."]
+    },
+    {
+      "id": "CX-EP-004",
+      "name": "Conflict is not unknown",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "An evidence-backed conflict state is not unknown under the EpistemicState definition.",
+      "fixture": "evidence-backed-conflict",
+      "evidence": ["experiments/epistemic_bridge/run.py", "tests/test_epistemic_bridge.py"],
+      "nonclaims": ["Conflict does not choose which incompatible claim is correct."]
+    },
+    {
+      "id": "CX-EP-005",
+      "name": "Verified conflict is representable",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "A valid state can contain both verification_receipts and conflict_refs.",
+      "fixture": "verified-source-with-unresolved-conflict",
+      "evidence": ["experiments/epistemic_bridge/run.py", "tests/test_epistemic_bridge.py"],
+      "nonclaims": ["Verification of an evidence object does not erase incompatible evidence or prove the represented proposition true."]
+    }
+  ],
+  "claim_boundary": "STRUCTURAL_TRANSPORT != AUTHORITY_PROMOTION != TRUTH; CONFLICT != UNKNOWN; VERIFIED != CONFLICT_FREE"
+}
