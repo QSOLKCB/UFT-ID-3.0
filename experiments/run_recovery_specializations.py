@@ -13,6 +13,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 VALIDATOR = ROOT / "scripts/validate_recovery_specializations.py"
 EXPERIMENT = ROOT / "experiments/recovery_specializations/run.py"
+BASE_CONTRACT = ROOT / "machine/contract.json"
 RECEIPT_VERSION = "1.0.0"
 
 CORE_FILES = [
@@ -20,8 +21,12 @@ CORE_FILES = [
     "machine/recovery_specialization_results.json",
     "machine/relation_contract.json",
     "machine/roadmap_state.json",
+    "machine/contract.json",
     "theory/RECOVERY_SPECIALIZATIONS.md",
     "theory/RELATION_CALCULUS.md",
+    "README4AI.md",
+    "docs/CLAIMS.md",
+    "docs/REPRODUCIBILITY.md",
     "ROADMAP.md",
     "scripts/validate_recovery_specializations.py",
     "scripts/verify_recovery_specialization_artifacts.py",
@@ -29,7 +34,7 @@ CORE_FILES = [
     "experiments/recovery_specializations/run.py",
     "tests/test_recovery_specializations.py",
     "experiments/run_recovery_specializations.py",
-    ".github/workflows/recovery-specializations.yml",
+    ".github/workflows/finite-adversarial.yml",
 ]
 
 
@@ -48,6 +53,19 @@ def load_module(name: str, path: Path):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def registered_receipt_version() -> str:
+    payload = json.loads(BASE_CONTRACT.read_text(encoding="utf-8"))
+    authority = payload.get("recovery_specialization_authority")
+    library = payload.get("experiment_library")
+    if not isinstance(authority, dict) or not isinstance(library, dict):
+        raise RuntimeError("Recovery Specializations receipt registries must be objects")
+    a = authority.get("receipt_version")
+    b = library.get("recovery_specialization_receipt_version")
+    if not isinstance(a, str) or not a or a != b or a != RECEIPT_VERSION:
+        raise RuntimeError("Recovery Specializations receipt version registry disagreement")
+    return a
 
 
 def declared_evidence_paths() -> set[str]:
@@ -101,7 +119,7 @@ def run_suite() -> dict[str, object]:
     lex = witness["bounded_checks"]["lexicographic"]
     identity = {
         "type": "uft-id-recovery-specialization-receipt",
-        "schema_version": RECEIPT_VERSION,
+        "schema_version": registered_receipt_version(),
         "source_sha256": {path: sha256_bytes((ROOT / path).read_bytes()) for path in files},
         "declared_evidence_paths": sorted(declared_evidence_paths()),
         "result_sha256": sha256_bytes(canonical_bytes(witness)),
