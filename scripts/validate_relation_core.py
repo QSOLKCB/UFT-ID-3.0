@@ -41,18 +41,18 @@ EXPECTED_ROADMAP_SEQUENCE = [
     (13, "epistemic-bridge-specialization", "complete-merged-083aa9ae9e812cae86302d856f70ad83e5cf806b"),
     (14, "representation-and-congruence-calculus", "complete-merged-a094ec469f311bc6cc11442ee5f850f5dc130e2f"),
     (15, "information-comparability-core", "complete-merged-22b589c4e2e2042d180d64db837f092a007e0813"),
-    (16, "recovery-specializations", "active-implemented-in-current-change"),
-    (17, "continuum-stochastic-prevalence-obligations", "planned"),
+    (16, "recovery-specializations", "complete-merged-2f2cdd2af195a2e74a55e14abfbc4f88e0901a8f"),
+    (17, "continuum-stochastic-prevalence-obligations", "active-implemented-in-current-change"),
     (18, "empirical-falsification-profile", "planned"),
 ]
 
 EXPECTED_ROADMAP_STATE = {
     "type": "uft-id-roadmap-state",
-    "schema_version": "1.4.0",
+    "schema_version": "1.5.0",
     "snapshot_date": "2026-08-24",
-    "basis_commit": "22b589c4e2e2042d180d64db837f092a007e0813",
-    "completed": [5, 6, 7, 8, 9, 11, 12, 13, 14, 15],
-    "active_planned_surface": 16,
+    "basis_commit": "2f2cdd2af195a2e74a55e14abfbc4f88e0901a8f",
+    "completed": [5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16],
+    "active_planned_surface": 17,
     "deferred": [10],
     "sequence": [
         {"planned_pr": 9, "surface": "deterministic-observation-calculus", "status": "complete"},
@@ -62,11 +62,11 @@ EXPECTED_ROADMAP_STATE = {
         {"planned_pr": 13, "surface": "epistemic-bridge-specialization", "status": "complete-merged-083aa9ae9e812cae86302d856f70ad83e5cf806b"},
         {"planned_pr": 14, "surface": "representation-and-congruence-calculus", "status": "complete-merged-a094ec469f311bc6cc11442ee5f850f5dc130e2f"},
         {"planned_pr": 15, "surface": "information-comparability-core", "status": "complete-merged-22b589c4e2e2042d180d64db837f092a007e0813"},
-        {"planned_pr": 16, "surface": "recovery-specializations", "status": "active-implemented-in-current-change"},
-        {"planned_pr": 17, "surface": "continuum-stochastic-prevalence-obligations", "status": "planned"},
+        {"planned_pr": 16, "surface": "recovery-specializations", "status": "complete-merged-2f2cdd2af195a2e74a55e14abfbc4f88e0901a8f"},
+        {"planned_pr": 17, "surface": "continuum-stochastic-prevalence-obligations", "status": "active-implemented-in-current-change"},
         {"planned_pr": 18, "surface": "empirical-falsification-profile", "status": "planned"},
     ],
-    "compatibility_note": "machine/formalization_contract.json retains the PR9-era roadmap_rebase snapshot; frozen PR11, BridgeCore, Epistemic Bridge, Representation, and Information Comparability authorities retain their own historical theorem semantics. This file is the live post-Information-Comparability schedule authority.",
+    "compatibility_note": "machine/formalization_contract.json retains the PR9-era roadmap_rebase snapshot; frozen PR11, BridgeCore, Epistemic Bridge, Representation, Information Comparability, and Recovery theorem authorities retain their historical semantics. This file is the live post-Recovery schedule authority.",
     "fixture_policy": "Minimal fixtures travel with the theorem or counterexample that requires them.",
     "rules": [
         "NO_GIANT_FORMALIZATION_PR",
@@ -80,15 +80,17 @@ EXPECTED_ROADMAP_STATE = {
         "Similarity, congruence, coordinate change, and receiver re-encoding remain separately typed and cannot imply semantic or physical identity by name alone.",
         "No information comparison is licensed by shared vocabulary, scalar codomain, unit, functional name, or numeric equality alone; comparison requires the declared InformationSpec relation or an explicit registered conversion.",
         "A deterministic recovery selector is a specialization of the generic relation only when its non-fixed steps are relation-sound; executable normalization additionally requires explicit termination/progress and fixed-point/normal-state obligations.",
+        "Stochastic, prevalence, infinite-horizon, and continuum claims require separately declared probability/measure and lifting obligations; finite reachability, finite samples, counterexamples, or grid conformance cannot supply them by default.",
     ],
 }
 
 
 def _live_roadmap_errors(roadmap_state: dict[str, object]) -> list[str]:
     errors: list[str] = []
-    if roadmap_state.get("active_planned_surface") != 16:
+    if roadmap_state.get("active_planned_surface") != 17:
+        errors.append("live roadmap active planned surface must be PR17")
         errors.append("live roadmap active planned surface must be PR16")
-    if roadmap_state.get("completed") != [5, 6, 7, 8, 9, 11, 12, 13, 14, 15]:
+    if roadmap_state.get("completed") != [5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16]:
         errors.append("live roadmap completed set drift")
     sequence = roadmap_state.get("sequence")
     actual_sequence: list[tuple[object, object, object]] = []
