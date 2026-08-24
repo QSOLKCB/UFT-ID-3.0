@@ -1,0 +1,103 @@
+{
+  "type": "uft-id-representation-result-registry",
+  "schema_version": "1.0.0",
+  "snapshot_date": "2026-08-24",
+  "records": [
+    {
+      "id": "UFT-REP-001",
+      "name": "Similarity preserves characteristic polynomial",
+      "claim_class": "PROVED",
+      "statement": "If B=P^{-1}AP for an invertible finite-dimensional change of basis P over R or C, then A and B have the same characteristic polynomial; therefore trace, determinant, and rank are preserved.",
+      "hypotheses": ["A and B are square matrices over R or C", "P is invertible", "B=P^{-1}AP"],
+      "proof_reference": "theory/REPRESENTATION_CALCULUS.md#uft-rep-001-similarity-preserves-characteristic-polynomial",
+      "executable_evidence": ["experiments/representation_calculus/run.py", "tests/test_representation_calculus.py"],
+      "nonclaims": ["Sharing a characteristic polynomial does not imply similarity in general."]
+    },
+    {
+      "id": "UFT-REP-002",
+      "name": "Orthogonal or unitary similarity preserves Frobenius norm",
+      "claim_class": "PROVED",
+      "statement": "Orthogonal similarity over R and unitary similarity over C are similarity transformations and additionally preserve the Frobenius norm.",
+      "hypotheses": ["B=Q^T A Q with Q^TQ=I over R, or B=U^* A U with U^*U=I over C"],
+      "proof_reference": "theory/REPRESENTATION_CALCULUS.md#uft-rep-002-orthogonal-or-unitary-similarity-preserves-frobenius-norm",
+      "executable_evidence": ["experiments/representation_calculus/run.py", "tests/test_representation_calculus.py"],
+      "nonclaims": ["Ordinary similarity need not preserve the Frobenius norm."]
+    },
+    {
+      "id": "UFT-REP-003",
+      "name": "Invertible congruence preserves rank",
+      "claim_class": "PROVED",
+      "statement": "If B=P^TAP over R with P invertible, then rank(B)=rank(A); if A is symmetric then B is symmetric. Congruence does not generally preserve eigenvalues.",
+      "hypotheses": ["A is a real square matrix", "P is invertible", "B=P^TAP"],
+      "proof_reference": "theory/REPRESENTATION_CALCULUS.md#uft-rep-003-invertible-congruence-preserves-rank",
+      "executable_evidence": ["experiments/representation_calculus/run.py", "tests/test_representation_calculus.py"],
+      "nonclaims": ["Congruence is not spectral equivalence and is not interchangeable with similarity."]
+    },
+    {
+      "id": "UFT-REP-004",
+      "name": "Coordinate change preserves abstract linear action",
+      "claim_class": "PROVED",
+      "statement": "For v'=P^{-1}v and A'=P^{-1}AP with P invertible, A'v'=P^{-1}(Av); the coordinate representation changes while the represented linear action is covariant.",
+      "hypotheses": ["P is invertible", "v'=P^{-1}v", "A'=P^{-1}AP"],
+      "proof_reference": "theory/REPRESENTATION_CALCULUS.md#uft-rep-004-coordinate-change-preserves-abstract-linear-action",
+      "executable_evidence": ["experiments/representation_calculus/run.py", "tests/test_representation_calculus.py"],
+      "nonclaims": ["Coordinate covariance does not establish physical equivalence of independently modelled systems."]
+    },
+    {
+      "id": "UFT-REP-005",
+      "name": "Injective receiver re-encoding preserves observation equivalence",
+      "claim_class": "PROVED",
+      "statement": "For a deterministic observation O:S->Y and receiver map R:Y->Z that is injective on im(O), R(O(x))=R(O(y)) iff O(x)=O(y); hence the observation fibres are unchanged.",
+      "hypotheses": ["O:S->Y is deterministic", "R:Y->Z is injective on im(O)"],
+      "proof_reference": "theory/REPRESENTATION_CALCULUS.md#uft-rep-005-injective-receiver-re-encoding-preserves-observation-equivalence",
+      "executable_evidence": ["experiments/representation_calculus/run.py", "tests/test_representation_calculus.py"],
+      "nonclaims": ["A noninjective receiver map may merge observation classes and therefore changes the observation equivalence relation."]
+    },
+    {
+      "id": "CX-REP-001",
+      "name": "Congruent need not be similar",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "I2 and diag(4,1) are congruent via P=diag(2,1) but are not similar because their traces and characteristic polynomials differ.",
+      "fixture": "I2 --congruence by diag(2,1)--> diag(4,1)",
+      "evidence": ["experiments/representation_calculus/run.py", "tests/test_representation_calculus.py"],
+      "nonclaims": ["The counterexample distinguishes equivalence notions only; it makes no physical claim."]
+    },
+    {
+      "id": "CX-REP-002",
+      "name": "Similar need not be orthogonally similar",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "diag(1,2) is similar via a shear to [[1,-1],[0,2]], but their Frobenius norms differ, so they cannot be orthogonally similar.",
+      "fixture": "diag(1,2) with P=[[1,1],[0,1]]",
+      "evidence": ["experiments/representation_calculus/run.py", "tests/test_representation_calculus.py"],
+      "nonclaims": ["Failure of orthogonal similarity does not refute ordinary similarity."]
+    },
+    {
+      "id": "CX-REP-003",
+      "name": "Same characteristic polynomial need not imply similarity",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "I2 and the nontrivial Jordan block [[1,1],[0,1]] have the same characteristic polynomial but are not similar because rank(A-I) differs.",
+      "fixture": "I2 versus J2(1)",
+      "evidence": ["experiments/representation_calculus/run.py", "tests/test_representation_calculus.py"],
+      "nonclaims": ["Characteristic-polynomial equality is a necessary similarity invariant, not a complete classifier."]
+    },
+    {
+      "id": "CX-REP-004",
+      "name": "Noninjective receiver re-encoding can merge fibres",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "An observation distinguishing x0 and x1 can become indistinguishable after a receiver map sends both observation values to one output.",
+      "fixture": "O(x0)=0,O(x1)=1 with R(0)=R(1)=z",
+      "evidence": ["experiments/representation_calculus/run.py", "tests/test_representation_calculus.py"],
+      "nonclaims": ["Receiver-induced merging is representation loss, not evidence of physical state merging."]
+    },
+    {
+      "id": "CX-REP-005",
+      "name": "Coordinate tuple alone does not identify an abstract vector",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "The coordinate tuple (1,0) denotes different abstract vectors in the standard basis and in the swapped basis; the chart/basis is part of the representation.",
+      "fixture": "(1,0) in (e1,e2) versus (1,0) in (e2,e1)",
+      "evidence": ["experiments/representation_calculus/run.py", "tests/test_representation_calculus.py"],
+      "nonclaims": ["This is a coordinate-identity counterexample, not a claim that abstract vectors lack identity."]
+    }
+  ],
+  "claim_boundary": "SIMILARITY != CONGRUENCE; COORDINATE_TUPLE != ABSTRACT_OBJECT; RECEIVER_REENCODING != STATE_TRANSFORMATION; FINITE_REPRESENTATION_CONFORMANCE != GENERAL_PROOF"
+}
