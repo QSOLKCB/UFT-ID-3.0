@@ -63,7 +63,9 @@
     "bridge_core_receipt_runner": "experiments/run_bridge_core.py",
     "bridge_core_receipt_version": "1.0.1",
     "epistemic_bridge_receipt_runner": "experiments/run_epistemic_bridge.py",
-    "epistemic_bridge_receipt_version": "1.0.0"
+    "epistemic_bridge_receipt_version": "1.0.0",
+    "representation_receipt_runner": "experiments/run_representation_calculus.py",
+    "representation_receipt_version": "1.0.0"
   },
   "finite_result_authority": {
     "human": "theory/FINITE_RESULTS.md",
@@ -122,6 +124,19 @@
     "base_bridge_authority": "machine/bridge_core_contract.json",
     "roadmap_state": "machine/roadmap_state.json",
     "rule": "Epistemic Bridge factorizes evidence, retrieval, inference, verification, execution, conflict, and scope; structural transport is authority-neutral and no global epistemic lattice or truth oracle is implied."
+  },
+  "representation_authority": {
+    "human": "theory/REPRESENTATION_CALCULUS.md",
+    "machine_contract": "machine/representation_contract.json",
+    "machine_results": "machine/representation_results.json",
+    "validator": "scripts/validate_representation_calculus.py",
+    "experiment": "experiments/representation_calculus/run.py",
+    "tests": "tests/test_representation_calculus.py",
+    "receipt_runner": "experiments/run_representation_calculus.py",
+    "receipt_version": "1.0.0",
+    "artifact_verifier": "scripts/verify_representation_artifacts.py",
+    "roadmap_state": "machine/roadmap_state.json",
+    "rule": "Representation equivalence is transformation-class-relative: similarity, orthogonal/unitary similarity, congruence, coordinate change, and receiver re-encoding preserve only their declared invariants and never imply semantic, epistemic, empirical, or physical identity by themselves."
   },
   "vopson_corpus_authority": {
     "author": "research/vopson/AUTHOR.json",
@@ -226,7 +241,12 @@
     "inference_implies_verification": false,
     "execution_implies_verification": false,
     "conflict_equals_unknown": false,
-    "verified_implies_true": false
+    "verified_implies_true": false,
+    "similarity_implies_congruence": false,
+    "congruence_implies_spectral_equivalence": false,
+    "coordinate_tuple_implies_abstract_identity": false,
+    "noninjective_receiver_reencoding_preserves_observation_equivalence": false,
+    "representation_equivalence_implies_physical_identity": false
   },
   "vopson": {
     "orcid": "0000-0002-8073-5538",
@@ -246,6 +266,7 @@
     "theory/GRAPH_REALIZATION.md", "machine/finite_results.json", "machine/cross_repo_patterns.json", "machine/cross_repo_results.json", "machine/graph_realization_contract.json", "machine/graph_realization_results.json",
     "theory/BRIDGE_CORE.md", "machine/bridge_core_contract.json", "machine/bridge_core_results.json", "scripts/validate_bridge_core.py", "experiments/run_bridge_core.py",
     "theory/EPISTEMIC_BRIDGE.md", "machine/epistemic_bridge_contract.json", "machine/epistemic_bridge_results.json", "scripts/validate_epistemic_bridge.py", "experiments/run_epistemic_bridge.py",
+    "theory/REPRESENTATION_CALCULUS.md", "machine/representation_contract.json", "machine/representation_results.json", "scripts/validate_representation_calculus.py", "experiments/run_representation_calculus.py",
     "research/CROSS_REPO_PATTERN_ATLAS.md", "research/GRAPH_REALIZATION_SOURCES.md", "research/vopson/AUTHOR.json", "research/vopson/CORPUS.md", "research/vopson/corpus.json", "research/vopson/CLAIM_GRAPH.md",
     "research/vopson/CLAIM_GRAPH.json", "research/vopson/DEFINITIONS.md", "research/vopson/REPRODUCTION_MATRIX.md", "research/vopson/COUNTEREXAMPLE_MATRIX.md", "research/vopson/RESPONSE_HISTORY.md",
     "research/vopson/reproduction/2019-mei/SOURCE_MAP.md", "research/vopson/reproduction/2019-mei/DERIVATION.md", "research/vopson/reproduction/2019-mei/ASSUMPTION_GRAPH.json",
