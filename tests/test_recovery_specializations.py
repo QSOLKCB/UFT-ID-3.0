@@ -54,6 +54,13 @@ class RecoverySpecializationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "relation-sound"):
             R.normalize_ranked(states, relation, selector, {"a": 1, "b": 0, "c": 0}, "a")
 
+    def test_executable_normalizer_rejects_partial_selector(self):
+        states = ("a", "b")
+        relation = R.make_relation(states, (("b", "a"),))
+        partial_selector = {"a": "a"}
+        with self.assertRaisesRegex(ValueError, "selector must be total"):
+            R.normalize_ranked(states, relation, partial_selector, {"a": 0}, "a")
+
     def test_relation_sound_selector_can_loop_without_rank(self):
         states = (0, 1)
         selector = R.make_selector(states, {0: 1, 1: 0})
@@ -79,6 +86,15 @@ class RecoverySpecializationTests(unittest.TestCase):
         self.assertEqual(R.lexicographic_select(("b", "c"), objectives, ("c", "b")), "c")
         with self.assertRaisesRegex(ValueError, "final tie-break"):
             R.lexicographic_select(("b", "c"), objectives, ("b",))
+
+    def test_lexicographic_selection_rejects_noninteger_and_nan_objectives(self):
+        malformed = {"a": (float("nan"),), "b": (0.0,)}
+        with self.assertRaisesRegex(ValueError, "finite integers"):
+            R.lexicographic_select(("a", "b"), malformed, ("b", "a"))
+        with self.assertRaisesRegex(ValueError, "finite integers"):
+            R.lexicographic_select(("b", "a"), malformed, ("b", "a"))
+        with self.assertRaisesRegex(ValueError, "finite integers"):
+            R.lexicographic_select(("a", "b"), {"a": (True,), "b": (0,)}, ("a", "b"))
 
     def test_counterexamples_are_derived(self):
         fixtures = self.suite["fixtures"]
