@@ -46,7 +46,7 @@
     "base_relation": "machine/relation_contract.json",
     "roadmap_state": "machine/roadmap_state.json",
     "roadmap": "ROADMAP.md",
-    "workflow": ".github/workflows/recovery-specializations.yml"
+    "workflow": ".github/workflows/finite-adversarial.yml"
   },
   "explicit_deferrals": [
     "infinite-path fairness and liveness",
