@@ -24,6 +24,10 @@ but relation, observation, bridge, epistemic, representation, information, recov
 
 ## Completed
 
+### Phase 0: lineage and provenance — COMPLETE
+
+### 2019 MEI reproduction — COMPLETE
+
 - [x] Phase 0 — lineage and provenance.
 - [x] PR #5 — cross-repository formal patterns.
 - [x] PR #6 — VOP-2019-MEI arithmetic reproduction.
