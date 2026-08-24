@@ -1,0 +1,131 @@
+{
+  "type": "uft-id-empirical-falsification-profile-result-registry",
+  "schema_version": "1.0.0",
+  "snapshot_date": "2026-08-25",
+  "records": [
+    {
+      "id": "UFT-EFP-001",
+      "name": "Empirical rejection requires complete profile-matched evidence",
+      "claim_class": "PROVED",
+      "statement": "Under the declared EmpiricalFalsificationProfile semantics, any evidence record with missing, malformed, or mismatched observable identity, measurement-spec identity, calibration identity, uncertainty, provenance, or profile fingerprint evaluates to INVALID_EVIDENCE and cannot license REJECTED_IN_SCOPE.",
+      "hypotheses": [
+        "the empirical profile is valid and versioned",
+        "decision evaluation uses the profile's declared evidence requirements",
+        "profile identity includes all decision-bearing fields"
+      ],
+      "proof_reference": "theory/EMPIRICAL_FALSIFICATION_PROFILE.md#uft-efp-001-empirical-rejection-requires-complete-profile-matched-evidence",
+      "executable_evidence": ["experiments/empirical_falsification_profile/run.py", "tests/test_empirical_falsification_profile.py"],
+      "nonclaims": ["Evidence completeness establishes only eligibility for the declared decision procedure; it does not establish truth, causal validity, adequate statistical power, or independent replication."]
+    },
+    {
+      "id": "UFT-EFP-002",
+      "name": "A rejection decision is scoped to one hypothesis version",
+      "claim_class": "PROVED",
+      "statement": "If valid profile-matched evidence satisfies the preregistered rejection rule, the licensed decision is REJECTED_IN_SCOPE for the declared hypothesis_id, hypothesis_version, profile_version, and scope; no broader theory or adjacent hypothesis is rejected by this decision alone.",
+      "hypotheses": [
+        "the evidence is valid under UFT-EFP-001",
+        "the preregistered rejection rule evaluates true",
+        "the hypothesis and profile versions are fixed before decision evaluation"
+      ],
+      "proof_reference": "theory/EMPIRICAL_FALSIFICATION_PROFILE.md#uft-efp-002-a-rejection-decision-is-scoped-to-one-hypothesis-version",
+      "executable_evidence": ["experiments/empirical_falsification_profile/run.py", "tests/test_empirical_falsification_profile.py"],
+      "nonclaims": ["REJECTED_IN_SCOPE is not automatic global theory refutation, mechanism identification, or evidence that every related formulation is false."]
+    },
+    {
+      "id": "UFT-EFP-003",
+      "name": "Failure to reject is not confirmation",
+      "claim_class": "PROVED",
+      "statement": "If valid evidence is neither rejected nor inconclusive under the declared profile, the licensed decision is NOT_REJECTED_IN_SCOPE; that decision does not imply confirmation, truth, high probability, unique explanation, or absence of future counterevidence.",
+      "hypotheses": [
+        "the evidence is valid under UFT-EFP-001",
+        "the rejection rule evaluates false",
+        "the uncertainty interval does not overlap the rejection boundary"
+      ],
+      "proof_reference": "theory/EMPIRICAL_FALSIFICATION_PROFILE.md#uft-efp-003-failure-to-reject-is-not-confirmation",
+      "executable_evidence": ["experiments/empirical_falsification_profile/run.py", "tests/test_empirical_falsification_profile.py"],
+      "nonclaims": ["NOT_REJECTED_IN_SCOPE carries no confirmation or posterior-probability semantics unless a separately declared inferential framework supplies them."]
+    },
+    {
+      "id": "UFT-EFP-004",
+      "name": "Boundary-overlapping uncertainty is inconclusive",
+      "claim_class": "PROVED",
+      "statement": "For the declared exact interval decision rule, if a valid measurement interval overlaps both sides of the rejection threshold, the licensed decision is INCONCLUSIVE rather than REJECTED_IN_SCOPE or NOT_REJECTED_IN_SCOPE.",
+      "hypotheses": [
+        "measurement value and uncertainty radius are exact rational quantities",
+        "uncertainty is interpreted as the closed interval [value-radius,value+radius]",
+        "the profile rejection rule is threshold-based and preregistered"
+      ],
+      "proof_reference": "theory/EMPIRICAL_FALSIFICATION_PROFILE.md#uft-efp-004-boundary-overlapping-uncertainty-is-inconclusive",
+      "executable_evidence": ["experiments/empirical_falsification_profile/run.py", "tests/test_empirical_falsification_profile.py"],
+      "nonclaims": ["This exact interval control is not a general confidence-interval, Bayesian credible-interval, or measurement-error theorem."]
+    },
+    {
+      "id": "UFT-EFP-005",
+      "name": "Empirical fit does not imply a unique explanation",
+      "claim_class": "PROVED",
+      "statement": "If one observation lies in the declared prediction sets of two or more candidate models, empirical fit to that observation does not uniquely identify which candidate generated it; uniqueness requires an additional discriminating result or model-selection argument.",
+      "hypotheses": [
+        "candidate prediction sets are declared before evaluating the observation",
+        "at least two candidate prediction sets contain the same observation"
+      ],
+      "proof_reference": "theory/EMPIRICAL_FALSIFICATION_PROFILE.md#uft-efp-005-empirical-fit-does-not-imply-a-unique-explanation",
+      "executable_evidence": ["experiments/empirical_falsification_profile/run.py", "tests/test_empirical_falsification_profile.py"],
+      "nonclaims": ["The result does not deny that additional discriminating measurements, likelihood models, interventions, or independent evidence can support model selection."]
+    },
+    {
+      "id": "CX-EFP-001",
+      "name": "A formal counterexample without empirical evidence is not empirical falsification",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "A mathematically valid counterexample object with no calibrated measurement, uncertainty, provenance, or profile identity remains a formal counterexample and evaluates as INVALID_EVIDENCE under the empirical profile.",
+      "fixture": "formal counterexample token submitted without an empirical evidence record",
+      "evidence": ["experiments/empirical_falsification_profile/run.py", "tests/test_empirical_falsification_profile.py"],
+      "nonclaims": ["The fixture does not diminish the mathematical force of a formal counterexample against a universal mathematical proposition; it separates that role from empirical falsification."]
+    },
+    {
+      "id": "CX-EFP-002",
+      "name": "Missing calibration cannot license empirical rejection",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "A numerically rejection-side observation paired with the wrong calibration identity evaluates as INVALID_EVIDENCE rather than REJECTED_IN_SCOPE.",
+      "fixture": "rejection-side exact observation with mismatched calibration identity",
+      "evidence": ["experiments/empirical_falsification_profile/run.py", "tests/test_empirical_falsification_profile.py"],
+      "nonclaims": ["The fixture does not claim every calibration mismatch changes the underlying physical quantity; it requires declared calibration identity before this profile can evaluate the evidence."]
+    },
+    {
+      "id": "CX-EFP-003",
+      "name": "Uncertainty can make a threshold result inconclusive",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "A point estimate on the rejection side can still produce INCONCLUSIVE when its declared uncertainty interval crosses the preregistered rejection threshold.",
+      "fixture": "value 1 with uncertainty radius 1 around threshold 0",
+      "evidence": ["experiments/empirical_falsification_profile/run.py", "tests/test_empirical_falsification_profile.py"],
+      "nonclaims": ["The fixture is an exact interval semantics control, not a prescription for statistical confidence intervals or laboratory uncertainty models."]
+    },
+    {
+      "id": "CX-EFP-004",
+      "name": "A non-rejected synthetic measurement does not confirm the hypothesis",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "A valid synthetic measurement entirely inside the non-rejection region produces NOT_REJECTED_IN_SCOPE and carries no confirmation flag or truth promotion.",
+      "fixture": "value -1 with zero uncertainty under a threshold-0 profile",
+      "evidence": ["experiments/empirical_falsification_profile/run.py", "tests/test_empirical_falsification_profile.py"],
+      "nonclaims": ["The fixture does not deny that a separately declared statistical framework can quantify support; it blocks an undeclared promotion from non-rejection to confirmation."]
+    },
+    {
+      "id": "CX-EFP-005",
+      "name": "One observation can fit multiple candidate models",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "The observation 0 belongs simultaneously to the declared prediction intervals of models A, B, and C in the finite fit control, so empirical compatibility alone does not select one explanation.",
+      "fixture": "three overlapping exact rational prediction intervals at observation 0",
+      "evidence": ["experiments/empirical_falsification_profile/run.py", "tests/test_empirical_falsification_profile.py"],
+      "nonclaims": ["The fixture does not assert that the candidate models are equally plausible under additional evidence or inferential assumptions."]
+    },
+    {
+      "id": "CX-EFP-006",
+      "name": "Changing the rejection threshold changes profile identity and can change the decision",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "For the same exact evidence value 1/2 with zero uncertainty, a threshold-0 profile rejects while a threshold-1 profile does not; the two profiles have different canonical fingerprints, so a post-hoc threshold change is a different decision contract rather than the same preregistered test.",
+      "fixture": "same evidence under two differently fingerprinted rejection thresholds",
+      "evidence": ["experiments/empirical_falsification_profile/run.py", "tests/test_empirical_falsification_profile.py"],
+      "nonclaims": ["The fixture does not ban justified protocol amendments; it requires them to be versioned and distinguished from the original preregistered decision rule."]
+    }
+  ],
+  "claim_boundary": "FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION; FAILURE_TO_REJECT != CONFIRMATION; EMPIRICAL_FIT != UNIQUE_EXPLANATION; REJECTION_IN_SCOPE != GLOBAL_THEORY_REFUTATION"
+}
