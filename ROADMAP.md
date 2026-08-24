@@ -306,7 +306,7 @@ EMPIRICAL_FIT != UNIQUE_EXPLANATION
 
 # Future positive-control programme — history-dependent topological metastability
 
-**Status:** ROADMAP-ONLY RESEARCH TARGET. Not part of the current theorem authority and not a renumbering of the PR #9-#18 schedule.
+**Status:** ROADMAP-ONLY RESEARCH TARGET. Not part of the current PR #11 theorem authority and not a renumbering of the PR #9-#18 schedule.
 
 ### Primary empirical source
 
@@ -398,7 +398,7 @@ and, only after the history semantics are defined, a possible augmented carrier:
 X_hat = X x H
 ```
 
-This belongs naturally with the later trace/history, nonergodicity, stochastic, and empirical-bridge work rather than the finite relation core.
+This belongs naturally with the later trace/history, nonergodicity, stochastic, and empirical-bridge work rather than the current finite relation core.
 
 ### Positive-control role
 
@@ -529,7 +529,7 @@ CONDITIONAL_DETERMINISM != ENSEMBLE_DETERMINISM
 EQUIVARIANCE_ASSUMED != EQUIVARIANCE_DERIVED
 WKB_CHARACTERISTIC != EXACT_PROPAGATOR
 DERIVED != ASSUMED != CONDITIONALLY_PREDICTED != EMPIRICALLY_OBSERVED
-MAP_NONUNIQUESS != OBSERVABLE_NONROBUSTNESS
+MAP_NONUNIQUENESS != OBSERVABLE_NONROBUSTNESS
 PREPRINT_PREDICTION != EXPERIMENTAL_RESULT
 FALSIFIABLE != VERIFIED
 (3,2)_SPACETIME_MODEL != UFT_ID_ONTOLOGY
