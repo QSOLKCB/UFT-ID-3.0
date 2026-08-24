@@ -342,13 +342,14 @@ FINITE_STOCHASTIC_CONFORMANCE != GENERAL_STOCHASTIC_OR_CONTINUUM_THEORY
 
 ## Empirical Falsification Profile authority
 
-The active planned PR #18 surface defines when a calibrated evidence record is eligible to reject one versioned scoped hypothesis. It specializes the PR8 `FalsificationSpec` scaffold without converting synthetic fixtures into empirical evidence.
+The active planned PR #18 surface defines a synthetic conformance procedure for deciding whether a calibrated profile-matched evidence record crosses one versioned scoped rejection boundary. It specializes the PR8 `FalsificationSpec` scaffold without converting synthetic fixtures, matching hashes, or procedural labels into empirical evidence or preregistration proof.
 
 ```text
 EmpiricalFalsificationProfile = (
   profile_id,
   hypothesis_id,
   hypothesis_version,
+  claim_class,
   scope,
   observable_id,
   measurement_spec_id,
@@ -359,6 +360,7 @@ EmpiricalFalsificationProfile = (
   rejection_rule,
   evidence_requirements,
   decision_policy,
+  prior_registration_status,
   profile_version
 )
 ```
@@ -376,7 +378,7 @@ scripts/verify_empirical_falsification_profile_artifacts.py
 tests/test_empirical_falsification_profile.py
 ```
 
-The decision envelope is `INVALID_EVIDENCE`, `INCONCLUSIVE`, `REJECTED_IN_SCOPE`, or `NOT_REJECTED_IN_SCOPE`. Profile identity binds the rejection threshold and all decision-bearing metadata. A threshold change is a new profile identity.
+The decision envelope is `INVALID_EVIDENCE`, `INCONCLUSIVE`, `REJECTED_IN_SCOPE`, or `NOT_REJECTED_IN_SCOPE`. Profile identity binds the rejection threshold and all decision-bearing metadata, but it does not prove registration chronology. The synthetic profile fixes `prior_registration_status=EXTERNAL_UNVERIFIED_ASSUMPTION`; its scoped rejection label is not an empirically licensed rejection until independent immutable preregistration provenance is verified.
 
 The exact synthetic battery checks 15 valid interval decisions, 60 invalid-evidence mutations, 15 model-fit memberships with 3 ambiguous observations, and 3 profile-fingerprint separation pairs.
 
@@ -389,6 +391,7 @@ REJECTION_IN_SCOPE != GLOBAL_THEORY_REFUTATION
 NUMERIC_OBSERVATION != CALIBRATED_MEASUREMENT
 MISSING_UNCERTAINTY != ZERO_UNCERTAINTY
 POST_HOC_THRESHOLD != PREREGISTERED_REJECTION_RULE
+PROFILE_FINGERPRINT != PREREGISTRATION_PROOF
 INCONCLUSIVE != NOT_REJECTED
 REPRODUCIBLE_ANALYSIS != INDEPENDENT_REPLICATION
 FINITE_EMPIRICAL_PROFILE_CONFORMANCE != GENERAL_STATISTICAL_INFERENCE
@@ -553,12 +556,13 @@ python experiments/run_pr6.py --json
 40. A numeric observation is not a calibrated measurement merely because it has a value.
 41. Missing uncertainty is not zero uncertainty.
 42. Changing a rejection threshold changes the decision profile identity; a post-hoc threshold is not the original preregistered rule.
-43. `INCONCLUSIVE != NOT_REJECTED_IN_SCOPE`.
-44. Reproducible analysis does not imply independent replication.
+43. A profile fingerprint binds content but does not prove preregistration chronology.
+44. `INCONCLUSIVE != NOT_REJECTED_IN_SCOPE`.
+45. Reproducible analysis does not imply independent replication.
 
 ## Lean
 
-Lean remains deferred until source reproduction, notation freeze, theorem freeze, and counterexample freeze.
+Lean remains deferred until source reproduction, notation freeze, theorem freeze, and counterexample freeze. When it begins, `QSOLKCB/QSOL-CONTEXT` is the provenance and supersession spine. The Lean target is an immutable post-merge source tag bound to its exact commit/tree and CI provenance; Lean is a later scholarly layer, not part of the original source-release identity. The Zenodo surface is a deterministic source ZIP, Overview PDF, and release notes with cross-bound checksums. GitHub CI, source tagging, Lean proof, empirical validation, Zenodo archival status, and current canonical theory remain separately classified.
 
 ## Read next
 

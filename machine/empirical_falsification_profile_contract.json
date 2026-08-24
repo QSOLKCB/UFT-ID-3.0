@@ -1,20 +1,21 @@
 {
   "type": "uft-id-empirical-falsification-profile-contract",
   "schema_version": "1.0.0",
-  "snapshot_date": "2026-08-25",
+  "snapshot_date": "2026-08-24",
   "claim_class": "DEFINITION",
-  "scope": "Typed decision and evidence obligations for evaluating whether calibrated empirical evidence rejects a versioned scoped hypothesis. The profile separates formal counterexamples from empirical falsification, non-rejection from confirmation, calibrated measurement from bare numeric observation, and model fit from unique explanation.",
+  "scope": "Typed decision and evidence obligations for a synthetic conformance evaluator that classifies whether calibrated profile-matched evidence crosses a versioned scoped rejection boundary. The profile separates formal counterexamples from empirical falsification, non-rejection from confirmation, calibrated measurement from bare numeric observation, and model fit from unique explanation while treating preregistration chronology as an external unverified assumption.",
   "base_falsification_authority": "machine/falsification_contract.json",
   "primary_types": {
-    "profile": "EmpiricalFalsificationProfile=(profile_id,hypothesis_id,hypothesis_version,claim_class,scope,observable_id,measurement_spec_id,calibration_id,uncertainty_model,prediction,null_model,rejection_rule,evidence_requirements,decision_policy,profile_version)",
+    "profile": "EmpiricalFalsificationProfile=(profile_id,hypothesis_id,hypothesis_version,claim_class,scope,observable_id,measurement_spec_id,calibration_id,uncertainty_model,prediction,null_model,rejection_rule,evidence_requirements,decision_policy,prior_registration_status,profile_version)",
     "evidence": "EmpiricalEvidence=(observable_id,measurement_spec_id,calibration_id,value,uncertainty_radius,provenance_refs,profile_fingerprint)",
     "decision": "Decision in {INVALID_EVIDENCE,INCONCLUSIVE,REJECTED_IN_SCOPE,NOT_REJECTED_IN_SCOPE}",
-    "profile_identity": "SHA256(canonical profile payload), binding rejection threshold and all decision-bearing metadata"
+    "profile_identity": "SHA256(canonical profile payload), binding rejection threshold and all decision-bearing metadata; content identity does not prove registration chronology",
+    "registration_status": "PriorRegistrationStatus={EXTERNAL_UNVERIFIED_ASSUMPTION}; actual empirical rejection additionally requires independently verified immutable preregistration provenance"
   },
   "decision_semantics": {
     "INVALID_EVIDENCE": "Required measurement, calibration, provenance, uncertainty, or profile identity is missing, malformed, or mismatched; no rejection decision is licensed.",
     "INCONCLUSIVE": "Valid evidence uncertainty overlaps both the rejection and non-rejection regions under the declared rule.",
-    "REJECTED_IN_SCOPE": "Valid evidence satisfies the preregistered rejection rule for the declared hypothesis version and scope only.",
+    "REJECTED_IN_SCOPE": "The synthetic conformance evaluator returns this scoped procedural label when valid evidence satisfies the declared rule. Its prior-registration status remains EXTERNAL_UNVERIFIED_ASSUMPTION, so actual empirical rejection additionally requires independently verified immutable preregistration provenance.",
     "NOT_REJECTED_IN_SCOPE": "Valid evidence does not satisfy the rejection rule and is not inconclusive; this is not confirmation, truth, or unique explanatory support."
   },
   "hard_boundaries": [
@@ -26,6 +27,7 @@
     "NUMERIC_OBSERVATION != CALIBRATED_MEASUREMENT",
     "MISSING_UNCERTAINTY != ZERO_UNCERTAINTY",
     "POST_HOC_THRESHOLD != PREREGISTERED_REJECTION_RULE",
+    "PROFILE_FINGERPRINT != PREREGISTRATION_PROOF",
     "INCONCLUSIVE != NOT_REJECTED",
     "REPRODUCIBLE_ANALYSIS != INDEPENDENT_REPLICATION",
     "FINITE_EMPIRICAL_PROFILE_CONFORMANCE != GENERAL_STATISTICAL_INFERENCE"
@@ -41,7 +43,7 @@
     "fit_membership_checks": 15,
     "ambiguous_fit_observations": 3,
     "profile_fingerprint_pair_checks": 3,
-    "policy": "The executable battery uses exact Fraction arithmetic and synthetic conformance fixtures only. It validates decision semantics, evidence completeness, profile identity, and non-unique-fit controls; it does not supply empirical evidence, statistical power, population inference, causal identification, independent replication, or physical validation."
+    "policy": "The executable battery uses exact Fraction arithmetic and synthetic conformance fixtures only. It validates decision semantics, evidence completeness, profile content identity, explicit external-unverified registration status, and non-unique-fit controls; it does not prove preregistration chronology or supply empirical evidence, statistical power, population inference, causal identification, independent replication, or physical validation."
   },
   "authorities": {
     "human": "theory/EMPIRICAL_FALSIFICATION_PROFILE.md",
@@ -59,6 +61,7 @@
   },
   "explicit_deferrals": [
     "source-specific empirical claim instantiation unless exact source reconstruction is complete",
+    "independent immutable preregistration provenance and chronology verification",
     "statistical power and sample-size design",
     "frequentist or Bayesian inferential frameworks beyond the exact interval control",
     "multiple-testing and sequential-analysis procedures",

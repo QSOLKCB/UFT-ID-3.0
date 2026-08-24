@@ -380,7 +380,7 @@ The deterministic CSP source set binds its machine/human authority, the frozen R
 
 ## Empirical-falsification-profile conformance boundary
 
-The Empirical Falsification Profile layer specializes the PR8 falsification scaffold with calibrated evidence identity, uncertainty, profile versioning, preregistered rejection semantics, and explicit four-state decisions. The executable surface is entirely synthetic.
+The Empirical Falsification Profile layer specializes the PR8 falsification scaffold with calibrated evidence identity, uncertainty, profile versioning, declared rejection semantics, explicit external-unverified prior-registration status, and four-state decisions. The executable surface is entirely synthetic and does not prove registration chronology.
 
 Canonical commands:
 
@@ -411,7 +411,7 @@ The exact bounded battery checks:
 3 profile-fingerprint pair checks
 ```
 
-The decision envelope is `INVALID_EVIDENCE`, `INCONCLUSIVE`, `REJECTED_IN_SCOPE`, or `NOT_REJECTED_IN_SCOPE`. Missing or mismatched calibration, measurement identity, uncertainty, provenance, or profile identity cannot license rejection. Non-rejection has no confirmation semantics, and a scoped rejection does not automatically reject a broader theory.
+The decision envelope is `INVALID_EVIDENCE`, `INCONCLUSIVE`, `REJECTED_IN_SCOPE`, or `NOT_REJECTED_IN_SCOPE`. Missing or mismatched calibration, measurement identity, uncertainty, provenance, or profile identity cannot reach the scoped decision procedure. Every valid synthetic decision exposes `prior_registration_status=EXTERNAL_UNVERIFIED_ASSUMPTION`, `prior_registration_verified=false`, `empirical_rejection_licensed=false`, and `decision_authority=SYNTHETIC_CONFORMANCE_ONLY`. Non-rejection has no confirmation semantics, and a scoped procedural rejection does not automatically reject a broader theory.
 
 ```text
 FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION
@@ -422,6 +422,7 @@ REJECTION_IN_SCOPE != GLOBAL_THEORY_REFUTATION
 NUMERIC_OBSERVATION != CALIBRATED_MEASUREMENT
 MISSING_UNCERTAINTY != ZERO_UNCERTAINTY
 POST_HOC_THRESHOLD != PREREGISTERED_REJECTION_RULE
+PROFILE_FINGERPRINT != PREREGISTRATION_PROOF
 INCONCLUSIVE != NOT_REJECTED
 REPRODUCIBLE_ANALYSIS != INDEPENDENT_REPLICATION
 FINITE_EMPIRICAL_PROFILE_CONFORMANCE != GENERAL_STATISTICAL_INFERENCE

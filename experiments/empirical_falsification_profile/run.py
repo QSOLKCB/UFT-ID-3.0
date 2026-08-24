@@ -25,16 +25,38 @@ BOUNDARIES = [
     "NUMERIC_OBSERVATION != CALIBRATED_MEASUREMENT",
     "MISSING_UNCERTAINTY != ZERO_UNCERTAINTY",
     "POST_HOC_THRESHOLD != PREREGISTERED_REJECTION_RULE",
+    "PROFILE_FINGERPRINT != PREREGISTRATION_PROOF",
     "INCONCLUSIVE != NOT_REJECTED",
     "REPRODUCIBLE_ANALYSIS != INDEPENDENT_REPLICATION",
     "FINITE_EMPIRICAL_PROFILE_CONFORMANCE != GENERAL_STATISTICAL_INFERENCE",
 ]
 
+PREDICTION_KIND = "upper-bound"
+NULL_MODEL_KIND = "boundary-equality"
+REJECTION_RULE_KIND = "interval-entirely-above-threshold"
+UNCERTAINTY_MODEL = "symmetric-closed-interval-radius"
+PRIOR_REGISTRATION_STATUS = "EXTERNAL_UNVERIFIED_ASSUMPTION"
+EXPECTED_EVIDENCE_REQUIREMENTS = [
+    "matching observable_id",
+    "matching measurement_spec_id",
+    "matching calibration_id",
+    "exact nonnegative uncertainty_radius",
+    "at least one provenance_ref",
+    "matching profile_fingerprint",
+    "declared external-unverified prior_registration_status",
+]
+EXPECTED_DECISION_POLICY = {
+    "reject": "interval lower bound > threshold",
+    "not_rejected": "interval upper bound <= threshold",
+    "inconclusive": "otherwise",
+    "invalid": "evidence requirements fail",
+}
+
 PROFILE_FIELDS = {
     "profile_id", "hypothesis_id", "hypothesis_version", "claim_class", "scope",
     "observable_id", "measurement_spec_id", "calibration_id", "uncertainty_model",
     "prediction", "null_model", "rejection_rule", "evidence_requirements",
-    "decision_policy", "profile_version",
+    "decision_policy", "prior_registration_status", "profile_version",
 }
 EVIDENCE_FIELDS = {
     "observable_id", "measurement_spec_id", "calibration_id", "value",
@@ -81,24 +103,13 @@ def make_profile(threshold: object = 0, *, profile_id: str | None = None) -> dic
         "observable_id": "OBS-SYN-Y-V1",
         "measurement_spec_id": "MEAS-SYN-Y-V1",
         "calibration_id": "CAL-SYN-Y-V1",
-        "uncertainty_model": "symmetric-closed-interval-radius",
-        "prediction": {"kind": "upper-bound", "observable_id": "OBS-SYN-Y-V1", "upper_bound": exact_threshold},
-        "null_model": {"kind": "boundary-equality", "observable_id": "OBS-SYN-Y-V1", "value": exact_threshold},
-        "rejection_rule": {"kind": "interval-entirely-above-threshold", "threshold": exact_threshold},
-        "evidence_requirements": [
-            "matching observable_id",
-            "matching measurement_spec_id",
-            "matching calibration_id",
-            "exact nonnegative uncertainty_radius",
-            "at least one provenance_ref",
-            "matching profile_fingerprint",
-        ],
-        "decision_policy": {
-            "reject": "interval lower bound > threshold",
-            "not_rejected": "interval upper bound <= threshold",
-            "inconclusive": "otherwise",
-            "invalid": "evidence requirements fail",
-        },
+        "uncertainty_model": UNCERTAINTY_MODEL,
+        "prediction": {"kind": PREDICTION_KIND, "observable_id": "OBS-SYN-Y-V1", "upper_bound": exact_threshold},
+        "null_model": {"kind": NULL_MODEL_KIND, "observable_id": "OBS-SYN-Y-V1", "value": exact_threshold},
+        "rejection_rule": {"kind": REJECTION_RULE_KIND, "threshold": exact_threshold},
+        "evidence_requirements": list(EXPECTED_EVIDENCE_REQUIREMENTS),
+        "decision_policy": dict(EXPECTED_DECISION_POLICY),
+        "prior_registration_status": PRIOR_REGISTRATION_STATUS,
         "profile_version": "1.0.0",
     }
     _validate_profile(profile)
@@ -108,11 +119,19 @@ def make_profile(threshold: object = 0, *, profile_id: str | None = None) -> dic
 def _validate_profile(profile: Mapping[str, object]) -> None:
     if not isinstance(profile, Mapping) or set(profile) != PROFILE_FIELDS:
         raise ValueError("empirical profile field set drift")
-    for key in ("profile_id", "hypothesis_id", "hypothesis_version", "claim_class", "scope", "observable_id", "measurement_spec_id", "calibration_id", "uncertainty_model", "profile_version"):
+    for key in (
+        "profile_id", "hypothesis_id", "hypothesis_version", "claim_class", "scope",
+        "observable_id", "measurement_spec_id", "calibration_id", "uncertainty_model",
+        "prior_registration_status", "profile_version",
+    ):
         if not isinstance(profile[key], str) or not profile[key]:
             raise ValueError(f"empirical profile {key} must be a nonempty string")
     if profile["claim_class"] != "DIAGNOSTIC":
         raise ValueError("synthetic profile claim class must remain DIAGNOSTIC")
+    if profile["uncertainty_model"] != UNCERTAINTY_MODEL:
+        raise ValueError("unsupported uncertainty-model kind")
+    if profile["prior_registration_status"] != PRIOR_REGISTRATION_STATUS:
+        raise ValueError("prior registration must remain an external unverified assumption")
     prediction = profile["prediction"]
     null_model = profile["null_model"]
     rejection = profile["rejection_rule"]
@@ -122,30 +141,40 @@ def _validate_profile(profile: Mapping[str, object]) -> None:
         raise ValueError("null-model shape drift")
     if not isinstance(rejection, Mapping) or set(rejection) != {"kind", "threshold"}:
         raise ValueError("rejection-rule shape drift")
+    if prediction["kind"] != PREDICTION_KIND:
+        raise ValueError("prediction kind is incompatible with rejection rule")
+    if null_model["kind"] != NULL_MODEL_KIND:
+        raise ValueError("null-model kind is incompatible with rejection rule")
+    if rejection["kind"] != REJECTION_RULE_KIND:
+        raise ValueError("unsupported rejection-rule kind")
     threshold = _exact(rejection["threshold"], "rejection threshold")
     if _exact(prediction["upper_bound"], "prediction upper bound") != threshold or _exact(null_model["value"], "null-model value") != threshold:
         raise ValueError("prediction/null/rejection threshold disagreement")
     if prediction["observable_id"] != profile["observable_id"] or null_model["observable_id"] != profile["observable_id"]:
         raise ValueError("profile observable binding drift")
-    if rejection["kind"] != "interval-entirely-above-threshold":
-        raise ValueError("unsupported rejection-rule kind")
-    requirements = profile["evidence_requirements"]
-    if not isinstance(requirements, list) or len(requirements) != 6 or any(not isinstance(item, str) or not item for item in requirements):
-        raise ValueError("evidence requirement registry malformed")
-    policy = profile["decision_policy"]
-    if not isinstance(policy, Mapping) or set(policy) != {"reject", "not_rejected", "inconclusive", "invalid"}:
-        raise ValueError("decision policy shape drift")
+    if profile["evidence_requirements"] != EXPECTED_EVIDENCE_REQUIREMENTS:
+        raise ValueError("evidence requirement registry drift")
+    if profile["decision_policy"] != EXPECTED_DECISION_POLICY:
+        raise ValueError("decision policy semantic drift")
 
 
-def make_evidence(profile: Mapping[str, object], value: object, uncertainty_radius: object, *, provenance_refs: Sequence[str] = ("SYN-PROV-001",)) -> dict[str, object]:
+def make_evidence(
+    profile: Mapping[str, object],
+    value: object,
+    uncertainty_radius: object,
+    *,
+    provenance_refs: Sequence[str] = ("SYN-PROV-001",),
+) -> dict[str, object]:
     _validate_profile(profile)
     exact_value = _exact(value, "measurement value")
     radius = _exact(uncertainty_radius, "uncertainty radius")
     if radius < 0:
         raise ValueError("uncertainty radius must be nonnegative")
+    if isinstance(provenance_refs, (str, bytes)) or not isinstance(provenance_refs, Sequence):
+        raise ValueError("provenance refs must be a nonempty string sequence")
     refs = list(provenance_refs)
     if not refs or any(not isinstance(ref, str) or not ref for ref in refs):
-        raise ValueError("provenance refs must be a nonempty string list")
+        raise ValueError("provenance refs must be a nonempty string sequence")
     return {
         "observable_id": profile["observable_id"],
         "measurement_spec_id": profile["measurement_spec_id"],
@@ -204,6 +233,10 @@ def evaluate(profile: Mapping[str, object], evidence: object) -> dict[str, objec
         "hypothesis_version": profile["hypothesis_version"],
         "profile_version": profile["profile_version"],
         "scope": profile["scope"],
+        "prior_registration_status": profile["prior_registration_status"],
+        "prior_registration_verified": False,
+        "empirical_rejection_licensed": False,
+        "decision_authority": "SYNTHETIC_CONFORMANCE_ONLY",
         "confirmation_promoted": False,
         "global_theory_rejected": False,
     }
@@ -370,6 +403,9 @@ def counterexample_fixtures() -> dict[str, object]:
             "threshold_0_fingerprint": profile_fingerprint(profile0),
             "threshold_1_fingerprint": profile_fingerprint(profile1),
             "profile_identity_differs": profile_fingerprint(profile0) != profile_fingerprint(profile1),
+            "prior_registration_status": profile0["prior_registration_status"],
+            "prior_registration_verified": decision0["prior_registration_verified"],
+            "empirical_rejection_licensed": decision0["empirical_rejection_licensed"],
         },
     }
 
@@ -393,7 +429,8 @@ def run_suite() -> dict[str, object]:
         "claim_boundary": (
             "FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION; "
             "FAILURE_TO_REJECT != CONFIRMATION; EMPIRICAL_FIT != UNIQUE_EXPLANATION; "
-            "REJECTION_IN_SCOPE != GLOBAL_THEORY_REFUTATION"
+            "REJECTION_IN_SCOPE != GLOBAL_THEORY_REFUTATION; "
+            "PROFILE_FINGERPRINT != PREREGISTRATION_PROOF"
         ),
     }
 

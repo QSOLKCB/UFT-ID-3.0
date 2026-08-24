@@ -24,6 +24,7 @@ EmpiricalFalsificationProfile = (
   rejection_rule,
   evidence_requirements,
   decision_policy,
+  prior_registration_status,
   profile_version
 )
 ```
@@ -42,7 +43,11 @@ EmpiricalEvidence = (
 )
 ```
 
-The profile fingerprint binds every decision-bearing profile field, including the rejection threshold. Changing that threshold creates a different profile identity.
+The profile fingerprint binds every decision-bearing profile field, including the rejection threshold. Changing that threshold creates a different profile identity. A fingerprint proves content identity only; it does not prove that the profile existed before evidence was observed. The synthetic profile therefore fixes `prior_registration_status` to `EXTERNAL_UNVERIFIED_ASSUMPTION`.
+
+```text
+PROFILE_FINGERPRINT != PREREGISTRATION_PROOF
+```
 
 ## Decision envelope
 
@@ -53,7 +58,7 @@ REJECTED_IN_SCOPE
 NOT_REJECTED_IN_SCOPE
 ```
 
-`INVALID_EVIDENCE` means the declared procedure cannot evaluate the evidence. `INCONCLUSIVE` means valid uncertainty overlaps both decision regions. `REJECTED_IN_SCOPE` applies only to the declared hypothesis/profile version and scope. `NOT_REJECTED_IN_SCOPE` is deliberately not a confirmation state.
+`INVALID_EVIDENCE` means the declared procedure cannot evaluate the evidence. `INCONCLUSIVE` means valid uncertainty overlaps both decision regions. `REJECTED_IN_SCOPE` is a scoped procedural label. In this synthetic conformance profile it explicitly carries external-unverified registration status and no empirical-rejection licence. `NOT_REJECTED_IN_SCOPE` is deliberately not a confirmation state.
 
 For the exact synthetic interval control:
 
@@ -85,13 +90,13 @@ The interval rule is a conformance fixture only. It is not a general statistical
 
 **Claim class:** `PROVED`
 
-**Canonical statement:** `If valid profile-matched evidence satisfies the preregistered rejection rule, the licensed decision is REJECTED_IN_SCOPE for the declared hypothesis_id, hypothesis_version, profile_version, and scope; no broader theory or adjacent hypothesis is rejected by this decision alone.`
+**Canonical statement:** `If valid profile-matched evidence satisfies the declared rejection rule, the synthetic conformance evaluator returns REJECTED_IN_SCOPE for the declared hypothesis_id, hypothesis_version, profile_version, and scope, while exposing prior_registration_status as EXTERNAL_UNVERIFIED_ASSUMPTION, prior_registration_verified as false, and empirical_rejection_licensed as false. Actual empirical rejection additionally requires an independently verified immutable prior record.`
 
-**Canonical hypotheses:** `["the evidence is valid under UFT-EFP-001", "the preregistered rejection rule evaluates true", "the hypothesis and profile versions are fixed before decision evaluation"]`
+**Canonical hypotheses:** `["the evidence is valid under UFT-EFP-001", "the declared rejection rule evaluates true", "the profile explicitly classifies prior registration as an external unverified assumption"]`
 
-**Canonical nonclaims:** `["REJECTED_IN_SCOPE is not automatic global theory refutation, mechanism identification, or evidence that every related formulation is false."]`
+**Canonical nonclaims:** `["The procedural REJECTED_IN_SCOPE label does not prove registration chronology, license empirical rejection, or automatically imply global theory refutation, mechanism identification, or that every related formulation is false."]`
 
-**Proof.** The decision payload returns the exact `hypothesis_id`, `hypothesis_version`, `profile_version`, and `scope` that licensed evaluation and explicitly returns `global_theory_rejected: false`. No rule exists that maps this decision to another hypothesis or broader theory. ∎
+**Proof.** The decision payload returns the exact `hypothesis_id`, `hypothesis_version`, `profile_version`, and `scope`, but it also returns `prior_registration_status: EXTERNAL_UNVERIFIED_ASSUMPTION`, `prior_registration_verified: false`, `empirical_rejection_licensed: false`, and `global_theory_rejected: false`. Profile hashing therefore binds the decision contract without manufacturing a historical preregistration fact or broader authority. ∎
 
 ## UFT-EFP-003 Failure to reject is not confirmation
 
@@ -111,7 +116,7 @@ The interval rule is a conformance fixture only. It is not a general statistical
 
 **Canonical statement:** `For the declared exact interval decision rule, if a valid measurement interval overlaps both sides of the rejection threshold, the licensed decision is INCONCLUSIVE rather than REJECTED_IN_SCOPE or NOT_REJECTED_IN_SCOPE.`
 
-**Canonical hypotheses:** `["measurement value and uncertainty radius are exact rational quantities", "uncertainty is interpreted as the closed interval [value-radius,value+radius]", "the profile rejection rule is threshold-based and preregistered"]`
+**Canonical hypotheses:** `["measurement value and uncertainty radius are exact rational quantities", "uncertainty is interpreted as the closed interval [value-radius,value+radius]", "the profile rejection rule is threshold-based and declared"]`
 
 **Canonical nonclaims:** `["This exact interval control is not a general confidence-interval, Bayesian credible-interval, or measurement-error theorem."]`
 
@@ -153,7 +158,7 @@ The interval rule is a conformance fixture only. It is not a general statistical
 
 **Claim class:** `COUNTEREXAMPLE`
 
-**Canonical statement:** `A point estimate on the rejection side can still produce INCONCLUSIVE when its declared uncertainty interval crosses the preregistered rejection threshold.`
+**Canonical statement:** `A point estimate on the rejection side can still produce INCONCLUSIVE when its declared uncertainty interval crosses the declared rejection threshold.`
 
 **Canonical nonclaims:** `["The fixture is an exact interval semantics control, not a prescription for statistical confidence intervals or laboratory uncertainty models."]`
 
@@ -177,9 +182,9 @@ The interval rule is a conformance fixture only. It is not a general statistical
 
 **Claim class:** `COUNTEREXAMPLE`
 
-**Canonical statement:** `For the same exact evidence value 1/2 with zero uncertainty, a threshold-0 profile rejects while a threshold-1 profile does not; the two profiles have different canonical fingerprints, so a post-hoc threshold change is a different decision contract rather than the same preregistered test.`
+**Canonical statement:** `For the same exact evidence value 1/2 with zero uncertainty, a threshold-0 profile returns REJECTED_IN_SCOPE while a threshold-1 profile returns NOT_REJECTED_IN_SCOPE, and the two canonical fingerprints differ. The fingerprints distinguish profile content but do not prove either profile existed before the evidence; both synthetic decisions expose external-unverified registration and no empirical-rejection licence.`
 
-**Canonical nonclaims:** `["The fixture does not ban justified protocol amendments; it requires them to be versioned and distinguished from the original preregistered decision rule."]`
+**Canonical nonclaims:** `["The fixture does not ban justified protocol amendments; it requires versioned profile identity and treats registration chronology as an independently verified provenance obligation rather than a consequence of hashing."]`
 
 ---
 
@@ -194,6 +199,7 @@ REJECTION_IN_SCOPE != GLOBAL_THEORY_REFUTATION
 NUMERIC_OBSERVATION != CALIBRATED_MEASUREMENT
 MISSING_UNCERTAINTY != ZERO_UNCERTAINTY
 POST_HOC_THRESHOLD != PREREGISTERED_REJECTION_RULE
+PROFILE_FINGERPRINT != PREREGISTRATION_PROOF
 INCONCLUSIVE != NOT_REJECTED
 REPRODUCIBLE_ANALYSIS != INDEPENDENT_REPLICATION
 FINITE_EMPIRICAL_PROFILE_CONFORMANCE != GENERAL_STATISTICAL_INFERENCE
@@ -221,4 +227,4 @@ GREEN_CI != SCIENTIFIC_CONFIRMATION
 
 # Deferred empirical work
 
-A later source-specific profile may be added only when its source claim, observable definition, measurement method, calibration identity, uncertainty model, rejection rule, provenance, and already-published objections/replies are explicit. Statistical power, causal identification, independent replication, population inference, and framework-specific statistical semantics remain separate obligations.
+A later source-specific profile may be added only when its source claim, observable definition, measurement method, calibration identity, uncertainty model, rejection rule, independently verifiable immutable preregistration provenance, evidence chronology, and already-published objections/replies are explicit. Statistical power, causal identification, independent replication, population inference, and framework-specific statistical semantics remain separate obligations.

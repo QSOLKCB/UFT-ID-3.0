@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timezone
 import importlib.util
 import json
 import re
@@ -30,20 +31,22 @@ PATHS = {
 }
 
 EXPECTED_SCOPE = (
-    "Typed decision and evidence obligations for evaluating whether calibrated empirical evidence rejects a versioned scoped hypothesis. "
-    "The profile separates formal counterexamples from empirical falsification, non-rejection from confirmation, calibrated measurement "
-    "from bare numeric observation, and model fit from unique explanation."
+    "Typed decision and evidence obligations for a synthetic conformance evaluator that classifies whether calibrated "
+    "profile-matched evidence crosses a versioned scoped rejection boundary. The profile separates formal counterexamples "
+    "from empirical falsification, non-rejection from confirmation, calibrated measurement from bare numeric observation, "
+    "and model fit from unique explanation while treating preregistration chronology as an external unverified assumption."
 )
 EXPECTED_PRIMARY_TYPES = {
-    "profile": "EmpiricalFalsificationProfile=(profile_id,hypothesis_id,hypothesis_version,claim_class,scope,observable_id,measurement_spec_id,calibration_id,uncertainty_model,prediction,null_model,rejection_rule,evidence_requirements,decision_policy,profile_version)",
+    "profile": "EmpiricalFalsificationProfile=(profile_id,hypothesis_id,hypothesis_version,claim_class,scope,observable_id,measurement_spec_id,calibration_id,uncertainty_model,prediction,null_model,rejection_rule,evidence_requirements,decision_policy,prior_registration_status,profile_version)",
     "evidence": "EmpiricalEvidence=(observable_id,measurement_spec_id,calibration_id,value,uncertainty_radius,provenance_refs,profile_fingerprint)",
     "decision": "Decision in {INVALID_EVIDENCE,INCONCLUSIVE,REJECTED_IN_SCOPE,NOT_REJECTED_IN_SCOPE}",
-    "profile_identity": "SHA256(canonical profile payload), binding rejection threshold and all decision-bearing metadata",
+    "profile_identity": "SHA256(canonical profile payload), binding rejection threshold and all decision-bearing metadata; content identity does not prove registration chronology",
+    "registration_status": "PriorRegistrationStatus={EXTERNAL_UNVERIFIED_ASSUMPTION}; actual empirical rejection additionally requires independently verified immutable preregistration provenance",
 }
 EXPECTED_DECISION_SEMANTICS = {
     "INVALID_EVIDENCE": "Required measurement, calibration, provenance, uncertainty, or profile identity is missing, malformed, or mismatched; no rejection decision is licensed.",
     "INCONCLUSIVE": "Valid evidence uncertainty overlaps both the rejection and non-rejection regions under the declared rule.",
-    "REJECTED_IN_SCOPE": "Valid evidence satisfies the preregistered rejection rule for the declared hypothesis version and scope only.",
+    "REJECTED_IN_SCOPE": "The synthetic conformance evaluator returns this scoped procedural label when valid evidence satisfies the declared rule. Its prior-registration status remains EXTERNAL_UNVERIFIED_ASSUMPTION, so actual empirical rejection additionally requires independently verified immutable preregistration provenance.",
     "NOT_REJECTED_IN_SCOPE": "Valid evidence does not satisfy the rejection rule and is not inconclusive; this is not confirmation, truth, or unique explanatory support.",
 }
 EXPECTED_BOUNDARIES = [
@@ -55,6 +58,7 @@ EXPECTED_BOUNDARIES = [
     "NUMERIC_OBSERVATION != CALIBRATED_MEASUREMENT",
     "MISSING_UNCERTAINTY != ZERO_UNCERTAINTY",
     "POST_HOC_THRESHOLD != PREREGISTERED_REJECTION_RULE",
+    "PROFILE_FINGERPRINT != PREREGISTRATION_PROOF",
     "INCONCLUSIVE != NOT_REJECTED",
     "REPRODUCIBLE_ANALYSIS != INDEPENDENT_REPLICATION",
     "FINITE_EMPIRICAL_PROFILE_CONFORMANCE != GENERAL_STATISTICAL_INFERENCE",
@@ -70,7 +74,7 @@ EXPECTED_LIMITS = {
     "fit_membership_checks": 15,
     "ambiguous_fit_observations": 3,
     "profile_fingerprint_pair_checks": 3,
-    "policy": "The executable battery uses exact Fraction arithmetic and synthetic conformance fixtures only. It validates decision semantics, evidence completeness, profile identity, and non-unique-fit controls; it does not supply empirical evidence, statistical power, population inference, causal identification, independent replication, or physical validation.",
+    "policy": "The executable battery uses exact Fraction arithmetic and synthetic conformance fixtures only. It validates decision semantics, evidence completeness, profile content identity, explicit external-unverified registration status, and non-unique-fit controls; it does not prove preregistration chronology or supply empirical evidence, statistical power, population inference, causal identification, independent replication, or physical validation.",
 }
 EXPECTED_AUTHORITIES = {
     "human": "theory/EMPIRICAL_FALSIFICATION_PROFILE.md",
@@ -100,7 +104,7 @@ EXPECTED_CENTRAL_AUTHORITY = {
     "csp_base_authority": "machine/continuum_stochastic_prevalence_contract.json",
     "roadmap_state": "machine/roadmap_state.json",
     "workflow": ".github/workflows/finite-adversarial.yml",
-    "rule": "Empirical rejection requires complete calibrated profile-matched evidence and remains scoped to one hypothesis/profile version; non-rejection is not confirmation, fit is not unique explanation, and synthetic conformance is not empirical evidence.",
+    "rule": "Empirical decision eligibility requires complete calibrated profile-matched evidence and remains scoped to one hypothesis/profile version; the synthetic REJECTED_IN_SCOPE label carries external-unverified registration status and no empirical-rejection licence until independent immutable preregistration provenance is verified. Non-rejection is not confirmation, fit is not unique explanation, and synthetic conformance is not empirical evidence.",
 }
 EXPECTED_CENTRAL_HARD_RULES = {
     "formal_counterexample_implies_empirical_falsification": False,
@@ -111,10 +115,12 @@ EXPECTED_CENTRAL_HARD_RULES = {
     "numeric_observation_implies_calibrated_measurement": False,
     "missing_uncertainty_means_zero_uncertainty": False,
     "post_hoc_threshold_equals_preregistered_rule": False,
+    "profile_fingerprint_implies_preregistration_proof": False,
     "reproducible_analysis_implies_independent_replication": False,
 }
 EXPECTED_DEFERRALS = [
     "source-specific empirical claim instantiation unless exact source reconstruction is complete",
+    "independent immutable preregistration provenance and chronology verification",
     "statistical power and sample-size design",
     "frequentist or Bayesian inferential frameworks beyond the exact interval control",
     "multiple-testing and sequential-analysis procedures",
@@ -133,7 +139,7 @@ EXPECTED_RESULTS_TOP_LEVEL = {"type", "schema_version", "snapshot_date", "record
 EXPECTED_THEOREM_FIELDS = {"id", "name", "claim_class", "statement", "hypotheses", "proof_reference", "executable_evidence", "nonclaims"}
 EXPECTED_COUNTEREXAMPLE_FIELDS = {"id", "name", "claim_class", "statement", "fixture", "evidence", "nonclaims"}
 EXPECTED_EVIDENCE = ["experiments/empirical_falsification_profile/run.py", "tests/test_empirical_falsification_profile.py"]
-EXPECTED_RESULT_BOUNDARY = "FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION; FAILURE_TO_REJECT != CONFIRMATION; EMPIRICAL_FIT != UNIQUE_EXPLANATION; REJECTION_IN_SCOPE != GLOBAL_THEORY_REFUTATION"
+EXPECTED_RESULT_BOUNDARY = "FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION; FAILURE_TO_REJECT != CONFIRMATION; EMPIRICAL_FIT != UNIQUE_EXPLANATION; REJECTION_IN_SCOPE != GLOBAL_THEORY_REFUTATION; PROFILE_FINGERPRINT != PREREGISTRATION_PROOF"
 
 EXPECTED_THEOREMS = {
     "UFT-EFP-001": {
@@ -144,9 +150,9 @@ EXPECTED_THEOREMS = {
     },
     "UFT-EFP-002": {
         "name": "A rejection decision is scoped to one hypothesis version",
-        "statement": "If valid profile-matched evidence satisfies the preregistered rejection rule, the licensed decision is REJECTED_IN_SCOPE for the declared hypothesis_id, hypothesis_version, profile_version, and scope; no broader theory or adjacent hypothesis is rejected by this decision alone.",
-        "hypotheses": ["the evidence is valid under UFT-EFP-001", "the preregistered rejection rule evaluates true", "the hypothesis and profile versions are fixed before decision evaluation"],
-        "nonclaims": ["REJECTED_IN_SCOPE is not automatic global theory refutation, mechanism identification, or evidence that every related formulation is false."],
+        "statement": "If valid profile-matched evidence satisfies the declared rejection rule, the synthetic conformance evaluator returns REJECTED_IN_SCOPE for the declared hypothesis_id, hypothesis_version, profile_version, and scope, while exposing prior_registration_status as EXTERNAL_UNVERIFIED_ASSUMPTION, prior_registration_verified as false, and empirical_rejection_licensed as false. Actual empirical rejection additionally requires an independently verified immutable prior record.",
+        "hypotheses": ["the evidence is valid under UFT-EFP-001", "the declared rejection rule evaluates true", "the profile explicitly classifies prior registration as an external unverified assumption"],
+        "nonclaims": ["The procedural REJECTED_IN_SCOPE label does not prove registration chronology, license empirical rejection, or automatically imply global theory refutation, mechanism identification, or that every related formulation is false."],
     },
     "UFT-EFP-003": {
         "name": "Failure to reject is not confirmation",
@@ -157,7 +163,7 @@ EXPECTED_THEOREMS = {
     "UFT-EFP-004": {
         "name": "Boundary-overlapping uncertainty is inconclusive",
         "statement": "For the declared exact interval decision rule, if a valid measurement interval overlaps both sides of the rejection threshold, the licensed decision is INCONCLUSIVE rather than REJECTED_IN_SCOPE or NOT_REJECTED_IN_SCOPE.",
-        "hypotheses": ["measurement value and uncertainty radius are exact rational quantities", "uncertainty is interpreted as the closed interval [value-radius,value+radius]", "the profile rejection rule is threshold-based and preregistered"],
+        "hypotheses": ["measurement value and uncertainty radius are exact rational quantities", "uncertainty is interpreted as the closed interval [value-radius,value+radius]", "the profile rejection rule is threshold-based and declared"],
         "nonclaims": ["This exact interval control is not a general confidence-interval, Bayesian credible-interval, or measurement-error theorem."],
     },
     "UFT-EFP-005": {
@@ -182,7 +188,7 @@ EXPECTED_COUNTEREXAMPLES = {
     },
     "CX-EFP-003": {
         "name": "Uncertainty can make a threshold result inconclusive",
-        "statement": "A point estimate on the rejection side can still produce INCONCLUSIVE when its declared uncertainty interval crosses the preregistered rejection threshold.",
+        "statement": "A point estimate on the rejection side can still produce INCONCLUSIVE when its declared uncertainty interval crosses the declared rejection threshold.",
         "fixture": "value 1 with uncertainty radius 1 around threshold 0",
         "nonclaims": ["The fixture is an exact interval semantics control, not a prescription for statistical confidence intervals or laboratory uncertainty models."],
     },
@@ -200,9 +206,9 @@ EXPECTED_COUNTEREXAMPLES = {
     },
     "CX-EFP-006": {
         "name": "Changing the rejection threshold changes profile identity and can change the decision",
-        "statement": "For the same exact evidence value 1/2 with zero uncertainty, a threshold-0 profile rejects while a threshold-1 profile does not; the two profiles have different canonical fingerprints, so a post-hoc threshold change is a different decision contract rather than the same preregistered test.",
+        "statement": "For the same exact evidence value 1/2 with zero uncertainty, a threshold-0 profile returns REJECTED_IN_SCOPE while a threshold-1 profile returns NOT_REJECTED_IN_SCOPE, and the two canonical fingerprints differ. The fingerprints distinguish profile content but do not prove either profile existed before the evidence; both synthetic decisions expose external-unverified registration and no empirical-rejection licence.",
         "fixture": "same evidence under two differently fingerprinted rejection thresholds",
-        "nonclaims": ["The fixture does not ban justified protocol amendments; it requires them to be versioned and distinguished from the original preregistered decision rule."],
+        "nonclaims": ["The fixture does not ban justified protocol amendments; it requires versioned profile identity and treats registration chronology as an independently verified provenance obligation rather than a consequence of hashing."],
     },
 }
 EXPECTED_FIXTURE_PAYLOADS = {
@@ -211,7 +217,7 @@ EXPECTED_FIXTURE_PAYLOADS = {
     "CX-EFP-003": {"value": "1", "uncertainty_radius": "1", "interval": ["0", "2"], "threshold": "0", "decision": "INCONCLUSIVE"},
     "CX-EFP-004": {"value": "-1", "uncertainty_radius": "0", "decision": "NOT_REJECTED_IN_SCOPE", "confirmation_promoted": False},
     "CX-EFP-005": {"observation": "0", "compatible_models": ["MODEL-A", "MODEL-B", "MODEL-C"], "compatible_model_count": 3, "unique_explanation": False},
-    "CX-EFP-006": {"evidence_value": "1/2", "uncertainty_radius": "0", "threshold_0_decision": "REJECTED_IN_SCOPE", "threshold_1_decision": "NOT_REJECTED_IN_SCOPE", "threshold_0_fingerprint": "b4b89ddeb15bc13b2a0025f2c38069b52e597e683ccaf2f61d362b498d7afe0c", "threshold_1_fingerprint": "caf810408595dfa944d548f1294393b2606b83ae8544374daa69f9ca7982b3a6", "profile_identity_differs": True},
+    "CX-EFP-006": {"evidence_value": "1/2", "uncertainty_radius": "0", "threshold_0_decision": "REJECTED_IN_SCOPE", "threshold_1_decision": "NOT_REJECTED_IN_SCOPE", "threshold_0_fingerprint": "5f5aca449b40918b16723b62fe06aefa2fb65d1ec158570304702313a42562b9", "threshold_1_fingerprint": "889268e93a153772be7f3fd64ff8162b9db40506c30f149ac3d7fd1377dbfd7a", "profile_identity_differs": True, "prior_registration_status": "EXTERNAL_UNVERIFIED_ASSUMPTION", "prior_registration_verified": False, "empirical_rejection_licensed": False},
 }
 EXPECTED_BOUNDED = {
     "decisions": {"valid_decision_checks": 15, "rejected_in_scope_cases": 5, "not_rejected_in_scope_cases": 7, "inconclusive_cases": 3},
@@ -255,6 +261,20 @@ def load_module(name: str, path: Path):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def validate_snapshot_date(value: object, label: str, errors: list[str]) -> str | None:
+    if not isinstance(value, str):
+        errors.append(f"{label} must be an ISO YYYY-MM-DD string")
+        return None
+    try:
+        parsed = datetime.strptime(value, "%Y-%m-%d").date()
+    except ValueError:
+        errors.append(f"{label} must be an ISO YYYY-MM-DD string")
+        return None
+    if parsed > datetime.now(timezone.utc).date():
+        errors.append(f"{label} is a future UTC snapshot")
+    return value
 
 
 def safe_path(value: object, label: str, errors: list[str]) -> None:
@@ -337,10 +357,22 @@ def validate() -> dict[str, object]:
     claims = PATHS["claims"].read_text(encoding="utf-8")
     repro = PATHS["repro"].read_text(encoding="utf-8")
 
+    snapshot_values = {
+        "EFP contract snapshot": contract.get("snapshot_date"),
+        "EFP result snapshot": results.get("snapshot_date"),
+        "EFP roadmap snapshot": roadmap_state.get("snapshot_date"),
+        "EFP CSP basis snapshot": csp_base.get("snapshot_date"),
+    }
+    parsed_snapshots = {label: validate_snapshot_date(value, label, errors) for label, value in snapshot_values.items()}
+    live_snapshot_values = [snapshot_values[label] for label in ("EFP contract snapshot", "EFP result snapshot", "EFP roadmap snapshot")]
+    if any(value != live_snapshot_values[0] for value in live_snapshot_values[1:]):
+        errors.append("EFP contract/result/roadmap snapshot disagreement")
+    if parsed_snapshots["EFP contract snapshot"] != parsed_snapshots["EFP CSP basis snapshot"]:
+        errors.append("EFP snapshot must match the merged CSP basis snapshot")
+
     if set(contract) != EXPECTED_CONTRACT_TOP_LEVEL: errors.append("EFP contract top-level field set drift")
     if contract.get("type") != "uft-id-empirical-falsification-profile-contract": errors.append("EFP contract type drift")
     if contract.get("schema_version") != "1.0.0": errors.append("EFP contract schema drift")
-    if contract.get("snapshot_date") != "2026-08-25": errors.append("EFP contract snapshot drift")
     if contract.get("claim_class") != "DEFINITION": errors.append("EFP contract claim class drift")
     if contract.get("scope") != EXPECTED_SCOPE: errors.append("EFP contract scope drift")
     if contract.get("base_falsification_authority") != "machine/falsification_contract.json": errors.append("EFP base falsification authority drift")
@@ -377,7 +409,6 @@ def validate() -> dict[str, object]:
     if set(results) != EXPECTED_RESULTS_TOP_LEVEL: errors.append("EFP result registry top-level field set drift")
     if results.get("type") != "uft-id-empirical-falsification-profile-result-registry": errors.append("EFP result type drift")
     if results.get("schema_version") != "1.0.0": errors.append("EFP result schema drift")
-    if results.get("snapshot_date") != "2026-08-25": errors.append("EFP result snapshot drift")
     if results.get("claim_boundary") != EXPECTED_RESULT_BOUNDARY: errors.append("EFP result claim boundary drift")
     records = results.get("records")
     if not isinstance(records, list):
@@ -409,7 +440,7 @@ def validate() -> dict[str, object]:
         if record.get("executable_evidence") != EXPECTED_EVIDENCE: errors.append(f"{rid} executable evidence drift")
         if record.get("nonclaims") != expected["nonclaims"]: errors.append(f"{rid} nonclaims drift")
         expected_ref = f"theory/EMPIRICAL_FALSIFICATION_PROFILE.md#uft-{rid.lower().replace('uft-', '')}-{expected['name'].lower().replace(' ', '-').replace('?', '')}"
-        if not isinstance(record.get("proof_reference"), str) or not record["proof_reference"].startswith("theory/EMPIRICAL_FALSIFICATION_PROFILE.md#uft-efp-"):
+        if record.get("proof_reference") != expected_ref:
             errors.append(f"{rid} proof reference drift")
         sec = section(human, f"## {rid} {expected['name']}")
         if sec is None:
@@ -439,7 +470,6 @@ def validate() -> dict[str, object]:
 
     if roadmap_state.get("type") != "uft-id-roadmap-state": errors.append("EFP roadmap type drift")
     if roadmap_state.get("schema_version") != "1.6.0": errors.append("EFP roadmap schema drift")
-    if roadmap_state.get("snapshot_date") != "2026-08-25": errors.append("EFP roadmap snapshot drift")
     if roadmap_state.get("basis_commit") != "353e55a11a8cb6d6bcf571110e0fd6f32823fc77": errors.append("EFP roadmap basis commit must be merged CSP PR")
     if roadmap_state.get("completed") != [5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17]: errors.append("EFP roadmap completed set drift")
     if roadmap_state.get("active_planned_surface") != 18: errors.append("EFP roadmap active surface must be PR #18")
@@ -457,6 +487,11 @@ def validate() -> dict[str, object]:
         "python experiments/empirical_falsification_profile/run.py --json",
         "python experiments/run_empirical_falsification_profile.py --json",
         "- [x] Planned PR #17 — Continuum, stochastic, and prevalence obligations",
+        "### QSOL-CONTEXT → Lean 4 → Zenodo formalization workflow",
+        "IMMUTABLE SOURCE-RELEASE TAG",
+        "THREE-FILE ZENODO VERSIONED RELEASE",
+        "SOURCE_RELEASE != LATER_LEAN_FORMALIZATION_LAYER",
+        "PROFILE_FINGERPRINT != PREREGISTRATION_PROOF",
     ):
         if anchor not in roadmap: errors.append(f"roadmap missing EFP/tracker anchor: {anchor}")
 

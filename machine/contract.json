@@ -207,7 +207,7 @@
     "csp_base_authority": "machine/continuum_stochastic_prevalence_contract.json",
     "roadmap_state": "machine/roadmap_state.json",
     "workflow": ".github/workflows/finite-adversarial.yml",
-    "rule": "Empirical rejection requires complete calibrated profile-matched evidence and remains scoped to one hypothesis/profile version; non-rejection is not confirmation, fit is not unique explanation, and synthetic conformance is not empirical evidence."
+    "rule": "Empirical decision eligibility requires complete calibrated profile-matched evidence and remains scoped to one hypothesis/profile version; the synthetic REJECTED_IN_SCOPE label carries external-unverified registration status and no empirical-rejection licence until independent immutable preregistration provenance is verified. Non-rejection is not confirmation, fit is not unique explanation, and synthetic conformance is not empirical evidence."
   },
   "vopson_corpus_authority": {
     "author": "research/vopson/AUTHOR.json",
@@ -343,6 +343,7 @@
     "numeric_observation_implies_calibrated_measurement": false,
     "missing_uncertainty_means_zero_uncertainty": false,
     "post_hoc_threshold_equals_preregistered_rule": false,
+    "profile_fingerprint_implies_preregistration_proof": false,
     "reproducible_analysis_implies_independent_replication": false
   },
   "vopson": {

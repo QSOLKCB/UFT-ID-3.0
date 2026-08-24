@@ -23,10 +23,10 @@ _frozen = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_frozen)
 
 _frozen.EXPECTED_HUMAN_BLOBS.update({
-    "claims": "c876fe43789572d29f90c2034c98487b54e39142",
-    "readme4ai": "0c4ee151b7fb8351dd796b377eb7d99e7fab1b93",
-    "reproducibility": "bcba98a9c2cd42d8baf4b909ce5fa5fd57f6ad84",
-    "roadmap": "87d08fbce60708c3dd1a799eeacc2410149c674e",
+    "claims": "b8242ecfac94ec0a516c76bbd81a27c6f3a8114a",
+    "readme4ai": "8ed0a73932f70529cb5149f9c0965f4a22fc9a1d",
+    "reproducibility": "a58f59475260e73e24ee3a6957b2baf01db4473f",
+    "roadmap": "85089ff3659433129de10bd03538f3d35e79b5b4",
 })
 _frozen.EXPECTED_VERIFY_STEP_DIRECTIVES = (
     "if: always()",

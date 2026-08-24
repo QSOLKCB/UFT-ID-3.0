@@ -51,6 +51,79 @@ MATHEMATICAL_PROOF != LEAN_PROOF
 LEAN_PROOF != RUNTIME_CONFORMANCE != EMPIRICAL_VALIDATION
 ```
 
+### QSOL-CONTEXT → Lean 4 → Zenodo formalization workflow
+
+**Status:** ROADMAP-ONLY workflow contract for deferred PR #10 and later formalization releases.
+
+`QSOLKCB/QSOL-CONTEXT` is the provenance, coordination, and supersession spine between an immutable UFT-ID source release, reproducible Lean 4 packages, immutable Zenodo release bundles, and DOI records. Lean formalization is a later scholarly layer and must not be rewritten into the identity of the original source release.
+
+Canonical sequence:
+
+```text
+ARCHITECTURE
+  -> EXECUTABLE CONFORMANCE
+  -> ADVERSARIAL REVIEW
+  -> EXACT-MAIN RELEASE GATE
+  -> IMMUTABLE SOURCE-RELEASE TAG
+  -> POST-TAG TARGET BINDING IN QSOL-CONTEXT
+  -> LEAN 4 FORMALIZATION
+  -> FORMALIZATION MERGE
+  -> DOI RESERVATION
+  -> REPRODUCIBLE ARCHIVE
+  -> INDEPENDENT ARCHIVE REPRODUCTION
+  -> MERGE_ARCHIVE_LAYER
+  -> ARTIFACT UPLOAD + CHECKSUM VERIFICATION
+  -> ZENODO PUBLICATION
+  -> POST-PUBLICATION BACKLINKS + CONTEXT CAPTURE
+```
+
+The workflow is:
+
+1. complete the architecture, executable conformance, adversarial review, and exact merged-`main` CI/audit release gate;
+2. create an immutable source-release tag; the Lean target is that tag's exact commit and tree, never moving `main` or an open release candidate;
+3. freeze theorem IDs, exact statements, hypotheses, scopes, nonclaims, counterexamples, source tag, commit/tree, CI provenance, and dependency closure;
+4. create the QSOL-CONTEXT post-tag formalization record naming the immutable target, theorem inventory, expected Lean module map, authority hashes, and state transition `PLANNED -> TARGET_BOUND -> IN_PROGRESS -> LEAN_VERIFIED -> ARCHIVE_REPRODUCED -> PUBLISHED -> CONTEXT_CAPTURED`;
+5. build the Lean 4 package with exact Lean, Lake, Mathlib, and dependency pins; forbid `sorry`, `admit`, undeclared axioms, and silent classical assumptions;
+6. merge the later Lean scholarly layer without changing the original tagged-release identity, then reserve the DOI;
+7. generate deterministic formalization and archive receipts containing source-release identity, source and Lean hashes, theorem inventory, imported-axiom report, build result, toolchain identity, formalization-integration commit, and canonical package fingerprint;
+8. construct the reproducible THREE-FILE ZENODO VERSIONED RELEASE surface: a deterministic source ZIP, an Overview PDF, and release notes. The ZIP binds the immutable source release plus the later Lean layer through manifests rather than pretending the Lean files were part of the original tag;
+9. independently reproduce the archive, merge the verified archive layer, upload all artifacts, and verify their checksums before publication;
+10. place `SHA256SUMS` and complete provenance inside the source ZIP; make the release notes hash the ZIP and Overview PDF; record the release-notes checksum independently in the Zenodo metadata;
+11. publish the verified Zenodo record, then write DOI/backlinks, source tag/commit/tree, formalization-integration commit, verification state, publication receipt, and explicit supersession edges back into QSOL-CONTEXT without rewriting older releases or the immutable tag.
+
+```text
+GITHUB_GREEN != LEAN_PROVED
+RELEASE_CANDIDATE != PUBLISHED_RELEASE
+TAGGED_RELEASE_IDENTITY != POST_TAG_FORMALIZATION
+POST_PUBLICATION_METADATA_MAIN != TAGGED_RELEASE_IDENTITY
+TAG_CREATED != LEAN_PROVED
+LEAN_PROVED != EMPIRICALLY_VALIDATED
+ZENODO_ARCHIVED != CURRENT_CANONICAL_THEORY
+SOURCE_RELEASE != LATER_LEAN_FORMALIZATION_LAYER
+SOURCE_THEOREM != LEAN_ARTIFACT != ZENODO_RECORD
+SUPERSESSION != SILENT_REWRITE
+PROFILE_FINGERPRINT != PREREGISTRATION_PROOF
+```
+
+Formalization/publication checklist:
+
+- [x] Adopt QSOL-CONTEXT as the Lean 4 / Zenodo workflow spine.
+- [x] Require the Lean target to be an immutable post-merge source tag bound to its exact commit/tree and CI provenance.
+- [x] Preserve Lean as a later scholarly layer rather than part of the original source-release identity.
+- [x] Define the three-file Zenodo surface: deterministic source ZIP, Overview PDF, and release notes.
+- [x] Require independent archive reproduction before the archive layer is merged and artifacts are published.
+- [ ] Freeze the first PR #10 theorem batch and dependency graph.
+- [ ] Pass the exact merged-main release gate and cut the immutable source tag.
+- [ ] Create the corresponding post-tag QSOL-CONTEXT target-binding record.
+- [ ] Pin the Lean 4, Lake, Mathlib, and package toolchain.
+- [ ] Add no-`sorry`/no-`admit` and imported-axiom CI gates.
+- [ ] Merge the Lean layer and reserve the DOI.
+- [ ] Generate deterministic formalization/archive receipts and manifest hashes.
+- [ ] Build and independently reproduce the three-file Zenodo release surface with internal `SHA256SUMS`.
+- [ ] Merge the verified archive layer, upload artifacts, and verify checksums.
+- [ ] Make release notes hash the ZIP/PDF and record the notes checksum in Zenodo metadata.
+- [ ] Publish the Zenodo record and return DOI, backlinks, publication receipt, and supersession graph to QSOL-CONTEXT.
+
 ## Active now — planned PR #18
 
 ### Empirical falsification profile
@@ -77,6 +150,7 @@ EmpiricalFalsificationProfile = (
   rejection_rule,
   evidence_requirements,
   decision_policy,
+  prior_registration_status,
   profile_version
 )
 
@@ -100,12 +174,12 @@ REJECTED_IN_SCOPE
 NOT_REJECTED_IN_SCOPE
 ```
 
-`NOT_REJECTED_IN_SCOPE` is not a confirmation state. `REJECTED_IN_SCOPE` applies only to the declared hypothesis/profile version and scope. Profile identity binds all decision-bearing metadata, including the rejection threshold.
+`NOT_REJECTED_IN_SCOPE` is not a confirmation state. `REJECTED_IN_SCOPE` is a scoped procedural label. Profile identity binds all decision-bearing metadata, including the rejection threshold, but does not prove registration chronology. The synthetic profile therefore exposes external-unverified registration status and no empirical-rejection licence.
 
 Advertised result surface:
 
-1. `UFT-EFP-001` empirical rejection requires complete profile-matched evidence;
-2. `UFT-EFP-002` a rejection decision is scoped to one hypothesis/profile version;
+1. `UFT-EFP-001` synthetic decision eligibility requires complete profile-matched evidence;
+2. `UFT-EFP-002` the scoped procedural rejection label exposes external-unverified registration and no empirical-rejection licence;
 3. `UFT-EFP-003` failure to reject is not confirmation;
 4. `UFT-EFP-004` uncertainty overlapping a rejection boundary is inconclusive under the declared exact interval rule;
 5. `UFT-EFP-005` empirical fit does not imply a unique explanation when multiple candidate prediction sets contain the observation.
@@ -145,6 +219,7 @@ REJECTION_IN_SCOPE != GLOBAL_THEORY_REFUTATION
 NUMERIC_OBSERVATION != CALIBRATED_MEASUREMENT
 MISSING_UNCERTAINTY != ZERO_UNCERTAINTY
 POST_HOC_THRESHOLD != PREREGISTERED_REJECTION_RULE
+PROFILE_FINGERPRINT != PREREGISTRATION_PROOF
 INCONCLUSIVE != NOT_REJECTED
 REPRODUCIBLE_ANALYSIS != INDEPENDENT_REPLICATION
 FINITE_EMPIRICAL_PROFILE_CONFORMANCE != GENERAL_STATISTICAL_INFERENCE
@@ -158,7 +233,13 @@ FINITE_EMPIRICAL_PROFILE_CONFORMANCE != GENERAL_STATISTICAL_INFERENCE
 - [x] Implement the exact synthetic decision evaluator.
 - [x] Separate `INVALID_EVIDENCE`, `INCONCLUSIVE`, `REJECTED_IN_SCOPE`, and `NOT_REJECTED_IN_SCOPE`.
 - [x] Bind calibration, measurement identity, uncertainty, provenance, and profile fingerprint before rejection.
-- [x] Bind rejection-threshold changes into profile identity.
+- [x] Bind rejection-threshold changes into profile identity without treating fingerprints as chronology proofs.
+- [x] Exact-bind prediction, null-model, uncertainty-model, rejection-rule, evidence-requirement, and decision-policy semantics.
+- [x] Treat prior registration as an explicit external unverified assumption until independent immutable provenance exists.
+- [x] Reject scalar string/bytes provenance before sequence coercion.
+- [x] Exact-bind theorem proof references to their canonical human anchors.
+- [x] Correct EFP and live-roadmap snapshots to the actual UTC capture date and reject future snapshot dates.
+- [x] Record the QSOL-CONTEXT → Lean 4 → Zenodo workflow for deferred PR #10.
 - [x] Add the empirical-fit/non-unique-explanation control.
 - [x] Add direct adversarial regressions and closed-schema tests.
 - [x] Add the fail-closed EFP validator with independent fixture payload authority.
@@ -176,9 +257,9 @@ FINITE_EMPIRICAL_PROFILE_CONFORMANCE != GENERAL_STATISTICAL_INFERENCE
 - [x] Pass `vopson-corpus` on the exact PR head.
 - [ ] Complete a fresh hostile Codex P1/P2 review on the exact green head.
 
-Explicitly deferred beyond this phase are source-specific empirical claim instantiation without exact source reconstruction, statistical power/sample-size design, framework-specific frequentist or Bayesian inference, multiple-testing/sequential procedures, causal identification, real dataset/calibration execution, independent replication/meta-analysis, population prevalence estimation, automatic global-theory rejection, and Lean proof objects.
+Explicitly deferred beyond this phase are source-specific empirical claim instantiation without exact source reconstruction, independently verified immutable preregistration provenance and evidence chronology, statistical power/sample-size design, framework-specific frequentist or Bayesian inference, multiple-testing/sequential procedures, causal identification, real dataset/calibration execution, independent replication/meta-analysis, population prevalence estimation, automatic global-theory rejection, and Lean proof objects.
 
-**Exit criterion:** an empirical rejection cannot exist without complete calibrated profile-matched evidence; non-rejection remains distinct from confirmation; inconclusive remains distinct from non-rejection; profile changes remain versioned and identity-bearing; model fit remains distinct from unique explanation; synthetic conformance remains non-empirical; exact receipts, retained replay, compatibility wrappers, human/machine authority, roadmap tracking, CI, and hostile review remain synchronized.
+**Exit criterion:** the synthetic evaluator cannot manufacture preregistration chronology or an empirically licensed rejection from a profile fingerprint; actual empirical rejection requires complete calibrated profile-matched evidence plus independently verified immutable prior-registration provenance. Non-rejection remains distinct from confirmation; inconclusive remains distinct from non-rejection; profile changes remain versioned and identity-bearing; model fit remains distinct from unique explanation; synthetic conformance remains non-empirical; exact receipts, retained replay, compatibility wrappers, human/machine authority, roadmap tracking, CI, and hostile review remain synchronized.
 
 ---
 
@@ -233,6 +314,8 @@ MATHLIB_THEOREM_EXISTS != OUR_LEAN_BUILD_PASSES
 MATHEMATICAL_PROOF != LEAN_PROOF
 LEAN_PROOF != RUNTIME_CONFORMANCE != EMPIRICAL_VALIDATION
 ```
+
+The deferred proof/publication track follows the live QSOL-CONTEXT → Lean 4 → Zenodo workflow above. Each proof release must preserve theorem identity, source commit, dependency closure, toolchain pins, build receipt, DOI, and supersession history.
 
 ---
 
@@ -710,4 +793,4 @@ NUMBER != ROLE != STRUCTURE != MECHANISM != ONTOLOGY
 
 # Release-level exit criteria
 
-A future formalization release should not be cut until every advertised theorem has an inspectable proof or is explicitly a theorem target; machine and human statements agree; counterexamples remain executable; source-specific critiques identify exact sources; private locators do not leak; proof/runtime/empirical/physical layers stay separate; unique-selection claims survive alternate-realization tests; stochastic and prevalence claims carry explicit probability/measure semantics; continuum claims carry explicit lifting obligations; empirical rejection claims carry complete calibrated profile identity, uncertainty, provenance, and scope; CI evidence is retained; and all deferrals remain visible.
+A future formalization release should not be cut until every advertised theorem has an inspectable proof or is explicitly a theorem target; machine and human statements agree; counterexamples remain executable; source-specific critiques identify exact sources; private locators do not leak; proof/runtime/empirical/physical layers stay separate; unique-selection claims survive alternate-realization tests; stochastic and prevalence claims carry explicit probability/measure semantics; continuum claims carry explicit lifting obligations; empirical rejection claims carry complete calibrated profile identity, uncertainty, provenance, scope, and independently verified prior-registration chronology; CI evidence is retained; the QSOL-CONTEXT formalization record binds the exact source commit and theorem inventory; the Lean 4 package builds without `sorry` or `admit` under pinned tooling; the Zenodo bundle contains receipts, hashes, reproduction instructions, and citation metadata; DOI and supersession edges are returned to QSOL-CONTEXT; and all deferrals remain visible.

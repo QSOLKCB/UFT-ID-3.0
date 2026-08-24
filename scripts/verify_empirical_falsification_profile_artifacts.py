@@ -29,7 +29,8 @@ EXPECTED_RUNTIME = {"python", "implementation", "platform"}
 EXPECTED_CLAIM_BOUNDARY = (
     "FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION; "
     "FAILURE_TO_REJECT != CONFIRMATION; EMPIRICAL_FIT != UNIQUE_EXPLANATION; "
-    "REJECTION_IN_SCOPE != GLOBAL_THEORY_REFUTATION"
+    "REJECTION_IN_SCOPE != GLOBAL_THEORY_REFUTATION; "
+    "PROFILE_FINGERPRINT != PREREGISTRATION_PROOF"
 )
 EXPECTED_CORE_FILES = (
     "machine/empirical_falsification_profile_contract.json",
@@ -165,7 +166,7 @@ def verify(artifact_dir: Path) -> dict[str, object]:
         raise RuntimeError("retained EFP receipt does not bind witness")
     expected_summary = {
         "result_count": 11,
-        "hard_boundary_count": 11,
+        "hard_boundary_count": 12,
         "valid_decision_checks": 15,
         "rejected_in_scope_cases": 5,
         "not_rejected_in_scope_cases": 7,

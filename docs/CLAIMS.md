@@ -222,9 +222,9 @@ FINITE_STOCHASTIC_CONFORMANCE != GENERAL_STOCHASTIC_OR_CONTINUUM_THEORY
 
 **Status:** PROVED
 
-**Qualifier:** abstract decision-contract and synthetic exact-interval conformance scope only; this is not an empirical result, statistical-power claim, independent replication, population inference, causal identification, or physical validation.
+**Qualifier:** abstract decision-contract and synthetic exact-interval conformance scope only; prior registration is explicitly an external unverified assumption, and this is not an empirical result, empirically licensed rejection, statistical-power claim, independent replication, population inference, causal identification, or physical validation.
 
-The canonical Empirical Falsification Profile authority registers `UFT-EFP-001` through `UFT-EFP-005`. Complete profile-matched evidence is required before any rejection decision is licensed. Rejection is scoped to one hypothesis/profile version, non-rejection is not confirmation, uncertainty that crosses the declared boundary is inconclusive, and one compatible observation does not uniquely identify a model when multiple prediction sets contain it.
+The canonical Empirical Falsification Profile authority registers `UFT-EFP-001` through `UFT-EFP-005`. Complete profile-matched evidence is required before the synthetic decision procedure can return a scoped label. The synthetic profile exposes prior registration as `EXTERNAL_UNVERIFIED_ASSUMPTION`, so a fingerprint cannot license an actual empirical rejection or prove chronology. Rejection remains scoped to one hypothesis/profile version, non-rejection is not confirmation, uncertainty that crosses the declared boundary is inconclusive, and one compatible observation does not uniquely identify a model when multiple prediction sets contain it.
 
 The exact synthetic reference surface checks 15 valid interval decisions, 60 invalid-evidence mutations, 15 candidate-model fit memberships with 3 ambiguous observations, and 3 pairwise profile-fingerprint separation checks.
 
@@ -237,6 +237,7 @@ REJECTION_IN_SCOPE != GLOBAL_THEORY_REFUTATION
 NUMERIC_OBSERVATION != CALIBRATED_MEASUREMENT
 MISSING_UNCERTAINTY != ZERO_UNCERTAINTY
 POST_HOC_THRESHOLD != PREREGISTERED_REJECTION_RULE
+PROFILE_FINGERPRINT != PREREGISTRATION_PROOF
 INCONCLUSIVE != NOT_REJECTED
 REPRODUCIBLE_ANALYSIS != INDEPENDENT_REPLICATION
 FINITE_EMPIRICAL_PROFILE_CONFORMANCE != GENERAL_STATISTICAL_INFERENCE
@@ -254,7 +255,7 @@ The following remain future theorem/evidence targets:
 - admissible fixed-point theorems;
 - a universal failure trajectory for inference systems;
 - general measurable-space, continuous-time stochastic, ergodic, mixing, and concentration results beyond the bounded CSP authority;
-- source-specific empirical falsification profiles, statistical power, population inference, causal identification, and independent replication beyond the synthetic EFP authority;
+- source-specific empirical falsification profiles, independently verified immutable preregistration provenance, evidence chronology, statistical power, population inference, causal identification, and independent replication beyond the synthetic EFP authority;
 - any physical identification of UFT-ID fields with fundamental forces or spacetime.
 
 ## Promotion rule
@@ -270,4 +271,4 @@ A claim may move upward only when the evidence type matches the claim type.
 - information comparison remains scoped to an explicit `InformationSpec` relation or registered conversion and cannot be inferred from shared vocabulary, units, scalar values, or functional names alone;
 - deterministic recovery requires an explicit selector specialization, relation soundness, termination/progress, and normal-state obligations; a selector result does not promote the base relation to confluence or empirical recovery;
 - stochastic and continuum promotion requires explicit probability/measure, quantifier, topology, regularity, convergence, and error-control obligations; finite reachability, finite samples, formal counterexamples, and finite-grid agreement do not supply them automatically;
-- empirical rejection requires complete calibrated profile-matched evidence under a fixed hypothesis/profile version; formal counterexamples, synthetic fixtures, non-rejection, model fit, reproducible analysis, and one scoped rejection cannot be promoted into empirical falsification, confirmation, unique explanation, independent replication, or global theory refutation without additional evidence and arguments.
+- empirical rejection requires complete calibrated profile-matched evidence under a fixed hypothesis/profile version plus independently verified immutable preregistration provenance; a profile fingerprint does not prove chronology, and formal counterexamples, synthetic fixtures, non-rejection, model fit, reproducible analysis, and one scoped procedural rejection cannot be promoted into empirical falsification, confirmation, unique explanation, independent replication, or global theory refutation without additional evidence and arguments.

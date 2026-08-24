@@ -139,7 +139,8 @@ def run_suite() -> dict[str, object]:
         "claim_boundary": (
             "FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION; "
             "FAILURE_TO_REJECT != CONFIRMATION; EMPIRICAL_FIT != UNIQUE_EXPLANATION; "
-            "REJECTION_IN_SCOPE != GLOBAL_THEORY_REFUTATION"
+            "REJECTION_IN_SCOPE != GLOBAL_THEORY_REFUTATION; "
+            "PROFILE_FINGERPRINT != PREREGISTRATION_PROOF"
         ),
     }
     return {

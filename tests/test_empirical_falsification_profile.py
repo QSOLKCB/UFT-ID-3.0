@@ -82,6 +82,53 @@ class EmpiricalFalsificationProfileTests(unittest.TestCase):
         self.assertEqual(E.evaluate(profile1, evidence1)["decision"], "NOT_REJECTED_IN_SCOPE")
         self.assertEqual(E.evaluate(profile1, evidence0)["decision"], "INVALID_EVIDENCE")
 
+    def test_profile_semantics_are_exact_bound(self):
+        profile = E.make_profile(0)
+        cases = (
+            ("prediction", "kind", "lower-bound", "prediction kind"),
+            ("null_model", "kind", "point-alternative", "null-model kind"),
+            ("rejection_rule", "kind", "interval-entirely-below-threshold", "rejection-rule kind"),
+        )
+        for field, key, value, diagnostic in cases:
+            with self.subTest(field=field):
+                mutated = deepcopy(profile)
+                mutated[field][key] = value
+                with self.assertRaisesRegex(ValueError, diagnostic):
+                    E.profile_fingerprint(mutated)
+                with self.assertRaisesRegex(ValueError, diagnostic):
+                    E.evaluate(mutated, {})
+        mutated = deepcopy(profile)
+        mutated["uncertainty_model"] = "undeclared-model"
+        with self.assertRaisesRegex(ValueError, "uncertainty-model"):
+            E.profile_fingerprint(mutated)
+        mutated = deepcopy(profile)
+        mutated["decision_policy"]["reject"] = "interval upper bound > threshold"
+        with self.assertRaisesRegex(ValueError, "decision policy semantic drift"):
+            E.profile_fingerprint(mutated)
+
+    def test_string_and_bytes_provenance_are_rejected_before_list_coercion(self):
+        profile = E.make_profile(0)
+        for refs in ("SYN-PROV-001", b"SYN-PROV-001"):
+            with self.subTest(refs_type=type(refs).__name__):
+                with self.assertRaisesRegex(ValueError, "nonempty string sequence"):
+                    E.make_evidence(profile, 1, 0, provenance_refs=refs)
+        evidence = E.make_evidence(profile, 1, 0)
+        evidence["provenance_refs"] = "SYN-PROV-001"
+        self.assertEqual(E.evaluate(profile, evidence)["decision"], "INVALID_EVIDENCE")
+
+    def test_prior_registration_is_explicitly_external_and_unverified(self):
+        profile = E.make_profile(0)
+        self.assertEqual(profile["prior_registration_status"], "EXTERNAL_UNVERIFIED_ASSUMPTION")
+        rejected = E.evaluate(profile, E.make_evidence(profile, 1, 0))
+        self.assertEqual(rejected["decision"], "REJECTED_IN_SCOPE")
+        self.assertFalse(rejected["prior_registration_verified"])
+        self.assertFalse(rejected["empirical_rejection_licensed"])
+        self.assertEqual(rejected["decision_authority"], "SYNTHETIC_CONFORMANCE_ONLY")
+        mutated = deepcopy(profile)
+        mutated["prior_registration_status"] = "VERIFIED_BY_PROFILE_FINGERPRINT"
+        with self.assertRaisesRegex(ValueError, "external unverified assumption"):
+            E.profile_fingerprint(mutated)
+
     def test_empirical_fit_can_be_nonunique(self):
         models = {"A": (-2, 0), "B": (-1, 1), "C": (0, 2)}
         self.assertEqual(E.compatible_models(0, models), ["A", "B", "C"])
@@ -89,12 +136,13 @@ class EmpiricalFalsificationProfileTests(unittest.TestCase):
 
     def test_counterexample_payloads_are_exact(self):
         self.assertEqual(self.suite["fixtures"], V.EXPECTED_FIXTURE_PAYLOADS)
+        self.assertEqual(self.suite["claim_boundary"], V.EXPECTED_RESULT_BOUNDARY)
 
     def test_validator_accepts_canonical_surface(self):
         result = V.validate()
         self.assertEqual(result["status"], "ok", result["errors"])
         self.assertEqual(result["result_count"], 11)
-        self.assertEqual(result["boundary_count"], 11)
+        self.assertEqual(result["boundary_count"], 12)
 
     def _mutate_json(self, relpath: str, mutate):
         path = ROOT / relpath
@@ -118,6 +166,30 @@ class EmpiricalFalsificationProfileTests(unittest.TestCase):
         result = self._mutate_json("machine/empirical_falsification_profile_results.json", mutate)
         self.assertEqual(result["status"], "error")
         self.assertIn("UFT-EFP-001 theorem field set drift", result["errors"])
+
+    def test_proof_reference_must_match_the_exact_human_anchor(self):
+        def mutate(payload):
+            record = next(item for item in payload["records"] if item["id"] == "UFT-EFP-001")
+            record["proof_reference"] = "theory/EMPIRICAL_FALSIFICATION_PROFILE.md#uft-efp-does-not-exist"
+        result = self._mutate_json("machine/empirical_falsification_profile_results.json", mutate)
+        self.assertEqual(result["status"], "error")
+        self.assertIn("UFT-EFP-001 proof reference drift", result["errors"])
+
+    def test_future_snapshot_dates_fail_closed(self):
+        result = self._mutate_json(
+            "machine/empirical_falsification_profile_contract.json",
+            lambda payload: payload.__setitem__("snapshot_date", "2999-01-01"),
+        )
+        self.assertEqual(result["status"], "error")
+        self.assertTrue(any("future UTC snapshot" in error for error in result["errors"]), result["errors"])
+
+    def test_snapshot_dates_must_remain_synchronized_with_the_merged_csp_basis(self):
+        result = self._mutate_json(
+            "machine/empirical_falsification_profile_results.json",
+            lambda payload: payload.__setitem__("snapshot_date", "2026-08-23"),
+        )
+        self.assertEqual(result["status"], "error")
+        self.assertIn("EFP contract/result/roadmap snapshot disagreement", result["errors"])
 
     def test_roadmap_cannot_reactivate_csp(self):
         result = self._mutate_json("machine/roadmap_state.json", lambda payload: payload.__setitem__("active_planned_surface", 17))
