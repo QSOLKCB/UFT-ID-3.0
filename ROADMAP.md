@@ -24,6 +24,10 @@ but relation, observation, bridge, epistemic, representation, information, recov
 
 ## Completed roadmap surfaces
 
+### Phase 0: lineage and provenance — COMPLETE
+
+### 2019 MEI reproduction — COMPLETE
+
 - [x] Phase 0 — lineage and provenance.
 - [x] PR #5 — cross-repository formal patterns.
 - [x] PR #6 — VOP-2019-MEI arithmetic reproduction.
@@ -53,7 +57,7 @@ LEAN_PROOF != RUNTIME_CONFORMANCE != EMPIRICAL_VALIDATION
 
 **Status:** ACTIVE, implemented by the current change.
 
-Mission: specialize the PR8 `FalsificationSpec` scaffold into a versioned, calibrated, uncertainty-aware empirical decision profile without promoting formal counterexamples, synthetic fixtures, non-rejection, reproducible analysis, or model fit into empirical falsification, confirmation, independent replication, or unique explanation.
+Mission: specialize the PR8 `FalsificationSpec` scaffold into a versioned, calibrated, uncertainty-aware empirical decision profile without promoting formal counterexamples, synthetic fixtures, non-rejection, reproducible analysis, or model fit into empirical falsification, confirmation, independent replication, unique explanation, or global theory refutation.
 
 Canonical profile:
 
@@ -163,9 +167,9 @@ FINITE_EMPIRICAL_PROFILE_CONFORMANCE != GENERAL_STATISTICAL_INFERENCE
 - [x] Freeze the merged CSP validator and advance its live compatibility wrapper without rewriting CSP semantics.
 - [x] Advance `machine/roadmap_state.json` to mark PR #17 complete and PR #18 active.
 - [x] Update this human roadmap tracker.
-- [ ] Integrate EFP into the existing `finite-adversarial` workflow.
-- [ ] Advance all earlier live-roadmap compatibility wrappers to PR #18.
-- [ ] Refresh graph human-authority blob pins after the central docs settle.
+- [x] Integrate EFP into the existing `finite-adversarial` workflow.
+- [x] Advance all earlier live-roadmap compatibility wrappers to PR #18.
+- [x] Refresh graph human-authority blob pins after the central docs settle.
 - [ ] Pass the complete Python 3.12 and 3.13 ordinary test suites.
 - [ ] Pass the complete Python 3.12 and 3.13 `python -O` test suites.
 - [ ] Pass every retained-artifact replay, including EFP.
