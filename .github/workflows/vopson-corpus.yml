@@ -200,6 +200,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add experiments/empirical_falsification_profile/run.py scripts/validate_empirical_falsification_profile.py tests/test_empirical_falsification_profile.py .github/workflows/vopson-corpus.yml
-          test "$(git diff --cached --name-only | sort)" = "$(printf '%s\n' experiments/empirical_falsification_profile/run.py scripts/validate_empirical_falsification_profile.py tests/test_empirical_falsification_profile.py | sort)"
+          actual="$(git diff --cached --name-only | sort)"
+          expected="$(printf '%s\n' .github/workflows/vopson-corpus.yml experiments/empirical_falsification_profile/run.py scripts/validate_empirical_falsification_profile.py tests/test_empirical_falsification_profile.py | sort)"
+          test "$actual" = "$expected"
           git commit -m "Bind EFP CSP and workflow authority"
           git push origin HEAD:agent/pr18-empirical-falsification-profile
