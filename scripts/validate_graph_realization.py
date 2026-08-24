@@ -3,9 +3,9 @@
 
 The PR11 graph validation logic remains byte-for-byte preserved in
 validate_graph_realization_pr11_frozen.py. Later formal phases may extend the
-central human authority surfaces; this wrapper advances only those exact blob
-pins while retaining every frozen graph theorem, donor, workflow, and semantic
-boundary check.
+central human authority surfaces or equivalent workflow syntax; this wrapper
+advances only those exact compatibility pins while retaining every frozen graph
+theorem, donor, and semantic-boundary check.
 """
 from __future__ import annotations
 
@@ -27,6 +27,10 @@ _frozen.EXPECTED_HUMAN_BLOBS.update({
     "reproducibility": "bcba98a9c2cd42d8baf4b909ce5fa5fd57f6ad84",
     "roadmap": "167fafca38113fb05f8520e08952748a5be64d42",
 })
+_frozen.EXPECTED_VERIFY_STEP_DIRECTIVES = (
+    "if: always()",
+    "run: python scripts/verify_graph_artifacts.py artifacts",
+)
 
 for _name in dir(_frozen):
     if not _name.startswith("__"):
