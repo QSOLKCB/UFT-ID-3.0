@@ -33,6 +33,9 @@
   "execution_limits": {
     "kernel_state_count": 2,
     "kernel_row_probability_denominator": 2,
+    "composition_dimension_limit": 16,
+    "composition_denominator_limit": 64,
+    "composition_output_limit": 10000,
     "finite_kernel_count": 9,
     "initial_distribution_count": 3,
     "kernel_transport_checks": 27,
