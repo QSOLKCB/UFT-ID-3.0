@@ -133,7 +133,7 @@ BRIDGE_CONFORMANCE != PHYSICAL_VALIDATION
 
 ## Epistemic Bridge authority
 
-The active planned PR #13 surface factorizes evidence/authority bookkeeping instead of imposing a global ladder:
+The completed planned PR #13 surface factorizes evidence/authority bookkeeping instead of imposing a global ladder:
 
 ```text
 EpistemicState = (
@@ -175,6 +175,49 @@ FINITE_EPISTEMIC_CONFORMANCE != GENERAL_EPISTEMOLOGY
 ```
 
 Transport preserves the authority vector and can only narrow scope. Verification is explicit and receipt-bearing. A verified item may still participate in an unresolved conflict.
+
+## Representation and congruence authority
+
+The active planned PR #14 surface requires every invariant claim to name the transformation class and its hypotheses.
+
+Canonical Representation surfaces:
+
+```text
+machine/representation_contract.json
+machine/representation_results.json
+theory/REPRESENTATION_CALCULUS.md
+scripts/validate_representation_calculus.py
+experiments/representation_calculus/run.py
+experiments/run_representation_calculus.py
+scripts/verify_representation_artifacts.py
+tests/test_representation_calculus.py
+```
+
+Transformation classes remain distinct:
+
+```text
+similarity:                 B=P^{-1}AP
+orthogonal similarity:      B=Q^T A Q, Q^TQ=I
+unitary similarity:         B=U^* A U, U^*U=I
+real congruence:             B=P^T A P
+coordinate change:           v'=P^{-1}v, A'=P^{-1}AP
+receiver re-encoding:        O'=R o O
+```
+
+The exact finite reference battery checks 3,240 similarity instances, 3,240 congruence-rank instances, 648 orthogonal Frobenius instances, 29,160 coordinate-covariance instances, and 3,969 receiver-equivalence source-pair instances.
+
+```text
+SIMILARITY != CONGRUENCE
+SIMILARITY != ORTHOGONAL_OR_UNITARY_SIMILARITY
+SAME_CHARACTERISTIC_POLYNOMIAL != SIMILARITY
+CONGRUENCE != SPECTRAL_EQUIVALENCE
+COORDINATE_TUPLE != ABSTRACT_OBJECT
+REPRESENTATION_CHANGE != PHYSICAL_CHANGE
+RECEIVER_REENCODING != STATE_TRANSFORMATION
+NONINJECTIVE_RECEIVER_REENCODING != OBSERVATIONAL_EQUIVALENCE_PRESERVATION
+INVARIANT_UNDER_CLASS_C != UNQUALIFIED_REPRESENTATION_INDEPENDENCE
+FINITE_REPRESENTATION_CONFORMANCE != GENERAL_PROOF
+```
 
 ## Cross-repository formal pattern authority
 
@@ -268,6 +311,9 @@ python experiments/run_bridge_core.py --json
 python scripts/validate_epistemic_bridge.py
 python experiments/epistemic_bridge/run.py --json
 python experiments/run_epistemic_bridge.py --json
+python scripts/validate_representation_calculus.py
+python experiments/representation_calculus/run.py --json
+python experiments/run_representation_calculus.py --json
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 python experiments/run_pr2.py --json
@@ -295,6 +341,8 @@ python experiments/run_pr6.py --json
 15. Do not infer semantic equivalence or epistemic promotion from BridgeCore compatibility.
 16. Do not infer verification from retrieval, inference, execution, successful transport, or repeated copying.
 17. Do not collapse conflict into unknown or treat verification as a truth oracle.
+18. Do not treat similarity, congruence, coordinate change, receiver re-encoding, or one preserved invariant as interchangeable equivalence notions.
+19. `INVARIANT_UNDER_CLASS_C != UNQUALIFIED_REPRESENTATION_INDEPENDENCE`.
 
 ## Lean
 
@@ -322,11 +370,16 @@ Lean remains deferred until source reproduction, notation freeze, theorem freeze
 18. `machine/epistemic_bridge_results.json`
 19. `scripts/validate_epistemic_bridge.py`
 20. `experiments/run_epistemic_bridge.py`
-21. `theory/CROSS_REPO_RESULTS.md`
-22. `research/CROSS_REPO_PATTERN_ATLAS.md`
-23. `machine/cross_repo_patterns.json`
-24. `machine/cross_repo_results.json`
-25. `research/vopson/CORPUS.md`
-26. `research/vopson/CLAIM_GRAPH.md`
-27. `research/vopson/DEFINITIONS.md`
-28. `ROADMAP.md`
+21. `theory/REPRESENTATION_CALCULUS.md`
+22. `machine/representation_contract.json`
+23. `machine/representation_results.json`
+24. `scripts/validate_representation_calculus.py`
+25. `experiments/run_representation_calculus.py`
+26. `theory/CROSS_REPO_RESULTS.md`
+27. `research/CROSS_REPO_PATTERN_ATLAS.md`
+28. `machine/cross_repo_patterns.json`
+29. `machine/cross_repo_results.json`
+30. `research/vopson/CORPUS.md`
+31. `research/vopson/CLAIM_GRAPH.md`
+32. `research/vopson/DEFINITIONS.md`
+33. `ROADMAP.md`
