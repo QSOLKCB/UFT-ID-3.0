@@ -3,79 +3,84 @@ name: vopson-corpus
 on:
   pull_request:
     paths:
+      - "research/vopson/**"
+      - "scripts/validate_vopson_corpus.py"
+      - "scripts/render_vopson_docs.py"
+      - "scripts/validate_reproducibility.py"
+      - "tests/**"
+      - "machine/**"
+      - "README.md"
+      - "README4AI.md"
+      - "AGENTS.md"
+      - "docs/REPRODUCIBILITY.md"
       - ".github/workflows/**"
-      - "tools/pr21_freeze_patch.py"
-      - "tools/pr21_freeze_patch_fix.py"
-      - "machine/lean_observation_foundation_contract.json"
-      - "theory/LEAN_OBSERVATION_FOUNDATION.md"
-      - "scripts/validate_lean_observation_foundation.py"
-      - "tests/test_lean_observation_foundation.py"
+  push:
+    branches: [main]
+    paths:
+      - "research/vopson/**"
+      - "scripts/validate_vopson_corpus.py"
+      - "scripts/render_vopson_docs.py"
+      - "scripts/validate_reproducibility.py"
+      - "tests/**"
+      - "machine/**"
+      - "README.md"
+      - "README4AI.md"
+      - "AGENTS.md"
+      - "docs/REPRODUCIBILITY.md"
+      - ".github/workflows/**"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  freeze-pr21-source-batch:
+  validate-corpus:
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: agent/pr21-freeze-lean-observation-batch
-          persist-credentials: true
-          fetch-depth: 128
+          persist-credentials: false
 
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
 
-      - name: Apply PR21 source freeze integration
-        shell: bash
-        run: |
-          set -euo pipefail
-          cp .github/workflows/vopson-corpus.yml /tmp/pr21-vopson-temp.yml
-          python tools/pr21_freeze_patch.py
-          python tools/pr21_freeze_patch_fix.py
-          git show 6f3aeb7f4ac14389e7a08d2976c8c0d16549c093:.github/workflows/vopson-corpus.yml > .github/workflows/vopson-corpus.yml
+      - name: Compile Python
+        run: python -m compileall -q experiments scripts tests
 
-      - name: Validate PR21 freeze authority
-        shell: bash
-        run: |
-          set -euo pipefail
-          git diff --check
-          python -m compileall -q experiments scripts tests
-          python scripts/render_vopson_docs.py --check
-          python scripts/validate_vopson_corpus.py
-          python scripts/validate_reproducibility.py
-          python scripts/validate_cross_repo_patterns.py
-          python scripts/validate_historical_lineage.py
-          python scripts/validate_formalization_contracts.py
-          python scripts/validate_observation_specs.py
-          python scripts/validate_lean_observation_foundation.py
-          python scripts/validate_relation_core.py
-          python scripts/validate_graph_realization.py
-          python scripts/validate_bridge_core.py
-          python scripts/validate_epistemic_bridge.py
-          python scripts/validate_representation_calculus.py
-          python scripts/validate_information_comparability.py
-          python scripts/validate_recovery_specializations.py
-          python scripts/validate_continuum_stochastic_prevalence.py
-          python scripts/validate_empirical_falsification_profile.py
-          python scripts/validate_vopson_2019_mei.py
-          python -m unittest discover -s tests -v
-          python -O -m unittest discover -s tests -v
+      - name: Check generated Vopson documentation
+        run: python scripts/render_vopson_docs.py --check
 
-      - name: Commit PR21 source freeze
-        shell: bash
+      - name: Validate canonical Vopson corpus
+        run: python scripts/validate_vopson_corpus.py
+
+      - name: Validate reproducibility contract
+        run: python scripts/validate_reproducibility.py
+
+      - name: Unit and adversarial tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Optimized-Python tests
+        run: python -O -m unittest discover -s tests -v
+
+      - name: Generate corpus evidence bundle
+        if: always()
         run: |
-          set -euo pipefail
-          cp /tmp/pr21-vopson-temp.yml .github/workflows/vopson-corpus.yml
-          rm tools/pr21_freeze_patch.py tools/pr21_freeze_patch_fix.py
-          git diff --exit-code HEAD -- .github/workflows/vopson-corpus.yml
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          test ! -e tools/pr21_freeze_patch.py
-          test ! -e tools/pr21_freeze_patch_fix.py
-          git diff --cached --name-only
-          git commit -m "Freeze first PR10 Lean observation theorem batch"
-          git push origin HEAD:agent/pr21-freeze-lean-observation-batch
+          mkdir -p artifacts
+          python scripts/validate_vopson_corpus.py --json > artifacts/vopson-corpus-validation.json 2> artifacts/vopson-corpus-validation.stderr.txt || true
+          python scripts/render_vopson_docs.py --check --json > artifacts/vopson-doc-sync.json 2> artifacts/vopson-doc-sync.stderr.txt || true
+          python scripts/validate_reproducibility.py --json > artifacts/reproducibility-validation.json 2> artifacts/reproducibility-validation.stderr.txt || true
+          python experiments/run_pr2.py --json > artifacts/pr2-receipt.json 2> artifacts/pr2-receipt.stderr.txt || true
+
+      - name: Retain corpus evidence bundle
+        if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: vopson-corpus-py${{ matrix.python-version }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 30
