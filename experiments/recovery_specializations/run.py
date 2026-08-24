@@ -152,9 +152,13 @@ def normalize_ranked(
     rank: Mapping[State, int],
     start: State,
 ) -> State:
+    carrier = _carrier(states)
+    selector = make_selector(carrier, selector)
+    if start not in set(carrier):
+        raise ValueError("start state is outside the declared carrier")
     if not relation_sound(selector, relation):
         raise ValueError("selector is not relation-sound")
-    if not selector_fixed_points_equal_normals(states, selector, relation):
+    if not selector_fixed_points_equal_normals(carrier, selector, relation):
         raise ValueError("selector fixed points must equal relation normal states")
     if not natural_rank_certificate(selector, rank):
         raise ValueError("invalid natural-rank progress certificate")
@@ -166,6 +170,26 @@ def normalize_ranked(
     return endpoint
 
 
+def _validate_objective_vectors(
+    candidates: Sequence[State], objective_vectors: Mapping[State, tuple[int, ...]]
+) -> None:
+    candidate_set = set(candidates)
+    if set(objective_vectors) != candidate_set:
+        raise ValueError("every candidate must have exactly one objective vector")
+    vectors = tuple(objective_vectors.values())
+    if any(not isinstance(vector, tuple) for vector in vectors):
+        raise ValueError("objective vectors must be tuples")
+    widths = {len(vector) for vector in vectors}
+    if len(widths) != 1:
+        raise ValueError("objective vectors must have one common finite arity")
+    if any(
+        not isinstance(value, int) or isinstance(value, bool)
+        for vector in vectors
+        for value in vector
+    ):
+        raise ValueError("objective values must be finite integers with a total order")
+
+
 def lexicographic_select(
     candidates: Iterable[State],
     objective_vectors: Mapping[State, tuple[int, ...]],
@@ -175,11 +199,7 @@ def lexicographic_select(
     if not candidate_tuple or len(set(candidate_tuple)) != len(candidate_tuple):
         raise ValueError("candidate set must be finite, nonempty, and duplicate-free")
     candidate_set = set(candidate_tuple)
-    if set(objective_vectors) != candidate_set:
-        raise ValueError("every candidate must have exactly one objective vector")
-    widths = {len(vector) for vector in objective_vectors.values()}
-    if len(widths) != 1:
-        raise ValueError("objective vectors must have one common finite arity")
+    _validate_objective_vectors(candidate_tuple, objective_vectors)
     if set(tie_order) != candidate_set or len(tie_order) != len(candidate_tuple):
         raise ValueError("final tie-break must contain every candidate exactly once")
     order_index = {candidate: index for index, candidate in enumerate(tie_order)}
@@ -188,8 +208,9 @@ def lexicographic_select(
 
 def argmin_without_tiebreak(candidates: Iterable[State], objective_vectors: Mapping[State, tuple[int, ...]]) -> set[State]:
     candidate_tuple = tuple(candidates)
-    if not candidate_tuple:
-        raise ValueError("candidate set must be nonempty")
+    if not candidate_tuple or len(set(candidate_tuple)) != len(candidate_tuple):
+        raise ValueError("candidate set must be finite, nonempty, and duplicate-free")
+    _validate_objective_vectors(candidate_tuple, objective_vectors)
     best = min(objective_vectors[candidate] for candidate in candidate_tuple)
     return {candidate for candidate in candidate_tuple if objective_vectors[candidate] == best}
 
