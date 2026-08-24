@@ -24,7 +24,7 @@ _spec.loader.exec_module(_frozen)
 
 _frozen.EXPECTED_HUMAN_BLOBS.update({
     "claims": "b8242ecfac94ec0a516c76bbd81a27c6f3a8114a",
-    "readme4ai": "c03b4b8e954864fc07bd1c02bdbf78711db95928",
+    "readme4ai": "00f8b77c5ea0bc88c065844ff70cd71df57861fd",
     "reproducibility": "409fa310cf641d1fc9a1081ab44716e28f74abb6",
     "roadmap": "b4322084be5191db5a43548f66c083bb8be1ec9b",
 })
