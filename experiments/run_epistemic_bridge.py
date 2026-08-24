@@ -19,6 +19,8 @@ CORE_FILES = [
     "machine/epistemic_bridge_contract.json",
     "machine/epistemic_bridge_results.json",
     "machine/bridge_core_contract.json",
+    "experiments/bridge_core/run.py",
+    "experiments/bridge_core/run_precodex2_frozen.py",
     "machine/roadmap_state.json",
     "machine/contract.json",
     "theory/EPISTEMIC_BRIDGE.md",
