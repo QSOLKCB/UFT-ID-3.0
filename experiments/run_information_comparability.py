@@ -19,6 +19,7 @@ CORE_FILES = [
     "machine/information_comparability_contract.json",
     "machine/information_comparability_results.json",
     "machine/observation_contract.json",
+    "machine/observation_specs.json",
     "machine/representation_contract.json",
     "machine/roadmap_state.json",
     "machine/contract.json",
@@ -116,6 +117,7 @@ def run_suite() -> dict[str, object]:
     comparison = witness["bounded_checks"]["comparability"]
     positive = witness["bounded_checks"]["positive_scale"]
     base = witness["bounded_checks"]["log_base_conversion"]
+    shared = witness["bounded_checks"]["shared_shannon_primitive"]
     identity = {
         "type": "uft-id-information-comparability-receipt",
         "schema_version": registered_receipt_version(),
@@ -131,6 +133,7 @@ def run_suite() -> dict[str, object]:
             "unit_convertible_ordered_pairs": comparison["unit_convertible_ordered_pairs"],
             "positive_scale_order_checks": positive["positive_scale_order_checks"],
             "log_base_conversion_checks": base["log_base_conversion_checks"],
+            "shared_shannon_primitive_checks": shared["shared_shannon_primitive_checks"],
         },
         "claim_boundary": (
             "FINITE_INFORMATION_CONFORMANCE != GENERAL_INFORMATION_THEORY; "
