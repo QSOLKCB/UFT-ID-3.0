@@ -172,6 +172,28 @@ DIRECT_COMPARABILITY != EMPIRICAL_COMMENSURABILITY
 FINITE_INFORMATION_CONFORMANCE != GENERAL_INFORMATION_THEORY
 ```
 
+### C12 - Deterministic recovery is an explicit specialization, not generic relation semantics
+
+**Status:** PROVED
+
+**Qualifier:** abstract deterministic-selector and finite lexicographic-recovery scope only; not an empirical recovery mechanism, stochastic normalizer, continuum theorem, or physical selection law.
+
+The canonical Recovery Specializations authority registers `UFT-REC-001` through `UFT-REC-005`. A selector `sigma:X->X` induces a right-unique effective selector relation, but the underlying generic `stepRel` remains distinct. Relation-sound finite selector iteration stays inside base reachability. A natural-number rank that strictly decreases on every non-fixed selector step supplies termination, and executable normalization additionally requires totality plus exact selector-fixed-point/stepRel-normal correspondence. Finite lexicographic recovery becomes unique only with an explicit final total tie-break.
+
+The exact finite reference surface checks 32 total selectors, 13,890 selector/relation pairs, 4,134 relation-sound pairs, 739 relation-sound pairs with exact fixed-point/normal agreement, 9 rank-decreasing selector controls, 23 state-level normalization checks, and 336 lexicographic selections.
+
+```text
+GENERIC_RELATION != DETERMINISTIC_SELECTOR
+EXISTENTIAL_NORMALIZATION != EXECUTABLE_NORMALIZER
+DETERMINISTIC != RELATION_SOUND
+RELATION_SOUND != TERMINATING
+TERMINATING_SELECTOR != BASE_RELATION_CONFLUENT
+SELECTOR_NORMAL_FORM != UNIQUE_RELATION_NORMAL_FORM
+OBJECTIVE_MINIMUM != UNIQUE_SELECTION_WITHOUT_TIEBREAK
+EXECUTABLE_NORMALIZER != EMPIRICAL_RECOVERY
+FINITE_SELECTOR_CONFORMANCE != GENERAL_RECOVERY_THEORY
+```
+
 ## Claims requiring future proof or evidence
 
 The following remain future theorem/evidence targets:
@@ -195,4 +217,5 @@ A claim may move upward only when the evidence type matches the claim type.
 - successful reproduction does not establish interpretation;
 - transport, retrieval, inference, execution, and verification receipts remain distinct authority events;
 - representation equivalence remains scoped to its declared transformation class and does not imply semantic or physical identity;
-- information comparison remains scoped to an explicit `InformationSpec` relation or registered conversion and cannot be inferred from shared vocabulary, units, scalar values, or functional names alone.
+- information comparison remains scoped to an explicit `InformationSpec` relation or registered conversion and cannot be inferred from shared vocabulary, units, scalar values, or functional names alone;
+- deterministic recovery requires an explicit selector specialization, relation soundness, termination/progress, and normal-state obligations; a selector result does not promote the base relation to confluence or empirical recovery.
