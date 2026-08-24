@@ -7,11 +7,43 @@ from fractions import Fraction
 import itertools
 import json
 
+from experiments.lib.information import shannon_entropy
+
 FUNCTIONALS = ("shannon_entropy", "hartley_entropy")
-OBSERVATIONS = ("fine-observation", "coarse-observation")
+OBSERVATION_REGISTRY = {
+    "OBS-REF-FIN2-IDENTITY-V1": {
+        "base_authority": "machine/observation_specs.json#OBS-SPEC-001",
+        "source_type": "Fin2",
+        "target_type": "Fin2",
+        "kind": "deterministic-total",
+        "map_ref": "O_id(0)=0; O_id(1)=1",
+    },
+    "OBS-REF-FIN2-CONSTANT0-V1": {
+        "base_authority": "machine/observation_specs.json#OBS-SPEC-002",
+        "source_type": "Fin2",
+        "target_type": "Fin1",
+        "kind": "deterministic-total",
+        "map_ref": "O_const(0)=0; O_const(1)=0",
+    },
+}
+CONDITIONING_REGISTRY = {
+    "COND-REF-UNCONDITIONAL-V1": {
+        "kind": "unconditional",
+        "source_type": "Fin2",
+        "variable_ref": None,
+        "event_ref": None,
+    },
+    "COND-REF-FIN2-X-EQ-0-V1": {
+        "kind": "conditioned",
+        "source_type": "Fin2",
+        "variable_ref": "x@Fin2",
+        "event_ref": "x=0",
+    },
+}
+OBSERVATIONS = tuple(OBSERVATION_REGISTRY)
 UNITS = ("bit", "base4-digit")
 NORMALIZATIONS = ("none", "per-source-symbol")
-CONDITIONINGS = ("unconditional", "conditioned-on-k")
+CONDITIONINGS = tuple(CONDITIONING_REGISTRY)
 SCOPES = (
     frozenset({"alpha"}),
     frozenset({"beta"}),
@@ -60,14 +92,20 @@ def make_spec(
     conditioning = _as_nonempty_string(conditioning, "conditioning")
     if functional not in FUNCTIONALS:
         raise ValueError("unsupported information functional")
-    if observation not in OBSERVATIONS:
-        raise ValueError("unsupported observation contract")
+    observation_record = OBSERVATION_REGISTRY.get(observation)
+    if observation_record is None:
+        raise ValueError("unsupported observation contract identity")
+    conditioning_record = CONDITIONING_REGISTRY.get(conditioning)
+    if conditioning_record is None:
+        raise ValueError("unsupported conditioning model identity")
+    if observation_record["source_type"] != source_type:
+        raise ValueError("observation contract source type mismatch")
+    if conditioning_record["source_type"] != source_type:
+        raise ValueError("conditioning model source type mismatch")
     if unit not in UNITS:
         raise ValueError("unsupported information unit")
     if normalization not in NORMALIZATIONS:
         raise ValueError("unsupported normalization convention")
-    if conditioning not in CONDITIONINGS:
-        raise ValueError("unsupported conditioning convention")
     return {
         "source_type": source_type,
         "functional": functional,
@@ -255,6 +293,14 @@ def positive_scale_battery() -> dict[str, int]:
     return {"positive_scale_order_checks": checks}
 
 
+def shared_shannon_primitive_battery() -> dict[str, int]:
+    expected = Fraction(1, 1)
+    actual = shannon_entropy((0.5, 0.5), base=2.0)
+    if actual != float(expected):
+        raise RuntimeError("canonical Shannon primitive uniform-two conformance failure")
+    return {"shared_shannon_primitive_checks": 1}
+
+
 def exact_log2_power_of_two(cardinality: int) -> int:
     if isinstance(cardinality, bool) or not isinstance(cardinality, int) or cardinality < 1:
         raise ValueError("cardinality must be a positive integer")
@@ -280,13 +326,19 @@ def log_base_conversion_battery() -> dict[str, int]:
         if bits != 2 * base4:
             raise RuntimeError("UFT-INF-005 logarithm-base conversion failure")
         checks += 1
+    if checks != 5:
+        raise RuntimeError("log-base conversion count drift")
     return {"log_base_conversion_checks": checks}
 
 
 def fixture_spec(**overrides: object) -> dict[str, object]:
     payload: dict[str, object] = {
-        "source_type": SOURCE_TYPE, "functional": "shannon_entropy", "observation": "fine-observation",
-        "unit": "bit", "normalization": "none", "conditioning": "unconditional",
+        "source_type": SOURCE_TYPE,
+        "functional": "shannon_entropy",
+        "observation": "OBS-REF-FIN2-IDENTITY-V1",
+        "unit": "bit",
+        "normalization": "none",
+        "conditioning": "COND-REF-UNCONDITIONAL-V1",
         "scope": frozenset({"alpha", "beta"}),
     }
     payload.update(overrides)
@@ -297,18 +349,28 @@ def fixtures() -> dict[str, object]:
     shannon = fixture_spec(functional="shannon_entropy", scope=frozenset({"alpha"}))
     hartley = fixture_spec(functional="hartley_entropy", scope=frozenset({"alpha"}))
     shannon_value = uniform_log_entropy(2, "bit")
+    shared_shannon_value = shannon_entropy((0.5, 0.5), base=2.0)
+    if shared_shannon_value != float(shannon_value):
+        raise RuntimeError("CX-INF-001 shared Shannon primitive drift")
     hartley_value = Fraction(exact_log2_power_of_two(2), 1)
     cx1 = {
-        "shared_word": "information", "same_unit": shannon["unit"] == hartley["unit"],
-        "shannon_uniform_two_value": str(shannon_value), "hartley_uniform_two_value": str(hartley_value),
+        "shared_word": "information",
+        "same_unit": shannon["unit"] == hartley["unit"],
+        "shannon_uniform_two_value": str(shannon_value),
+        "shared_shannon_primitive_value": format(shared_shannon_value, ".17g"),
+        "hartley_uniform_two_value": str(hartley_value),
         "numeric_values_equal": shannon_value == hartley_value,
         "directly_comparable": directly_comparable(shannon, hartley),
     }
-    fine = fixture_spec(observation="fine-observation", scope=frozenset({"alpha"}))
-    coarse = fixture_spec(observation="coarse-observation", scope=frozenset({"alpha"}))
+    identity_observation = fixture_spec(observation="OBS-REF-FIN2-IDENTITY-V1", scope=frozenset({"alpha"}))
+    constant_observation = fixture_spec(observation="OBS-REF-FIN2-CONSTANT0-V1", scope=frozenset({"alpha"}))
     cx2 = {
-        "same_functional": fine["functional"] == coarse["functional"], "same_unit": fine["unit"] == coarse["unit"],
-        "same_observation": fine["observation"] == coarse["observation"], "directly_comparable": directly_comparable(fine, coarse),
+        "same_functional": identity_observation["functional"] == constant_observation["functional"],
+        "same_unit": identity_observation["unit"] == constant_observation["unit"],
+        "same_observation": identity_observation["observation"] == constant_observation["observation"],
+        "left_observation_ref": identity_observation["observation"],
+        "right_observation_ref": constant_observation["observation"],
+        "directly_comparable": directly_comparable(identity_observation, constant_observation),
     }
     bits = fixture_spec(unit="bit", scope=frozenset({"alpha"}))
     base4 = fixture_spec(unit="base4-digit", scope=frozenset({"alpha"}))
@@ -321,12 +383,17 @@ def fixtures() -> dict[str, object]:
     a = fixture_spec(scope=frozenset({"alpha"}))
     b = fixture_spec(scope=frozenset({"alpha", "beta"}))
     c = fixture_spec(scope=frozenset({"beta"}))
-    cx4 = {"A_comparable_B": directly_comparable(a, b), "B_comparable_C": directly_comparable(b, c), "A_comparable_C": directly_comparable(a, c)}
+    cx4 = {
+        "A_comparable_B": directly_comparable(a, b),
+        "B_comparable_C": directly_comparable(b, c),
+        "A_comparable_C": directly_comparable(a, c),
+    }
     raw = fixture_spec(normalization="none", scope=frozenset({"alpha"}))
     normalized = fixture_spec(normalization="per-source-symbol", scope=frozenset({"alpha"}))
     left_value = right_value = Fraction(1, 1)
     cx5 = {
-        "left_value": str(left_value), "right_value": str(right_value),
+        "left_value": str(left_value),
+        "right_value": str(right_value),
         "numeric_values_equal": left_value == right_value,
         "same_normalization": raw["normalization"] == normalized["normalization"],
         "directly_comparable": directly_comparable(raw, normalized),
@@ -345,7 +412,13 @@ def fixtures() -> dict[str, object]:
         raise RuntimeError("CX-INF-005 derived numeric-equality drift")
     if not (cx5["numeric_values_equal"] and not cx5["same_normalization"] and not cx5["directly_comparable"]):
         raise RuntimeError("CX-INF-005 fixture drift")
-    return {"CX-INF-001": cx1, "CX-INF-002": cx2, "CX-INF-003": cx3, "CX-INF-004": cx4, "CX-INF-005": cx5}
+    return {
+        "CX-INF-001": cx1,
+        "CX-INF-002": cx2,
+        "CX-INF-003": cx3,
+        "CX-INF-004": cx4,
+        "CX-INF-005": cx5,
+    }
 
 
 def run_suite() -> dict[str, object]:
@@ -356,6 +429,7 @@ def run_suite() -> dict[str, object]:
             "comparability": comparability_battery(),
             "positive_scale": positive_scale_battery(),
             "log_base_conversion": log_base_conversion_battery(),
+            "shared_shannon_primitive": shared_shannon_primitive_battery(),
         },
         "fixtures": fixtures(),
         "claim_boundary": "FINITE_INFORMATION_CONFORMANCE != GENERAL_INFORMATION_THEORY; NUMERIC_EQUALITY != INFORMATIONAL_EQUIVALENCE; COMPARABLE != IDENTICAL_SPEC",
