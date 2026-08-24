@@ -59,6 +59,9 @@ python experiments/run_recovery_specializations.py --json
 python scripts/validate_continuum_stochastic_prevalence.py
 python experiments/continuum_stochastic_prevalence/run.py --json
 python experiments/run_continuum_stochastic_prevalence.py --json
+python scripts/validate_empirical_falsification_profile.py
+python experiments/empirical_falsification_profile/run.py --json
+python experiments/run_empirical_falsification_profile.py --json
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 python experiments/run_pr2.py --json
@@ -82,6 +85,7 @@ experiments/run_representation_calculus.py
 experiments/run_information_comparability.py
 experiments/run_recovery_specializations.py
 experiments/run_continuum_stochastic_prevalence.py
+experiments/run_empirical_falsification_profile.py
 ```
 
 All receipt families bind deterministic repository files and canonical result payloads while keeping runtime metadata outside portable fingerprints.
@@ -374,6 +378,57 @@ FINITE_STOCHASTIC_CONFORMANCE != GENERAL_STOCHASTIC_OR_CONTINUUM_THEORY
 
 The deterministic CSP source set binds its machine/human authority, the frozen Recovery and Relation base contracts, central machine authority, live roadmap, AI bootstrap, claims, reproducibility contract, validator, executable, tests, receipt runner, retained-artifact verifier, and the existing `finite-adversarial` workflow.
 
+## Empirical-falsification-profile conformance boundary
+
+The Empirical Falsification Profile layer specializes the PR8 falsification scaffold with calibrated evidence identity, uncertainty, profile versioning, preregistered rejection semantics, and explicit four-state decisions. The executable surface is entirely synthetic.
+
+Canonical commands:
+
+```bash
+python scripts/validate_empirical_falsification_profile.py
+python experiments/empirical_falsification_profile/run.py --json
+python experiments/run_empirical_falsification_profile.py --json
+```
+
+Retained files:
+
+```text
+empirical-falsification-profile-validation.json
+empirical-falsification-profile-witness.json
+empirical-falsification-profile-receipt.json
+```
+
+The exact bounded battery checks:
+
+```text
+15 valid exact interval decisions
+5 REJECTED_IN_SCOPE cases
+7 NOT_REJECTED_IN_SCOPE cases
+3 INCONCLUSIVE cases
+60 invalid-evidence mutation checks
+15 candidate-model fit membership checks
+3 ambiguous-fit observations
+3 profile-fingerprint pair checks
+```
+
+The decision envelope is `INVALID_EVIDENCE`, `INCONCLUSIVE`, `REJECTED_IN_SCOPE`, or `NOT_REJECTED_IN_SCOPE`. Missing or mismatched calibration, measurement identity, uncertainty, provenance, or profile identity cannot license rejection. Non-rejection has no confirmation semantics, and a scoped rejection does not automatically reject a broader theory.
+
+```text
+FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION
+SYNTHETIC_FIXTURE != EMPIRICAL_EVIDENCE
+FAILURE_TO_REJECT != CONFIRMATION
+EMPIRICAL_FIT != UNIQUE_EXPLANATION
+REJECTION_IN_SCOPE != GLOBAL_THEORY_REFUTATION
+NUMERIC_OBSERVATION != CALIBRATED_MEASUREMENT
+MISSING_UNCERTAINTY != ZERO_UNCERTAINTY
+POST_HOC_THRESHOLD != PREREGISTERED_REJECTION_RULE
+INCONCLUSIVE != NOT_REJECTED
+REPRODUCIBLE_ANALYSIS != INDEPENDENT_REPLICATION
+FINITE_EMPIRICAL_PROFILE_CONFORMANCE != GENERAL_STATISTICAL_INFERENCE
+```
+
+The deterministic EFP source set binds its machine/human authority, the PR8 falsification scaffold, the CSP base contract, central machine authority, live roadmap, AI bootstrap, claims, reproducibility contract, validator, executable, tests, receipt runner, retained-artifact verifier, and the existing `finite-adversarial` workflow.
+
 ## VOP-2019-MEI reproduction boundary
 
 ```text
@@ -431,6 +486,9 @@ recovery-specialization-receipt.json
 continuum-stochastic-prevalence-validation.json
 continuum-stochastic-prevalence-witness.json
 continuum-stochastic-prevalence-receipt.json
+empirical-falsification-profile-validation.json
+empirical-falsification-profile-witness.json
+empirical-falsification-profile-receipt.json
 vopson-corpus-validation.json
 vopson-doc-sync.json
 reproducibility-validation.json
@@ -440,7 +498,7 @@ Generated CI artifacts are workflow evidence and are not automatically committed
 
 ## GitHub Actions provenance
 
-Workflow actions remain pinned to the full 40-character SHAs in `machine/contract.json`. Checkout credentials are not persisted and workflow permissions remain read-only. Recovery and CSP use the existing declared `finite-adversarial.yml` workflow rather than introducing undeclared workflows.
+Workflow actions remain pinned to the full 40-character SHAs in `machine/contract.json`. Checkout credentials are not persisted and workflow permissions remain read-only. Recovery, CSP, and EFP use the existing declared `finite-adversarial.yml` workflow rather than introducing undeclared workflows.
 
 ## Bounded exhaustive computation
 
@@ -470,6 +528,10 @@ Finite exhaustive batteries prove only their declared bounded conformance domain
 48 CSP finite-atomic event/quantifier checks
 80 CSP prevalence measure/event evaluations
 31 CSP finite-grid non-lifting controls
+15 EFP valid interval decisions
+60 EFP invalid-evidence mutation checks
+15 EFP model-fit membership checks
+3 EFP profile-fingerprint pair checks
 ```
 
 ```text
@@ -492,6 +554,8 @@ Recovery Specializations is synchronized across `machine/recovery_specialization
 
 Continuum/Stochastic/Prevalence is synchronized across `machine/continuum_stochastic_prevalence_contract.json`, `machine/continuum_stochastic_prevalence_results.json`, `theory/CONTINUUM_STOCHASTIC_PREVALENCE.md`, `docs/CLAIMS.md`, `README4AI.md`, `docs/REPRODUCIBILITY.md`, `machine/contract.json`, `machine/roadmap_state.json`, `ROADMAP.md`, the Recovery and Relation base authorities, and its deterministic receipt.
 
+Empirical Falsification Profile is synchronized across `machine/empirical_falsification_profile_contract.json`, `machine/empirical_falsification_profile_results.json`, `theory/EMPIRICAL_FALSIFICATION_PROFILE.md`, `docs/CLAIMS.md`, `README4AI.md`, `docs/REPRODUCIBILITY.md`, `machine/contract.json`, `machine/roadmap_state.json`, `ROADMAP.md`, the PR8 falsification scaffold, the CSP base authority, and its deterministic receipt.
+
 ## Nonclaims
 
-This contract does not claim that deterministic output proves a physical law, that a hash proves scientific correctness, that correct arithmetic validates a physical premise, that finite conformance proves unrestricted mathematics, that transport/retrieval/inference/execution creates verification, that verification establishes truth, that representation equivalence establishes semantic or physical identity, that two numbers called information are comparable without a declared specification relation, that a deterministic selector establishes base-relation confluence or empirical recovery, that finite stochastic conformance establishes infinite-path liveness, population prevalence, continuum convergence, empirical probability, or physical randomness, or that CI replaces independent scientific review.
+This contract does not claim that deterministic output proves a physical law, that a hash proves scientific correctness, that correct arithmetic validates a physical premise, that finite conformance proves unrestricted mathematics, that transport/retrieval/inference/execution creates verification, that verification establishes truth, that representation equivalence establishes semantic or physical identity, that two numbers called information are comparable without a declared specification relation, that a deterministic selector establishes base-relation confluence or empirical recovery, that finite stochastic conformance establishes infinite-path liveness, population prevalence, continuum convergence, empirical probability, or physical randomness, that a synthetic Empirical Falsification Profile run tests, confirms, rejects, or independently replicates any external scientific theory, or that CI replaces independent scientific review.
