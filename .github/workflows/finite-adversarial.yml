@@ -22,6 +22,8 @@ on:
       - "scripts/verify_representation_artifacts.py"
       - "scripts/validate_information_comparability.py"
       - "scripts/verify_information_comparability_artifacts.py"
+      - "scripts/validate_recovery_specializations.py"
+      - "scripts/verify_recovery_specialization_artifacts.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -39,6 +41,7 @@ on:
       - "theory/EPISTEMIC_BRIDGE.md"
       - "theory/REPRESENTATION_CALCULUS.md"
       - "theory/INFORMATION_COMPARABILITY.md"
+      - "theory/RECOVERY_SPECIALIZATIONS.md"
       - "research/CROSS_REPO_PATTERN_ATLAS.md"
       - "research/GRAPH_REALIZATION_SOURCES.md"
       - "research/HISTORICAL_LINEAGE.md"
@@ -72,6 +75,8 @@ on:
       - "scripts/verify_representation_artifacts.py"
       - "scripts/validate_information_comparability.py"
       - "scripts/verify_information_comparability_artifacts.py"
+      - "scripts/validate_recovery_specializations.py"
+      - "scripts/verify_recovery_specialization_artifacts.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -89,6 +94,7 @@ on:
       - "theory/EPISTEMIC_BRIDGE.md"
       - "theory/REPRESENTATION_CALCULUS.md"
       - "theory/INFORMATION_COMPARABILITY.md"
+      - "theory/RECOVERY_SPECIALIZATIONS.md"
       - "research/CROSS_REPO_PATTERN_ATLAS.md"
       - "research/GRAPH_REALIZATION_SOURCES.md"
       - "research/HISTORICAL_LINEAGE.md"
@@ -197,6 +203,14 @@ jobs:
           python experiments/information_comparability/run.py --json > /tmp/information-comparability.json
           python experiments/run_information_comparability.py --hash-only > /tmp/information-comparability-receipt.json
 
+      - name: Validate Recovery Specializations authority surface
+        run: python scripts/validate_recovery_specializations.py
+
+      - name: Run Recovery Specializations witnesses
+        run: |
+          python experiments/recovery_specializations/run.py --json > /tmp/recovery-specialization.json
+          python experiments/run_recovery_specializations.py --hash-only > /tmp/recovery-specialization-receipt.json
+
       - name: Validate Vopson 2019 MEI authority surface
         run: python scripts/validate_vopson_2019_mei.py
 
@@ -272,6 +286,14 @@ jobs:
           python experiments/information_comparability/run.py --json > artifacts/information-comparability-witness.json 2> artifacts/information-comparability-witness.stderr.txt || true
           python experiments/run_information_comparability.py --json > artifacts/information-comparability-receipt.json 2> artifacts/information-comparability-receipt.stderr.txt || true
 
+      - name: Generate Recovery Specializations evidence bundle
+        if: always()
+        run: |
+          mkdir -p artifacts
+          python scripts/validate_recovery_specializations.py --json > artifacts/recovery-specialization-validation.json 2> artifacts/recovery-specialization-validation.stderr.txt || true
+          python experiments/recovery_specializations/run.py --json > artifacts/recovery-specialization-witness.json 2> artifacts/recovery-specialization-witness.stderr.txt || true
+          python experiments/run_recovery_specializations.py --json > artifacts/recovery-specialization-receipt.json 2> artifacts/recovery-specialization-receipt.stderr.txt || true
+
       - name: Verify retained graph evidence
         if: always()
         run: |
@@ -296,6 +318,11 @@ jobs:
         if: always()
         run: |
           python scripts/verify_information_comparability_artifacts.py artifacts
+
+      - name: Verify retained Recovery Specializations evidence
+        if: always()
+        run: |
+          python scripts/verify_recovery_specialization_artifacts.py artifacts
 
       - name: Retain finite evidence bundle
         if: always()
