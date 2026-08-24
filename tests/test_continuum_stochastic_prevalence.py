@@ -71,6 +71,13 @@ class ContinuumStochasticPrevalenceTests(unittest.TestCase):
             C.event_probability((0, 1), p, {2})
         with self.assertRaisesRegex(ValueError, "duplicate-free"):
             C.vanishing_polynomial((Fraction(0), Fraction(0)), Fraction(1, 2))
+        with self.assertRaisesRegex(ValueError, "exact integer/Fraction"):
+            C.vanishing_polynomial((Fraction(0), Fraction(1)), 0.5)
+
+    def test_continuum_grid_accepts_signed_exact_rationals(self):
+        grid = (Fraction(-1), Fraction(0), Fraction(1))
+        self.assertEqual(C.vanishing_polynomial(grid, Fraction(-1)), 0)
+        self.assertEqual(C.vanishing_polynomial(grid, Fraction(-1, 2)), Fraction(3, 8))
 
     def test_validator_accepts_canonical_surface(self):
         result = V.validate()
