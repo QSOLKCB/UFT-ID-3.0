@@ -30,9 +30,179 @@ on:
       - ".github/workflows/**"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
+  repair-latest-codex-p2:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: agent/pr18-empirical-falsification-profile
+          persist-credentials: true
+          fetch-depth: 64
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+
+      - name: Apply latest Codex P2 repairs
+        shell: bash
+        run: |
+          test "$(git merge-base HEAD a4000e3ff32c0053110491480cba8ac974704863)" = "a4000e3ff32c0053110491480cba8ac974704863"
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          import re
+          import subprocess
+
+          root = Path.cwd()
+
+          def replace_once(path: Path, old: str, new: str, label: str) -> None:
+              text = path.read_text(encoding="utf-8")
+              if text.count(old) != 1:
+                  raise SystemExit(f"{label} anchor drift")
+              path.write_text(text.replace(old, new), encoding="utf-8")
+
+          run = root / "experiments/empirical_falsification_profile/run.py"
+          text = run.read_text(encoding="utf-8")
+          const_anchor = 'PRIOR_REGISTRATION_STATUS = "EXTERNAL_UNVERIFIED_ASSUMPTION"\n'
+          constants = '''PRIOR_REGISTRATION_STATUS = "EXTERNAL_UNVERIFIED_ASSUMPTION"\nSYNTHETIC_HYPOTHESIS_ID = "H-SYN-BOUND-001"\nSYNTHETIC_HYPOTHESIS_VERSION = "1.0.0"\nSYNTHETIC_CLAIM_CLASS = "DIAGNOSTIC"\nSYNTHETIC_SCOPE = "synthetic exact interval decision semantics only"\nSYNTHETIC_OBSERVABLE_ID = "OBS-SYN-Y-V1"\nSYNTHETIC_MEASUREMENT_SPEC_ID = "MEAS-SYN-Y-V1"\nSYNTHETIC_CALIBRATION_ID = "CAL-SYN-Y-V1"\nSYNTHETIC_PROFILE_VERSION = "1.0.0"\nSYNTHETIC_STATUS = "synthetic-conformance"\nBASE_FALSIFICATION_REQUIRED_FIELDS = (\n    "hypothesis_id", "claim_class", "independent_variables", "perturbations", "observables",\n    "predictions", "null_model", "rejection_conditions", "evidence_required", "scope_limits", "status",\n)\nBASE_FALSIFICATION_FIELD_MAPPING = {\n    "hypothesis_id": "profile.hypothesis_id",\n    "claim_class": "profile.claim_class",\n    "independent_variables": "constant:[]; no intervention variable is claimed by this synthetic interval specialization",\n    "perturbations": "constant:[]; no controlled perturbation is claimed by this synthetic interval specialization",\n    "observables": "[profile.observable_id]",\n    "predictions": "[profile.prediction]",\n    "null_model": "profile.null_model",\n    "rejection_conditions": "[profile.rejection_rule]",\n    "evidence_required": "profile.evidence_requirements",\n    "scope_limits": "[profile.scope, synthetic conformance only, no empirical-rejection licence]",\n    "status": "constant:synthetic-conformance",\n}\n'''
+          if text.count(const_anchor) != 1:
+              raise SystemExit("runtime constant anchor drift")
+          text = text.replace(const_anchor, constants)
+
+          pattern = re.compile(r'def make_profile\(threshold: object = 0, \*, profile_id: str \| None = None\) -> dict\[str, object\]:.*?\n\n\ndef _validate_profile\(profile: Mapping\[str, object\]\) -> None:.*?\n\n\ndef make_evidence\(', re.S)
+          replacement = '''def _synthetic_profile_id(threshold: Fraction) -> str:\n    suffix = f"{threshold.numerator}_{threshold.denominator}".replace("-", "m")\n    return f"EFP-SYN-THRESH-{suffix}"\n\n\ndef make_profile(threshold: object = 0, *, profile_id: str | None = None) -> dict[str, object]:\n    exact_threshold = _exact(threshold, "rejection threshold")\n    expected_profile_id = _synthetic_profile_id(exact_threshold)\n    profile = {\n        "profile_id": profile_id or expected_profile_id,\n        "hypothesis_id": SYNTHETIC_HYPOTHESIS_ID,\n        "hypothesis_version": SYNTHETIC_HYPOTHESIS_VERSION,\n        "claim_class": SYNTHETIC_CLAIM_CLASS,\n        "scope": SYNTHETIC_SCOPE,\n        "observable_id": SYNTHETIC_OBSERVABLE_ID,\n        "measurement_spec_id": SYNTHETIC_MEASUREMENT_SPEC_ID,\n        "calibration_id": SYNTHETIC_CALIBRATION_ID,\n        "uncertainty_model": UNCERTAINTY_MODEL,\n        "prediction": {"kind": PREDICTION_KIND, "observable_id": SYNTHETIC_OBSERVABLE_ID, "upper_bound": exact_threshold},\n        "null_model": {"kind": NULL_MODEL_KIND, "observable_id": SYNTHETIC_OBSERVABLE_ID, "value": exact_threshold},\n        "rejection_rule": {"kind": REJECTION_RULE_KIND, "threshold": exact_threshold},\n        "evidence_requirements": list(EXPECTED_EVIDENCE_REQUIREMENTS),\n        "decision_policy": dict(EXPECTED_DECISION_POLICY),\n        "prior_registration_status": PRIOR_REGISTRATION_STATUS,\n        "profile_version": SYNTHETIC_PROFILE_VERSION,\n    }\n    _validate_profile(profile)\n    return profile\n\n\ndef _base_falsification_projection(profile: Mapping[str, object]) -> dict[str, object]:\n    return {\n        "hypothesis_id": profile["hypothesis_id"],\n        "claim_class": profile["claim_class"],\n        "independent_variables": [],\n        "perturbations": [],\n        "observables": [profile["observable_id"]],\n        "predictions": [dict(profile["prediction"])],\n        "null_model": dict(profile["null_model"]),\n        "rejection_conditions": [dict(profile["rejection_rule"])],\n        "evidence_required": list(profile["evidence_requirements"]),\n        "scope_limits": [profile["scope"], "synthetic conformance only", "no empirical-rejection licence"],\n        "status": SYNTHETIC_STATUS,\n    }\n\n\ndef base_falsification_spec(profile: Mapping[str, object]) -> dict[str, object]:\n    _validate_profile(profile)\n    return _base_falsification_projection(profile)\n\n\ndef _validate_profile(profile: Mapping[str, object]) -> None:\n    if not isinstance(profile, Mapping) or set(profile) != PROFILE_FIELDS:\n        raise ValueError("empirical profile field set drift")\n    for key in (\n        "profile_id", "hypothesis_id", "hypothesis_version", "claim_class", "scope",\n        "observable_id", "measurement_spec_id", "calibration_id", "uncertainty_model",\n        "prior_registration_status", "profile_version",\n    ):\n        if not isinstance(profile[key], str) or not profile[key].strip():\n            raise ValueError(f"empirical profile {key} must be a nonempty string")\n    if profile["claim_class"] != SYNTHETIC_CLAIM_CLASS:\n        raise ValueError("synthetic profile claim class must remain DIAGNOSTIC")\n    exact_identity = {\n        "hypothesis_id": SYNTHETIC_HYPOTHESIS_ID,\n        "hypothesis_version": SYNTHETIC_HYPOTHESIS_VERSION,\n        "scope": SYNTHETIC_SCOPE,\n        "observable_id": SYNTHETIC_OBSERVABLE_ID,\n        "measurement_spec_id": SYNTHETIC_MEASUREMENT_SPEC_ID,\n        "calibration_id": SYNTHETIC_CALIBRATION_ID,\n        "profile_version": SYNTHETIC_PROFILE_VERSION,\n    }\n    for key, expected in exact_identity.items():\n        if profile[key] != expected:\n            raise ValueError(f"synthetic profile {key} drift")\n    if profile["uncertainty_model"] != UNCERTAINTY_MODEL:\n        raise ValueError("unsupported uncertainty-model kind")\n    if profile["prior_registration_status"] != PRIOR_REGISTRATION_STATUS:\n        raise ValueError("prior registration must remain an external unverified assumption")\n    prediction = profile["prediction"]\n    null_model = profile["null_model"]\n    rejection = profile["rejection_rule"]\n    if not isinstance(prediction, Mapping) or set(prediction) != {"kind", "observable_id", "upper_bound"}:\n        raise ValueError("prediction shape drift")\n    if not isinstance(null_model, Mapping) or set(null_model) != {"kind", "observable_id", "value"}:\n        raise ValueError("null-model shape drift")\n    if not isinstance(rejection, Mapping) or set(rejection) != {"kind", "threshold"}:\n        raise ValueError("rejection-rule shape drift")\n    if prediction["kind"] != PREDICTION_KIND:\n        raise ValueError("prediction kind is incompatible with rejection rule")\n    if null_model["kind"] != NULL_MODEL_KIND:\n        raise ValueError("null-model kind is incompatible with rejection rule")\n    if rejection["kind"] != REJECTION_RULE_KIND:\n        raise ValueError("unsupported rejection-rule kind")\n    threshold = _exact(rejection["threshold"], "rejection threshold")\n    if profile["profile_id"] != _synthetic_profile_id(threshold):\n        raise ValueError("synthetic profile profile_id drift")\n    if _exact(prediction["upper_bound"], "prediction upper bound") != threshold or _exact(null_model["value"], "null-model value") != threshold:\n        raise ValueError("prediction/null/rejection threshold disagreement")\n    if prediction["observable_id"] != profile["observable_id"] or null_model["observable_id"] != profile["observable_id"]:\n        raise ValueError("profile observable binding drift")\n    if profile["evidence_requirements"] != EXPECTED_EVIDENCE_REQUIREMENTS:\n        raise ValueError("evidence requirement registry drift")\n    if profile["decision_policy"] != EXPECTED_DECISION_POLICY:\n        raise ValueError("decision policy semantic drift")\n    projection = _base_falsification_projection(profile)\n    if tuple(projection) != BASE_FALSIFICATION_REQUIRED_FIELDS:\n        raise ValueError("base falsification projection field order/set drift")\n\n\ndef make_evidence('''
+          text, n = pattern.subn(replacement, text, count=1)
+          if n != 1:
+              raise SystemExit("runtime profile function block drift")
+          old = 'if not isinstance(evidence[key], str) or not evidence[key]:'
+          if text.count(old) != 1:
+              raise SystemExit("runtime evidence identity predicate drift")
+          text = text.replace(old, 'if not isinstance(evidence[key], str) or not evidence[key].strip():')
+          old_model = 'if not isinstance(model_id, str) or not model_id:'
+          if text.count(old_model) != 1:
+              raise SystemExit("runtime model-id predicate drift")
+          text = text.replace(old_model, 'if not isinstance(model_id, str) or not model_id.strip():')
+          run.write_text(text, encoding="utf-8")
+
+          mapping = {
+              "hypothesis_id": "profile.hypothesis_id",
+              "claim_class": "profile.claim_class",
+              "independent_variables": "constant:[]; no intervention variable is claimed by this synthetic interval specialization",
+              "perturbations": "constant:[]; no controlled perturbation is claimed by this synthetic interval specialization",
+              "observables": "[profile.observable_id]",
+              "predictions": "[profile.prediction]",
+              "null_model": "profile.null_model",
+              "rejection_conditions": "[profile.rejection_rule]",
+              "evidence_required": "profile.evidence_requirements",
+              "scope_limits": "[profile.scope, synthetic conformance only, no empirical-rejection licence]",
+              "status": "constant:synthetic-conformance",
+          }
+          contract_path = root / "machine/empirical_falsification_profile_contract.json"
+          contract = json.loads(contract_path.read_text(encoding="utf-8"))
+          contract["schema_version"] = "1.0.1"
+          contract["base_falsification_field_mapping"] = mapping
+          contract_path.write_text(json.dumps(contract, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+          validator = root / "scripts/validate_empirical_falsification_profile.py"
+          text = validator.read_text(encoding="utf-8")
+          insert_anchor = 'EXPECTED_PRIMARY_TYPES = {\n'
+          base_json = r'''{
+            "nonclaims": [
+              "A FalsificationSpec makes a claim testable; it does not make the claim true.",
+              "A failed synthetic fixture does not validate or refute any external scientific theory.",
+              "Controlled perturbation structure imported from author-supplied research does not import the paper's consciousness or physical ontology."
+            ],
+            "required_fields": [
+              "hypothesis_id", "claim_class", "independent_variables", "perturbations", "observables", "predictions", "null_model", "rejection_conditions", "evidence_required", "scope_limits", "status"
+            ],
+            "schema_version": "1.0.1",
+            "semantics": {
+              "evidence_required": "The data/measurement/provenance needed before evaluating the condition.",
+              "null_model": "A separately declared model of behavior absent the claimed mechanism.",
+              "perturbation": "A declared controlled change, not an interpretive label.",
+              "prediction": "A direction/range/relation fixed before observing the target outcome.",
+              "rejection_condition": "An observable result that counts against the scoped hypothesis."
+            },
+            "snapshot_date": "2026-08-20",
+            "status": "scaffold-active",
+            "synthetic_conformance_example": {
+              "claim_class": "DIAGNOSTIC",
+              "evidence_required": ["both q(0) and q(1) from the declared synthetic fixture"],
+              "fixture_values": {"q0": 1.0, "q1": 2.0},
+              "hypothesis_id": "FALS-SYN-001",
+              "independent_variables": ["alpha in {0,1}"],
+              "null_model": ["q(1) = q(0)"],
+              "observables": ["q(alpha)"],
+              "perturbations": ["set alpha from 0 to 1"],
+              "predictions": ["q(1) < q(0)"],
+              "rejection_conditions": ["q(1) >= q(0)"],
+              "scope_limits": ["schema semantics only", "not an empirical scientific hypothesis"],
+              "status": "synthetic-conformance"
+            },
+            "type": "uft-id-falsification-contract"
+          }'''
+          expected_block = 'EXPECTED_BASE_FALSIFICATION = json.loads(r\'\'\'' + base_json + '\'\'\')\nEXPECTED_BASE_FIELD_MAPPING = ' + repr(mapping) + '\n\n'
+          if text.count(insert_anchor) != 1:
+              raise SystemExit("validator primary-type anchor drift")
+          text = text.replace(insert_anchor, expected_block + insert_anchor)
+          old_top = '"primary_types", "decision_semantics", "hard_boundaries", "execution_limits", "authorities", "explicit_deferrals",\n'
+          new_top = '"primary_types", "base_falsification_field_mapping", "decision_semantics", "hard_boundaries", "execution_limits", "authorities", "explicit_deferrals",\n'
+          if text.count(old_top) != 1:
+              raise SystemExit("validator contract top-level anchor drift")
+          text = text.replace(old_top, new_top)
+          if text.count('if contract.get("schema_version") != "1.0.0": errors.append("EFP contract schema drift")') != 1:
+              raise SystemExit("validator contract schema anchor drift")
+          text = text.replace('if contract.get("schema_version") != "1.0.0": errors.append("EFP contract schema drift")', 'if contract.get("schema_version") != "1.0.1": errors.append("EFP contract schema drift")')
+          anchor = 'if contract.get("base_falsification_authority") != "machine/falsification_contract.json": errors.append("EFP base falsification authority drift")\n'
+          add = anchor + '    if contract.get("base_falsification_field_mapping") != EXPECTED_BASE_FIELD_MAPPING: errors.append("EFP base falsification field mapping drift")\n'
+          if text.count(anchor) != 1:
+              raise SystemExit("validator base authority anchor drift")
+          text = text.replace(anchor, add)
+          old_base = '    if base_falsification.get("type") != "uft-id-falsification-contract": errors.append("EFP PR8 falsification base type drift")\n    if base_falsification.get("status") != "scaffold-active": errors.append("EFP PR8 falsification scaffold status drift")\n'
+          new_base = '    if base_falsification != EXPECTED_BASE_FALSIFICATION: errors.append("EFP PR8 falsification base authority drift")\n    mapping_payload = contract.get("base_falsification_field_mapping")\n    if not isinstance(mapping_payload, dict) or set(mapping_payload) != set(EXPECTED_BASE_FALSIFICATION["required_fields"]): errors.append("EFP base mapping does not cover PR8 required fields")\n'
+          if text.count(old_base) != 1:
+              raise SystemExit("validator base check block drift")
+          text = text.replace(old_base, new_base)
+          witness_anchor = '    experiment = load_module("efp_validator_experiment", PATHS["experiment"])\n    witness = experiment.run_suite()\n'
+          witness_add = '    experiment = load_module("efp_validator_experiment", PATHS["experiment"])\n    if getattr(experiment, "BASE_FALSIFICATION_FIELD_MAPPING", None) != EXPECTED_BASE_FIELD_MAPPING: errors.append("EFP runtime base-field mapping drift")\n    canonical_projection = experiment.base_falsification_spec(experiment.make_profile(0))\n    if tuple(canonical_projection) != tuple(EXPECTED_BASE_FALSIFICATION["required_fields"]): errors.append("EFP runtime base projection drift")\n    witness = experiment.run_suite()\n'
+          if text.count(witness_anchor) != 1:
+              raise SystemExit("validator witness anchor drift")
+          text = text.replace(witness_anchor, witness_add)
+          validator.write_text(text, encoding="utf-8")
+
+          tests = root / "tests/test_empirical_falsification_profile.py"
+          text = tests.read_text(encoding="utf-8")
+          insert_before = '    def test_string_and_bytes_provenance_are_rejected_before_list_coercion(self):\n'
+          new_tests = '''    def test_profile_identifiers_and_scope_are_exact_bound(self):\n        profile = E.make_profile(0)\n        for key, value, diagnostic in (\n            ("hypothesis_id", "H-OTHER", "hypothesis_id drift"),\n            ("hypothesis_version", "2.0.0", "hypothesis_version drift"),\n            ("scope", "global UFT-ID theory refutation", "scope drift"),\n            ("profile_version", "2.0.0", "profile_version drift"),\n        ):\n            with self.subTest(key=key):\n                mutated = deepcopy(profile)\n                mutated[key] = value\n                with self.assertRaisesRegex(ValueError, diagnostic):\n                    E.profile_fingerprint(mutated)\n        for key in ("measurement_spec_id", "calibration_id"):\n            with self.subTest(whitespace_profile_key=key):\n                mutated = deepcopy(profile)\n                mutated[key] = "   "\n                with self.assertRaisesRegex(ValueError, "nonempty string"):\n                    E.profile_fingerprint(mutated)\n            evidence = E.make_evidence(profile, 1, 0)\n            evidence[key] = "   "\n            self.assertEqual(E.evaluate(profile, evidence)["decision"], "INVALID_EVIDENCE")\n        with self.assertRaisesRegex(ValueError, "profile_id drift"):\n            E.make_profile(0, profile_id="EFP-SYN-UNREGISTERED")\n\n    def test_base_falsification_projection_and_authority_are_exact_bound(self):\n        profile = E.make_profile(0)\n        base = json.loads((ROOT / "machine/falsification_contract.json").read_text(encoding="utf-8"))\n        projection = E.base_falsification_spec(profile)\n        self.assertEqual(tuple(projection), tuple(base["required_fields"]))\n        self.assertEqual(set(E.BASE_FALSIFICATION_FIELD_MAPPING), set(base["required_fields"]))\n        self.assertEqual(projection["observables"], [profile["observable_id"]])\n        self.assertEqual(projection["predictions"], [profile["prediction"]])\n        self.assertEqual(projection["null_model"], profile["null_model"])\n        self.assertEqual(projection["rejection_conditions"], [profile["rejection_rule"]])\n        self.assertEqual(projection["status"], "synthetic-conformance")\n        mutations = (\n            lambda payload: payload.__setitem__("schema_version", "9.9.9"),\n            lambda payload: payload.__setitem__("required_fields", []),\n            lambda payload: payload.__setitem__("semantics", {"prediction": "rewritten"}),\n        )\n        for mutate in mutations:\n            result = self._mutate_json("machine/falsification_contract.json", mutate)\n            self.assertEqual(result["status"], "error")\n            self.assertIn("EFP PR8 falsification base authority drift", result["errors"])\n\n'''
+          if text.count(insert_before) != 1:
+              raise SystemExit("test insertion anchor drift")
+          text = text.replace(insert_before, new_tests + insert_before)
+          tests.write_text(text, encoding="utf-8")
+
+          canonical = subprocess.check_output([
+              "git", "show", "a4000e3ff32c0053110491480cba8ac974704863:.github/workflows/vopson-corpus.yml"
+          ], text=True)
+          (root / ".github/workflows/vopson-corpus.yml").write_text(canonical, encoding="utf-8")
+          PY
+
+          python -m compileall -q experiments scripts tests
+          python scripts/validate_reproducibility.py
+          python scripts/validate_empirical_falsification_profile.py
+          python -m unittest tests.test_empirical_falsification_profile -v
+
+      - name: Commit latest Codex P2 repairs
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add experiments/empirical_falsification_profile/run.py machine/empirical_falsification_profile_contract.json scripts/validate_empirical_falsification_profile.py tests/test_empirical_falsification_profile.py .github/workflows/vopson-corpus.yml
+          git diff --cached --quiet && { echo "No repair changes produced"; exit 1; }
+          git commit -m "Tighten EFP inherited falsification and scope gates"
+          git push origin HEAD:agent/pr18-empirical-falsification-profile
+
   validate-corpus:
     runs-on: ubuntu-24.04
     strategy:
