@@ -26,6 +26,7 @@ CORE_FILES = [
     "theory/BRIDGE_CORE.md",
     "theory/AUXILIARY_CONTRACTS.md",
     "scripts/validate_bridge_core.py",
+    "scripts/validate_bridge_core_pr13_frozen.py",
     "scripts/validate_bridge_core_precodex2_frozen.py",
     "scripts/verify_bridge_artifacts.py",
     "experiments/bridge_core/__init__.py",
