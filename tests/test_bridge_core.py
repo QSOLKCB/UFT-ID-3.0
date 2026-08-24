@@ -168,7 +168,7 @@ class BridgeCoreTests(unittest.TestCase):
             path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
             result = VALIDATOR.validate()
             self.assertEqual(result["status"], "error")
-            self.assertIn("roadmap active surface must be PR #12", result["errors"])
+            self.assertIn("BridgeCore live roadmap active_planned_surface drift", result["errors"])
         finally:
             path.write_text(original, encoding="utf-8")
 
