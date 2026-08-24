@@ -29,6 +29,7 @@ CORE_FILES = [
     "docs/REPRODUCIBILITY.md",
     "ROADMAP.md",
     "scripts/validate_recovery_specializations.py",
+    "scripts/validate_recovery_specializations_pr17_frozen.py",
     "scripts/verify_recovery_specialization_artifacts.py",
     "experiments/recovery_specializations/__init__.py",
     "experiments/recovery_specializations/run.py",
