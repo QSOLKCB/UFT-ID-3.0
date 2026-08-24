@@ -1,9 +1,8 @@
 name: pr19-one-shot-repair
 
 on:
-  push:
-    branches:
-      - agent/pr18-empirical-falsification-profile
+  pull_request:
+    types: [synchronize]
     paths:
       - ".github/workflows/pr19-one-shot-repair.yml"
 
@@ -16,8 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
+          ref: agent/pr18-empirical-falsification-profile
           persist-credentials: true
-          fetch-depth: 16
+          fetch-depth: 64
 
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
