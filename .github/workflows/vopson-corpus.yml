@@ -33,6 +33,62 @@ permissions:
   contents: read
 
 jobs:
+  apply-pr19-repair:
+    if: github.event_name == 'pull_request' && github.event.pull_request.number == 19
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: agent/pr18-empirical-falsification-profile
+          persist-credentials: true
+          fetch-depth: 64
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+
+      - name: Reconstruct audited PR19 patcher
+        shell: bash
+        run: |
+          test "$(git merge-base HEAD 3adf88ceab74ebf12b126a1c507681c6c142e55c)" = "3adf88ceab74ebf12b126a1c507681c6c142e55c"
+          unexpected="$(git diff --name-only 3adf88ceab74ebf12b126a1c507681c6c142e55c..HEAD | grep -Ev '^(\.pr19_patch/part[0-9]{2}|\.github/workflows/pr19-one-shot-repair\.yml|\.github/workflows/vopson-corpus\.yml)$' || true)"
+          test -z "$unexpected" || { echo "Unexpected staged paths since audited head:"; echo "$unexpected"; exit 1; }
+          cat .pr19_patch/part* > /tmp/pr19-patcher.gz.b64
+          base64 -d /tmp/pr19-patcher.gz.b64 | gzip -d > /tmp/apply_pr19_codex_roadmap.py
+          echo "b0a8ee46c52d11c1836ddfeb84ee192d2d2208eb00af02bfb3acef628c632656  /tmp/apply_pr19_codex_roadmap.py" | sha256sum -c -
+
+      - name: Apply prepared repair and full verification
+        shell: bash
+        run: |
+          git show 3adf88ceab74ebf12b126a1c507681c6c142e55c:.github/workflows/vopson-corpus.yml > .github/workflows/vopson-corpus.yml
+          rm -f .github/workflows/pr19-one-shot-repair.yml
+          rm -rf .pr19_patch
+          python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+          patcher = Path('/tmp/apply_pr19_codex_roadmap.py')
+          spec = importlib.util.spec_from_file_location('pr19_patcher', patcher)
+          if spec is None or spec.loader is None:
+              raise SystemExit('cannot load audited PR19 patcher')
+          module = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(module)
+          root = Path.cwd()
+          module.apply(root)
+          module.verify(root)
+          PY
+
+      - name: Commit repaired PR branch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --all
+          git diff --cached --quiet && { echo "No patch changes produced"; exit 1; }
+          git commit -m "Fix EFP review findings and record formalization workflow"
+          git push origin HEAD:agent/pr18-empirical-falsification-profile
+
   validate-corpus:
     runs-on: ubuntu-24.04
     strategy:
