@@ -22,6 +22,9 @@ ROADMAP = ROOT / "ROADMAP.md"
 README4AI = ROOT / "README4AI.md"
 OBSERVATION_VALIDATOR = ROOT / "scripts/validate_observation_specs.py"
 
+EXPECTED_HUMAN_STATUS = "SOURCE_THEOREM_BATCH_FROZEN_NO_LEAN_PROOF"
+PRETAG_PACKAGE_FILENAMES = {"lean-toolchain", "lakefile.toml", "lake-manifest.json"}
+
 TOP_FIELDS = {
     "type", "schema_version", "snapshot_date", "claim_class", "status",
     "batch_id", "basis_commit", "source_authorities", "theorem_ids",
@@ -213,6 +216,32 @@ def source_theorem_projection(record: dict[str, object]) -> dict[str, object]:
     }
 
 
+def pretag_lean_files(root: Path = ROOT) -> list[str]:
+    found: list[str] = []
+    for path in root.rglob("*"):
+        if not path.is_file():
+            continue
+        rel = path.relative_to(root)
+        if ".git" in rel.parts or "__pycache__" in rel.parts:
+            continue
+        if path.suffix == ".lean" or path.name in PRETAG_PACKAGE_FILENAMES:
+            found.append(rel.as_posix())
+    return sorted(found)
+
+
+def human_promotion_errors(text: str) -> list[str]:
+    errors: list[str] = []
+    patterns = (
+        r"(?is)\b(?:all|each)\b.{0,80}\btheorems?\b.{0,80}\b(?:checked|verified|proved)\b.{0,40}\bLean\b",
+        r"(?is)\bLean\b.{0,40}\b(?:proof|verification)\b.{0,40}\b(?:is|are)\b.{0,20}\b(?:complete|verified|proved|checked)\b",
+    )
+    for pattern in patterns:
+        if re.search(pattern, text):
+            errors.append("Lean observation human Lean verification promotion")
+            break
+    return errors
+
+
 def graph_is_acyclic(graph: dict[str, list[str]]) -> bool:
     visiting: set[str] = set()
     done: set[str] = set()
@@ -341,6 +370,12 @@ def validate_documents(freeze, source_theorems, source_counterexamples, base_con
     if authority != expected_authority:
         errors.append("Lean observation base-contract authority registration drift")
 
+    if strip_code(metadata(human, "Status")) != EXPECTED_HUMAN_STATUS:
+        errors.append("Lean observation human freeze status drift")
+    if strip_code(metadata(human, "Claim class")) != "DEFINITION":
+        errors.append("Lean observation human claim class drift")
+    errors.extend(human_promotion_errors(human))
+
     for theorem_id, expected in EXPECTED_THEOREMS.items():
         heading = f"## {theorem_id} {expected['name']}"
         sec = section(human, heading)
@@ -409,6 +444,10 @@ def validate_documents(freeze, source_theorems, source_counterexamples, base_con
         obs = load_module("pr21_observation_base_validator", OBSERVATION_VALIDATOR).validate()
         if obs.get("status") != "ok":
             errors.append("PR9 observation base authority validation failed")
+        release_gate = freeze.get("release_gate")
+        if isinstance(release_gate, dict) and release_gate.get("status") == "PENDING_POST_MERGE" and release_gate.get("source_tag") is None:
+            for relpath in pretag_lean_files(ROOT):
+                errors.append(f"pre-tag Lean source/toolchain forbidden: {relpath}")
 
     return {
         "status": "error" if errors else "ok",

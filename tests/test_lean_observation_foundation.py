@@ -110,6 +110,59 @@ class LeanObservationFoundationFreezeTests(unittest.TestCase):
         cx["claim_class"] = "THEOREM_TARGET"
         self.assert_error_contains(docs, "CX-OBS-001 counterexample dependency missing or reclassified")
 
+    def test_human_status_and_verification_promotion_fail_closed(self):
+        docs = documents()
+        docs["human"] = docs["human"].replace(
+            "**Status:** `SOURCE_THEOREM_BATCH_FROZEN_NO_LEAN_PROOF`",
+            "**Status:** `LEAN_VERIFIED`",
+            1,
+        )
+        self.assert_error_contains(docs, "human freeze status drift")
+
+        docs = documents()
+        docs["human"] += "\nAll frozen theorems have checked Lean proofs.\n"
+        self.assert_error_contains(docs, "human Lean verification promotion")
+
+    def test_pretag_lean_source_and_toolchain_files_are_rejected(self):
+        candidates = (
+            ROOT / "UFTID/Observation/Basic.lean",
+            ROOT / "lean-toolchain",
+            ROOT / "lakefile.toml",
+            ROOT / "lake-manifest.json",
+        )
+        created_dirs: list[Path] = []
+        try:
+            for path in candidates:
+                with self.subTest(path=str(path.relative_to(ROOT))):
+                    if path.exists():
+                        self.fail(f"canonical pre-tag tree unexpectedly already contains {path}")
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    if path.parent != ROOT:
+                        created_dirs.append(path.parent)
+                    path.write_text("pre-tag forbidden fixture\n", encoding="utf-8")
+                    result = V.validate()
+                    self.assertEqual(result["status"], "error")
+                    self.assertIn(
+                        f"pre-tag Lean source/toolchain forbidden: {path.relative_to(ROOT).as_posix()}",
+                        result["errors"],
+                    )
+                    path.unlink()
+        finally:
+            for path in candidates:
+                if path.exists():
+                    path.unlink()
+            for directory in sorted(set(created_dirs), key=lambda p: len(p.parts), reverse=True):
+                try:
+                    directory.rmdir()
+                    parent = directory.parent
+                    if parent != ROOT:
+                        parent.rmdir()
+                except OSError:
+                    pass
+
+    def test_pretag_scanner_ignores_non_lean_files(self):
+        self.assertNotIn("theory/LEAN_OBSERVATION_FOUNDATION.md", V.pretag_lean_files(ROOT))
+
     def test_roadmap_must_leave_source_tag_pending(self):
         docs = documents()
         docs["roadmap"] = docs["roadmap"].replace(
