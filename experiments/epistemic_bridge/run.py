@@ -3,9 +3,26 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import itertools
 import json
+from pathlib import Path
 from typing import Iterable
+
+ROOT = Path(__file__).resolve().parents[2]
+BRIDGE_RUN = ROOT / "experiments/bridge_core/run.py"
+
+
+def _load_bridge_core():
+    spec = importlib.util.spec_from_file_location("epistemic_bridge_bridge_core", BRIDGE_RUN)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"cannot load BridgeCore executable: {BRIDGE_RUN}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+BRIDGE = _load_bridge_core()
 
 FIELDS = (
     "evidence_refs",
@@ -150,12 +167,39 @@ def verify(state: dict[str, frozenset[str]], receipt: str) -> dict[str, frozense
     return _copy(state, verification_receipts=state["verification_receipts"] | {receipt})
 
 
-def transport(state: dict[str, frozenset[str]], bridge_scope: Iterable[str]) -> dict[str, frozenset[str]]:
+def make_transport_bridge(scope: Iterable[str], *, bridge_id: str = "epistemic-transport") -> dict[str, object]:
+    """Create a minimal production-valid BridgeCore bridge for finite conformance."""
+    return BRIDGE.make_bridge(
+        bridge_id=bridge_id,
+        source_type="EpistemicCarrier",
+        target_type="EpistemicCarrier",
+        source_version="1",
+        target_version="1",
+        source_states=("state",),
+        target_states=("state",),
+        domain=("state",),
+        relation=(("state", "state"),),
+        relation_kind="map",
+        preserved_structure=(),
+        lost_structure=(),
+        scope=scope,
+    )
+
+
+def transport(state: dict[str, frozenset[str]], bridge: dict[str, object]) -> dict[str, frozenset[str]]:
+    """Transport epistemic bookkeeping through a production-valid BridgeCore bridge.
+
+    Structural transport is authority-neutral. The bridge is validated by the
+    production BridgeCore implementation before its declared scope is used.
+    """
     validate_state(state)
-    scope = _refs(bridge_scope, "bridge_scope")
-    if not scope:
-        raise ValueError("bridge_scope must be nonempty")
-    target_scope = state["scope"] & scope
+    if not isinstance(bridge, dict):
+        raise ValueError("epistemic transport requires a BridgeCore bridge object")
+    BRIDGE.validate_bridge(bridge)
+    bridge_scope = bridge.get("scope")
+    if not isinstance(bridge_scope, frozenset):
+        raise RuntimeError("validated BridgeCore scope unexpectedly malformed")
+    target_scope = state["scope"] & bridge_scope
     if not target_scope:
         raise ValueError("epistemic transport scope intersection must be nonempty")
     return _copy(state, scope=target_scope)
@@ -212,12 +256,15 @@ def operation_check() -> dict[str, object]:
     if not verified(v):
         raise RuntimeError("explicit verification receipt did not establish verified predicate")
 
-    transported = transport(v, ("b", "c", "d"))
+    bridge1 = make_transport_bridge(("b", "c", "d"), bridge_id="transport-1")
+    transported = transport(v, bridge1)
     if authority_vector(transported) != authority_vector(v):
         raise RuntimeError("UFT-EP-001 transport changed authority vector")
     if transported["scope"] != frozenset({"b", "c"}):
         raise RuntimeError("UFT-EP-005 scope intersection drift")
-    twice = transport(transported, ("c", "z"))
+
+    bridge2 = make_transport_bridge(("c", "z"), bridge_id="transport-2")
+    twice = transport(transported, bridge2)
     if authority_vector(twice) != authority_vector(v):
         raise RuntimeError("UFT-EP-004 repeated transport accumulated authority")
     if twice["scope"] != frozenset({"c"}):
@@ -233,6 +280,7 @@ def operation_check() -> dict[str, object]:
         "execute_verified": verified(x),
         "conflict_unknown": unknown(c),
         "verified_conflict": verified(conflict_verified) and conflict(conflict_verified),
+        "bridgecore_validation_exercised": True,
         "scope_after_one_transport": sorted(transported["scope"]),
         "scope_after_two_transports": sorted(twice["scope"]),
     }
