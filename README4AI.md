@@ -307,7 +307,7 @@ FINITE_SELECTOR_CONFORMANCE != GENERAL_RECOVERY_THEORY
 
 ## Continuum, stochastic, and prevalence obligations authority
 
-The active planned PR #17 surface defines the additional obligations required before finite relation/recovery evidence can be promoted into stochastic, infinite-horizon, prevalence, or continuum conclusions.
+The completed planned PR #17 surface defines the additional obligations required before finite relation/recovery evidence can be promoted into stochastic, infinite-horizon, prevalence, or continuum conclusions.
 
 Canonical CSP surfaces:
 
@@ -338,6 +338,63 @@ PREVALENCE_REQUIRES_DECLARED_MEASURE
 FINITE_GRID_AGREEMENT != CONTINUUM_EQUALITY
 DISCRETIZATION_CONVERGENCE != ASSUMED_WITHOUT_ERROR_CONTROL
 FINITE_STOCHASTIC_CONFORMANCE != GENERAL_STOCHASTIC_OR_CONTINUUM_THEORY
+```
+
+## Empirical Falsification Profile authority
+
+The active planned PR #18 surface defines a synthetic conformance procedure for deciding whether a calibrated profile-matched evidence record crosses one versioned scoped rejection boundary. It specializes the PR8 `FalsificationSpec` scaffold without converting synthetic fixtures, matching hashes, or procedural labels into empirical evidence or preregistration proof.
+
+```text
+EmpiricalFalsificationProfile = (
+  profile_id,
+  hypothesis_id,
+  hypothesis_version,
+  claim_class,
+  scope,
+  observable_id,
+  measurement_spec_id,
+  calibration_id,
+  uncertainty_model,
+  prediction,
+  null_model,
+  rejection_rule,
+  evidence_requirements,
+  decision_policy,
+  prior_registration_status,
+  profile_version
+)
+```
+
+Canonical EFP surfaces:
+
+```text
+machine/empirical_falsification_profile_contract.json
+machine/empirical_falsification_profile_results.json
+theory/EMPIRICAL_FALSIFICATION_PROFILE.md
+scripts/validate_empirical_falsification_profile.py
+experiments/empirical_falsification_profile/run.py
+experiments/run_empirical_falsification_profile.py
+scripts/verify_empirical_falsification_profile_artifacts.py
+tests/test_empirical_falsification_profile.py
+```
+
+The decision envelope is `INVALID_EVIDENCE`, `INCONCLUSIVE`, `REJECTED_IN_SCOPE`, or `NOT_REJECTED_IN_SCOPE`. Profile identity binds the rejection threshold and all decision-bearing metadata, but it does not prove registration chronology. The synthetic profile fixes `prior_registration_status=EXTERNAL_UNVERIFIED_ASSUMPTION`; its scoped rejection label is not an empirically licensed rejection until independent immutable preregistration provenance is verified.
+
+The exact synthetic battery checks 15 valid interval decisions, 60 invalid-evidence mutations, 15 model-fit memberships with 3 ambiguous observations, and 3 profile-fingerprint separation pairs.
+
+```text
+FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION
+SYNTHETIC_FIXTURE != EMPIRICAL_EVIDENCE
+FAILURE_TO_REJECT != CONFIRMATION
+EMPIRICAL_FIT != UNIQUE_EXPLANATION
+REJECTION_IN_SCOPE != GLOBAL_THEORY_REFUTATION
+NUMERIC_OBSERVATION != CALIBRATED_MEASUREMENT
+MISSING_UNCERTAINTY != ZERO_UNCERTAINTY
+POST_HOC_THRESHOLD != PREREGISTERED_REJECTION_RULE
+PROFILE_FINGERPRINT != PREREGISTRATION_PROOF
+INCONCLUSIVE != NOT_REJECTED
+REPRODUCIBLE_ANALYSIS != INDEPENDENT_REPLICATION
+FINITE_EMPIRICAL_PROFILE_CONFORMANCE != GENERAL_STATISTICAL_INFERENCE
 ```
 
 ## Cross-repository formal pattern authority
@@ -444,6 +501,9 @@ python experiments/run_recovery_specializations.py --json
 python scripts/validate_continuum_stochastic_prevalence.py
 python experiments/continuum_stochastic_prevalence/run.py --json
 python experiments/run_continuum_stochastic_prevalence.py --json
+python scripts/validate_empirical_falsification_profile.py
+python experiments/empirical_falsification_profile/run.py --json
+python experiments/run_empirical_falsification_profile.py --json
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 python experiments/run_pr2.py --json
@@ -489,10 +549,20 @@ python experiments/run_pr6.py --json
 33. A finite counterexample refutes a universal claim but does not determine prevalence.
 34. Prevalence requires a declared population measure or sampling model.
 35. Finite-grid agreement does not establish continuum equality or convergence without explicit regularity and error control.
+36. A formal counterexample is not empirical falsification without calibrated profile-matched evidence.
+37. A synthetic fixture is not empirical evidence.
+38. Failure to reject is not confirmation.
+39. A scoped rejection does not automatically refute a broader theory or adjacent hypothesis.
+40. A numeric observation is not a calibrated measurement merely because it has a value.
+41. Missing uncertainty is not zero uncertainty.
+42. Changing a rejection threshold changes the decision profile identity; a post-hoc threshold is not the original preregistered rule.
+43. A profile fingerprint binds content but does not prove preregistration chronology.
+44. `INCONCLUSIVE != NOT_REJECTED_IN_SCOPE`.
+45. Reproducible analysis does not imply independent replication.
 
 ## Lean
 
-Lean remains deferred until source reproduction, notation freeze, theorem freeze, and counterexample freeze.
+Lean remains deferred until source reproduction, notation freeze, theorem freeze, and counterexample freeze. Detailed formalization/publication workflow planning is ROADMAP-only; see `ROADMAP.md`. This bootstrap surface does not promote deferred QSOL-CONTEXT, source-tag, Lean, or Zenodo planning into current canonical implementation authority.
 
 ## Read next
 
@@ -536,11 +606,16 @@ Lean remains deferred until source reproduction, notation freeze, theorem freeze
 38. `machine/continuum_stochastic_prevalence_results.json`
 39. `scripts/validate_continuum_stochastic_prevalence.py`
 40. `experiments/run_continuum_stochastic_prevalence.py`
-41. `theory/CROSS_REPO_RESULTS.md`
-42. `research/CROSS_REPO_PATTERN_ATLAS.md`
-43. `machine/cross_repo_patterns.json`
-44. `machine/cross_repo_results.json`
-45. `research/vopson/CORPUS.md`
-46. `research/vopson/CLAIM_GRAPH.md`
-47. `research/vopson/DEFINITIONS.md`
-48. `ROADMAP.md`
+41. `theory/EMPIRICAL_FALSIFICATION_PROFILE.md`
+42. `machine/empirical_falsification_profile_contract.json`
+43. `machine/empirical_falsification_profile_results.json`
+44. `scripts/validate_empirical_falsification_profile.py`
+45. `experiments/run_empirical_falsification_profile.py`
+46. `theory/CROSS_REPO_RESULTS.md`
+47. `research/CROSS_REPO_PATTERN_ATLAS.md`
+48. `machine/cross_repo_patterns.json`
+49. `machine/cross_repo_results.json`
+50. `research/vopson/CORPUS.md`
+51. `research/vopson/CLAIM_GRAPH.md`
+52. `research/vopson/DEFINITIONS.md`
+53. `ROADMAP.md`

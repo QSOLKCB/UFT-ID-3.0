@@ -2,7 +2,8 @@
 
 The merged PR11 test module remains byte-for-byte in
 pr11_relation_core_tests_frozen.py. Only assertions inherently tied to the live
-roadmap clock/state are advanced to the current Continuum/Stochastic/Prevalence phase.
+roadmap clock/state are advanced to the current Empirical Falsification Profile
+phase.
 """
 from __future__ import annotations
 
@@ -28,7 +29,7 @@ _FROZEN = _load_frozen()
 def _updated_active_surface_test(self):
     value = _FROZEN.canonical_documents()
     value["roadmap_state"]["active_planned_surface"] = 11
-    self.assert_error_contains(value, "active planned surface must be PR17")
+    self.assert_error_contains(value, "active planned surface must be PR18")
 
 
 def _updated_future_snapshot_test(self):
@@ -37,7 +38,7 @@ def _updated_future_snapshot_test(self):
         "theorems": ("2026-08-21", "relation theorem registry shape/snapshot mismatch"),
         "counterexamples": ("2026-08-21", "relation counterexample registry shape/snapshot mismatch"),
         "selection": ("2026-08-21", "genus selection specimen canonical payload drift"),
-        "roadmap_state": ("2026-08-25", "live roadmap state canonical payload drift"),
+        "roadmap_state": ("2026-08-26", "live roadmap state canonical payload drift"),
     }
     for key, (future_date, diagnostic) in cases.items():
         with self.subTest(key=key):

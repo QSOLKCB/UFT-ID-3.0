@@ -1,0 +1,88 @@
+{
+  "type": "uft-id-empirical-falsification-profile-contract",
+  "schema_version": "1.0.1",
+  "snapshot_date": "2026-08-24",
+  "claim_class": "DEFINITION",
+  "scope": "Typed decision and evidence obligations for a synthetic conformance evaluator that classifies whether calibrated profile-matched evidence crosses a versioned scoped rejection boundary. The profile separates formal counterexamples from empirical falsification, non-rejection from confirmation, calibrated measurement from bare numeric observation, and model fit from unique explanation while treating preregistration chronology as an external unverified assumption.",
+  "base_falsification_authority": "machine/falsification_contract.json",
+  "primary_types": {
+    "profile": "EmpiricalFalsificationProfile=(profile_id,hypothesis_id,hypothesis_version,claim_class,scope,observable_id,measurement_spec_id,calibration_id,uncertainty_model,prediction,null_model,rejection_rule,evidence_requirements,decision_policy,prior_registration_status,profile_version)",
+    "evidence": "EmpiricalEvidence=(observable_id,measurement_spec_id,calibration_id,value,uncertainty_radius,provenance_refs,profile_fingerprint)",
+    "decision": "Decision in {INVALID_EVIDENCE,INCONCLUSIVE,REJECTED_IN_SCOPE,NOT_REJECTED_IN_SCOPE}",
+    "profile_identity": "SHA256(canonical profile payload), binding rejection threshold and all decision-bearing metadata; content identity does not prove registration chronology",
+    "registration_status": "PriorRegistrationStatus={EXTERNAL_UNVERIFIED_ASSUMPTION}; actual empirical rejection additionally requires independently verified immutable preregistration provenance"
+  },
+  "decision_semantics": {
+    "INVALID_EVIDENCE": "Required measurement, calibration, provenance, uncertainty, or profile identity is missing, malformed, or mismatched; no rejection decision is licensed.",
+    "INCONCLUSIVE": "Valid evidence uncertainty overlaps both the rejection and non-rejection regions under the declared rule.",
+    "REJECTED_IN_SCOPE": "The synthetic conformance evaluator returns this scoped procedural label when valid evidence satisfies the declared rule. Its prior-registration status remains EXTERNAL_UNVERIFIED_ASSUMPTION, so actual empirical rejection additionally requires independently verified immutable preregistration provenance.",
+    "NOT_REJECTED_IN_SCOPE": "Valid evidence does not satisfy the rejection rule and is not inconclusive; this is not confirmation, truth, or unique explanatory support."
+  },
+  "hard_boundaries": [
+    "FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION",
+    "SYNTHETIC_FIXTURE != EMPIRICAL_EVIDENCE",
+    "FAILURE_TO_REJECT != CONFIRMATION",
+    "EMPIRICAL_FIT != UNIQUE_EXPLANATION",
+    "REJECTION_IN_SCOPE != GLOBAL_THEORY_REFUTATION",
+    "NUMERIC_OBSERVATION != CALIBRATED_MEASUREMENT",
+    "MISSING_UNCERTAINTY != ZERO_UNCERTAINTY",
+    "POST_HOC_THRESHOLD != PREREGISTERED_REJECTION_RULE",
+    "PROFILE_FINGERPRINT != PREREGISTRATION_PROOF",
+    "INCONCLUSIVE != NOT_REJECTED",
+    "REPRODUCIBLE_ANALYSIS != INDEPENDENT_REPLICATION",
+    "FINITE_EMPIRICAL_PROFILE_CONFORMANCE != GENERAL_STATISTICAL_INFERENCE"
+  ],
+  "execution_limits": {
+    "decision_grid_value_count": 5,
+    "uncertainty_radius_count": 3,
+    "valid_decision_checks": 15,
+    "rejected_in_scope_cases": 5,
+    "not_rejected_in_scope_cases": 7,
+    "inconclusive_cases": 3,
+    "invalid_evidence_mutation_checks": 60,
+    "fit_membership_checks": 15,
+    "ambiguous_fit_observations": 3,
+    "profile_fingerprint_pair_checks": 3,
+    "policy": "The executable battery uses exact Fraction arithmetic and synthetic conformance fixtures only. It validates decision semantics, evidence completeness, profile content identity, explicit external-unverified registration status, and non-unique-fit controls; it does not prove preregistration chronology or supply empirical evidence, statistical power, population inference, causal identification, independent replication, or physical validation."
+  },
+  "authorities": {
+    "human": "theory/EMPIRICAL_FALSIFICATION_PROFILE.md",
+    "results": "machine/empirical_falsification_profile_results.json",
+    "validator": "scripts/validate_empirical_falsification_profile.py",
+    "experiment": "experiments/empirical_falsification_profile/run.py",
+    "tests": "tests/test_empirical_falsification_profile.py",
+    "receipt": "experiments/run_empirical_falsification_profile.py",
+    "artifact_verifier": "scripts/verify_empirical_falsification_profile_artifacts.py",
+    "base_falsification": "machine/falsification_contract.json",
+    "csp_base": "machine/continuum_stochastic_prevalence_contract.json",
+    "roadmap_state": "machine/roadmap_state.json",
+    "roadmap": "ROADMAP.md",
+    "workflow": ".github/workflows/finite-adversarial.yml"
+  },
+  "explicit_deferrals": [
+    "source-specific empirical claim instantiation unless exact source reconstruction is complete",
+    "independent immutable preregistration provenance and chronology verification",
+    "statistical power and sample-size design",
+    "frequentist or Bayesian inferential frameworks beyond the exact interval control",
+    "multiple-testing and sequential-analysis procedures",
+    "causal identification and intervention validity",
+    "external dataset acquisition and calibration execution",
+    "independent replication and meta-analysis",
+    "population prevalence estimation",
+    "automated rejection of broader theories from one scoped hypothesis",
+    "Lean proof objects"
+  ],
+  "base_falsification_field_mapping": {
+    "hypothesis_id": "profile.hypothesis_id",
+    "claim_class": "profile.claim_class",
+    "independent_variables": "constant:[]; no intervention variable is claimed by this synthetic interval specialization",
+    "perturbations": "constant:[]; no controlled perturbation is claimed by this synthetic interval specialization",
+    "observables": "[profile.observable_id]",
+    "predictions": "[profile.prediction]",
+    "null_model": "profile.null_model",
+    "rejection_conditions": "[profile.rejection_rule]",
+    "evidence_required": "profile.evidence_requirements",
+    "scope_limits": "[profile.scope, synthetic conformance only, no empirical-rejection licence]",
+    "status": "constant:synthetic-conformance"
+  }
+}

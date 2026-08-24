@@ -2,7 +2,7 @@
 
 UFT-ID 3.0 is a constraint-governed, observer-explicit formalization programme with reproducible adversarial tests.
 
-The first section is the **live schedule authority**. Historical programme text retained later in this file exists for validator/receipt compatibility and does not override the live schedule or `machine/roadmap_state.json`.
+The first section is the **live schedule authority and progress tracker**. Historical programme text retained later in this file exists for validator/receipt compatibility and does not override the live schedule or `machine/roadmap_state.json`.
 
 ```text
 COMPACT_SUMMARY != COMPLETE_FORMAL_TYPE_SYSTEM
@@ -16,13 +16,13 @@ The mnemonic remains:
 U = (S, A, F, Pi_lex, O, T, I, C)
 ```
 
-but relation, observation, bridge, epistemic, representation, information, recovery, stochastic, continuum, prevalence, and empirical semantics remain separately typed.
+but relation, observation, bridge, epistemic, representation, information, recovery, stochastic, continuum, prevalence, empirical-decision, and physical semantics remain separately typed.
 
 ---
 
 # Live implementation status
 
-## Completed
+## Completed roadmap surfaces
 
 ### Phase 0: lineage and provenance — COMPLETE
 
@@ -32,7 +32,7 @@ but relation, observation, bridge, epistemic, representation, information, recov
 - [x] PR #5 — cross-repository formal patterns.
 - [x] PR #6 — VOP-2019-MEI arithmetic reproduction.
 - [x] PR #7 — historical lineage and methodological inheritance.
-- [x] PR #8 — invariant calculus, assurance graph, and model obligations.
+- [x] PR #8 — invariant calculus, assurance graph, model obligations, and the base `FalsificationSpec` scaffold.
 - [x] PR #9 — deterministic observation calculus, merged at `091405c136fd8dc936e6bd3a544ab22433d04782`.
 - [x] PR #11 — relation-first recovery core and graph-realization interlude, merged at `a72dab3170e9880ca8bf120766d8547d6cc0110b`.
 - [x] Planned PR #12 — BridgeCore, delivered in GitHub PR #13 and merged at `2242f96564f4d27af4ba641b45f45f011a49a7c7`.
@@ -40,6 +40,7 @@ but relation, observation, bridge, epistemic, representation, information, recov
 - [x] Planned PR #14 — Representation and congruence calculus, delivered in GitHub PR #15 and merged at `a094ec469f311bc6cc11442ee5f850f5dc130e2f`.
 - [x] Planned PR #15 — Information Comparability core, delivered in GitHub PR #16 and merged at `22b589c4e2e2042d180d64db837f092a007e0813`.
 - [x] Planned PR #16 — Recovery Specializations, delivered in GitHub PR #17 and merged at `2f2cdd2af195a2e74a55e14abfbc4f88e0901a8f`.
+- [x] Planned PR #17 — Continuum, stochastic, and prevalence obligations, delivered in GitHub PR #18 and merged at `353e55a11a8cb6d6bcf571110e0fd6f32823fc77`.
 
 ## Deferred independent proof track
 
@@ -50,110 +51,215 @@ MATHEMATICAL_PROOF != LEAN_PROOF
 LEAN_PROOF != RUNTIME_CONFORMANCE != EMPIRICAL_VALIDATION
 ```
 
-## Active now — planned PR #17
+### QSOL-CONTEXT → Lean 4 → Zenodo formalization workflow
 
-### Continuum, stochastic, and prevalence obligations
+**Status:** ROADMAP-ONLY workflow contract for deferred PR #10 and later formalization releases.
+
+`QSOLKCB/QSOL-CONTEXT` is the provenance, coordination, and supersession spine between an immutable UFT-ID source release, reproducible Lean 4 packages, immutable Zenodo release bundles, and DOI records. Lean formalization is a later scholarly layer and must not be rewritten into the identity of the original source release.
+
+Canonical sequence:
+
+```text
+ARCHITECTURE
+  -> EXECUTABLE CONFORMANCE
+  -> ADVERSARIAL REVIEW
+  -> EXACT-MAIN RELEASE GATE
+  -> IMMUTABLE SOURCE-RELEASE TAG
+  -> POST-TAG TARGET BINDING IN QSOL-CONTEXT
+  -> LEAN 4 FORMALIZATION
+  -> FORMALIZATION MERGE
+  -> DOI RESERVATION
+  -> REPRODUCIBLE ARCHIVE
+  -> INDEPENDENT ARCHIVE REPRODUCTION
+  -> MERGE_ARCHIVE_LAYER
+  -> ARTIFACT UPLOAD + CHECKSUM VERIFICATION
+  -> ZENODO PUBLICATION
+  -> POST-PUBLICATION BACKLINKS + CONTEXT CAPTURE
+```
+
+The workflow is:
+
+1. complete the architecture, executable conformance, adversarial review, and exact merged-`main` CI/audit release gate;
+2. create an immutable source-release tag; the Lean target is that tag's exact commit and tree, never moving `main` or an open release candidate;
+3. freeze theorem IDs, exact statements, hypotheses, scopes, nonclaims, counterexamples, source tag, commit/tree, CI provenance, and dependency closure;
+4. create the QSOL-CONTEXT post-tag formalization record naming the immutable target, theorem inventory, expected Lean module map, authority hashes, and state transition `PLANNED -> TARGET_BOUND -> IN_PROGRESS -> LEAN_VERIFIED -> ARCHIVE_REPRODUCED -> PUBLISHED -> CONTEXT_CAPTURED`;
+5. build the Lean 4 package with exact Lean, Lake, Mathlib, and dependency pins; forbid `sorry`, `admit`, undeclared axioms, and silent classical assumptions;
+6. merge the later Lean scholarly layer without changing the original tagged-release identity, then reserve the DOI;
+7. generate deterministic formalization and archive receipts containing source-release identity, source and Lean hashes, theorem inventory, imported-axiom report, build result, toolchain identity, formalization-integration commit, and canonical package fingerprint;
+8. construct the reproducible THREE-FILE ZENODO VERSIONED RELEASE surface: a deterministic source ZIP, an Overview PDF, and release notes. The ZIP binds the immutable source release plus the later Lean layer through manifests rather than pretending the Lean files were part of the original tag;
+9. independently reproduce the archive, merge the verified archive layer, upload all artifacts, and verify their checksums before publication;
+10. place `SHA256SUMS` and complete provenance inside the source ZIP; make the release notes hash the ZIP and Overview PDF; record the release-notes checksum independently in the Zenodo metadata;
+11. publish the verified Zenodo record, then write DOI/backlinks, source tag/commit/tree, formalization-integration commit, verification state, publication receipt, and explicit supersession edges back into QSOL-CONTEXT without rewriting older releases or the immutable tag.
+
+```text
+GITHUB_GREEN != LEAN_PROVED
+RELEASE_CANDIDATE != PUBLISHED_RELEASE
+TAGGED_RELEASE_IDENTITY != POST_TAG_FORMALIZATION
+POST_PUBLICATION_METADATA_MAIN != TAGGED_RELEASE_IDENTITY
+TAG_CREATED != LEAN_PROVED
+LEAN_PROVED != EMPIRICALLY_VALIDATED
+ZENODO_ARCHIVED != CURRENT_CANONICAL_THEORY
+SOURCE_RELEASE != LATER_LEAN_FORMALIZATION_LAYER
+SOURCE_THEOREM != LEAN_ARTIFACT != ZENODO_RECORD
+SUPERSESSION != SILENT_REWRITE
+PROFILE_FINGERPRINT != PREREGISTRATION_PROOF
+```
+
+Formalization/publication checklist:
+
+- [x] Adopt QSOL-CONTEXT as the Lean 4 / Zenodo workflow spine.
+- [x] Require the Lean target to be an immutable post-merge source tag bound to its exact commit/tree and CI provenance.
+- [x] Preserve Lean as a later scholarly layer rather than part of the original source-release identity.
+- [x] Define the three-file Zenodo surface: deterministic source ZIP, Overview PDF, and release notes.
+- [x] Require independent archive reproduction before the archive layer is merged and artifacts are published.
+- [ ] Freeze the first PR #10 theorem batch and dependency graph.
+- [ ] Pass the exact merged-main release gate and cut the immutable source tag.
+- [ ] Create the corresponding post-tag QSOL-CONTEXT target-binding record.
+- [ ] Pin the Lean 4, Lake, Mathlib, and package toolchain.
+- [ ] Add no-`sorry`/no-`admit` and imported-axiom CI gates.
+- [ ] Merge the Lean layer and reserve the DOI.
+- [ ] Generate deterministic formalization/archive receipts and manifest hashes.
+- [ ] Build and independently reproduce the three-file Zenodo release surface with internal `SHA256SUMS`.
+- [ ] Merge the verified archive layer, upload artifacts, and verify checksums.
+- [ ] Make release notes hash the ZIP/PDF and record the notes checksum in Zenodo metadata.
+- [ ] Publish the Zenodo record and return DOI, backlinks, publication receipt, and supersession graph to QSOL-CONTEXT.
+
+## Active now — planned PR #18
+
+### Empirical falsification profile
 
 **Status:** ACTIVE, implemented by the current change.
 
-Mission: prevent finite relation, finite-path, finite-sample, finite-counterexample, and finite-grid results from being silently promoted into stochastic, infinite-horizon, prevalence, or continuum claims without the additional structures those claims require.
+Mission: specialize the PR8 `FalsificationSpec` scaffold into a versioned, calibrated, uncertainty-aware empirical decision profile without promoting formal counterexamples, synthetic fixtures, non-rejection, reproducible analysis, or model fit into empirical falsification, confirmation, independent replication, unique explanation, or global theory refutation.
 
-Canonical obligation layers:
+Canonical profile:
 
 ```text
-StochasticSpec = (
-  carrier,
-  initial_distribution,
-  transition_kernel,
-  event,
-  horizon,
-  quantifier
+EmpiricalFalsificationProfile = (
+  profile_id,
+  hypothesis_id,
+  hypothesis_version,
+  claim_class,
+  scope,
+  observable_id,
+  measurement_spec_id,
+  calibration_id,
+  uncertainty_model,
+  prediction,
+  null_model,
+  rejection_rule,
+  evidence_requirements,
+  decision_policy,
+  prior_registration_status,
+  profile_version
 )
 
-PrevalenceSpec = (
-  carrier,
-  declared_measure,
-  property_set
-)
-
-ContinuumLift = (
-  discrete_family,
-  target_space,
-  topology_or_norm,
-  approximation_map,
-  convergence_mode,
-  error_control
+EmpiricalEvidence = (
+  observable_id,
+  measurement_spec_id,
+  calibration_id,
+  value,
+  uncertainty_radius,
+  provenance_refs,
+  profile_fingerprint
 )
 ```
 
-The generic relation and Recovery selector remain separate bases. A relation edge can exist with stochastic probability zero. A finite selector or finite reachability witness does not create a stochastic kernel, probability measure, path-space law, infinite-horizon theorem, or continuum limit.
+Decision envelope:
+
+```text
+INVALID_EVIDENCE
+INCONCLUSIVE
+REJECTED_IN_SCOPE
+NOT_REJECTED_IN_SCOPE
+```
+
+`NOT_REJECTED_IN_SCOPE` is not a confirmation state. `REJECTED_IN_SCOPE` is a scoped procedural label. Profile identity binds all decision-bearing metadata, including the rejection threshold, but does not prove registration chronology. The synthetic profile therefore exposes external-unverified registration status and no empirical-rejection licence.
 
 Advertised result surface:
 
-1. `UFT-CSP-001` finite rational row-stochastic kernels preserve total probability mass;
-2. `UFT-CSP-002` in finite atomic probability spaces, almost-sure implies positive probability, and positive probability is equivalent to intersecting the positive-mass support;
-3. `UFT-CSP-003` finite-horizon path probability equals initial mass times the ordered transition product, and the complete finite path family has total mass one;
-4. `UFT-CSP-004` prevalence is measure-indexed, so existence of a counterexample cannot determine prevalence without a declared measure;
-5. `UFT-CSP-005` agreement on a finite real grid cannot establish equality of two functions on a continuum without additional lifting assumptions.
+1. `UFT-EFP-001` synthetic decision eligibility requires complete profile-matched evidence;
+2. `UFT-EFP-002` the scoped procedural rejection label exposes external-unverified registration and no empirical-rejection licence;
+3. `UFT-EFP-003` failure to reject is not confirmation;
+4. `UFT-EFP-004` uncertainty overlapping a rejection boundary is inconclusive under the declared exact interval rule;
+5. `UFT-EFP-005` empirical fit does not imply a unique explanation when multiple candidate prediction sets contain the observation.
 
 Adversarial counterexamples:
 
 ```text
-CX-CSP-001 relation-reachable-transition-with-zero-probability
-CX-CSP-002 positive-probability-event-not-almost-sure
-CX-CSP-003 every-finite-survival-horizon-positive-but-infinite-survival-zero
-CX-CSP-004 one-trajectory-frequency-does-not-identify-distribution
-CX-CSP-005 same-counterexample-different-prevalence-under-different-measures
-CX-CSP-006 finite-grid-agreement-does-not-imply-continuum-equality
+CX-EFP-001 formal-counterexample-without-empirical-evidence
+CX-EFP-002 rejection-side-number-with-wrong-calibration
+CX-EFP-003 rejection-side-point-estimate-with-boundary-crossing-uncertainty
+CX-EFP-004 non-rejected-synthetic-measurement-is-not-confirmation
+CX-EFP-005 one-observation-fits-multiple-models
+CX-EFP-006 post-hoc-threshold-change-changes-profile-identity-and-decision
 ```
 
-Exact finite conformance checks:
+Exact synthetic conformance checks:
 
 ```text
-9 rational two-state kernels
-3 exact initial distributions
-27 probability-mass transport checks
-756 finite-path mass evaluations through horizon 3
-81 finite-path normalization checks
-48 finite-atomic event/quantifier checks
-18 almost-sure event cases
-30 positive-probability event cases
-30 support-witness event cases
-16 finite-survival checks
-2 explicit infinite-survival zero controls
-10 declared finite prevalence measures
-80 measure/event prevalence evaluations
-31 finite-grid non-lifting controls
+15 valid exact interval decisions
+5 REJECTED_IN_SCOPE
+7 NOT_REJECTED_IN_SCOPE
+3 INCONCLUSIVE
+60 invalid-evidence mutation checks
+15 candidate-model fit membership checks
+3 ambiguous-fit observations
+3 profile-fingerprint pair checks
 ```
 
 Required boundaries:
 
 ```text
-RELATION_REACHABLE != POSITIVE_PROBABILITY
-EXISTS_PATH != POSITIVE_PROBABILITY
-POSITIVE_PROBABILITY != ALMOST_SURE
-FINITE_HORIZON_SUCCESS != INFINITE_PATH_LIVENESS
-ONE_TRAJECTORY != DISTRIBUTION
-FINITE_SAMPLE_FREQUENCY != MODEL_PROBABILITY
-FINITE_COUNTEREXAMPLE != PREVALENCE_CLAIM
-PREVALENCE_REQUIRES_DECLARED_MEASURE
-FINITE_GRID_AGREEMENT != CONTINUUM_EQUALITY
-DISCRETIZATION_CONVERGENCE != ASSUMED_WITHOUT_ERROR_CONTROL
-FINITE_STOCHASTIC_CONFORMANCE != GENERAL_STOCHASTIC_OR_CONTINUUM_THEORY
-```
-
-Explicitly deferred beyond this phase are general path-space measure construction, ergodicity and mixing, stopping-time and martingale theory, continuous-time stochastic processes, SDE/PDE existence or regularity, statistical estimation from finite samples, empirical prevalence, discretization convergence theorems, and Lean proof objects.
-
-**Exit criterion:** stochastic quantifiers remain probability-measure-relative; infinite-horizon claims remain distinct from every finite horizon; prevalence remains measure-indexed; finite counterexamples do not acquire frequency semantics; finite-grid evidence does not become a continuum theorem; the six counterexamples stay executable; exact finite conformance, human/machine authority, deterministic receipts, retained artifacts, compatibility wrappers, and CI remain synchronized.
-
-## Next planned phase
-
-- [ ] PR #18 — Empirical falsification profile. **NEXT.**
-
-```text
 FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION
+SYNTHETIC_FIXTURE != EMPIRICAL_EVIDENCE
+FAILURE_TO_REJECT != CONFIRMATION
 EMPIRICAL_FIT != UNIQUE_EXPLANATION
+REJECTION_IN_SCOPE != GLOBAL_THEORY_REFUTATION
+NUMERIC_OBSERVATION != CALIBRATED_MEASUREMENT
+MISSING_UNCERTAINTY != ZERO_UNCERTAINTY
+POST_HOC_THRESHOLD != PREREGISTERED_REJECTION_RULE
+PROFILE_FINGERPRINT != PREREGISTRATION_PROOF
+INCONCLUSIVE != NOT_REJECTED
+REPRODUCIBLE_ANALYSIS != INDEPENDENT_REPLICATION
+FINITE_EMPIRICAL_PROFILE_CONFORMANCE != GENERAL_STATISTICAL_INFERENCE
 ```
+
+### PR #18 implementation checklist
+
+- [x] Define the closed machine `EmpiricalFalsificationProfile` contract.
+- [x] Define the machine theorem/counterexample result registry.
+- [x] Write the canonical human theorem and counterexample surface.
+- [x] Implement the exact synthetic decision evaluator.
+- [x] Separate `INVALID_EVIDENCE`, `INCONCLUSIVE`, `REJECTED_IN_SCOPE`, and `NOT_REJECTED_IN_SCOPE`.
+- [x] Bind calibration, measurement identity, uncertainty, provenance, and profile fingerprint before rejection.
+- [x] Bind rejection-threshold changes into profile identity without treating fingerprints as chronology proofs.
+- [x] Exact-bind prediction, null-model, uncertainty-model, rejection-rule, evidence-requirement, and decision-policy semantics.
+- [x] Treat prior registration as an explicit external unverified assumption until independent immutable provenance exists.
+- [x] Reject scalar string/bytes provenance before sequence coercion.
+- [x] Exact-bind theorem proof references to their canonical human anchors.
+- [x] Correct EFP and live-roadmap snapshots to the actual UTC capture date and reject future snapshot dates.
+- [x] Record the QSOL-CONTEXT → Lean 4 → Zenodo workflow for deferred PR #10.
+- [x] Add the empirical-fit/non-unique-explanation control.
+- [x] Add direct adversarial regressions and closed-schema tests.
+- [x] Add the fail-closed EFP validator with independent fixture payload authority.
+- [x] Add deterministic receipt generation and retained-artifact replay.
+- [x] Register EFP in `machine/contract.json`, `README4AI.md`, `docs/CLAIMS.md`, and `docs/REPRODUCIBILITY.md`.
+- [x] Freeze the merged CSP validator and advance its live compatibility wrapper without rewriting CSP semantics.
+- [x] Advance `machine/roadmap_state.json` to mark PR #17 complete and PR #18 active.
+- [x] Update this human roadmap tracker.
+- [x] Integrate EFP into the existing `finite-adversarial` workflow.
+- [x] Advance all earlier live-roadmap compatibility wrappers to PR #18.
+- [x] Refresh graph human-authority blob pins after the central docs settle.
+- [x] Pass the complete Python 3.12 and 3.13 ordinary test suites.
+- [x] Pass the complete Python 3.12 and 3.13 `python -O` test suites.
+- [x] Pass every retained-artifact replay, including EFP.
+- [x] Pass `vopson-corpus` on the exact PR head.
+- [ ] Complete a fresh hostile Codex P1/P2 review on the exact green head.
+
+Explicitly deferred beyond this phase are source-specific empirical claim instantiation without exact source reconstruction, independently verified immutable preregistration provenance and evidence chronology, statistical power/sample-size design, framework-specific frequentist or Bayesian inference, multiple-testing/sequential procedures, causal identification, real dataset/calibration execution, independent replication/meta-analysis, population prevalence estimation, automatic global-theory rejection, and Lean proof objects.
+
+**Exit criterion:** the synthetic evaluator cannot manufacture preregistration chronology or an empirically licensed rejection from a profile fingerprint; actual empirical rejection requires complete calibrated profile-matched evidence plus independently verified immutable prior-registration provenance. Non-rejection remains distinct from confirmation; inconclusive remains distinct from non-rejection; profile changes remain versioned and identity-bearing; model fit remains distinct from unique explanation; synthetic conformance remains non-empirical; exact receipts, retained replay, compatibility wrappers, human/machine authority, roadmap tracking, CI, and hostile review remain synchronized.
 
 ---
 
@@ -173,6 +279,20 @@ Historical canonical commands:
 python scripts/validate_recovery_specializations.py
 python experiments/recovery_specializations/run.py --json
 python experiments/run_recovery_specializations.py --json
+```
+
+## Active now — planned PR #17
+
+### Continuum, stochastic, and prevalence obligations
+
+**Status:** HISTORICAL COMPATIBILITY ANCHOR ONLY. Planned PR #17 is complete and merged at `353e55a11a8cb6d6bcf571110e0fd6f32823fc77`; this exact heading is retained so the frozen CSP authority can replay its merged roadmap assumptions.
+
+Historical canonical commands:
+
+```bash
+python scripts/validate_continuum_stochastic_prevalence.py
+python experiments/continuum_stochastic_prevalence/run.py --json
+python experiments/run_continuum_stochastic_prevalence.py --json
 ```
 
 # Current formal grammar programme
@@ -195,6 +315,8 @@ MATHEMATICAL_PROOF != LEAN_PROOF
 LEAN_PROOF != RUNTIME_CONFORMANCE != EMPIRICAL_VALIDATION
 ```
 
+The deferred proof/publication track follows the live QSOL-CONTEXT → Lean 4 → Zenodo workflow above. Each proof release must preserve theorem identity, source commit, dependency closure, toolchain pins, build receipt, DOI, and supersession history.
+
 ---
 
 ## PR #11 — Relation-first recovery core
@@ -208,7 +330,7 @@ stepRel : X -> X -> Prop
 A : X -> Prop
 ```
 
-The generic relation keeps admissibility separate from normality and fixed-point semantics.
+The generic relation keeps admissibility separate from rewriting. The graph-realization layer is a finite/set-theoretic representation of `stepRel`, not a physical ontology.
 
 ```text
 NORMAL != ADMISSIBLE != FIXED_POINT
@@ -295,7 +417,7 @@ FINITE_COUNTEREXAMPLE != PREVALENCE_CLAIM
 
 ## PR #18 — Empirical falsification profile
 
-**Status:** PLANNED.
+**Status:** PLANNED in this historical snapshot.
 
 ```text
 FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION
@@ -480,6 +602,9 @@ python experiments/run_recovery_specializations.py --json
 python scripts/validate_continuum_stochastic_prevalence.py
 python experiments/continuum_stochastic_prevalence/run.py --json
 python experiments/run_continuum_stochastic_prevalence.py --json
+python scripts/validate_empirical_falsification_profile.py
+python experiments/empirical_falsification_profile/run.py --json
+python experiments/run_empirical_falsification_profile.py --json
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 ```
@@ -668,4 +793,4 @@ NUMBER != ROLE != STRUCTURE != MECHANISM != ONTOLOGY
 
 # Release-level exit criteria
 
-A future formalization release should not be cut until every advertised theorem has an inspectable proof or is explicitly a theorem target; machine and human statements agree; counterexamples remain executable; source-specific critiques identify exact sources; private locators do not leak; proof/runtime/empirical/physical layers stay separate; unique-selection claims survive alternate-realization tests; stochastic and prevalence claims carry explicit probability/measure semantics; continuum claims carry explicit lifting obligations; CI evidence is retained; and all deferrals remain visible.
+A future formalization release should not be cut until every advertised theorem has an inspectable proof or is explicitly a theorem target; machine and human statements agree; counterexamples remain executable; source-specific critiques identify exact sources; private locators do not leak; proof/runtime/empirical/physical layers stay separate; unique-selection claims survive alternate-realization tests; stochastic and prevalence claims carry explicit probability/measure semantics; continuum claims carry explicit lifting obligations; empirical rejection claims carry complete calibrated profile identity, uncertainty, provenance, scope, and independently verified prior-registration chronology; CI evidence is retained; the QSOL-CONTEXT formalization record binds the exact source commit and theorem inventory; the Lean 4 package builds without `sorry` or `admit` under pinned tooling; the Zenodo bundle contains receipts, hashes, reproduction instructions, and citation metadata; DOI and supersession edges are returned to QSOL-CONTEXT; and all deferrals remain visible.
