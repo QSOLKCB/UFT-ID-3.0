@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 VALIDATOR = ROOT / "scripts/validate_recovery_specializations.py"
 EXPERIMENT = ROOT / "experiments/recovery_specializations/run.py"
 RECEIPT_RUNNER = ROOT / "experiments/run_recovery_specializations.py"
+BASE_CONTRACT = ROOT / "machine/contract.json"
 
 VALIDATION_FILE = "recovery-specialization-validation.json"
 WITNESS_FILE = "recovery-specialization-witness.json"
@@ -35,8 +36,12 @@ EXPECTED_CORE_FILES = (
     "machine/recovery_specialization_results.json",
     "machine/relation_contract.json",
     "machine/roadmap_state.json",
+    "machine/contract.json",
     "theory/RECOVERY_SPECIALIZATIONS.md",
     "theory/RELATION_CALCULUS.md",
+    "README4AI.md",
+    "docs/CLAIMS.md",
+    "docs/REPRODUCIBILITY.md",
     "ROADMAP.md",
     "scripts/validate_recovery_specializations.py",
     "scripts/verify_recovery_specialization_artifacts.py",
@@ -44,7 +49,7 @@ EXPECTED_CORE_FILES = (
     "experiments/recovery_specializations/run.py",
     "tests/test_recovery_specializations.py",
     "experiments/run_recovery_specializations.py",
-    ".github/workflows/recovery-specializations.yml",
+    ".github/workflows/finite-adversarial.yml",
 )
 EXPECTED_EVIDENCE = ("experiments/recovery_specializations/run.py", "tests/test_recovery_specializations.py")
 EXPECTED_FILES = tuple(sorted(set(EXPECTED_CORE_FILES) | set(EXPECTED_EVIDENCE)))
@@ -68,6 +73,19 @@ def load_module(name: str, path: Path):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def registered_receipt_version() -> str:
+    payload = json.loads(BASE_CONTRACT.read_text(encoding="utf-8"))
+    authority = payload.get("recovery_specialization_authority")
+    library = payload.get("experiment_library")
+    if not isinstance(authority, dict) or not isinstance(library, dict):
+        raise RuntimeError("Recovery Specializations receipt registries must be objects")
+    a = authority.get("receipt_version")
+    b = library.get("recovery_specialization_receipt_version")
+    if not isinstance(a, str) or not a or a != b:
+        raise RuntimeError("Recovery Specializations receipt version registry disagreement")
+    return a
 
 
 def load_object(path: Path) -> dict[str, object]:
@@ -117,8 +135,8 @@ def verify(artifact_dir: Path) -> dict[str, object]:
         raise RuntimeError("retained Recovery Specializations receipt top-level schema drift")
     if receipt.get("type") != "uft-id-recovery-specialization-receipt":
         raise RuntimeError("retained Recovery Specializations receipt type drift")
-    if receipt.get("schema_version") != "1.0.0":
-        raise RuntimeError("retained Recovery Specializations receipt schema drift")
+    if receipt.get("schema_version") != registered_receipt_version():
+        raise RuntimeError("retained Recovery Specializations receipt registry/version drift")
     if receipt.get("claim_boundary") != EXPECTED_CLAIM_BOUNDARY:
         raise RuntimeError("retained Recovery Specializations claim boundary drift")
 
