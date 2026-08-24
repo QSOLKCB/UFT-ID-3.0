@@ -82,6 +82,10 @@ class RepresentationCalculusTests(unittest.TestCase):
         fixture = self.suite["fixtures"]["CX-REP-005"]
         self.assertEqual(fixture["coordinate_tuple"], [1, 0])
         self.assertNotEqual(fixture["standard_basis_vector"], fixture["swapped_basis_vector"])
+        self.assertEqual(
+            fixture["same_abstract_vector"],
+            fixture["standard_basis_vector"] == fixture["swapped_basis_vector"],
+        )
         self.assertFalse(fixture["same_abstract_vector"])
 
     def test_similarity_and_congruence_are_distinct_operations(self):
