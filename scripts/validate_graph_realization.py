@@ -26,7 +26,7 @@ _frozen.EXPECTED_HUMAN_BLOBS.update({
     "claims": "c876fe43789572d29f90c2034c98487b54e39142",
     "readme4ai": "0c4ee151b7fb8351dd796b377eb7d99e7fab1b93",
     "reproducibility": "bcba98a9c2cd42d8baf4b909ce5fa5fd57f6ad84",
-    "roadmap": "167fafca38113fb05f8520e08952748a5be64d42",
+    "roadmap": "87d08fbce60708c3dd1a799eeacc2410149c674e",
 })
 _frozen.EXPECTED_VERIFY_STEP_DIRECTIVES = (
     "if: always()",
