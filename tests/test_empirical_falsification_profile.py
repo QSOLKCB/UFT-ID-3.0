@@ -128,6 +128,10 @@ class EmpiricalFalsificationProfileTests(unittest.TestCase):
             evidence = E.make_evidence(profile, 1, 0)
             evidence[key] = "   "
             self.assertEqual(E.evaluate(profile, evidence)["decision"], "INVALID_EVIDENCE")
+        for bad_profile_id in ("", "   "):
+            with self.subTest(bad_profile_id=repr(bad_profile_id)):
+                with self.assertRaisesRegex(ValueError, "nonempty string"):
+                    E.make_profile(0, profile_id=bad_profile_id)
         with self.assertRaisesRegex(ValueError, "profile_id drift"):
             E.make_profile(0, profile_id="EFP-SYN-UNREGISTERED")
 
@@ -135,13 +139,22 @@ class EmpiricalFalsificationProfileTests(unittest.TestCase):
         profile = E.make_profile(0)
         base = json.loads((ROOT / "machine/falsification_contract.json").read_text(encoding="utf-8"))
         projection = E.base_falsification_spec(profile)
+        expected_projection = {
+            "hypothesis_id": profile["hypothesis_id"],
+            "claim_class": profile["claim_class"],
+            "independent_variables": [],
+            "perturbations": [],
+            "observables": [profile["observable_id"]],
+            "predictions": [profile["prediction"]],
+            "null_model": profile["null_model"],
+            "rejection_conditions": [profile["rejection_rule"]],
+            "evidence_required": profile["evidence_requirements"],
+            "scope_limits": [profile["scope"], "synthetic conformance only", "no empirical-rejection licence"],
+            "status": "synthetic-conformance",
+        }
+        self.assertEqual(projection, expected_projection)
         self.assertEqual(tuple(projection), tuple(base["required_fields"]))
         self.assertEqual(set(E.BASE_FALSIFICATION_FIELD_MAPPING), set(base["required_fields"]))
-        self.assertEqual(projection["observables"], [profile["observable_id"]])
-        self.assertEqual(projection["predictions"], [profile["prediction"]])
-        self.assertEqual(projection["null_model"], profile["null_model"])
-        self.assertEqual(projection["rejection_conditions"], [profile["rejection_rule"]])
-        self.assertEqual(projection["status"], "synthetic-conformance")
         for mutate in (
             lambda payload: payload.__setitem__("schema_version", "9.9.9"),
             lambda payload: payload.__setitem__("required_fields", []),
@@ -150,6 +163,32 @@ class EmpiricalFalsificationProfileTests(unittest.TestCase):
             result = self._mutate_json("machine/falsification_contract.json", mutate)
             self.assertEqual(result["status"], "error")
             self.assertIn("EFP PR8 falsification base authority drift", result["errors"])
+
+    def test_validator_rejects_complete_base_projection_drift(self):
+        original_loader = V.load_module
+        canonical = E.run_suite()
+
+        class FakeExperiment:
+            BASE_FALSIFICATION_FIELD_MAPPING = E.BASE_FALSIFICATION_FIELD_MAPPING
+            make_profile = staticmethod(E.make_profile)
+
+            @staticmethod
+            def base_falsification_spec(profile):
+                projection = E.base_falsification_spec(profile)
+                projection["scope_limits"] = [profile["scope"], "synthetic conformance only"]
+                return projection
+
+            @staticmethod
+            def run_suite():
+                return deepcopy(canonical)
+
+        try:
+            V.load_module = lambda name, path: FakeExperiment if path.resolve() == V.PATHS["experiment"].resolve() else original_loader(name, path)
+            result = V.validate()
+        finally:
+            V.load_module = original_loader
+        self.assertEqual(result["status"], "error")
+        self.assertIn("EFP runtime base projection drift", result["errors"])
 
     def test_string_and_bytes_provenance_are_rejected_before_list_coercion(self):
         profile = E.make_profile(0)

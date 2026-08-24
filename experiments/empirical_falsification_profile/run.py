@@ -126,7 +126,7 @@ def make_profile(threshold: object = 0, *, profile_id: str | None = None) -> dic
     exact_threshold = _exact(threshold, "rejection threshold")
     expected_profile_id = _synthetic_profile_id(exact_threshold)
     profile = {
-        "profile_id": profile_id or expected_profile_id,
+        "profile_id": expected_profile_id if profile_id is None else profile_id,
         "hypothesis_id": SYNTHETIC_HYPOTHESIS_ID,
         "hypothesis_version": SYNTHETIC_HYPOTHESIS_VERSION,
         "claim_class": SYNTHETIC_CLAIM_CLASS,

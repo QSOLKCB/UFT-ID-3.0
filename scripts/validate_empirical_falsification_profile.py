@@ -39,6 +39,32 @@ EXPECTED_SCOPE = (
 EXPECTED_BASE_FALSIFICATION = {'nonclaims': ['A FalsificationSpec makes a claim testable; it does not make the claim true.', 'A failed synthetic fixture does not validate or refute any external scientific theory.', "Controlled perturbation structure imported from author-supplied research does not import the paper's consciousness or physical ontology."], 'required_fields': ['hypothesis_id', 'claim_class', 'independent_variables', 'perturbations', 'observables', 'predictions', 'null_model', 'rejection_conditions', 'evidence_required', 'scope_limits', 'status'], 'schema_version': '1.0.1', 'semantics': {'evidence_required': 'The data/measurement/provenance needed before evaluating the condition.', 'null_model': 'A separately declared model of behavior absent the claimed mechanism.', 'perturbation': 'A declared controlled change, not an interpretive label.', 'prediction': 'A direction/range/relation fixed before observing the target outcome.', 'rejection_condition': 'An observable result that counts against the scoped hypothesis.'}, 'snapshot_date': '2026-08-20', 'status': 'scaffold-active', 'synthetic_conformance_example': {'claim_class': 'DIAGNOSTIC', 'evidence_required': ['both q(0) and q(1) from the declared synthetic fixture'], 'fixture_values': {'q0': 1.0, 'q1': 2.0}, 'hypothesis_id': 'FALS-SYN-001', 'independent_variables': ['alpha in {0,1}'], 'null_model': ['q(1) = q(0)'], 'observables': ['q(alpha)'], 'perturbations': ['set alpha from 0 to 1'], 'predictions': ['q(1) < q(0)'], 'rejection_conditions': ['q(1) >= q(0)'], 'scope_limits': ['schema semantics only', 'not an empirical scientific hypothesis'], 'status': 'synthetic-conformance'}, 'type': 'uft-id-falsification-contract'}
 EXPECTED_BASE_FIELD_MAPPING = {'hypothesis_id': 'profile.hypothesis_id', 'claim_class': 'profile.claim_class', 'independent_variables': 'constant:[]; no intervention variable is claimed by this synthetic interval specialization', 'perturbations': 'constant:[]; no controlled perturbation is claimed by this synthetic interval specialization', 'observables': '[profile.observable_id]', 'predictions': '[profile.prediction]', 'null_model': 'profile.null_model', 'rejection_conditions': '[profile.rejection_rule]', 'evidence_required': 'profile.evidence_requirements', 'scope_limits': '[profile.scope, synthetic conformance only, no empirical-rejection licence]', 'status': 'constant:synthetic-conformance'}
 
+EXPECTED_BASE_PROJECTION = {
+    "hypothesis_id": "H-SYN-BOUND-001",
+    "claim_class": "DIAGNOSTIC",
+    "independent_variables": [],
+    "perturbations": [],
+    "observables": ["OBS-SYN-Y-V1"],
+    "predictions": [{"kind": "upper-bound", "observable_id": "OBS-SYN-Y-V1", "upper_bound": 0}],
+    "null_model": {"kind": "boundary-equality", "observable_id": "OBS-SYN-Y-V1", "value": 0},
+    "rejection_conditions": [{"kind": "interval-entirely-above-threshold", "threshold": 0}],
+    "evidence_required": [
+        "matching observable_id",
+        "matching measurement_spec_id",
+        "matching calibration_id",
+        "exact nonnegative uncertainty_radius",
+        "at least one provenance_ref",
+        "matching profile_fingerprint",
+        "declared external-unverified prior_registration_status",
+    ],
+    "scope_limits": [
+        "synthetic exact interval decision semantics only",
+        "synthetic conformance only",
+        "no empirical-rejection licence",
+    ],
+    "status": "synthetic-conformance",
+}
+
 EXPECTED_PRIMARY_TYPES = {
     "profile": "EmpiricalFalsificationProfile=(profile_id,hypothesis_id,hypothesis_version,claim_class,scope,observable_id,measurement_spec_id,calibration_id,uncertainty_model,prediction,null_model,rejection_rule,evidence_requirements,decision_policy,prior_registration_status,profile_version)",
     "evidence": "EmpiricalEvidence=(observable_id,measurement_spec_id,calibration_id,value,uncertainty_radius,provenance_refs,profile_fingerprint)",
@@ -518,7 +544,7 @@ def validate() -> dict[str, object]:
         errors.append("EFP runtime base projection authority missing")
     else:
         canonical_projection = projection_fn(make_profile_fn(0))
-        if tuple(canonical_projection) != tuple(EXPECTED_BASE_FALSIFICATION["required_fields"]):
+        if canonical_projection != EXPECTED_BASE_PROJECTION:
             errors.append("EFP runtime base projection drift")
     witness = experiment.run_suite()
     if witness.get("hard_boundaries") != EXPECTED_BOUNDARIES: errors.append("EFP witness hard-boundary drift")
