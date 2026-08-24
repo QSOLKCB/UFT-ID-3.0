@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import re
 from pathlib import Path
@@ -24,6 +25,7 @@ PATHS = {
     "artifact_verifier": ROOT / "scripts/verify_information_comparability_artifacts.py",
     "information_primitives": ROOT / "experiments/lib/information.py",
     "observation_base": ROOT / "machine/observation_contract.json",
+    "observation_specs": ROOT / "machine/observation_specs.json",
     "representation_base": ROOT / "machine/representation_contract.json",
 }
 
@@ -38,16 +40,46 @@ EXPECTED_CONVERSION_TYPE = "UnitConversion=(functional,source_unit,target_unit,p
 EXPECTED_SPEC_FIELDS = {
     "source_type": "declared source/carrier type on which the information quantity is defined",
     "functional": "exact information functional identity; shared use of the word information is insufficient",
-    "observation": "exact observation/measurement contract presented to the functional",
+    "observation": "stable observation-contract identity bound to an exact source type, target type, kind, and map reference; a generic category label is insufficient",
     "unit": "declared scalar unit or logarithm-base convention",
     "normalization": "declared normalization convention",
-    "conditioning": "declared conditioning convention",
+    "conditioning": "stable conditioning-model identity bound to the conditioned variable/event or to an explicit unconditional identity; a generic category label is insufficient",
     "scope": "nonempty contexts/regimes in which the specification is licensed",
 }
 EXPECTED_MODES = {
-    "direct": "source_type, functional, observation, unit, normalization, and conditioning are equal and scopes overlap",
-    "unit_converted": "all direct-comparability fields except unit are equal, scopes overlap, and an exact registered positive unit conversion matches the functional and unit direction",
-    "not_authorized": "numeric equality, matching codomain, matching unit, matching functional name, or shared use of the word information alone",
+    "direct": "source_type, functional, stable observation identity, unit, normalization, and stable conditioning identity are equal and scopes overlap",
+    "unit_converted": "all direct-comparability fields except unit are equal, the two specifications and conversion have nonempty common scope, and an exact registered positive unit conversion matches the functional and unit direction",
+    "not_authorized": "numeric equality, matching codomain, matching unit, matching functional name, generic observation/conditioning categories, or shared use of the word information alone",
+}
+EXPECTED_OBSERVATION_REGISTRY = {
+    "OBS-REF-FIN2-IDENTITY-V1": {
+        "base_authority": "machine/observation_specs.json#OBS-SPEC-001",
+        "source_type": "Fin2",
+        "target_type": "Fin2",
+        "kind": "deterministic-total",
+        "map_ref": "O_id(0)=0; O_id(1)=1",
+    },
+    "OBS-REF-FIN2-CONSTANT0-V1": {
+        "base_authority": "machine/observation_specs.json#OBS-SPEC-002",
+        "source_type": "Fin2",
+        "target_type": "Fin1",
+        "kind": "deterministic-total",
+        "map_ref": "O_const(0)=0; O_const(1)=0",
+    },
+}
+EXPECTED_CONDITIONING_REGISTRY = {
+    "COND-REF-UNCONDITIONAL-V1": {
+        "kind": "unconditional",
+        "source_type": "Fin2",
+        "variable_ref": None,
+        "event_ref": None,
+    },
+    "COND-REF-FIN2-X-EQ-0-V1": {
+        "kind": "conditioned",
+        "source_type": "Fin2",
+        "variable_ref": "x@Fin2",
+        "event_ref": "x=0",
+    },
 }
 EXPECTED_UNIT_REGISTRY = {
     "bit->base4-digit": "scale=1/2 for logarithmic functionals",
@@ -83,6 +115,7 @@ EXPECTED_LIMITS = {
     "unit_convertible_ordered_pairs": 224,
     "positive_scale_order_checks": 75,
     "log_base_conversion_checks": 5,
+    "shared_shannon_primitive_checks": 1,
     "policy": "The bounded battery is exact conformance evidence for the declared finite specification grammar and bit/base4 conversion registry only; it is not a universal theorem that arbitrary quantities called information are comparable.",
 }
 EXPECTED_AUTHORITIES = {
@@ -96,6 +129,7 @@ EXPECTED_AUTHORITIES = {
     "roadmap_state": "machine/roadmap_state.json",
     "information_primitives": "experiments/lib/information.py",
     "observation_base": "machine/observation_contract.json",
+    "observation_specs": "machine/observation_specs.json",
     "representation_base": "machine/representation_contract.json",
 }
 EXPECTED_DEFERRALS = [
@@ -112,6 +146,14 @@ EXPECTED_RESULT_BOUNDARY = (
     "SAME_WORD_INFORMATION != SAME_FUNCTIONAL; NUMERIC_EQUALITY != INFORMATIONAL_EQUIVALENCE; "
     "COMPARABLE != IDENTICAL_SPEC; FINITE_INFORMATION_CONFORMANCE != GENERAL_INFORMATION_THEORY"
 )
+EXPECTED_THEOREM_FIELDS = {
+    "id", "name", "claim_class", "statement", "hypotheses",
+    "proof_reference", "executable_evidence", "nonclaims",
+}
+EXPECTED_COUNTEREXAMPLE_FIELDS = {
+    "id", "name", "claim_class", "statement", "fixture", "evidence", "nonclaims",
+}
+EXPECTED_RESULTS_TOP_LEVEL = {"type", "schema_version", "snapshot_date", "records", "claim_boundary"}
 EXPECTED_THEOREMS = {
     "UFT-INF-001": {
         "name": "Identical valid specifications are directly comparable",
@@ -143,8 +185,8 @@ EXPECTED_THEOREMS = {
     },
     "UFT-INF-005": {
         "name": "Explicit logarithm-base conversion gives non-identical comparable specifications",
-        "statement": "For Shannon or Hartley logarithmic entropy specifications that agree in every comparison-defining field except bit versus base4-digit unit, an explicit registered scale of 1/2 from bits to base4-digits or 2 in the reverse direction licenses unit-converted comparability; the specifications remain non-identical.",
-        "hypotheses": ["A and B are valid InformationSpec values", "A and B differ only by bit versus base4-digit unit and scope may differ only with nonempty overlap", "the registered unit conversion matches the functional and direction"],
+        "statement": "For Shannon or Hartley logarithmic entropy specifications that agree in every comparison-defining field except bit versus base4-digit unit, and for a matching registered conversion whose scope has nonempty common intersection with both specification scopes, an exact scale of 1/2 from bits to base4-digits or 2 in the reverse direction licenses unit-converted comparability; the specifications remain non-identical.",
+        "hypotheses": ["A and B are valid InformationSpec values", "A and B differ only by bit versus base4-digit unit", "the registered unit conversion C matches the functional and unit direction", "A.scope intersect B.scope intersect C.scope is nonempty"],
         "proof_reference": "theory/INFORMATION_COMPARABILITY.md#uft-inf-005-explicit-logarithm-base-conversion-gives-non-identical-comparable-specifications",
         "nonclaims": ["Unit-converted comparability does not authorize comparison across different observations, normalizations, conditionings, functionals, or disjoint scopes."],
     },
@@ -159,7 +201,7 @@ EXPECTED_COUNTEREXAMPLES = {
     "CX-INF-002": {
         "name": "Same functional and unit can use different observations",
         "statement": "Two Shannon-entropy specifications in bits with different observation contracts are not directly comparable under the Information Comparability predicate.",
-        "fixture": "Shannon bits with fine observation versus coarse observation",
+        "fixture": "Shannon bits with OBS-REF-FIN2-IDENTITY-V1 versus OBS-REF-FIN2-CONSTANT0-V1",
         "nonclaims": ["A separately proved observation bridge may establish a narrower relationship; direct comparability does not assume one."],
     },
     "CX-INF-003": {
@@ -214,6 +256,15 @@ def load_json(path: Path) -> dict[str, Any]:
     return value
 
 
+def load_module(name: str, path: Path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"cannot load {path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def safe_path(path: object, label: str, errors: list[str]) -> None:
     if not isinstance(path, str) or not path:
         errors.append(f"{label} must be a nonempty repository-relative path")
@@ -266,6 +317,14 @@ def strip_code(value: str | None) -> str | None:
     return value
 
 
+def parse_json_metadata(sec: str, label: str) -> object | None:
+    raw = strip_code(metadata(sec, label))
+    try:
+        return json.loads(raw) if raw is not None else None
+    except json.JSONDecodeError:
+        return None
+
+
 def validate() -> dict[str, object]:
     errors: list[str] = []
     for name, path in PATHS.items():
@@ -278,13 +337,14 @@ def validate() -> dict[str, object]:
     results = load_json(PATHS["results"])
     roadmap = load_json(PATHS["roadmap"])
     base = load_json(PATHS["base_contract"])
+    observation_specs = load_json(PATHS["observation_specs"])
     human = PATHS["human"].read_text(encoding="utf-8")
     claims = PATHS["claims"].read_text(encoding="utf-8")
     readme = PATHS["readme"].read_text(encoding="utf-8")
     repro = PATHS["repro"].read_text(encoding="utf-8")
 
     if contract.get("type") != "uft-id-information-comparability-contract": errors.append("information contract type drift")
-    if contract.get("schema_version") != "1.0.0": errors.append("information contract schema drift")
+    if contract.get("schema_version") != "1.1.0": errors.append("information contract schema drift")
     if contract.get("snapshot_date") != "2026-08-24": errors.append("information contract snapshot drift")
     if contract.get("claim_class") != "DEFINITION": errors.append("information contract claim class drift")
     if contract.get("scope") != EXPECTED_SCOPE: errors.append("information contract scope drift")
@@ -292,6 +352,8 @@ def validate() -> dict[str, object]:
     if contract.get("conversion_type") != EXPECTED_CONVERSION_TYPE: errors.append("information conversion type drift")
     if contract.get("spec_fields") != EXPECTED_SPEC_FIELDS: errors.append("information spec field registry drift")
     if contract.get("comparability_modes") != EXPECTED_MODES: errors.append("information comparability mode registry drift")
+    if contract.get("observation_registry") != EXPECTED_OBSERVATION_REGISTRY: errors.append("information observation identity registry drift")
+    if contract.get("conditioning_registry") != EXPECTED_CONDITIONING_REGISTRY: errors.append("information conditioning identity registry drift")
     if contract.get("unit_conversion_registry") != EXPECTED_UNIT_REGISTRY: errors.append("information unit conversion registry drift")
     if contract.get("functional_registry") != EXPECTED_FUNCTIONALS: errors.append("information functional registry drift")
     if contract.get("hard_boundaries") != EXPECTED_BOUNDARIES: errors.append("information hard-boundary registry drift")
@@ -303,6 +365,28 @@ def validate() -> dict[str, object]:
                 safe_path(value, f"information authority {key}", errors)
     if contract.get("explicit_deferrals") != EXPECTED_DEFERRALS: errors.append("information explicit deferrals drift")
 
+    experiment = load_module("information_comparability_validator_experiment", PATHS["experiment"])
+    if getattr(experiment, "OBSERVATION_REGISTRY", None) != EXPECTED_OBSERVATION_REGISTRY:
+        errors.append("production observation identity registry drift")
+    if getattr(experiment, "CONDITIONING_REGISTRY", None) != EXPECTED_CONDITIONING_REGISTRY:
+        errors.append("production conditioning identity registry drift")
+
+    obs_records = observation_specs.get("records")
+    obs_by_id = {r.get("id"): r for r in obs_records if isinstance(r, dict)} if isinstance(obs_records, list) else {}
+    for ref in EXPECTED_OBSERVATION_REGISTRY.values():
+        authority = ref["base_authority"]
+        if not isinstance(authority, str) or not authority.startswith("machine/observation_specs.json#"):
+            errors.append("information observation base authority malformed")
+            continue
+        anchor = authority.split("#", 1)[1]
+        if anchor not in obs_by_id:
+            errors.append(f"information observation base authority missing: {anchor}")
+    const = obs_by_id.get("OBS-SPEC-002")
+    if not isinstance(const, dict) or const.get("map_ref") != "O_const(0)=0; O_const(1)=0":
+        errors.append("information constant observation base-map drift")
+
+    if set(results) != EXPECTED_RESULTS_TOP_LEVEL:
+        errors.append("information result registry top-level field set drift")
     records = results.get("records")
     if not isinstance(records, list):
         errors.append("information result registry malformed")
@@ -314,6 +398,10 @@ def validate() -> dict[str, object]:
             errors.append(f"information result {index} malformed")
             continue
         rid = str(record["id"])
+        if rid in EXPECTED_THEOREMS and set(record) != EXPECTED_THEOREM_FIELDS:
+            errors.append(f"{rid} theorem field set drift")
+        if rid in EXPECTED_COUNTEREXAMPLES and set(record) != EXPECTED_COUNTEREXAMPLE_FIELDS:
+            errors.append(f"{rid} counterexample field set drift")
         if rid in by_id:
             errors.append(f"duplicate information result id: {rid}")
         else:
@@ -340,12 +428,8 @@ def validate() -> dict[str, object]:
             continue
         if metadata(sec, "Claim class") != "`PROVED`": errors.append(f"{rid} human claim class drift")
         if strip_code(metadata(sec, "Canonical statement")) != expected["statement"]: errors.append(f"{rid} human canonical statement drift")
-        raw_h = strip_code(metadata(sec, "Canonical hypotheses"))
-        try:
-            parsed_h = json.loads(raw_h) if raw_h is not None else None
-        except json.JSONDecodeError:
-            parsed_h = None
-        if parsed_h != expected["hypotheses"]: errors.append(f"{rid} human canonical hypotheses drift")
+        if parse_json_metadata(sec, "Canonical hypotheses") != expected["hypotheses"]: errors.append(f"{rid} human canonical hypotheses drift")
+        if parse_json_metadata(sec, "Canonical nonclaims") != expected["nonclaims"]: errors.append(f"{rid} human canonical nonclaims drift")
 
     for rid, expected in EXPECTED_COUNTEREXAMPLES.items():
         record = by_id.get(rid)
@@ -363,6 +447,17 @@ def validate() -> dict[str, object]:
             continue
         if metadata(sec, "Claim class") != "`COUNTEREXAMPLE`": errors.append(f"{rid} human claim class drift")
         if strip_code(metadata(sec, "Canonical statement")) != expected["statement"]: errors.append(f"{rid} human canonical statement drift")
+        if parse_json_metadata(sec, "Canonical nonclaims") != expected["nonclaims"]: errors.append(f"{rid} human canonical nonclaims drift")
+
+    unit_section = section(human, "## 3. Explicit unit-converted comparability")
+    if unit_section is None:
+        errors.append("human unit-converted comparability section missing or duplicated")
+    else:
+        if "This mode licenses unit conversion only." not in unit_section:
+            errors.append("human unit-conversion-only boundary drift")
+        boundary_block = "UNIT_CONVERSION\n!=\nOBSERVATION_BRIDGE\n!=\nSEMANTIC_BRIDGE\n!=\nEMPIRICAL_CALIBRATION"
+        if boundary_block not in unit_section:
+            errors.append("human unit-conversion boundary chain drift")
 
     if results.get("type") != "uft-id-information-comparability-result-registry": errors.append("information result type drift")
     if results.get("schema_version") != "1.0.0": errors.append("information result schema drift")
