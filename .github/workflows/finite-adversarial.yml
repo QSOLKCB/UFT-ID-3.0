@@ -16,6 +16,8 @@ on:
       - "scripts/verify_graph_artifacts.py"
       - "scripts/validate_bridge_core.py"
       - "scripts/verify_bridge_artifacts.py"
+      - "scripts/validate_epistemic_bridge.py"
+      - "scripts/verify_epistemic_bridge_artifacts.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -30,6 +32,7 @@ on:
       - "theory/RELATION_CALCULUS.md"
       - "theory/GRAPH_REALIZATION.md"
       - "theory/BRIDGE_CORE.md"
+      - "theory/EPISTEMIC_BRIDGE.md"
       - "research/CROSS_REPO_PATTERN_ATLAS.md"
       - "research/GRAPH_REALIZATION_SOURCES.md"
       - "research/HISTORICAL_LINEAGE.md"
@@ -57,6 +60,8 @@ on:
       - "scripts/verify_graph_artifacts.py"
       - "scripts/validate_bridge_core.py"
       - "scripts/verify_bridge_artifacts.py"
+      - "scripts/validate_epistemic_bridge.py"
+      - "scripts/verify_epistemic_bridge_artifacts.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -71,6 +76,7 @@ on:
       - "theory/RELATION_CALCULUS.md"
       - "theory/GRAPH_REALIZATION.md"
       - "theory/BRIDGE_CORE.md"
+      - "theory/EPISTEMIC_BRIDGE.md"
       - "research/CROSS_REPO_PATTERN_ATLAS.md"
       - "research/GRAPH_REALIZATION_SOURCES.md"
       - "research/HISTORICAL_LINEAGE.md"
@@ -155,6 +161,14 @@ jobs:
           python experiments/bridge_core/run.py --json > /tmp/bridge-core.json
           python experiments/run_bridge_core.py --hash-only > /tmp/bridge-core-receipt.json
 
+      - name: Validate Epistemic Bridge authority surface
+        run: python scripts/validate_epistemic_bridge.py
+
+      - name: Run Epistemic Bridge witnesses
+        run: |
+          python experiments/epistemic_bridge/run.py --json > /tmp/epistemic-bridge.json
+          python experiments/run_epistemic_bridge.py --hash-only > /tmp/epistemic-bridge-receipt.json
+
       - name: Validate Vopson 2019 MEI authority surface
         run: python scripts/validate_vopson_2019_mei.py
 
@@ -206,6 +220,14 @@ jobs:
           python experiments/bridge_core/run.py --json > artifacts/bridge-core-witness.json 2> artifacts/bridge-core-witness.stderr.txt || true
           python experiments/run_bridge_core.py --json > artifacts/bridge-core-receipt.json 2> artifacts/bridge-core-receipt.stderr.txt || true
 
+      - name: Generate Epistemic Bridge evidence bundle
+        if: always()
+        run: |
+          mkdir -p artifacts
+          python scripts/validate_epistemic_bridge.py --json > artifacts/epistemic-bridge-validation.json 2> artifacts/epistemic-bridge-validation.stderr.txt || true
+          python experiments/epistemic_bridge/run.py --json > artifacts/epistemic-bridge-witness.json 2> artifacts/epistemic-bridge-witness.stderr.txt || true
+          python experiments/run_epistemic_bridge.py --json > artifacts/epistemic-bridge-receipt.json 2> artifacts/epistemic-bridge-receipt.stderr.txt || true
+
       - name: Verify retained graph evidence
         if: always()
         run: |
@@ -215,6 +237,11 @@ jobs:
         if: always()
         run: |
           python scripts/verify_bridge_artifacts.py artifacts
+
+      - name: Verify retained Epistemic Bridge evidence
+        if: always()
+        run: |
+          python scripts/verify_epistemic_bridge_artifacts.py artifacts
 
       - name: Retain finite evidence bundle
         if: always()
