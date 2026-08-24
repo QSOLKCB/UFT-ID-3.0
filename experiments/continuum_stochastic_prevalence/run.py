@@ -32,10 +32,14 @@ def _carrier(states: Iterable[State]) -> tuple[State, ...]:
     return carrier
 
 
-def _fraction(value: object, label: str) -> Fraction:
+def _exact_real(value: object, label: str) -> Fraction:
     if isinstance(value, bool) or not isinstance(value, (int, Fraction)):
         raise ValueError(f"{label} must use exact integer/Fraction arithmetic")
-    result = Fraction(value)
+    return Fraction(value)
+
+
+def _fraction(value: object, label: str) -> Fraction:
+    result = _exact_real(value, label)
     if result < 0:
         raise ValueError(f"{label} must be nonnegative")
     return result
@@ -128,10 +132,10 @@ def geometric_infinite_survival_is_zero(q: object) -> bool:
 
 
 def vanishing_polynomial(grid: Iterable[object], x: object) -> Fraction:
-    grid_values = tuple(_fraction(value, "grid point") for value in grid)
+    grid_values = tuple(_exact_real(value, "grid point") for value in grid)
     if not grid_values or len(set(grid_values)) != len(grid_values):
         raise ValueError("grid must be finite, nonempty, and duplicate-free")
-    exact_x = _fraction(x, "evaluation point")
+    exact_x = _exact_real(x, "evaluation point")
     value = Fraction(1)
     for point in grid_values:
         value *= exact_x - point
