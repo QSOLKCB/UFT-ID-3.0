@@ -5,6 +5,7 @@ from fractions import Fraction
 import importlib.util
 import json
 from pathlib import Path
+from types import MappingProxyType
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,6 +23,8 @@ def load_module(name: str, relpath: str):
 
 E = load_module("efp_experiment", "experiments/empirical_falsification_profile/run.py")
 V = load_module("efp_validator", "scripts/validate_empirical_falsification_profile.py")
+R = load_module("efp_receipt_runner", "experiments/run_empirical_falsification_profile.py")
+A = load_module("efp_artifact_verifier", "scripts/verify_empirical_falsification_profile_artifacts.py")
 
 
 class EmpiricalFalsificationProfileTests(unittest.TestCase):
@@ -91,6 +94,15 @@ class EmpiricalFalsificationProfileTests(unittest.TestCase):
         self.assertEqual(E.profile_fingerprint(fraction_profile), E.profile_fingerprint(integer_profile))
         evidence = E.make_evidence(fraction_profile, 1, 0)
         self.assertEqual(E.evaluate(integer_profile, evidence)["decision"], "REJECTED_IN_SCOPE")
+
+    def test_mapping_proxy_profile_fields_are_hashable_and_evaluable(self):
+        profile = E.make_profile(Fraction(0))
+        proxied = dict(profile)
+        for key in ("prediction", "null_model", "rejection_rule"):
+            proxied[key] = MappingProxyType(dict(profile[key]))
+        self.assertEqual(E.profile_fingerprint(proxied), E.profile_fingerprint(profile))
+        evidence = E.make_evidence(proxied, 1, 0)
+        self.assertEqual(E.evaluate(proxied, evidence)["decision"], "REJECTED_IN_SCOPE")
 
     def test_profile_semantics_are_exact_bound(self):
         profile = E.make_profile(0)
@@ -307,6 +319,64 @@ class EmpiricalFalsificationProfileTests(unittest.TestCase):
                 )
                 self.assertEqual(result["status"], "error")
                 self.assertIn(f"EFP workflow {label} command-chain drift", result["errors"])
+
+    def test_receipt_hashes_complete_csp_validator_dependency_closure(self):
+        expected = {
+            "machine/continuum_stochastic_prevalence_contract.json",
+            "machine/continuum_stochastic_prevalence_results.json",
+            "machine/recovery_specialization_contract.json",
+            "machine/relation_contract.json",
+            "machine/contract.json",
+            "machine/roadmap_state.json",
+            "theory/CONTINUUM_STOCHASTIC_PREVALENCE.md",
+            "ROADMAP.md",
+            "README4AI.md",
+            "docs/CLAIMS.md",
+            "docs/REPRODUCIBILITY.md",
+            "experiments/continuum_stochastic_prevalence/run.py",
+            "tests/test_continuum_stochastic_prevalence.py",
+            "experiments/run_continuum_stochastic_prevalence.py",
+            "scripts/verify_continuum_stochastic_prevalence_artifacts.py",
+            "scripts/validate_continuum_stochastic_prevalence.py",
+            "scripts/validate_continuum_stochastic_prevalence_pr18_frozen.py",
+            ".github/workflows/finite-adversarial.yml",
+        }
+        self.assertTrue(expected.issubset(set(R.CORE_FILES)))
+        self.assertTrue(expected.issubset(set(A.EXPECTED_CORE_FILES)))
+
+    def test_proved_theorem_requires_exactly_one_nonempty_human_proof_block(self):
+        heading = "## UFT-EFP-001 Empirical rejection requires complete profile-matched evidence"
+
+        def remove_proof(text):
+            start = text.index(heading)
+            proof_start = text.index("**Proof.**", start)
+            proof_end = text.index("\n", proof_start)
+            return text[:proof_start] + text[proof_end + 1:]
+
+        result = self._mutate_text("theory/EMPIRICAL_FALSIFICATION_PROFILE.md", remove_proof)
+        self.assertEqual(result["status"], "error")
+        self.assertIn("UFT-EFP-001 human proof block missing, duplicated, or empty", result["errors"])
+
+        def empty_proof(text):
+            start = text.index(heading)
+            proof_start = text.index("**Proof.**", start)
+            proof_end = text.index("\n", proof_start)
+            return text[:proof_start] + "**Proof.**\n" + text[proof_end + 1:]
+
+        result = self._mutate_text("theory/EMPIRICAL_FALSIFICATION_PROFILE.md", empty_proof)
+        self.assertEqual(result["status"], "error")
+        self.assertIn("UFT-EFP-001 human proof block missing, duplicated, or empty", result["errors"])
+
+        def duplicate_proof(text):
+            start = text.index(heading)
+            proof_start = text.index("**Proof.**", start)
+            proof_end = text.index("\n", proof_start)
+            proof_line = text[proof_start:proof_end]
+            return text[:proof_end + 1] + proof_line + "\n" + text[proof_end + 1:]
+
+        result = self._mutate_text("theory/EMPIRICAL_FALSIFICATION_PROFILE.md", duplicate_proof)
+        self.assertEqual(result["status"], "error")
+        self.assertIn("UFT-EFP-001 human proof block missing, duplicated, or empty", result["errors"])
 
     def test_future_snapshot_dates_fail_closed(self):
         result = self._mutate_json(

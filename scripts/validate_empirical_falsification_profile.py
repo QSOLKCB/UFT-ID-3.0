@@ -368,6 +368,22 @@ def parse_json_metadata(sec: str, label: str) -> object | None:
     except json.JSONDecodeError:
         return None
 
+def proof_block(sec: str) -> str | None:
+    lines = sec.splitlines()
+    markers = [i for i, line in enumerate(lines) if line.strip().startswith("**Proof.**")]
+    if len(markers) != 1:
+        return None
+    index = markers[0]
+    first = lines[index].strip()[len("**Proof.**"):].strip()
+    body = [first] if first else []
+    for line in lines[index + 1:]:
+        stripped = line.strip()
+        if not stripped or re.match(r"^#+\s", stripped):
+            break
+        body.append(stripped)
+    text = " ".join(body).strip()
+    return text or None
+
 
 def validate() -> dict[str, object]:
     errors: list[str] = []
@@ -488,6 +504,7 @@ def validate() -> dict[str, object]:
         if strip_code(metadata(sec, "Canonical statement")) != expected["statement"]: errors.append(f"{rid} human canonical statement drift")
         if parse_json_metadata(sec, "Canonical hypotheses") != expected["hypotheses"]: errors.append(f"{rid} human canonical hypotheses drift")
         if parse_json_metadata(sec, "Canonical nonclaims") != expected["nonclaims"]: errors.append(f"{rid} human canonical nonclaims drift")
+        if proof_block(sec) is None: errors.append(f"{rid} human proof block missing, duplicated, or empty")
 
     for rid, expected in EXPECTED_COUNTEREXAMPLES.items():
         record = by_id.get(rid)
