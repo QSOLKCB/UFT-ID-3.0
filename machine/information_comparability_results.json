@@ -47,8 +47,8 @@
       "id": "UFT-INF-005",
       "name": "Explicit logarithm-base conversion gives non-identical comparable specifications",
       "claim_class": "PROVED",
-      "statement": "For Shannon or Hartley logarithmic entropy specifications that agree in every comparison-defining field except bit versus base4-digit unit, an explicit registered scale of 1/2 from bits to base4-digits or 2 in the reverse direction licenses unit-converted comparability; the specifications remain non-identical.",
-      "hypotheses": ["A and B are valid InformationSpec values", "A and B differ only by bit versus base4-digit unit and scope may differ only with nonempty overlap", "the registered unit conversion matches the functional and direction"],
+      "statement": "For Shannon or Hartley logarithmic entropy specifications that agree in every comparison-defining field except bit versus base4-digit unit, and for a matching registered conversion whose scope has nonempty common intersection with both specification scopes, an exact scale of 1/2 from bits to base4-digits or 2 in the reverse direction licenses unit-converted comparability; the specifications remain non-identical.",
+      "hypotheses": ["A and B are valid InformationSpec values", "A and B differ only by bit versus base4-digit unit", "the registered unit conversion C matches the functional and unit direction", "A.scope intersect B.scope intersect C.scope is nonempty"],
       "proof_reference": "theory/INFORMATION_COMPARABILITY.md#uft-inf-005-explicit-logarithm-base-conversion-gives-non-identical-comparable-specifications",
       "executable_evidence": ["experiments/information_comparability/run.py", "tests/test_information_comparability.py"],
       "nonclaims": ["Unit-converted comparability does not authorize comparison across different observations, normalizations, conditionings, functionals, or disjoint scopes."]
@@ -67,7 +67,7 @@
       "name": "Same functional and unit can use different observations",
       "claim_class": "COUNTEREXAMPLE",
       "statement": "Two Shannon-entropy specifications in bits with different observation contracts are not directly comparable under the Information Comparability predicate.",
-      "fixture": "Shannon bits with fine observation versus coarse observation",
+      "fixture": "Shannon bits with OBS-REF-FIN2-IDENTITY-V1 versus OBS-REF-FIN2-CONSTANT0-V1",
       "evidence": ["experiments/information_comparability/run.py", "tests/test_information_comparability.py"],
       "nonclaims": ["A separately proved observation bridge may establish a narrower relationship; direct comparability does not assume one."]
     },
