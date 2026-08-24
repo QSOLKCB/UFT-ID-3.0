@@ -7,7 +7,7 @@
       "id": "UFT-REP-001",
       "name": "Similarity preserves characteristic polynomial",
       "claim_class": "PROVED",
-      "statement": "If B=P^{-1}AP for an invertible finite-dimensional change of basis P over R or C, then A and B have the same characteristic polynomial; therefore trace, determinant, and rank are preserved.",
+      "statement": "If B=P^{-1}AP for an invertible finite-dimensional change of basis P over R or C, then A and B have the same characteristic polynomial; trace, determinant, and rank are preserved under the same similarity transformation.",
       "hypotheses": ["A and B are square matrices over R or C", "P is invertible", "B=P^{-1}AP"],
       "proof_reference": "theory/REPRESENTATION_CALCULUS.md#uft-rep-001-similarity-preserves-characteristic-polynomial",
       "executable_evidence": ["experiments/representation_calculus/run.py", "tests/test_representation_calculus.py"],
