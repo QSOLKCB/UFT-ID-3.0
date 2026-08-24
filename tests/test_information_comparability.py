@@ -228,6 +228,13 @@ class InformationComparabilityTests(unittest.TestCase):
         self.assertEqual(result["status"], "error")
         self.assertIn("UFT-INF-005 hypotheses drift", result["errors"])
 
+    def test_undeclared_contract_field_fails_closed(self):
+        def mutate(payload):
+            payload["empirically_validated"] = True
+        result = self._mutate_json("machine/information_comparability_contract.json", mutate)
+        self.assertEqual(result["status"], "error")
+        self.assertIn("information contract top-level field set drift", result["errors"])
+
     def test_observation_registry_drift_is_rejected(self):
         def mutate(payload):
             payload["observation_registry"]["OBS-REF-FIN2-IDENTITY-V1"]["map_ref"] = "O_id(0)=0; O_id(1)=0"
