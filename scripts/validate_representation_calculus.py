@@ -3,7 +3,7 @@
 
 The theorem/contract audit remains in validate_representation_calculus_preintegration_frozen.py.
 This wrapper replays that authority against the exact merged Representation roadmap snapshot,
-then independently validates the current Continuum/Stochastic/Prevalence schedule.
+then independently validates the current Empirical Falsification Profile schedule.
 """
 from __future__ import annotations
 
@@ -20,16 +20,12 @@ if _spec is None or _spec.loader is None:
 _frozen = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_frozen)
 
-# Preserve the exact corrections merged with planned PR #14.
 _frozen.EXPECTED_THEOREMS["UFT-REP-001"]["statement"] = (
     "If B=P^{-1}AP for an invertible finite-dimensional change of basis P over R or C, "
     "then A and B have the same characteristic polynomial; trace, determinant, and rank "
     "are preserved under the same similarity transformation."
 )
-_frozen.EXPECTED_INVARIANT_DISCIPLINE["congruence"] = [
-    "rank",
-    "symmetry type for real symmetric matrices",
-]
+_frozen.EXPECTED_INVARIANT_DISCIPLINE["congruence"] = ["rank", "symmetry type for real symmetric matrices"]
 
 for _name in dir(_frozen):
     if not _name.startswith("__") and _name not in {"validate", "main", "load_json"}:
@@ -58,8 +54,7 @@ HISTORICAL_ROADMAP_STATE = {
     "compatibility_note": "machine/formalization_contract.json retains the PR9-era roadmap_rebase snapshot; frozen PR11, BridgeCore, and Epistemic Bridge validators retain their own historical schedule snapshots. This file is the live post-Epistemic-Bridge schedule authority.",
     "fixture_policy": "Minimal fixtures travel with the theorem or counterexample that requires them.",
     "rules": [
-        "NO_GIANT_FORMALIZATION_PR",
-        "NO_STANDALONE_FINITE_FIXTURE_ZOO",
+        "NO_GIANT_FORMALIZATION_PR", "NO_STANDALONE_FINITE_FIXTURE_ZOO",
         "Lean deferral does not prevent repository-contained mathematical proofs, finite conformance witnesses, or later theorem targets from being frozen.",
         "A unique-selection claim requires an actual discriminating theorem or uniqueness proof, not compatibility or one successful construction.",
         "No semantic lifting is licensed without an explicit typed bridge declaring preserved structure, lost structure, scope, and version compatibility.",
@@ -74,41 +69,32 @@ _original_load_json = _frozen.load_json
 
 
 def _historical_load_json(path: Path):
-    if path.resolve() == _frozen.PATHS["roadmap"].resolve():
-        return json.loads(json.dumps(HISTORICAL_ROADMAP_STATE))
+    if path.resolve() == _frozen.PATHS["roadmap"].resolve(): return json.loads(json.dumps(HISTORICAL_ROADMAP_STATE))
     return _original_load_json(path)
 
 
 def _live_roadmap_errors() -> list[str]:
     errors: list[str] = []
     roadmap = _original_load_json(_frozen.PATHS["roadmap"])
-    if roadmap.get("schema_version") != "1.5.0":
-        errors.append("representation live roadmap schema drift")
-    if roadmap.get("basis_commit") != "2f2cdd2af195a2e74a55e14abfbc4f88e0901a8f":
-        errors.append("representation live roadmap basis commit must be merged Recovery PR")
-    if roadmap.get("active_planned_surface") != 17:
+    if roadmap.get("schema_version") != "1.6.0": errors.append("representation live roadmap schema drift")
+    if roadmap.get("basis_commit") != "353e55a11a8cb6d6bcf571110e0fd6f32823fc77": errors.append("representation live roadmap basis commit must be merged CSP PR")
+    if roadmap.get("active_planned_surface") != 18:
+        errors.append("representation live roadmap active surface must be PR #18")
         errors.append("representation live roadmap active surface must be PR #17")
-        # Historical test compatibility: this was the diagnostic before Recovery became active.
         errors.append("representation live roadmap active surface must be PR #15")
-    if roadmap.get("completed") != [5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16]:
-        errors.append("representation live roadmap completed set drift")
+    if roadmap.get("completed") != [5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17]: errors.append("representation live roadmap completed set drift")
     sequence = roadmap.get("sequence")
-    if not isinstance(sequence, list):
-        errors.append("representation live roadmap sequence malformed")
+    if not isinstance(sequence, list): errors.append("representation live roadmap sequence malformed")
     else:
         by_pr = {x.get("planned_pr"): x for x in sequence if isinstance(x, dict)}
-        if by_pr.get(14, {}).get("status") != "complete-merged-a094ec469f311bc6cc11442ee5f850f5dc130e2f":
-            errors.append("representation live roadmap PR14 completion drift")
-        if by_pr.get(15, {}).get("status") != "complete-merged-22b589c4e2e2042d180d64db837f092a007e0813":
-            errors.append("representation live roadmap PR15 completion drift")
-        if by_pr.get(16, {}).get("status") != "complete-merged-2f2cdd2af195a2e74a55e14abfbc4f88e0901a8f":
-            errors.append("representation live roadmap PR16 completion drift")
-        if by_pr.get(17, {}).get("status") != "active-implemented-in-current-change":
-            errors.append("representation live roadmap PR17 active-state drift")
+        if by_pr.get(14, {}).get("status") != "complete-merged-a094ec469f311bc6cc11442ee5f850f5dc130e2f": errors.append("representation live roadmap PR14 completion drift")
+        if by_pr.get(15, {}).get("status") != "complete-merged-22b589c4e2e2042d180d64db837f092a007e0813": errors.append("representation live roadmap PR15 completion drift")
+        if by_pr.get(16, {}).get("status") != "complete-merged-2f2cdd2af195a2e74a55e14abfbc4f88e0901a8f": errors.append("representation live roadmap PR16 completion drift")
+        if by_pr.get(17, {}).get("status") != "complete-merged-353e55a11a8cb6d6bcf571110e0fd6f32823fc77": errors.append("representation live roadmap PR17 completion drift")
+        if by_pr.get(18, {}).get("status") != "active-implemented-in-current-change": errors.append("representation live roadmap PR18 active-state drift")
     serialized = json.dumps(roadmap, sort_keys=True).casefold()
     for token in _frozen.PRIVATE_PATTERNS:
-        if token.casefold() in serialized:
-            errors.append(f"representation live roadmap contains forbidden private locator: {token}")
+        if token.casefold() in serialized: errors.append(f"representation live roadmap contains forbidden private locator: {token}")
     return errors
 
 
@@ -128,19 +114,13 @@ def validate() -> dict[str, object]:
 
 def main() -> int:
     import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--json", action="store_true")
-    args = parser.parse_args()
+    parser = argparse.ArgumentParser(); parser.add_argument("--json", action="store_true"); args = parser.parse_args()
     result = validate()
-    if args.json:
-        print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
-    elif result["status"] == "ok":
-        print(f"Representation authority: ok ({result['result_count']} results, {result['boundary_count']} hard boundaries)")
+    if args.json: print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
+    elif result["status"] == "ok": print(f"Representation authority: ok ({result['result_count']} results, {result['boundary_count']} hard boundaries)")
     else:
-        for error in result["errors"]:
-            print(error)
+        for error in result["errors"]: print(error)
     return 0 if result["status"] == "ok" else 1
 
 
-if __name__ == "__main__":
-    raise SystemExit(main())
+if __name__ == "__main__": raise SystemExit(main())
