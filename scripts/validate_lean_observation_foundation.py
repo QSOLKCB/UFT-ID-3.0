@@ -4,7 +4,7 @@
 The frozen module preserves all theorem, human-status, pre-tag Lean embargo, and
 roadmap checks already reviewed on the previous clean head. This wrapper adds
 complete PR9 basis dependency closure, registered-workflow enforcement, and
-cross-surface human promotion guards.
+cross-surface human promotion guards, including theorem-ID/batch-scoped claims.
 """
 from __future__ import annotations
 
@@ -140,6 +140,23 @@ def workflow_contract_errors(text: str) -> list[str]:
     return errors
 
 
+def theorem_scoped_lean_promotion(text: str) -> bool:
+    """Reject pre-tag Lean completion claims scoped by theorem or batch identity.
+
+    The frozen generic promotion guard intentionally recognizes broad prose such
+    as "all theorems are verified in Lean". This live guard covers the equally
+    authoritative identity-scoped form, for example
+    "UFT-OBS-001 through UFT-OBS-004 have been proved in Lean".
+    """
+    subject = r"(?:UFT-OBS-\d{3}|LEAN-OBS-BATCH-\d{3})"
+    completed = r"(?:proved|verified|checked|formalized|formalised|complete)"
+    patterns = (
+        rf"(?is)\b{subject}\b.{{0,180}}\b(?:has|have|is|are|was|were)\s+(?:now\s+)?(?:been\s+)?(?:formally\s+)?{completed}\b.{{0,60}}\b(?:in|by|with)\s+Lean\b",
+        rf"(?is)\bLean\b.{{0,60}}\b(?:proof|verification|formalization|formalisation)\b.{{0,100}}\b(?:for|of)\b.{{0,100}}\b{subject}\b.{{0,60}}\b(?:is|are|was|were|has|have)?\s*(?:now\s+)?(?:been\s+)?{completed}\b",
+    )
+    return any(re.search(pattern, text) for pattern in patterns)
+
+
 def _frozen_views(freeze: dict[str, object], base_contract: dict[str, object]):
     old_freeze = copy.deepcopy(freeze)
     old_freeze["schema_version"] = "1.0.0"
@@ -162,13 +179,18 @@ def validate_documents(freeze, source_theorems, source_counterexamples, base_con
     )
     errors = list(result.get("errors", []))
 
-    # The frozen validator already promotion-scans the dedicated Lean human
-    # authority. README4AI and ROADMAP are also human authority inputs to this
-    # live wrapper, so they must be equally unable to claim completed Lean
-    # verification while the release gate and every theorem remain unverified.
+    # The frozen validator already generic-promotion-scans the dedicated Lean
+    # human authority. README4AI and ROADMAP are also human authority inputs to
+    # this live wrapper, so they inherit that same generic guard. All three
+    # surfaces additionally receive the identity-scoped guard above so named
+    # theorem ranges or batch IDs cannot promote NOT_IMPLEMENTED work to Lean
+    # verification before the immutable source tag exists.
     for surface_name, surface_text in (("README4AI", readme), ("ROADMAP", roadmap)):
         if _frozen.human_promotion_errors(surface_text):
             errors.append(f"Lean observation {surface_name} Lean verification promotion")
+    for surface_name, surface_text in (("human freeze", human), ("README4AI", readme), ("ROADMAP", roadmap)):
+        if theorem_scoped_lean_promotion(surface_text):
+            errors.append(f"Lean observation {surface_name} theorem-scoped Lean verification promotion")
 
     if freeze.get("schema_version") != "1.0.1":
         errors.append("Lean observation freeze schema drift")
