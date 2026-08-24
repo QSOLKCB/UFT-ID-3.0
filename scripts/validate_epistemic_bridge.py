@@ -70,13 +70,13 @@ def _historical_load_json(path: Path):
 def _live_roadmap_errors() -> list[str]:
     errors: list[str] = []
     roadmap = _original_load_json(_frozen.PATHS["roadmap"])
-    if roadmap.get("basis_commit") != "a094ec469f311bc6cc11442ee5f850f5dc130e2f":
-        errors.append("live roadmap basis commit must be merged PR15")
-    if roadmap.get("active_planned_surface") != 15:
-        errors.append("epistemic live roadmap active surface must be PR #15")
+    if roadmap.get("basis_commit") != "22b589c4e2e2042d180d64db837f092a007e0813":
+        errors.append("live roadmap basis commit must be merged Information Comparability PR")
+    if roadmap.get("active_planned_surface") != 16:
+        errors.append("epistemic live roadmap active surface must be PR #16")
     completed = roadmap.get("completed")
-    if not isinstance(completed, list) or 14 not in completed:
-        errors.append("epistemic live roadmap must mark planned PR #14 complete")
+    if not isinstance(completed, list) or 15 not in completed:
+        errors.append("epistemic live roadmap must mark planned PR #15 complete")
     sequence = roadmap.get("sequence")
     if not isinstance(sequence, list):
         errors.append("epistemic live roadmap sequence malformed")
@@ -86,8 +86,10 @@ def _live_roadmap_errors() -> list[str]:
             errors.append("epistemic live roadmap PR13 completion drift")
         if by_pr.get(14, {}).get("status") != "complete-merged-a094ec469f311bc6cc11442ee5f850f5dc130e2f":
             errors.append("epistemic live roadmap PR14 completion drift")
-        if by_pr.get(15, {}).get("status") != "active-implemented-in-current-change":
-            errors.append("epistemic live roadmap PR15 active-state drift")
+        if by_pr.get(15, {}).get("status") != "complete-merged-22b589c4e2e2042d180d64db837f092a007e0813":
+            errors.append("epistemic live roadmap PR15 completion drift")
+        if by_pr.get(16, {}).get("status") != "active-implemented-in-current-change":
+            errors.append("epistemic live roadmap PR16 active-state drift")
     serialized = json.dumps(roadmap, sort_keys=True).casefold()
     for token in _frozen.PRIVATE_PATTERNS:
         if token.casefold() in serialized:
@@ -110,6 +112,7 @@ def validate():
 
 
 def main() -> int:
+    import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
