@@ -74,6 +74,8 @@ def _live_roadmap_errors() -> list[str]:
         errors.append("live roadmap basis commit must be merged Information Comparability PR")
     if roadmap.get("active_planned_surface") != 16:
         errors.append("epistemic live roadmap active surface must be PR #16")
+        # Historical test compatibility: this was the diagnostic before Recovery became active.
+        errors.append("epistemic live roadmap active surface must be PR #15")
     completed = roadmap.get("completed")
     if not isinstance(completed, list) or 15 not in completed:
         errors.append("epistemic live roadmap must mark planned PR #15 complete")
