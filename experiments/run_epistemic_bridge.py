@@ -29,6 +29,7 @@ CORE_FILES = [
     "docs/REPRODUCIBILITY.md",
     "ROADMAP.md",
     "scripts/validate_epistemic_bridge.py",
+    "scripts/validate_epistemic_bridge_pr14_frozen.py",
     "scripts/verify_epistemic_bridge_artifacts.py",
     "experiments/epistemic_bridge/__init__.py",
     "experiments/epistemic_bridge/run.py",
