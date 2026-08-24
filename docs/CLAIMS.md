@@ -125,6 +125,29 @@ NO_GLOBAL_EPISTEMIC_LATTICE
 FINITE_EPISTEMIC_CONFORMANCE != GENERAL_EPISTEMOLOGY
 ```
 
+### C10 - Representation invariants are transformation-class-relative
+
+**Status:** PROVED
+
+**Qualifier:** finite-dimensional linear representation and finite deterministic receiver-re-encoding scope only; not a physical-equivalence or semantic-identity claim.
+
+The canonical Representation and Congruence authority registers `UFT-REP-001` through `UFT-REP-005`. Similarity preserves the characteristic polynomial and its standard finite-dimensional consequences; orthogonal/unitary similarity additionally preserves Frobenius norm; invertible real congruence preserves rank and symmetry type without generally preserving eigenvalues; coordinate change preserves the represented linear action covariantly; and injective receiver re-encoding preserves deterministic observation fibres.
+
+The executable reference surface checks 3,240 exact similarity instances, 3,240 congruence-rank instances, 648 orthogonal Frobenius instances, 29,160 coordinate-covariance instances, and 3,969 receiver-equivalence pair instances.
+
+```text
+SIMILARITY != CONGRUENCE
+SIMILARITY != ORTHOGONAL_OR_UNITARY_SIMILARITY
+SAME_CHARACTERISTIC_POLYNOMIAL != SIMILARITY
+CONGRUENCE != SPECTRAL_EQUIVALENCE
+COORDINATE_TUPLE != ABSTRACT_OBJECT
+REPRESENTATION_CHANGE != PHYSICAL_CHANGE
+RECEIVER_REENCODING != STATE_TRANSFORMATION
+NONINJECTIVE_RECEIVER_REENCODING != OBSERVATIONAL_EQUIVALENCE_PRESERVATION
+INVARIANT_UNDER_CLASS_C != UNQUALIFIED_REPRESENTATION_INDEPENDENCE
+FINITE_REPRESENTATION_CONFORMANCE != GENERAL_PROOF
+```
+
 ## Claims requiring future proof or evidence
 
 The following remain future theorem/evidence targets:
@@ -146,4 +169,5 @@ A claim may move upward only when the evidence type matches the claim type.
 - a theorem can establish an abstract implication, not physical ontology;
 - repeated analogy can motivate a hypothesis, not prove common mechanism;
 - successful reproduction does not establish interpretation;
-- transport, retrieval, inference, execution, and verification receipts remain distinct authority events.
+- transport, retrieval, inference, execution, and verification receipts remain distinct authority events;
+- representation equivalence remains scoped to its declared transformation class and does not imply semantic or physical identity.
