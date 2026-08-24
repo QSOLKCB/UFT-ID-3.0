@@ -19,29 +19,20 @@ def replace_once(path: str, old: str, new: str) -> None:
     target.write_text(text.replace(old, new, 1), encoding="utf-8")
 
 
-def replace_all(path: str, old: str, new: str, expected_count: int) -> None:
-    target = ROOT / path
-    text = target.read_text(encoding="utf-8")
-    count = text.count(old)
-    if count != expected_count:
-        raise RuntimeError(f"{path}: expected {expected_count} anchors, found {count}: {old[:80]!r}")
-    target.write_text(text.replace(old, new), encoding="utf-8")
-
-
 def git_blob_sha(path: Path) -> str:
     data = path.read_bytes()
     return hashlib.sha1(f"blob {len(data)}\0".encode("ascii") + data).hexdigest()
 
 
 def main() -> int:
-    # Refuse to patch target files if they drifted from the exact post-PR20 source basis.
+    # Refuse to patch source/authority targets if they drifted from the exact
+    # post-PR20 basis. Workflow integration is connector-authored separately.
     guarded = [
         "machine/contract.json",
         "README4AI.md",
         "AGENTS.md",
         "docs/REPRODUCIBILITY.md",
         "ROADMAP.md",
-        ".github/workflows/finite-adversarial.yml",
         "scripts/validate_graph_realization.py",
     ]
     import subprocess
@@ -50,8 +41,6 @@ def main() -> int:
         if result.returncode != 0:
             raise RuntimeError(f"guarded PR21 target drifted from {BASE}: {rel}")
 
-    # Register the freeze as a first-class repository authority without changing
-    # the base contract schema version used by historical validators.
     authority = '''  "lean_observation_foundation_authority": {
     "machine_contract": "machine/lean_observation_foundation_contract.json",
     "human": "theory/LEAN_OBSERVATION_FOUNDATION.md",
@@ -158,22 +147,8 @@ No deterministic Lean receipt is created in this phase because no Lean toolchain
         "- [x] Freeze the first PR #10 theorem batch and dependency graph.\n- [ ] Pass the exact merged-main release gate and cut the immutable source tag.",
     )
 
-    # Run the new validator whenever its human authority changes and execute it
-    # immediately after the frozen PR9 observation authority.
-    replace_all(
-        ".github/workflows/finite-adversarial.yml",
-        '      - "theory/OBSERVATION_CALCULUS.md"\n',
-        '      - "theory/OBSERVATION_CALCULUS.md"\n      - "theory/LEAN_OBSERVATION_FOUNDATION.md"\n',
-        2,
-    )
-    replace_once(
-        ".github/workflows/finite-adversarial.yml",
-        "      - name: Run PR9 observation witnesses\n        run: |\n          python experiments/observation/run.py --json > /tmp/pr9-observation.json\n          python experiments/run_pr9.py --hash-only > /tmp/pr9-observation-receipt.json\n\n      - name: Validate PR11 relation and selection authority surface",
-        "      - name: Run PR9 observation witnesses\n        run: |\n          python experiments/observation/run.py --json > /tmp/pr9-observation.json\n          python experiments/run_pr9.py --hash-only > /tmp/pr9-observation-receipt.json\n\n      - name: Validate PR10 Lean observation source freeze\n        run: python scripts/validate_lean_observation_foundation.py\n\n      - name: Validate PR11 relation and selection authority surface",
-    )
-
     # Central graph authority pins human bootstrap surfaces exactly. Refresh only
-    # the files changed by this freeze PR.
+    # the files changed by this source-freeze PR.
     graph = ROOT / "scripts/validate_graph_realization.py"
     text = graph.read_text(encoding="utf-8")
     pins = {
@@ -188,7 +163,6 @@ No deterministic Lean receipt is created in this phase because no Lean toolchain
             raise RuntimeError(f"graph human blob pin not found exactly once: {key}")
     graph.write_text(text, encoding="utf-8")
 
-    # Sanity-check machine JSON after textual registration.
     json.loads((ROOT / "machine/contract.json").read_text(encoding="utf-8"))
     print(json.dumps({"status": "patched", "batch": "LEAN-OBS-BATCH-001", "basis": BASE, "graph_pins": pins}, indent=2))
     return 0
