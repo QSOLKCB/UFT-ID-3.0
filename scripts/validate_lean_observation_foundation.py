@@ -108,23 +108,47 @@ def basis_source_object_errors(*, require_objects: bool) -> list[str]:
     return errors
 
 
+def workflow_event_paths(text: str, event: str) -> tuple[str, ...] | None:
+    """Return one event's paths list without conflating it with sibling events."""
+    event_match = re.search(
+        rf"(?ms)^  {re.escape(event)}:\n(?P<body>.*?)(?=^  [A-Za-z_][A-Za-z0-9_-]*:|^\S|\Z)",
+        text,
+    )
+    if event_match is None:
+        return None
+    paths_match = re.search(
+        r"(?m)^    paths:\n(?P<paths>(?:      - .*\n)+)",
+        event_match.group("body"),
+    )
+    if paths_match is None:
+        return None
+    return tuple(line.strip() for line in paths_match.group("paths").splitlines())
+
+
 def workflow_contract_errors(text: str) -> list[str]:
     errors: list[str] = []
-    twice = (
-        '      - "scripts/validate_lean_observation_foundation.py"',
-        '      - "scripts/validate_lean_observation_foundation_pr21_frozen.py"',
-        '      - "theory/LEAN_OBSERVATION_FOUNDATION.md"',
-        '      - "README4AI.md"',
-        '      - "ROADMAP.md"',
-        '      - "UFTID/**"',
-        '      - "**/*.lean"',
-        '      - "lean-toolchain"',
-        '      - "lakefile.toml"',
-        '      - "lake-manifest.json"',
+    required_paths = (
+        '- "scripts/validate_lean_observation_foundation.py"',
+        '- "scripts/validate_lean_observation_foundation_pr21_frozen.py"',
+        '- "theory/LEAN_OBSERVATION_FOUNDATION.md"',
+        '- "README4AI.md"',
+        '- "ROADMAP.md"',
+        '- "UFTID/**"',
+        '- "**/*.lean"',
+        '- "lean-toolchain"',
+        '- "lakefile.toml"',
+        '- "lake-manifest.json"',
     )
-    for anchor in twice:
-        if text.count(anchor) != 2:
-            errors.append(f"registered Lean-freeze workflow path trigger drift: {anchor.strip()}")
+    for event in ("pull_request", "push"):
+        event_paths = workflow_event_paths(text, event)
+        if event_paths is None:
+            errors.append(f"registered Lean-freeze workflow missing {event}.paths")
+            continue
+        for anchor in required_paths:
+            if event_paths.count(anchor) != 1:
+                errors.append(
+                    f"registered Lean-freeze workflow {event} path trigger drift: {anchor}"
+                )
     direct = (
         '      - name: Validate Lean observation source freeze',
         '          UFT_REQUIRE_BASIS_COMMIT_OBJECT: "1"',
@@ -141,18 +165,20 @@ def workflow_contract_errors(text: str) -> list[str]:
 
 
 def theorem_scoped_lean_promotion(text: str) -> bool:
-    """Reject pre-tag Lean completion claims scoped by theorem or batch identity.
-
-    The frozen generic promotion guard intentionally recognizes broad prose such
-    as "all theorems are verified in Lean". This live guard covers the equally
-    authoritative identity-scoped form, for example
-    "UFT-OBS-001 through UFT-OBS-004 have been proved in Lean".
-    """
+    """Reject pre-tag Lean completion claims scoped by theorem or batch identity."""
     subject = r"(?:UFT-OBS-\d{3}|LEAN-OBS-BATCH-\d{3})"
     completed = r"(?:proved|verified|checked|formalized|formalised|complete)"
+    active = r"(?:proves?|verifies?|checks?|formalizes?|formalises?|certifies?)"
+    proof_noun = r"(?:proofs?|verification|formalization|formalisation|certificate|certification)"
     patterns = (
+        # Subject-first completion: "UFT-OBS-001 ... have been proved in Lean".
         rf"(?is)\b{subject}\b.{{0,180}}\b(?:has|have|is|are|was|were)\s+(?:now\s+)?(?:been\s+)?(?:formally\s+)?{completed}\b.{{0,60}}\b(?:in|by|with)\s+Lean\b",
+        # Lean-first noun form: "Lean proof ... for UFT-OBS-001 ... is complete".
         rf"(?is)\bLean\b.{{0,60}}\b(?:proof|verification|formalization|formalisation)\b.{{0,100}}\b(?:for|of)\b.{{0,100}}\b{subject}\b.{{0,60}}\b(?:is|are|was|were|has|have)?\s*(?:now\s+)?(?:been\s+)?{completed}\b",
+        # Active voice: "Lean proves UFT-OBS-001 through UFT-OBS-004".
+        rf"(?is)\bLean\b.{{0,40}}\b{active}\b.{{0,180}}\b{subject}\b",
+        # Proof-noun possession: "UFT-OBS-001 ... now have Lean proofs".
+        rf"(?is)\b{subject}\b.{{0,180}}\b(?:now\s+)?(?:has|have|is|are|was|were)\s+(?:now\s+)?Lean\s+{proof_noun}\b",
     )
     return any(re.search(pattern, text) for pattern in patterns)
 
