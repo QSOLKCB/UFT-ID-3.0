@@ -32,6 +32,8 @@ EXPECTED_CORE_FILES = (
     "machine/epistemic_bridge_contract.json",
     "machine/epistemic_bridge_results.json",
     "machine/bridge_core_contract.json",
+    "experiments/bridge_core/run.py",
+    "experiments/bridge_core/run_precodex2_frozen.py",
     "machine/roadmap_state.json",
     "machine/contract.json",
     "theory/EPISTEMIC_BRIDGE.md",
@@ -114,9 +116,13 @@ def verify(artifact_dir: Path) -> dict[str, object]:
     live_witness = experiment.run_suite()
     if witness != live_witness:
         raise RuntimeError("retained Epistemic Bridge witness payload drift")
-    shapes = witness.get("bounded_checks", {}).get("presence_shapes", {}) if isinstance(witness.get("bounded_checks"), dict) else {}
+    bounded = witness.get("bounded_checks")
+    shapes = bounded.get("presence_shapes", {}) if isinstance(bounded, dict) else {}
+    operations = bounded.get("operations", {}) if isinstance(bounded, dict) else {}
     if shapes != {"raw_presence_vectors": 64, "valid_normalized_shapes": 33}:
         raise RuntimeError("retained Epistemic Bridge presence count drift")
+    if not isinstance(operations, dict) or operations.get("bridgecore_validation_exercised") is not True:
+        raise RuntimeError("retained Epistemic Bridge did not exercise production BridgeCore validation")
 
     if set(receipt) != EXPECTED_TOP_LEVEL:
         raise RuntimeError("retained Epistemic Bridge receipt top-level schema drift")
