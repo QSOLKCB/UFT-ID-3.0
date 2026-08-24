@@ -29,6 +29,7 @@ CORE_FILES = [
     "docs/REPRODUCIBILITY.md",
     "ROADMAP.md",
     "scripts/validate_representation_calculus.py",
+    "scripts/validate_representation_calculus_preintegration_frozen.py",
     "scripts/verify_representation_artifacts.py",
     "experiments/representation_calculus/__init__.py",
     "experiments/representation_calculus/run.py",
