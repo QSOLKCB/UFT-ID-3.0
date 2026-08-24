@@ -12,7 +12,7 @@
       "S": "total state space",
       "A": "admissible subspace",
       "F": "proposed evolution",
-      "Pi_lex": "deterministic lexicographic recovery",
+      "Pi_lex": "deterministic recovery",
       "O": "observation or coarse-graining map",
       "T": "regime-transport map",
       "I": "declared information functional",
@@ -61,7 +61,9 @@
     "graph_realization_receipt_runner": "experiments/run_graph_realization.py",
     "graph_realization_receipt_version": "1.0.0",
     "bridge_core_receipt_runner": "experiments/run_bridge_core.py",
-    "bridge_core_receipt_version": "1.0.1"
+    "bridge_core_receipt_version": "1.0.1",
+    "epistemic_bridge_receipt_runner": "experiments/run_epistemic_bridge.py",
+    "epistemic_bridge_receipt_version": "1.0.0"
   },
   "finite_result_authority": {
     "human": "theory/FINITE_RESULTS.md",
@@ -106,6 +108,20 @@
     "receipt_version": "1.0.1",
     "roadmap_state": "machine/roadmap_state.json",
     "rule": "BridgeCore formalizes typed structural transport and conservative composition only; type/version/scope compatibility, deterministic transport, or finite conformance do not confer semantic equivalence, epistemic authority, or physical ontology."
+  },
+  "epistemic_bridge_authority": {
+    "human": "theory/EPISTEMIC_BRIDGE.md",
+    "machine_contract": "machine/epistemic_bridge_contract.json",
+    "machine_results": "machine/epistemic_bridge_results.json",
+    "validator": "scripts/validate_epistemic_bridge.py",
+    "experiment": "experiments/epistemic_bridge/run.py",
+    "tests": "tests/test_epistemic_bridge.py",
+    "receipt_runner": "experiments/run_epistemic_bridge.py",
+    "receipt_version": "1.0.0",
+    "artifact_verifier": "scripts/verify_epistemic_bridge_artifacts.py",
+    "base_bridge_authority": "machine/bridge_core_contract.json",
+    "roadmap_state": "machine/roadmap_state.json",
+    "rule": "Epistemic Bridge factorizes evidence, retrieval, inference, verification, execution, conflict, and scope; structural transport is authority-neutral and no global epistemic lattice or truth oracle is implied."
   },
   "vopson_corpus_authority": {
     "author": "research/vopson/AUTHOR.json",
@@ -204,7 +220,13 @@
     "landauer_erasure_bound_implies_intrinsic_stored_bit_energy": false,
     "arithmetic_reproduction_implies_physical_validation": false,
     "source_text_inconsistency_may_be_silently_corrected": false,
-    "source_byte_hash_may_be_invented": false
+    "source_byte_hash_may_be_invented": false,
+    "structural_transport_implies_epistemic_promotion": false,
+    "retrieval_implies_verification": false,
+    "inference_implies_verification": false,
+    "execution_implies_verification": false,
+    "conflict_equals_unknown": false,
+    "verified_implies_true": false
   },
   "vopson": {
     "orcid": "0000-0002-8073-5538",
@@ -223,6 +245,7 @@
     "experiments/README.md", "MATHS.md", "theory/DEFINITIONS.md", "theory/AUXILIARY_CONTRACTS.md", "theory/THEOREM_TARGETS.md", "theory/FINITE_RESULTS.md", "theory/CROSS_REPO_RESULTS.md",
     "theory/GRAPH_REALIZATION.md", "machine/finite_results.json", "machine/cross_repo_patterns.json", "machine/cross_repo_results.json", "machine/graph_realization_contract.json", "machine/graph_realization_results.json",
     "theory/BRIDGE_CORE.md", "machine/bridge_core_contract.json", "machine/bridge_core_results.json", "scripts/validate_bridge_core.py", "experiments/run_bridge_core.py",
+    "theory/EPISTEMIC_BRIDGE.md", "machine/epistemic_bridge_contract.json", "machine/epistemic_bridge_results.json", "scripts/validate_epistemic_bridge.py", "experiments/run_epistemic_bridge.py",
     "research/CROSS_REPO_PATTERN_ATLAS.md", "research/GRAPH_REALIZATION_SOURCES.md", "research/vopson/AUTHOR.json", "research/vopson/CORPUS.md", "research/vopson/corpus.json", "research/vopson/CLAIM_GRAPH.md",
     "research/vopson/CLAIM_GRAPH.json", "research/vopson/DEFINITIONS.md", "research/vopson/REPRODUCTION_MATRIX.md", "research/vopson/COUNTEREXAMPLE_MATRIX.md", "research/vopson/RESPONSE_HISTORY.md",
     "research/vopson/reproduction/2019-mei/SOURCE_MAP.md", "research/vopson/reproduction/2019-mei/DERIVATION.md", "research/vopson/reproduction/2019-mei/ASSUMPTION_GRAPH.json",
