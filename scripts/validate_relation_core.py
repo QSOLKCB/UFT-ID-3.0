@@ -3,9 +3,8 @@
 
 The merged PR #11 validator is preserved byte-for-byte in
 validate_relation_core_frozen_pr11.py. This wrapper changes only the live
-roadmap-state expectation after BridgeCore merged and planned surface #13 became
-active. All PR11 relation theorem, counterexample, selection, source, and proof
-checks continue to execute in the frozen validator.
+roadmap-state expectation as later formal surfaces complete. All PR11 relation
+theorem, counterexample, selection, source, and proof checks remain frozen.
 """
 from __future__ import annotations
 
@@ -39,8 +38,8 @@ EXPECTED_ROADMAP_SEQUENCE = [
     (10, "lean-observation-foundation", "deferred-independent-formal-proof-track"),
     (11, "relation-first-recovery-core-plus-graph-realization-interlude", "complete-merged-a72dab3170e9880ca8bf120766d8547d6cc0110b"),
     (12, "bridge-core", "complete-merged-2242f96564f4d27af4ba641b45f45f011a49a7c7"),
-    (13, "epistemic-bridge-specialization", "active-implemented-in-current-change"),
-    (14, "representation-and-congruence-calculus", "planned"),
+    (13, "epistemic-bridge-specialization", "complete-merged-083aa9ae9e812cae86302d856f70ad83e5cf806b"),
+    (14, "representation-and-congruence-calculus", "active-implemented-in-current-change"),
     (15, "information-comparability-core", "planned"),
     (16, "recovery-specializations", "planned"),
     (17, "continuum-stochastic-prevalence-obligations", "planned"),
@@ -49,25 +48,25 @@ EXPECTED_ROADMAP_SEQUENCE = [
 
 EXPECTED_ROADMAP_STATE = {
     "type": "uft-id-roadmap-state",
-    "schema_version": "1.1.0",
+    "schema_version": "1.2.0",
     "snapshot_date": "2026-08-24",
-    "basis_commit": "2242f96564f4d27af4ba641b45f45f011a49a7c7",
-    "completed": [5, 6, 7, 8, 9, 11, 12],
-    "active_planned_surface": 13,
+    "basis_commit": "083aa9ae9e812cae86302d856f70ad83e5cf806b",
+    "completed": [5, 6, 7, 8, 9, 11, 12, 13],
+    "active_planned_surface": 14,
     "deferred": [10],
     "sequence": [
         {"planned_pr": 9, "surface": "deterministic-observation-calculus", "status": "complete"},
         {"planned_pr": 10, "surface": "lean-observation-foundation", "status": "deferred-independent-formal-proof-track"},
         {"planned_pr": 11, "surface": "relation-first-recovery-core-plus-graph-realization-interlude", "status": "complete-merged-a72dab3170e9880ca8bf120766d8547d6cc0110b"},
         {"planned_pr": 12, "surface": "bridge-core", "status": "complete-merged-2242f96564f4d27af4ba641b45f45f011a49a7c7"},
-        {"planned_pr": 13, "surface": "epistemic-bridge-specialization", "status": "active-implemented-in-current-change"},
-        {"planned_pr": 14, "surface": "representation-and-congruence-calculus", "status": "planned"},
+        {"planned_pr": 13, "surface": "epistemic-bridge-specialization", "status": "complete-merged-083aa9ae9e812cae86302d856f70ad83e5cf806b"},
+        {"planned_pr": 14, "surface": "representation-and-congruence-calculus", "status": "active-implemented-in-current-change"},
         {"planned_pr": 15, "surface": "information-comparability-core", "status": "planned"},
         {"planned_pr": 16, "surface": "recovery-specializations", "status": "planned"},
         {"planned_pr": 17, "surface": "continuum-stochastic-prevalence-obligations", "status": "planned"},
         {"planned_pr": 18, "surface": "empirical-falsification-profile", "status": "planned"},
     ],
-    "compatibility_note": "machine/formalization_contract.json retains the PR9-era roadmap_rebase snapshot; frozen PR11 and BridgeCore validators retain their own historical schedule snapshots. This file is the live post-BridgeCore schedule authority.",
+    "compatibility_note": "machine/formalization_contract.json retains the PR9-era roadmap_rebase snapshot; frozen PR11, BridgeCore, and Epistemic Bridge validators retain their own historical schedule snapshots. This file is the live post-Epistemic-Bridge schedule authority.",
     "fixture_policy": "Minimal fixtures travel with the theorem or counterexample that requires them.",
     "rules": [
         "NO_GIANT_FORMALIZATION_PR",
@@ -77,15 +76,17 @@ EXPECTED_ROADMAP_STATE = {
         "No semantic lifting is licensed without an explicit typed bridge declaring preserved structure, lost structure, scope, and version compatibility.",
         "Structural transport, retrieval, inference, execution, storage, or replay cannot create verification authority without an explicit epistemic operation and receipt.",
         "Conflict and unknown remain separately represented; verified and conflict may coexist.",
+        "Every representation invariant must name the transformation class and hypotheses under which it is preserved.",
+        "Similarity, congruence, coordinate change, and receiver re-encoding remain separately typed and cannot imply semantic or physical identity by name alone.",
     ],
 }
 
 
 def _live_roadmap_errors(roadmap_state: dict[str, object]) -> list[str]:
     errors: list[str] = []
-    if roadmap_state.get("active_planned_surface") != 13:
-        errors.append("live roadmap active planned surface must be PR13")
-    if roadmap_state.get("completed") != [5, 6, 7, 8, 9, 11, 12]:
+    if roadmap_state.get("active_planned_surface") != 14:
+        errors.append("live roadmap active planned surface must be PR14")
+    if roadmap_state.get("completed") != [5, 6, 7, 8, 9, 11, 12, 13]:
         errors.append("live roadmap completed set drift")
     sequence = roadmap_state.get("sequence")
     actual_sequence: list[tuple[object, object, object]] = []

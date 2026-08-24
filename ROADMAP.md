@@ -36,6 +36,7 @@ but relation, observation, bridge, epistemic, representation, information, recov
 - [x] PR #9 — deterministic observation calculus, merged at `091405c136fd8dc936e6bd3a544ab22433d04782`.
 - [x] PR #11 — relation-first recovery core and graph-realization interlude, merged at `a72dab3170e9880ca8bf120766d8547d6cc0110b`.
 - [x] Planned PR #12 — BridgeCore, delivered in GitHub PR #13 and merged at `2242f96564f4d27af4ba641b45f45f011a49a7c7`.
+- [x] Planned PR #13 — Epistemic Bridge specialization, delivered in GitHub PR #14 and merged at `083aa9ae9e812cae86302d856f70ad83e5cf806b`.
 
 ## Deferred independent proof track
 
@@ -46,69 +47,102 @@ MATHEMATICAL_PROOF != LEAN_PROOF
 LEAN_PROOF != RUNTIME_CONFORMANCE != EMPIRICAL_VALIDATION
 ```
 
-## Active now — planned PR #13, delivered in GitHub PR #14
+## Active now — planned PR #14, delivered in GitHub PR #15
 
-### Epistemic Bridge specialization
+### Representation and congruence calculus
 
 **Status:** ACTIVE, implemented by the current change.
+
+Mission: separate equality-like representation relations so no invariant or equivalence claim can silently change transformation class.
 
 Canonical object:
 
 ```text
-EpistemicState = (
-  evidence_refs,
-  retrieved_refs,
-  inference_refs,
-  verification_receipts,
-  execution_receipts,
-  conflict_refs,
-  scope
+RepresentationSpec = (
+  object_type,
+  source_representation,
+  target_representation,
+  transform_class,
+  transform,
+  inverse_or_adjoint,
+  scope,
+  declared_invariants
 )
+```
+
+Transformation classes:
+
+```text
+similarity:              B = P^{-1} A P
+orthogonal similarity:   B = Q^T A Q, Q^T Q = I
+unitary similarity:      B = U^* A U, U^* U = I
+real congruence:          B = P^T A P
+coordinate change:        v' = P^{-1}v, A' = P^{-1}AP
+receiver re-encoding:     O' = R o O
+```
+
+Advertised result surface:
+
+1. `UFT-REP-001` similarity preserves characteristic polynomial;
+2. `UFT-REP-002` orthogonal/unitary similarity preserves Frobenius norm;
+3. `UFT-REP-003` invertible congruence preserves rank;
+4. `UFT-REP-004` coordinate change preserves abstract linear action covariantly;
+5. `UFT-REP-005` injective receiver re-encoding preserves observation equivalence.
+
+Adversarial counterexamples:
+
+```text
+CX-REP-001 congruent-but-not-similar
+CX-REP-002 similar-but-not-orthogonally-similar
+CX-REP-003 same-characteristic-polynomial-but-not-similar
+CX-REP-004 noninjective-receiver-merges-fibres
+CX-REP-005 coordinate-tuple-requires-chart
+```
+
+Exact finite conformance uses standard-library rational arithmetic and checks:
+
+```text
+81 small 2x2 matrices
+40 unimodular change-of-basis matrices
+8 orthogonal signed-permutation matrices
+3240 similarity invariant instances
+3240 congruence-rank instances
+648 orthogonal Frobenius instances
+29160 coordinate-covariance instances
+27 Fin3 endofunctions
+729 ordered observation/receiver pairs
+441 receiver pairs injective on im(O)
+3969 source-pair equivalence checks
 ```
 
 Required boundaries:
 
 ```text
-STRUCTURAL_TRANSPORT != AUTHORITY_PROMOTION
-RETRIEVED != VERIFIED
-INFERRED != VERIFIED
-EXECUTED != VERIFIED
-VERIFIED != TRUE
-CONFLICT != UNKNOWN
-CONFLICT != FALSE
-VERIFIED != CONFLICT_FREE
-NO_GLOBAL_EPISTEMIC_LATTICE
+SIMILARITY != CONGRUENCE
+SIMILARITY != ORTHOGONAL_OR_UNITARY_SIMILARITY
+SAME_CHARACTERISTIC_POLYNOMIAL != SIMILARITY
+CONGRUENCE != SPECTRAL_EQUIVALENCE
+COORDINATE_TUPLE != ABSTRACT_OBJECT
+REPRESENTATION_CHANGE != PHYSICAL_CHANGE
+RECEIVER_REENCODING != STATE_TRANSFORMATION
+NONINJECTIVE_RECEIVER_REENCODING != OBSERVATIONAL_EQUIVALENCE_PRESERVATION
+INVARIANT_UNDER_CLASS_C != UNQUALIFIED_REPRESENTATION_INDEPENDENCE
+FINITE_REPRESENTATION_CONFORMANCE != GENERAL_PROOF
 ```
 
-Advertised result surface:
-
-1. `UFT-EP-001` authority-neutral structural transport;
-2. `UFT-EP-002` verification requires an explicit verification receipt;
-3. `UFT-EP-003` conflict is distinct from unknown;
-4. `UFT-EP-004` repeated neutral transport cannot accumulate authority;
-5. `UFT-EP-005` scope is non-expansive under transport.
-
-Finite conformance enumerates exactly 64 raw six-bit vectors and 33 valid normalized shapes.
-
-```text
-FINITE_EPISTEMIC_CONFORMANCE != GENERAL_EPISTEMOLOGY
-FORMAL_VERIFICATION_RECEIPT != TRUTH
-```
-
-**Exit criterion:** byte/structure transport cannot manufacture stronger evidence authority; conflict remains distinct from unknown; verification is receipt-explicit; verified conflict remains representable; scope can narrow but not silently expand; human and machine authorities, mutation tests, receipts, retained artifacts, and CI remain synchronized.
+**Exit criterion:** every advertised invariant names its transformation class and hypotheses; similarity, orthogonal/unitary similarity, congruence, coordinate change, and receiver re-encoding remain separately typed; the five counterexamples stay executable; exact finite conformance, human/machine authority, deterministic receipts, retained artifacts, compatibility wrappers, and CI remain synchronized.
 
 ## Next planned phases
 
-- [ ] PR #14 — Representation and congruence calculus. **NEXT.**
-- [ ] PR #15 — Information comparability core.
+- [ ] PR #15 — Information comparability core. **NEXT.**
 - [ ] PR #16 — Recovery specializations.
 - [ ] PR #17 — Continuum, stochastic, and prevalence obligations.
 - [ ] PR #18 — Empirical falsification profile.
 
 ```text
-SIMILARITY != CONGRUENCE
-COORDINATE_CHANGE != OBJECT_IDENTITY
 SAME_WORD_INFORMATION != SAME_FUNCTIONAL
+IDENTICAL_SPEC => COMPARABLE
+COMPARABLE != IDENTICAL_SPEC
 GENERIC_RELATION != DETERMINISTIC_SELECTOR
 FINITE_REACHABILITY != INFINITE_PATH_LIVENESS
 FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION
