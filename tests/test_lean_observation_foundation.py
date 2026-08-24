@@ -55,6 +55,31 @@ class LeanObservationFoundationFreezeTests(unittest.TestCase):
         self.assertEqual(result["deferred_count"], 1)
         self.assertEqual(result["module_count"], 3)
 
+    def test_complete_pr9_basis_dependency_closure_is_frozen(self):
+        freeze = documents()["freeze"]
+        expected = [{"path": path, "git_blob_sha": sha} for path, sha in V.EXPECTED_SOURCE_BLOBS.items()]
+        self.assertEqual(freeze["source_authorities"], expected)
+        self.assertEqual(freeze["schema_version"], "1.0.1")
+        self.assertEqual(V.EXPECTED_SOURCE_BLOBS["machine/contract.json"], "2aa342b83a698577c92ac7964ea0d8fcfc102a0b")
+        self.assertEqual(V.EXPECTED_SOURCE_BLOBS["machine/formalization_contract.json"], "1c0827b5f760b08d8d375659667ca0067f722aa8")
+        self.assertEqual(V.EXPECTED_SOURCE_BLOBS["ROADMAP.md"], "7a602769908e2ff83ae49a32539fd1a5a5340ce4")
+
+    def test_registered_freeze_workflow_is_direct_and_human_triggered(self):
+        workflow = (ROOT / ".github/workflows/vopson-corpus.yml").read_text(encoding="utf-8")
+        self.assertEqual(V.workflow_contract_errors(workflow), [])
+        authority = documents()["base_contract"]["lean_observation_foundation_authority"]
+        self.assertEqual(authority["workflow"], ".github/workflows/vopson-corpus.yml")
+        self.assertEqual(authority["frozen_validator"], "scripts/validate_lean_observation_foundation_pr21_frozen.py")
+
+        mutated = workflow.replace('      - "theory/LEAN_OBSERVATION_FOUNDATION.md"\n', "", 1)
+        self.assertTrue(any("path trigger drift" in e for e in V.workflow_contract_errors(mutated)))
+        mutated = workflow.replace("        run: python scripts/validate_lean_observation_foundation.py\n", "        run: python -c 'pass'\n", 1)
+        self.assertTrue(any("direct validator/policy drift" in e for e in V.workflow_contract_errors(mutated)))
+
+    def test_basis_commit_object_mapping_matches_when_required(self):
+        errors = V.basis_source_object_errors(require_objects=True)
+        self.assertEqual(errors, [])
+
     def test_first_batch_is_exactly_obs_001_through_004(self):
         freeze = documents()["freeze"]
         self.assertEqual(freeze["theorem_ids"], ["UFT-OBS-001", "UFT-OBS-002", "UFT-OBS-003", "UFT-OBS-004"])

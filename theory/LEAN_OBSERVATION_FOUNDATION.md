@@ -28,7 +28,7 @@ Canonical machine freeze:
 machine/lean_observation_foundation_contract.json
 ```
 
-Frozen PR9 source authorities include the observation contract/spec/theorem/counterexample registries, the canonical human proof surface, validator, finite witness implementation, tests, and deterministic receipt runner. Their exact Git blob identities are stored in the machine freeze.
+Frozen PR9 source authorities include the central machine contract, formalization contract, observation contract/spec/theorem/counterexample registries, the canonical human proof surface, validator, finite witness implementation, tests, deterministic receipt runner, and the roadmap as they existed at the basis commit. Their exact Git blob identities are stored in the machine freeze. `machine/contract.json` and `ROADMAP.md` are basis-only pins because PR #21 intentionally advances their live copies after the PR9 source basis; the freeze therefore verifies their basis-commit objects rather than pretending the new live bytes were part of PR9.
 
 ## Batch selection
 

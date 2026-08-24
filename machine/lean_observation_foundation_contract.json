@@ -1,12 +1,20 @@
 {
   "type": "uft-id-lean-observation-foundation-freeze",
-  "schema_version": "1.0.0",
+  "schema_version": "1.0.1",
   "snapshot_date": "2026-08-24",
   "claim_class": "DEFINITION",
   "status": "SOURCE_THEOREM_BATCH_FROZEN_NO_LEAN_PROOF",
   "batch_id": "LEAN-OBS-BATCH-001",
   "basis_commit": "6f3aeb7f4ac14389e7a08d2976c8c0d16549c093",
   "source_authorities": [
+    {
+      "path": "machine/contract.json",
+      "git_blob_sha": "2aa342b83a698577c92ac7964ea0d8fcfc102a0b"
+    },
+    {
+      "path": "machine/formalization_contract.json",
+      "git_blob_sha": "1c0827b5f760b08d8d375659667ca0067f722aa8"
+    },
     {
       "path": "machine/observation_contract.json",
       "git_blob_sha": "8eede68aa53c92666d7a25641a9e7e699668aea0"
@@ -42,6 +50,10 @@
     {
       "path": "experiments/run_pr9.py",
       "git_blob_sha": "78d7bf1e6d5998f8665b99207559876350bbb639"
+    },
+    {
+      "path": "ROADMAP.md",
+      "git_blob_sha": "7a602769908e2ff83ae49a32539fd1a5a5340ce4"
     }
   ],
   "theorem_ids": [
