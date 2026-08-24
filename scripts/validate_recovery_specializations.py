@@ -15,13 +15,17 @@ PATHS = {
     "results": ROOT / "machine/recovery_specialization_results.json",
     "human": ROOT / "theory/RECOVERY_SPECIALIZATIONS.md",
     "base_relation": ROOT / "machine/relation_contract.json",
+    "base_contract": ROOT / "machine/contract.json",
     "roadmap_state": ROOT / "machine/roadmap_state.json",
     "roadmap": ROOT / "ROADMAP.md",
+    "readme": ROOT / "README4AI.md",
+    "claims": ROOT / "docs/CLAIMS.md",
+    "repro": ROOT / "docs/REPRODUCIBILITY.md",
     "experiment": ROOT / "experiments/recovery_specializations/run.py",
     "tests": ROOT / "tests/test_recovery_specializations.py",
     "receipt": ROOT / "experiments/run_recovery_specializations.py",
     "artifact_verifier": ROOT / "scripts/verify_recovery_specialization_artifacts.py",
-    "workflow": ROOT / ".github/workflows/recovery-specializations.yml",
+    "workflow": ROOT / ".github/workflows/finite-adversarial.yml",
 }
 
 EXPECTED_SCOPE = (
@@ -71,7 +75,30 @@ EXPECTED_AUTHORITIES = {
     "base_relation": "machine/relation_contract.json",
     "roadmap_state": "machine/roadmap_state.json",
     "roadmap": "ROADMAP.md",
-    "workflow": ".github/workflows/recovery-specializations.yml",
+    "workflow": ".github/workflows/finite-adversarial.yml",
+}
+EXPECTED_CENTRAL_AUTHORITY = {
+    "human": "theory/RECOVERY_SPECIALIZATIONS.md",
+    "machine_contract": "machine/recovery_specialization_contract.json",
+    "machine_results": "machine/recovery_specialization_results.json",
+    "validator": "scripts/validate_recovery_specializations.py",
+    "experiment": "experiments/recovery_specializations/run.py",
+    "tests": "tests/test_recovery_specializations.py",
+    "receipt_runner": "experiments/run_recovery_specializations.py",
+    "receipt_version": "1.0.0",
+    "artifact_verifier": "scripts/verify_recovery_specialization_artifacts.py",
+    "base_relation_authority": "machine/relation_contract.json",
+    "roadmap_state": "machine/roadmap_state.json",
+    "workflow": ".github/workflows/finite-adversarial.yml",
+    "rule": "Deterministic recovery is a specialization of the generic relation only under explicit relation soundness; executable normalization additionally requires totality, a termination/progress certificate, and exact fixed-point/normal-state obligations, while selector choice never upgrades the base relation to confluence or empirical recovery.",
+}
+EXPECTED_CENTRAL_HARD_RULES = {
+    "generic_relation_implies_deterministic_selector": False,
+    "deterministic_selector_implies_relation_sound": False,
+    "relation_sound_selector_implies_termination": False,
+    "selector_normal_form_implies_unique_relation_normal_form": False,
+    "objective_minimum_implies_unique_selection_without_tiebreak": False,
+    "executable_normalizer_implies_empirical_recovery": False,
 }
 EXPECTED_DEFERRALS = [
     "infinite-path fairness and liveness",
@@ -273,9 +300,13 @@ def validate() -> dict[str, object]:
     contract = load_json(PATHS["contract"])
     results = load_json(PATHS["results"])
     base_relation = load_json(PATHS["base_relation"])
+    base_contract = load_json(PATHS["base_contract"])
     roadmap_state = load_json(PATHS["roadmap_state"])
     human = PATHS["human"].read_text(encoding="utf-8")
     roadmap = PATHS["roadmap"].read_text(encoding="utf-8")
+    readme = PATHS["readme"].read_text(encoding="utf-8")
+    claims = PATHS["claims"].read_text(encoding="utf-8")
+    repro = PATHS["repro"].read_text(encoding="utf-8")
 
     if set(contract) != EXPECTED_CONTRACT_TOP_LEVEL: errors.append("recovery contract top-level field set drift")
     if contract.get("type") != "uft-id-recovery-specialization-contract": errors.append("recovery contract type drift")
@@ -298,6 +329,25 @@ def validate() -> dict[str, object]:
     base_deferrals = base_relation.get("explicit_deferrals")
     if not isinstance(base_deferrals, list) or "deterministic selector specializations and selector iteration" not in base_deferrals:
         errors.append("frozen relation core selector-specialization deferral drift")
+
+    if base_contract.get("recovery_specialization_authority") != EXPECTED_CENTRAL_AUTHORITY:
+        errors.append("central Recovery Specializations authority registration drift")
+    library = base_contract.get("experiment_library")
+    if not isinstance(library, dict) or library.get("recovery_specialization_receipt_runner") != "experiments/run_recovery_specializations.py" or library.get("recovery_specialization_receipt_version") != "1.0.0":
+        errors.append("central Recovery Specializations receipt registry drift")
+    hard_rules = base_contract.get("hard_rules")
+    if not isinstance(hard_rules, dict) or any(hard_rules.get(key) is not value for key, value in EXPECTED_CENTRAL_HARD_RULES.items()):
+        errors.append("central Recovery Specializations hard-rule registration drift")
+    reads = base_contract.get("required_agent_reads")
+    required_reads = {
+        "theory/RECOVERY_SPECIALIZATIONS.md",
+        "machine/recovery_specialization_contract.json",
+        "machine/recovery_specialization_results.json",
+        "scripts/validate_recovery_specializations.py",
+        "experiments/run_recovery_specializations.py",
+    }
+    if not isinstance(reads, list) or not required_reads.issubset(set(reads)):
+        errors.append("central Recovery Specializations agent-read registration drift")
 
     if set(results) != EXPECTED_RESULTS_TOP_LEVEL: errors.append("recovery result registry top-level field set drift")
     if results.get("type") != "uft-id-recovery-specialization-result-registry": errors.append("recovery result type drift")
@@ -392,6 +442,16 @@ def validate() -> dict[str, object]:
     for anchor in roadmap_anchors:
         if anchor not in roadmap: errors.append(f"roadmap missing Recovery Specializations anchor: {anchor}")
 
+    surface_anchors = (
+        (readme, ("## Recovery Specializations authority", "machine/recovery_specialization_contract.json", "GENERIC_RELATION != DETERMINISTIC_SELECTOR"), "README4AI"),
+        (claims, ("### C12 - Deterministic recovery is an explicit specialization, not generic relation semantics", "UFT-REC-001", "EXECUTABLE_NORMALIZER != EMPIRICAL_RECOVERY"), "claims"),
+        (repro, ("## Recovery-specializations conformance boundary", "recovery-specialization-validation.json", "python scripts/validate_recovery_specializations.py"), "reproducibility"),
+    )
+    for text, anchors, label in surface_anchors:
+        for anchor in anchors:
+            if anchor not in text:
+                errors.append(f"{label} missing Recovery Specializations anchor: {anchor}")
+
     experiment = load_module("recovery_specialization_validator_experiment", PATHS["experiment"])
     witness = experiment.run_suite()
     if witness.get("hard_boundaries") != EXPECTED_BOUNDARIES: errors.append("recovery witness hard-boundary drift")
@@ -406,7 +466,10 @@ def validate() -> dict[str, object]:
     fixtures = witness.get("fixtures")
     if not isinstance(fixtures, dict) or set(fixtures) != set(EXPECTED_COUNTEREXAMPLES): errors.append("recovery witness counterexample identity drift")
 
-    combined = "\n".join((json.dumps(contract, ensure_ascii=False), json.dumps(results, ensure_ascii=False), human, roadmap))
+    combined = "\n".join((
+        json.dumps(contract, ensure_ascii=False), json.dumps(results, ensure_ascii=False),
+        json.dumps(base_contract, ensure_ascii=False), human, roadmap, readme, claims, repro,
+    ))
     lower = combined.casefold()
     for token in PRIVATE_PATTERNS:
         if token in lower: errors.append(f"recovery authority contains forbidden private locator: {token}")
