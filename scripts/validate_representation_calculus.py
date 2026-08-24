@@ -20,9 +20,16 @@ _spec.loader.exec_module(_frozen)
 # similarity, not incorrectly to characteristic-polynomial equality alone.
 _frozen.EXPECTED_THEOREMS["UFT-REP-001"]["statement"] = (
     "If B=P^{-1}AP for an invertible finite-dimensional change of basis P over R or C, "
-    "then A and B have the same characteristic polynomial and also the same rank; "
-    "in particular trace and determinant are preserved."
+    "then A and B have the same characteristic polynomial; trace, determinant, and rank "
+    "are preserved under the same similarity transformation."
 )
+
+# The congruence invariant wording was simultaneously narrowed to the exact real
+# symmetric case actually proved and exercised by this phase.
+_frozen.EXPECTED_INVARIANT_DISCIPLINE["congruence"] = [
+    "rank",
+    "symmetry type for real symmetric matrices",
+]
 
 for _name in dir(_frozen):
     if not _name.startswith("__"):
