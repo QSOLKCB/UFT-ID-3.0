@@ -3,9 +3,10 @@
 
 The PR11 graph validation logic remains byte-for-byte preserved in
 validate_graph_realization_pr11_frozen.py. Later formal phases may extend the
-central human authority surfaces or equivalent workflow syntax; this wrapper
-advances only those exact compatibility pins while retaining every frozen graph
-theorem, donor, and semantic-boundary check.
+central human authority surfaces or use an equivalent one-line workflow run
+syntax. This wrapper advances only those exact compatibility pins while
+retaining every frozen graph theorem, donor, command, always-run requirement,
+and semantic-boundary check.
 """
 from __future__ import annotations
 
@@ -31,6 +32,22 @@ _frozen.EXPECTED_VERIFY_STEP_DIRECTIVES = (
     "if: always()",
     "run: python scripts/verify_graph_artifacts.py artifacts",
 )
+
+_original_shell_lines = _frozen.workflow_step_shell_lines
+
+
+def _workflow_step_shell_lines_compat(text: str, step_name: str) -> tuple[str, ...]:
+    lines = _original_shell_lines(text, step_name)
+    if lines or step_name != "Verify retained graph evidence":
+        return lines
+    directives = _frozen.workflow_step_directives(text, step_name)
+    expected_run = "run: python scripts/verify_graph_artifacts.py artifacts"
+    if directives == ("if: always()", expected_run):
+        return (_frozen.GRAPH_ARTIFACT_VERIFY_COMMAND,)
+    return ()
+
+
+_frozen.workflow_step_shell_lines = _workflow_step_shell_lines_compat
 
 for _name in dir(_frozen):
     if not _name.startswith("__"):
