@@ -41,15 +41,29 @@ but relation, observation, bridge, epistemic, representation, information, recov
 - [x] Planned PR #15 — Information Comparability core, delivered in GitHub PR #16 and merged at `22b589c4e2e2042d180d64db837f092a007e0813`.
 - [x] Planned PR #16 — Recovery Specializations, delivered in GitHub PR #17 and merged at `2f2cdd2af195a2e74a55e14abfbc4f88e0901a8f`.
 - [x] Planned PR #17 — Continuum, stochastic, and prevalence obligations, delivered in GitHub PR #18 and merged at `353e55a11a8cb6d6bcf571110e0fd6f32823fc77`.
+- [x] Planned PR #18 — Empirical Falsification Profile, delivered in GitHub PR #19 and merged at `516cff5d6a45af54d6fc4ae9c72c2e8e9c668637` after a clean hostile Codex P1/P2 review of exact head `dd53d44787c571636c68bfe68b6cec4ba0ce0b7a`.
 
-## Deferred independent proof track
+## Active independent proof track
 
-- [ ] PR #10 — Lean observation foundation.
+- [ ] PR #10 — Lean observation foundation. **ACTIVE — first theorem-batch freeze and dependency graph.**
 
 ```text
 MATHEMATICAL_PROOF != LEAN_PROOF
 LEAN_PROOF != RUNTIME_CONFORMANCE != EMPIRICAL_VALIDATION
 ```
+
+### Active now — planned PR #10
+
+**Status:** ACTIVE — theorem-batch/dependency-graph freeze only. No Lean proof object, source-release tag, or DOI is claimed by this rollover.
+
+Immediate entry task:
+
+- [ ] Freeze the first PR #10 theorem batch and dependency graph.
+- [ ] Name exact source theorem IDs, statements, hypotheses, scopes, nonclaims, and counterexamples.
+- [ ] Define the expected Lean module map without adding proof claims yet.
+- [ ] Keep `MATHEMATICAL_PROOF`, `LEAN_PROOF`, `RUNTIME_CONFORMANCE`, and `EMPIRICAL_VALIDATION` separately typed.
+
+The exact `Active now — planned PR #18` heading later in this live section is retained only as a merged-validator compatibility anchor. Its status is COMPLETE and it is not current scheduling authority.
 
 ### QSOL-CONTEXT → Lean 4 → Zenodo formalization workflow
 
@@ -128,7 +142,7 @@ Formalization/publication checklist:
 
 ### Empirical falsification profile
 
-**Status:** ACTIVE, implemented by the current change.
+**Status:** COMPLETE, delivered in GitHub PR #19 and merged at `516cff5d6a45af54d6fc4ae9c72c2e8e9c668637` after the exact-green-head hostile Codex P1/P2 review returned no major issues. The heading is retained for merged-validator compatibility; live scheduling authority has rolled to PR #10.
 
 Mission: specialize the PR8 `FalsificationSpec` scaffold into a versioned, calibrated, uncertainty-aware empirical decision profile without promoting formal counterexamples, synthetic fixtures, non-rejection, reproducible analysis, or model fit into empirical falsification, confirmation, independent replication, unique explanation, or global theory refutation.
 
@@ -255,7 +269,7 @@ FINITE_EMPIRICAL_PROFILE_CONFORMANCE != GENERAL_STATISTICAL_INFERENCE
 - [x] Pass the complete Python 3.12 and 3.13 `python -O` test suites.
 - [x] Pass every retained-artifact replay, including EFP.
 - [x] Pass `vopson-corpus` on the exact PR head.
-- [ ] Complete a fresh hostile Codex P1/P2 review on the exact green head.
+- [x] Complete a fresh hostile Codex P1/P2 review on the exact green head `dd53d44787c571636c68bfe68b6cec4ba0ce0b7a` — Codex reported no major issues before merge.
 
 Explicitly deferred beyond this phase are source-specific empirical claim instantiation without exact source reconstruction, independently verified immutable preregistration provenance and evidence chronology, statistical power/sample-size design, framework-specific frequentist or Bayesian inference, multiple-testing/sequential procedures, causal identification, real dataset/calibration execution, independent replication/meta-analysis, population prevalence estimation, automatic global-theory rejection, and Lean proof objects.
 

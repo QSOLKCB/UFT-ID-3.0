@@ -341,6 +341,7 @@ class EmpiricalFalsificationProfileTests(unittest.TestCase):
             "scripts/validate_continuum_stochastic_prevalence_pr18_frozen.py",
             ".github/workflows/finite-adversarial.yml",
         }
+        self.assertIn("scripts/validate_empirical_falsification_profile_pr19_frozen.py", R.CORE_FILES)
         self.assertTrue(expected.issubset(set(R.CORE_FILES)))
         self.assertTrue(expected.issubset(set(A.EXPECTED_CORE_FILES)))
 
@@ -397,7 +398,7 @@ class EmpiricalFalsificationProfileTests(unittest.TestCase):
     def test_roadmap_cannot_reactivate_csp(self):
         result = self._mutate_json("machine/roadmap_state.json", lambda payload: payload.__setitem__("active_planned_surface", 17))
         self.assertEqual(result["status"], "error")
-        self.assertIn("EFP roadmap active surface must be PR #18", result["errors"])
+        self.assertIn("EFP live roadmap active surface must be PR #10", result["errors"])
 
     def test_validator_rejects_experiment_fixture_goalpost_drift(self):
         original_loader = V.load_module

@@ -34,6 +34,7 @@ CORE_FILES = [
     "docs/REPRODUCIBILITY.md",
     "ROADMAP.md",
     "scripts/validate_empirical_falsification_profile.py",
+    "scripts/validate_empirical_falsification_profile_pr19_frozen.py",
     "scripts/verify_empirical_falsification_profile_artifacts.py",
     "scripts/validate_continuum_stochastic_prevalence.py",
     "scripts/validate_continuum_stochastic_prevalence_pr18_frozen.py",

@@ -342,7 +342,7 @@ FINITE_STOCHASTIC_CONFORMANCE != GENERAL_STOCHASTIC_OR_CONTINUUM_THEORY
 
 ## Empirical Falsification Profile authority
 
-The active planned PR #18 surface defines a synthetic conformance procedure for deciding whether a calibrated profile-matched evidence record crosses one versioned scoped rejection boundary. It specializes the PR8 `FalsificationSpec` scaffold without converting synthetic fixtures, matching hashes, or procedural labels into empirical evidence or preregistration proof.
+The completed planned PR #18 surface defines a synthetic conformance procedure for deciding whether a calibrated profile-matched evidence record crosses one versioned scoped rejection boundary. It specializes the PR8 `FalsificationSpec` scaffold without converting synthetic fixtures, matching hashes, or procedural labels into empirical evidence or preregistration proof. Live scheduling authority is PR #10 Lean observation foundation, active only for first-theorem-batch and dependency-graph freezing.
 
 ```text
 EmpiricalFalsificationProfile = (
@@ -562,7 +562,7 @@ python experiments/run_pr6.py --json
 
 ## Lean
 
-Lean remains deferred until source reproduction, notation freeze, theorem freeze, and counterexample freeze. Detailed formalization/publication workflow planning is ROADMAP-only; see `ROADMAP.md`. This bootstrap surface does not promote deferred QSOL-CONTEXT, source-tag, Lean, or Zenodo planning into current canonical implementation authority.
+PR #10 Lean observation foundation is active only for theorem-batch and dependency-graph freezing. Lean proof implementation, source tagging, QSOL-CONTEXT target binding, and Zenodo publication are not claimed by this rollover and remain gated by the ordered workflow in `ROADMAP.md`. Detailed formalization/publication workflow planning remains ROADMAP-only and is not promoted into current proof, empirical, or publication authority.
 
 ## Read next
 

@@ -76,13 +76,13 @@ def _historical_load_json(path: Path):
 def _live_roadmap_errors() -> list[str]:
     errors: list[str] = []
     roadmap = _original_load_json(_frozen.PATHS["roadmap"])
-    if roadmap.get("schema_version") != "1.6.0": errors.append("representation live roadmap schema drift")
-    if roadmap.get("basis_commit") != "353e55a11a8cb6d6bcf571110e0fd6f32823fc77": errors.append("representation live roadmap basis commit must be merged CSP PR")
-    if roadmap.get("active_planned_surface") != 18:
-        errors.append("representation live roadmap active surface must be PR #18")
+    if roadmap.get("schema_version") != "1.7.0": errors.append("representation live roadmap schema drift")
+    if roadmap.get("basis_commit") != "516cff5d6a45af54d6fc4ae9c72c2e8e9c668637": errors.append("representation live roadmap basis commit must be merged EFP PR #19")
+    if roadmap.get("active_planned_surface") != 10:
+        errors.append("representation live roadmap active surface must be PR #10")
         errors.append("representation live roadmap active surface must be PR #17")
         errors.append("representation live roadmap active surface must be PR #15")
-    if roadmap.get("completed") != [5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17]: errors.append("representation live roadmap completed set drift")
+    if roadmap.get("completed") != [5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18]: errors.append("representation live roadmap completed set drift")
     sequence = roadmap.get("sequence")
     if not isinstance(sequence, list): errors.append("representation live roadmap sequence malformed")
     else:
@@ -91,7 +91,7 @@ def _live_roadmap_errors() -> list[str]:
         if by_pr.get(15, {}).get("status") != "complete-merged-22b589c4e2e2042d180d64db837f092a007e0813": errors.append("representation live roadmap PR15 completion drift")
         if by_pr.get(16, {}).get("status") != "complete-merged-2f2cdd2af195a2e74a55e14abfbc4f88e0901a8f": errors.append("representation live roadmap PR16 completion drift")
         if by_pr.get(17, {}).get("status") != "complete-merged-353e55a11a8cb6d6bcf571110e0fd6f32823fc77": errors.append("representation live roadmap PR17 completion drift")
-        if by_pr.get(18, {}).get("status") != "active-implemented-in-current-change": errors.append("representation live roadmap PR18 active-state drift")
+        if by_pr.get(18, {}).get("status") != "complete-merged-516cff5d6a45af54d6fc4ae9c72c2e8e9c668637": errors.append("representation live roadmap PR18 completion drift")
     serialized = json.dumps(roadmap, sort_keys=True).casefold()
     for token in _frozen.PRIVATE_PATTERNS:
         if token.casefold() in serialized: errors.append(f"representation live roadmap contains forbidden private locator: {token}")
