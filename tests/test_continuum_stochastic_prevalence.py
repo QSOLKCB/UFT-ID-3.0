@@ -47,6 +47,18 @@ class ContinuumStochasticPrevalenceTests(unittest.TestCase):
             C.make_distribution((0, 1), {0: 0.5, 1: 0.5})
         with self.assertRaisesRegex(ValueError, "row must sum"):
             C.make_kernel((0, 1), {0: {0: 1, 1: 0}, 1: {0: 1, 1: 1}})
+        with self.assertRaisesRegex(ValueError, "nonnegative"):
+            C.support({0: -1, 1: 2})
+        with self.assertRaisesRegex(ValueError, "cannot exceed one"):
+            C.geometric_infinite_survival_is_zero(Fraction(3, 2))
+
+    def test_composition_enumeration_is_bounded_before_recursion(self):
+        with self.assertRaisesRegex(ValueError, "must be integers"):
+            C.integer_composition_distributions(2, 2.0)
+        with self.assertRaisesRegex(ValueError, "declared composition bound"):
+            C.integer_composition_distributions(2, 10**9)
+        with self.assertRaisesRegex(ValueError, "declared output bound"):
+            C.integer_composition_distributions(16, 8)
 
     def test_quantifier_counterexamples(self):
         fixtures = self.suite["fixtures"]
@@ -96,6 +108,17 @@ class ContinuumStochasticPrevalenceTests(unittest.TestCase):
         finally:
             path.write_text(original, encoding="utf-8")
 
+    def _mutate_text(self, relpath: str, transform):
+        path = ROOT / relpath
+        original = path.read_text(encoding="utf-8")
+        try:
+            mutated = transform(original)
+            self.assertNotEqual(mutated, original)
+            path.write_text(mutated, encoding="utf-8")
+            return V.validate()
+        finally:
+            path.write_text(original, encoding="utf-8")
+
     def test_undeclared_contract_field_fails_closed(self):
         result = self._mutate_json("machine/continuum_stochastic_prevalence_contract.json", lambda p: p.__setitem__("extra_authority", True))
         self.assertEqual(result["status"], "error")
@@ -107,6 +130,14 @@ class ContinuumStochasticPrevalenceTests(unittest.TestCase):
         result = self._mutate_json("machine/continuum_stochastic_prevalence_results.json", mutate)
         self.assertEqual(result["status"], "error")
         self.assertIn("UFT-CSP-001 theorem field set drift", result["errors"])
+
+    def test_counterexample_payload_corruption_fails_closed(self):
+        result = self._mutate_text(
+            "experiments/continuum_stochastic_prevalence/run.py",
+            lambda text: text.replace("relation = frozenset({(0, 1)})", "relation = frozenset()", 1),
+        )
+        self.assertEqual(result["status"], "error")
+        self.assertIn("CSP witness counterexample payload drift", result["errors"])
 
     def test_roadmap_cannot_reactivate_recovery(self):
         result = self._mutate_json("machine/roadmap_state.json", lambda p: p.__setitem__("active_planned_surface", 16))
