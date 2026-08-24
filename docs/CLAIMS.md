@@ -133,7 +133,7 @@ FINITE_EPISTEMIC_CONFORMANCE != GENERAL_EPISTEMOLOGY
 
 The canonical Representation and Congruence authority registers `UFT-REP-001` through `UFT-REP-005`. Similarity preserves the characteristic polynomial and its standard finite-dimensional consequences; orthogonal/unitary similarity additionally preserves Frobenius norm; invertible real congruence preserves rank and symmetry type without generally preserving eigenvalues; coordinate change preserves the represented linear action covariantly; and injective receiver re-encoding preserves deterministic observation fibres.
 
-The executable reference surface checks 3,240 exact similarity instances, 3,240 congruence-rank instances, 648 orthogonal Frobenius instances, 29,160 coordinate-covariance instances, and 3,969 receiver-equivalence pair instances.
+The executable reference surface checks 3,240 exact similarity instances, 3,240 congruence-rank instances, 648 orthogonal Frobenius instances, 29,160 coordinate-covariance instances, and 3,969 receiver-equivalence source-pair instances.
 
 ```text
 SIMILARITY != CONGRUENCE
@@ -218,6 +218,30 @@ DISCRETIZATION_CONVERGENCE != ASSUMED_WITHOUT_ERROR_CONTROL
 FINITE_STOCHASTIC_CONFORMANCE != GENERAL_STOCHASTIC_OR_CONTINUUM_THEORY
 ```
 
+### C14 - Empirical falsification decisions are profile-scoped
+
+**Status:** PROVED
+
+**Qualifier:** abstract decision-contract and synthetic exact-interval conformance scope only; this is not an empirical result, statistical-power claim, independent replication, population inference, causal identification, or physical validation.
+
+The canonical Empirical Falsification Profile authority registers `UFT-EFP-001` through `UFT-EFP-005`. Complete profile-matched evidence is required before any rejection decision is licensed. Rejection is scoped to one hypothesis/profile version, non-rejection is not confirmation, uncertainty that crosses the declared boundary is inconclusive, and one compatible observation does not uniquely identify a model when multiple prediction sets contain it.
+
+The exact synthetic reference surface checks 15 valid interval decisions, 60 invalid-evidence mutations, 15 candidate-model fit memberships with 3 ambiguous observations, and 3 pairwise profile-fingerprint separation checks.
+
+```text
+FORMAL_COUNTEREXAMPLE != EMPIRICAL_FALSIFICATION
+SYNTHETIC_FIXTURE != EMPIRICAL_EVIDENCE
+FAILURE_TO_REJECT != CONFIRMATION
+EMPIRICAL_FIT != UNIQUE_EXPLANATION
+REJECTION_IN_SCOPE != GLOBAL_THEORY_REFUTATION
+NUMERIC_OBSERVATION != CALIBRATED_MEASUREMENT
+MISSING_UNCERTAINTY != ZERO_UNCERTAINTY
+POST_HOC_THRESHOLD != PREREGISTERED_REJECTION_RULE
+INCONCLUSIVE != NOT_REJECTED
+REPRODUCIBLE_ANALYSIS != INDEPENDENT_REPLICATION
+FINITE_EMPIRICAL_PROFILE_CONFORMANCE != GENERAL_STATISTICAL_INFERENCE
+```
+
 ## Claims requiring future proof or evidence
 
 The following remain future theorem/evidence targets:
@@ -230,7 +254,7 @@ The following remain future theorem/evidence targets:
 - admissible fixed-point theorems;
 - a universal failure trajectory for inference systems;
 - general measurable-space, continuous-time stochastic, ergodic, mixing, and concentration results beyond the bounded CSP authority;
-- empirical prevalence, frequency calibration, confidence, and sampling claims reserved for the empirical falsification phase;
+- source-specific empirical falsification profiles, statistical power, population inference, causal identification, and independent replication beyond the synthetic EFP authority;
 - any physical identification of UFT-ID fields with fundamental forces or spacetime.
 
 ## Promotion rule
@@ -245,4 +269,5 @@ A claim may move upward only when the evidence type matches the claim type.
 - representation equivalence remains scoped to its declared transformation class and does not imply semantic or physical identity;
 - information comparison remains scoped to an explicit `InformationSpec` relation or registered conversion and cannot be inferred from shared vocabulary, units, scalar values, or functional names alone;
 - deterministic recovery requires an explicit selector specialization, relation soundness, termination/progress, and normal-state obligations; a selector result does not promote the base relation to confluence or empirical recovery;
-- stochastic and continuum promotion requires explicit probability/measure, quantifier, topology, regularity, convergence, and error-control obligations; finite reachability, finite samples, formal counterexamples, and finite-grid agreement do not supply them automatically.
+- stochastic and continuum promotion requires explicit probability/measure, quantifier, topology, regularity, convergence, and error-control obligations; finite reachability, finite samples, formal counterexamples, and finite-grid agreement do not supply them automatically;
+- empirical rejection requires complete calibrated profile-matched evidence under a fixed hypothesis/profile version; formal counterexamples, synthetic fixtures, non-rejection, model fit, reproducible analysis, and one scoped rejection cannot be promoted into empirical falsification, confirmation, unique explanation, independent replication, or global theory refutation without additional evidence and arguments.
