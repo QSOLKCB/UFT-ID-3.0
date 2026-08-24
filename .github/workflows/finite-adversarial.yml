@@ -18,6 +18,8 @@ on:
       - "scripts/verify_bridge_artifacts.py"
       - "scripts/validate_epistemic_bridge.py"
       - "scripts/verify_epistemic_bridge_artifacts.py"
+      - "scripts/validate_representation_calculus.py"
+      - "scripts/verify_representation_artifacts.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -33,6 +35,7 @@ on:
       - "theory/GRAPH_REALIZATION.md"
       - "theory/BRIDGE_CORE.md"
       - "theory/EPISTEMIC_BRIDGE.md"
+      - "theory/REPRESENTATION_CALCULUS.md"
       - "research/CROSS_REPO_PATTERN_ATLAS.md"
       - "research/GRAPH_REALIZATION_SOURCES.md"
       - "research/HISTORICAL_LINEAGE.md"
@@ -62,6 +65,8 @@ on:
       - "scripts/verify_bridge_artifacts.py"
       - "scripts/validate_epistemic_bridge.py"
       - "scripts/verify_epistemic_bridge_artifacts.py"
+      - "scripts/validate_representation_calculus.py"
+      - "scripts/verify_representation_artifacts.py"
       - "tests/**"
       - "theory/DEFINITIONS.md"
       - "theory/THEOREM_TARGETS.md"
@@ -77,6 +82,7 @@ on:
       - "theory/GRAPH_REALIZATION.md"
       - "theory/BRIDGE_CORE.md"
       - "theory/EPISTEMIC_BRIDGE.md"
+      - "theory/REPRESENTATION_CALCULUS.md"
       - "research/CROSS_REPO_PATTERN_ATLAS.md"
       - "research/GRAPH_REALIZATION_SOURCES.md"
       - "research/HISTORICAL_LINEAGE.md"
@@ -169,6 +175,14 @@ jobs:
           python experiments/epistemic_bridge/run.py --json > /tmp/epistemic-bridge.json
           python experiments/run_epistemic_bridge.py --hash-only > /tmp/epistemic-bridge-receipt.json
 
+      - name: Validate Representation authority surface
+        run: python scripts/validate_representation_calculus.py
+
+      - name: Run Representation witnesses
+        run: |
+          python experiments/representation_calculus/run.py --json > /tmp/representation.json
+          python experiments/run_representation_calculus.py --hash-only > /tmp/representation-receipt.json
+
       - name: Validate Vopson 2019 MEI authority surface
         run: python scripts/validate_vopson_2019_mei.py
 
@@ -228,6 +242,14 @@ jobs:
           python experiments/epistemic_bridge/run.py --json > artifacts/epistemic-bridge-witness.json 2> artifacts/epistemic-bridge-witness.stderr.txt || true
           python experiments/run_epistemic_bridge.py --json > artifacts/epistemic-bridge-receipt.json 2> artifacts/epistemic-bridge-receipt.stderr.txt || true
 
+      - name: Generate Representation evidence bundle
+        if: always()
+        run: |
+          mkdir -p artifacts
+          python scripts/validate_representation_calculus.py --json > artifacts/representation-validation.json 2> artifacts/representation-validation.stderr.txt || true
+          python experiments/representation_calculus/run.py --json > artifacts/representation-witness.json 2> artifacts/representation-witness.stderr.txt || true
+          python experiments/run_representation_calculus.py --json > artifacts/representation-receipt.json 2> artifacts/representation-receipt.stderr.txt || true
+
       - name: Verify retained graph evidence
         if: always()
         run: |
@@ -242,6 +264,11 @@ jobs:
         if: always()
         run: |
           python scripts/verify_epistemic_bridge_artifacts.py artifacts
+
+      - name: Verify retained Representation evidence
+        if: always()
+        run: |
+          python scripts/verify_representation_artifacts.py artifacts
 
       - name: Retain finite evidence bundle
         if: always()
