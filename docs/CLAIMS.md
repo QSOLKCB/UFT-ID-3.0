@@ -148,6 +148,30 @@ INVARIANT_UNDER_CLASS_C != UNQUALIFIED_REPRESENTATION_INDEPENDENCE
 FINITE_REPRESENTATION_CONFORMANCE != GENERAL_PROOF
 ```
 
+### C11 - Information comparability is specification-relative
+
+**Status:** PROVED
+
+**Qualifier:** finite information-specification and explicit logarithm-base/unit-conversion scope only; not a universal information ontology or empirical commensurability claim.
+
+The canonical Information Comparability authority registers `UFT-INF-001` through `UFT-INF-005`. A valid `InformationSpec` names source type, functional, observation, unit, normalization, conditioning, and scope. Direct comparability requires all comparison-defining fields to agree and scopes to overlap. Explicit registered positive unit conversions can license a narrower unit-converted comparison without making the specifications identical.
+
+The exact finite reference surface enumerates 96 specifications and all 9,216 ordered pairs, yielding 224 directly comparable ordered pairs and 224 explicit unit-convertible ordered pairs. It also checks 75 positive-scale order/sign cases and five exact bit/base4 logarithm-base conversions.
+
+```text
+SAME_WORD_INFORMATION != SAME_FUNCTIONAL
+SAME_SCALAR_CODOMAIN != COMPARABLE_INFORMATION
+SAME_UNIT != COMPARABLE_INFORMATION
+SAME_FUNCTIONAL != SAME_OBSERVATION
+IDENTICAL_SPEC => COMPARABLE
+COMPARABLE != IDENTICAL_SPEC
+NUMERIC_EQUALITY != INFORMATIONAL_EQUIVALENCE
+POSITIVE_UNIT_CONVERSION != SEMANTIC_BRIDGE
+PAIRWISE_SCOPE_COMPARABILITY != TRANSITIVE_COMPARABILITY
+DIRECT_COMPARABILITY != EMPIRICAL_COMMENSURABILITY
+FINITE_INFORMATION_CONFORMANCE != GENERAL_INFORMATION_THEORY
+```
+
 ## Claims requiring future proof or evidence
 
 The following remain future theorem/evidence targets:
@@ -170,4 +194,5 @@ A claim may move upward only when the evidence type matches the claim type.
 - repeated analogy can motivate a hypothesis, not prove common mechanism;
 - successful reproduction does not establish interpretation;
 - transport, retrieval, inference, execution, and verification receipts remain distinct authority events;
-- representation equivalence remains scoped to its declared transformation class and does not imply semantic or physical identity.
+- representation equivalence remains scoped to its declared transformation class and does not imply semantic or physical identity;
+- information comparison remains scoped to an explicit `InformationSpec` relation or registered conversion and cannot be inferred from shared vocabulary, units, scalar values, or functional names alone.
