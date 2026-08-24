@@ -1,0 +1,103 @@
+{
+  "type": "uft-id-information-comparability-result-registry",
+  "schema_version": "1.0.0",
+  "snapshot_date": "2026-08-24",
+  "records": [
+    {
+      "id": "UFT-INF-001",
+      "name": "Identical valid specifications are directly comparable",
+      "claim_class": "PROVED",
+      "statement": "Every valid InformationSpec is directly comparable with itself because all comparison-defining fields agree and its scope is nonempty.",
+      "hypotheses": ["A is a valid InformationSpec"],
+      "proof_reference": "theory/INFORMATION_COMPARABILITY.md#uft-inf-001-identical-valid-specifications-are-directly-comparable",
+      "executable_evidence": ["experiments/information_comparability/run.py", "tests/test_information_comparability.py"],
+      "nonclaims": ["Reflexive direct comparability does not make two independently specified quantities identical merely because their scalar values agree."]
+    },
+    {
+      "id": "UFT-INF-002",
+      "name": "Direct comparability is symmetric",
+      "claim_class": "PROVED",
+      "statement": "For valid InformationSpec values A and B, if A is directly comparable with B then B is directly comparable with A.",
+      "hypotheses": ["A and B are valid InformationSpec values", "A and B satisfy the direct-comparability predicate"],
+      "proof_reference": "theory/INFORMATION_COMPARABILITY.md#uft-inf-002-direct-comparability-is-symmetric",
+      "executable_evidence": ["experiments/information_comparability/run.py", "tests/test_information_comparability.py"],
+      "nonclaims": ["Scope-relative direct comparability is not asserted to be transitive."]
+    },
+    {
+      "id": "UFT-INF-003",
+      "name": "Direct comparability preserves the comparison-defining specification",
+      "claim_class": "PROVED",
+      "statement": "If two InformationSpec values are directly comparable, then source_type, functional, observation, unit, normalization, and conditioning agree exactly and their scopes have nonempty intersection.",
+      "hypotheses": ["A and B are valid InformationSpec values", "A and B are directly comparable"],
+      "proof_reference": "theory/INFORMATION_COMPARABILITY.md#uft-inf-003-direct-comparability-preserves-the-comparison-defining-specification",
+      "executable_evidence": ["experiments/information_comparability/run.py", "tests/test_information_comparability.py"],
+      "nonclaims": ["Matching one or several fields, including functional or unit alone, is not enough for direct comparability."]
+    },
+    {
+      "id": "UFT-INF-004",
+      "name": "Positive unit conversion preserves scalar order",
+      "claim_class": "PROVED",
+      "statement": "For real scalar values x and y and a positive conversion scale a, equality and strict order are preserved by x -> ax and the sign of y-x equals the sign of a(y-x).",
+      "hypotheses": ["x and y are real scalars", "a>0"],
+      "proof_reference": "theory/INFORMATION_COMPARABILITY.md#uft-inf-004-positive-unit-conversion-preserves-scalar-order",
+      "executable_evidence": ["experiments/information_comparability/run.py", "tests/test_information_comparability.py"],
+      "nonclaims": ["A positive scalar conversion changes units only; it does not supply a semantic, epistemic, empirical, or physical bridge."]
+    },
+    {
+      "id": "UFT-INF-005",
+      "name": "Explicit logarithm-base conversion gives non-identical comparable specifications",
+      "claim_class": "PROVED",
+      "statement": "For Shannon or Hartley logarithmic entropy specifications that agree in every comparison-defining field except bit versus base4-digit unit, an explicit registered scale of 1/2 from bits to base4-digits or 2 in the reverse direction licenses unit-converted comparability; the specifications remain non-identical.",
+      "hypotheses": ["A and B are valid InformationSpec values", "A and B differ only by bit versus base4-digit unit and scope may differ only with nonempty overlap", "the registered unit conversion matches the functional and direction"],
+      "proof_reference": "theory/INFORMATION_COMPARABILITY.md#uft-inf-005-explicit-logarithm-base-conversion-gives-non-identical-comparable-specifications",
+      "executable_evidence": ["experiments/information_comparability/run.py", "tests/test_information_comparability.py"],
+      "nonclaims": ["Unit-converted comparability does not authorize comparison across different observations, normalizations, conditionings, functionals, or disjoint scopes."]
+    },
+    {
+      "id": "CX-INF-001",
+      "name": "Same word and unit can hide different information functionals",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "A Shannon-entropy specification and a Hartley-entropy specification can both be measured in bits and even return the same scalar on a uniform two-state distribution while remaining not directly comparable because their functional identities differ.",
+      "fixture": "uniform-two-state Shannon bits versus Hartley bits",
+      "evidence": ["experiments/information_comparability/run.py", "tests/test_information_comparability.py"],
+      "nonclaims": ["The example does not say Shannon and Hartley quantities can never be related under a separately declared theorem or bridge."]
+    },
+    {
+      "id": "CX-INF-002",
+      "name": "Same functional and unit can use different observations",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "Two Shannon-entropy specifications in bits with different observation contracts are not directly comparable under the Information Comparability predicate.",
+      "fixture": "Shannon bits with fine observation versus coarse observation",
+      "evidence": ["experiments/information_comparability/run.py", "tests/test_information_comparability.py"],
+      "nonclaims": ["A separately proved observation bridge may establish a narrower relationship; direct comparability does not assume one."]
+    },
+    {
+      "id": "CX-INF-003",
+      "name": "Different units require an explicit conversion",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "Two otherwise matching logarithmic entropy specifications in bits and base4-digits are not directly comparable, although an explicit registered unit conversion can make them unit-converted comparable.",
+      "fixture": "matching Shannon specification in bits versus base4-digits",
+      "evidence": ["experiments/information_comparability/run.py", "tests/test_information_comparability.py"],
+      "nonclaims": ["The availability of a unit conversion does not make the two specifications textually or semantically identical."]
+    },
+    {
+      "id": "CX-INF-004",
+      "name": "Scope-overlap comparability need not be transitive",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "With otherwise identical specifications, scope A={alpha}, B={alpha,beta}, and C={beta} gives A directly comparable with B and B directly comparable with C while A is not directly comparable with C.",
+      "fixture": "three identical semantic specs with overlapping-chain scopes",
+      "evidence": ["experiments/information_comparability/run.py", "tests/test_information_comparability.py"],
+      "nonclaims": ["The counterexample concerns the scope-relative direct-comparability relation only; it does not refute transitivity of equality or of separately defined equivalence relations."]
+    },
+    {
+      "id": "CX-INF-005",
+      "name": "Numeric equality does not erase normalization differences",
+      "claim_class": "COUNTEREXAMPLE",
+      "statement": "Two information quantities can both have scalar value 1 while their specifications use different normalization conventions, so numeric equality alone does not establish direct comparability or informational equivalence.",
+      "fixture": "equal scalar 1 under normalization none versus per-source-symbol",
+      "evidence": ["experiments/information_comparability/run.py", "tests/test_information_comparability.py"],
+      "nonclaims": ["Equal numbers remain equal as numbers; the counterexample rejects only the promotion from numeric equality to specification-level comparability or equivalence."]
+    }
+  ],
+  "claim_boundary": "SAME_WORD_INFORMATION != SAME_FUNCTIONAL; NUMERIC_EQUALITY != INFORMATIONAL_EQUIVALENCE; COMPARABLE != IDENTICAL_SPEC; FINITE_INFORMATION_CONFORMANCE != GENERAL_INFORMATION_THEORY"
+}
