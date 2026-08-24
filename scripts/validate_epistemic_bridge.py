@@ -86,7 +86,10 @@ def _live_roadmap_errors() -> list[str]:
             errors.append("epistemic live roadmap PR13 completion drift")
         if by_pr.get(14, {}).get("status") != "active-implemented-in-current-change":
             errors.append("epistemic live roadmap PR14 active-state drift")
-    _frozen.no_private_locators(roadmap, "live roadmap state", errors)
+    serialized = json.dumps(roadmap, sort_keys=True).casefold()
+    for token in _frozen.PRIVATE_PATTERNS:
+        if token.casefold() in serialized:
+            errors.append(f"live roadmap state contains forbidden private locator: {token}")
     return errors
 
 
