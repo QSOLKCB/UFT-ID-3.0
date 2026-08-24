@@ -165,12 +165,12 @@ class EpistemicBridgeTests(unittest.TestCase):
     def test_duplicate_result_ids_are_rejected(self):
         def mutate(payload):
             payload["records"].append(dict(payload["records"][0]))
-        self.assert_error(self.mutate_json("machine/epistemic_bridge_results.json", mutate), "duplicate epistemic result id")
+        self.assert_error(self.mutate_json("machine/epistemic_bridge_results.json", mutate), "duplicate Epistemic Bridge result id")
 
     def test_contract_authority_registry_is_exact_bound(self):
         def mutate(payload):
             payload["authorities"] = {}
-        self.assert_error(self.mutate_json("machine/epistemic_bridge_contract.json", mutate), "authority mapping drift")
+        self.assert_error(self.mutate_json("machine/epistemic_bridge_contract.json", mutate), "epistemic contract authority registry drift")
 
     def test_result_nonclaims_are_exact_bound(self):
         def mutate(payload):
