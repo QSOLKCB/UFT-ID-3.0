@@ -153,6 +153,12 @@ EXPECTED_THEOREM_FIELDS = {
 EXPECTED_COUNTEREXAMPLE_FIELDS = {
     "id", "name", "claim_class", "statement", "fixture", "evidence", "nonclaims",
 }
+EXPECTED_CONTRACT_TOP_LEVEL = {
+    "type", "schema_version", "snapshot_date", "claim_class", "scope", "primary_type",
+    "conversion_type", "spec_fields", "comparability_modes", "observation_registry",
+    "conditioning_registry", "unit_conversion_registry", "functional_registry", "hard_boundaries",
+    "execution_limits", "authorities", "explicit_deferrals",
+}
 EXPECTED_RESULTS_TOP_LEVEL = {"type", "schema_version", "snapshot_date", "records", "claim_boundary"}
 EXPECTED_THEOREMS = {
     "UFT-INF-001": {
@@ -343,6 +349,8 @@ def validate() -> dict[str, object]:
     readme = PATHS["readme"].read_text(encoding="utf-8")
     repro = PATHS["repro"].read_text(encoding="utf-8")
 
+    if set(contract) != EXPECTED_CONTRACT_TOP_LEVEL:
+        errors.append("information contract top-level field set drift")
     if contract.get("type") != "uft-id-information-comparability-contract": errors.append("information contract type drift")
     if contract.get("schema_version") != "1.1.0": errors.append("information contract schema drift")
     if contract.get("snapshot_date") != "2026-08-24": errors.append("information contract snapshot drift")
