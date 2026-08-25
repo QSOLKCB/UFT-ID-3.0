@@ -86,6 +86,20 @@ class LatestCodexLeanFreezeRegressions(unittest.TestCase):
                 docs[field] += attack
                 self.assert_error_contains(docs, f"{label} source-tag completion promotion")
 
+    def test_frozen_nonclaim_reversals_fail_closed(self):
+        attacks = (
+            "\nUFT-OBS-001 proves that observational equivalence is physical identity.\n",
+            "\nUFT-OBS-002 proves that the quotient is the full codomain.\n",
+            "\nUFT-OBS-003 proves exact mathematical reconstruction means the original physical state persisted.\n",
+            "\nUFT-OBS-004 proves noninjectivity forbids probabilistic reconstruction.\n",
+        )
+        for field, label in (("human", "human freeze"), ("readme", "README4AI"), ("roadmap", "ROADMAP")):
+            for attack in attacks:
+                with self.subTest(field=field, attack=attack.strip()):
+                    docs = documents()
+                    docs[field] += attack
+                    self.assert_error_contains(docs, f"{label} frozen theorem nonclaim reversal")
+
     def test_human_batch_basis_and_proof_reference_metadata_are_exact_bound(self):
         docs = documents()
         docs["human"] = docs["human"].replace("**Batch:** `LEAN-OBS-BATCH-001`", "**Batch:** `LEAN-OBS-BATCH-999`", 1)
@@ -137,11 +151,27 @@ class LatestCodexLeanFreezeRegressions(unittest.TestCase):
         errors = V.workflow_contract_errors(mutated)
         self.assertTrue(any("named step command/env drift" in e for e in errors), errors)
 
-    def test_pull_request_activity_types_must_remain_unrestricted(self):
+    def test_pull_request_activity_and_branch_filters_must_remain_unrestricted(self):
         workflow = (ROOT / ".github/workflows/vopson-corpus.yml").read_text(encoding="utf-8")
-        mutated = workflow.replace("  pull_request:\n    paths:\n", "  pull_request:\n    types: [closed]\n    paths:\n", 1)
+        mutations = (
+            ("  pull_request:\n    paths:\n", "  pull_request:\n    types: [closed]\n    paths:\n", "pull_request activity types must remain unrestricted"),
+            ("  pull_request:\n    paths:\n", "  pull_request:\n    branches: [staging]\n    paths:\n", "pull_request branch filters must remain unrestricted"),
+            ("  pull_request:\n    paths:\n", "  pull_request:\n    branches-ignore: [main]\n    paths:\n", "pull_request branch filters must remain unrestricted"),
+        )
+        for old, new, fragment in mutations:
+            with self.subTest(mutation=new.strip()):
+                errors = V.workflow_contract_errors(workflow.replace(old, new, 1))
+                self.assertTrue(any(fragment in e for e in errors), errors)
+
+    def test_freeze_step_may_not_override_shell(self):
+        workflow = (ROOT / ".github/workflows/vopson-corpus.yml").read_text(encoding="utf-8")
+        mutated = workflow.replace(
+            "      - name: Validate Lean observation source freeze\n",
+            "      - name: Validate Lean observation source freeze\n        shell: bash -n {0}\n",
+            1,
+        )
         errors = V.workflow_contract_errors(mutated)
-        self.assertTrue(any("pull_request activity types must remain unrestricted" in e for e in errors), errors)
+        self.assertTrue(any("may not override its executing shell" in e for e in errors), errors)
 
     def test_registered_push_branch_is_exactly_main(self):
         workflow = (ROOT / ".github/workflows/vopson-corpus.yml").read_text(encoding="utf-8")
@@ -149,6 +179,17 @@ class LatestCodexLeanFreezeRegressions(unittest.TestCase):
         mutated = workflow.replace("    branches: [main]\n", "    branches: [staging]\n", 1)
         errors = V.workflow_contract_errors(mutated)
         self.assertTrue(any("push branch restriction must be exactly main" in e for e in errors), errors)
+
+    def test_frozen_validator_is_exact_blob_bound(self):
+        self.assertEqual(V.frozen_validator_blob_errors(), [])
+        self.assertEqual(V.git_blob_sha(V.FROZEN), V.EXPECTED_FROZEN_VALIDATOR_BLOB)
+        original = V.git_blob_sha
+        try:
+            V.git_blob_sha = lambda path: "0" * 40
+            errors = V.frozen_validator_blob_errors()
+            self.assertTrue(any("frozen PR21 validator blob drift" in e for e in errors), errors)
+        finally:
+            V.git_blob_sha = original
 
     def test_basis_blob_resolution_requires_readable_blob_object(self):
         original = V.git_object_is_blob
