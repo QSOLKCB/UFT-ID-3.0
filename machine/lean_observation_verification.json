@@ -1,0 +1,47 @@
+{
+  "type": "uft-id-lean-observation-verification",
+  "schema_version": "1.0.0",
+  "batch_id": "LEAN-OBS-BATCH-001",
+  "status": "IMPLEMENTED_PENDING_CI",
+  "source_release": {
+    "tag": "v3.0.0",
+    "commit": "b7f51590985e60920c8b09fc9238b8aec6cfa3bc",
+    "tree": "966bdf47596832f792e77d619b33222f4cf60c8d"
+  },
+  "toolchain": {
+    "lean": "v4.33.1",
+    "mathlib_commit": "0df444a360eaa60ab8c11dca51a86af692955474"
+  },
+  "theorems": [
+    {
+      "id": "UFT-OBS-001",
+      "module": "UFTID.Observation.Basic",
+      "path": "UFTID/Observation/Basic.lean",
+      "declaration": "uft_obs_001_observational_equivalence"
+    },
+    {
+      "id": "UFT-OBS-002",
+      "module": "UFTID.Observation.Quotient",
+      "path": "UFTID/Observation/Quotient.lean",
+      "declaration": "uft_obs_002_quotient_to_image"
+    },
+    {
+      "id": "UFT-OBS-003",
+      "module": "UFTID.Observation.Reconstruction",
+      "path": "UFTID/Observation/Reconstruction.lean",
+      "declaration": "uft_obs_003_image_reconstruction_iff_injective"
+    },
+    {
+      "id": "UFT-OBS-004",
+      "module": "UFTID.Observation.Reconstruction",
+      "path": "UFTID/Observation/Reconstruction.lean",
+      "declaration": "uft_obs_004_noninjective_no_global_left_inverse"
+    }
+  ],
+  "deferred_theorem_ids": ["UFT-OBS-005"],
+  "hard_boundaries": [
+    "LEAN_PROOF != EMPIRICAL_VALIDATION",
+    "LEAN_PROOF != PHYSICAL_ONTOLOGY",
+    "UFT-OBS-005_DEFERRED != UFT-OBS-005_DROPPED"
+  ]
+}
