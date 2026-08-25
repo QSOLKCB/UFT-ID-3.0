@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import math
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -68,6 +69,30 @@ HISTORICAL_ROADMAP_STATE = {
 _original_load_json = _frozen.load_json
 
 
+def _strict_live_roadmap(path: Path) -> dict[str, object]:
+    def reject_duplicates(pairs: list[tuple[str, object]]) -> dict[str, object]:
+        value: dict[str, object] = {}
+        for key, item in pairs:
+            if key in value:
+                raise ValueError(f"duplicate JSON object key: {key}")
+            value[key] = item
+        return value
+
+    def reject_constant(token: str):
+        raise ValueError(f"non-finite JSON number: {token}")
+
+    def finite_float(token: str) -> float:
+        value = float(token)
+        if not math.isfinite(value):
+            raise ValueError(f"non-finite JSON number: {token}")
+        return value
+
+    value = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=reject_duplicates, parse_constant=reject_constant, parse_float=finite_float)
+    if not isinstance(value, dict):
+        raise ValueError(f"{path} must contain an object")
+    return value
+
+
 def _historical_load_json(path: Path):
     if path.resolve() == _frozen.PATHS["roadmap"].resolve(): return json.loads(json.dumps(HISTORICAL_ROADMAP_STATE))
     return _original_load_json(path)
@@ -75,7 +100,10 @@ def _historical_load_json(path: Path):
 
 def _live_roadmap_errors() -> list[str]:
     errors: list[str] = []
-    roadmap = _original_load_json(_frozen.PATHS["roadmap"])
+    try:
+        roadmap = _strict_live_roadmap(_frozen.PATHS["roadmap"])
+    except (OSError, ValueError) as exc:
+        return [f"representation live roadmap JSON invalid: {exc}"]
     if roadmap.get("schema_version") != "1.7.0": errors.append("representation live roadmap schema drift")
     if roadmap.get("basis_commit") != "516cff5d6a45af54d6fc4ae9c72c2e8e9c668637": errors.append("representation live roadmap basis commit must be merged EFP PR #19")
     if roadmap.get("active_planned_surface") != 10:

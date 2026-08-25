@@ -12,12 +12,14 @@ import copy
 import hashlib
 import importlib.util
 import json
+import math
 
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = ROOT / "scripts/validate_relation_core_pr21_pre_release_gate.py"
 FROZEN_BASE = ROOT / "scripts/validate_relation_core_frozen_pr11.py"
+ROADMAP_STATE = ROOT / "machine/roadmap_state.json"
 EXPECTED_BASE_VALIDATOR_BLOB = "6f1e5629213276169c169f61ef6271a15f40a79e"
 EXPECTED_FROZEN_BASE_VALIDATOR_BLOB = "655fee62ff316a424a1b28ccc35c7fe82e0ed8e2"
 
@@ -100,7 +102,59 @@ globals()["EXPECTED_ROADMAP_STATE"] = EXPECTED_ROADMAP_STATE
 globals()["EXPECTED_ROADMAP_SEQUENCE"] = EXPECTED_ROADMAP_SEQUENCE
 
 
+def reject_duplicate_object_keys(
+    pairs: list[tuple[str, object]],
+) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON object key: {key}")
+        result[key] = value
+    return result
+
+
+def reject_nonfinite_constant(value: str):
+    raise ValueError(f"non-finite JSON number: {value}")
+
+
+def parse_finite_float(value: str) -> float:
+    parsed = float(value)
+    if not math.isfinite(parsed):
+        raise ValueError(f"non-finite JSON number: {value}")
+    return parsed
+
+
+def load_json(path: Path) -> dict[str, object]:
+    value = json.loads(
+        path.read_text(encoding="utf-8"),
+        object_pairs_hook=reject_duplicate_object_keys,
+        parse_constant=reject_nonfinite_constant,
+        parse_float=parse_finite_float,
+    )
+    if not isinstance(value, dict):
+        raise ValueError(f"{path} must contain an object")
+    return value
+
+
+def live_roadmap_json_errors() -> list[str]:
+    try:
+        load_json(ROADMAP_STATE)
+    except (OSError, ValueError) as exc:
+        return [f"live roadmap state JSON invalid: {exc}"]
+    return []
+
+
 def validate():
+    roadmap_errors = live_roadmap_json_errors()
+    if roadmap_errors:
+        return {
+            "status": "error",
+            "errors": roadmap_errors + compatibility_validator_blob_errors(),
+            "theorem_count": 0,
+            "counterexample_count": 0,
+            "exhaustive_relation_count": 0,
+            "public_context_ref_count": 0,
+        }
     result = _base.validate()
     errors = list(result.get("errors", []))
     errors.extend(compatibility_validator_blob_errors())

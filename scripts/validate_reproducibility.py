@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import ast
 import json
+import math
 from pathlib import Path
 import re
 from typing import Any
@@ -29,7 +30,29 @@ def display_path(path: Path, root: Path = ROOT) -> str:
 
 
 def load_json(path: Path) -> dict[str, Any]:
-    value = json.loads(path.read_text(encoding="utf-8"))
+    def reject_duplicates(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+        value: dict[str, Any] = {}
+        for key, item in pairs:
+            if key in value:
+                raise ValueError(f"duplicate JSON object key: {key}")
+            value[key] = item
+        return value
+
+    def reject_constant(token: str):
+        raise ValueError(f"non-finite JSON number: {token}")
+
+    def finite_float(token: str) -> float:
+        value = float(token)
+        if not math.isfinite(value):
+            raise ValueError(f"non-finite JSON number: {token}")
+        return value
+
+    value = json.loads(
+        path.read_text(encoding="utf-8"),
+        object_pairs_hook=reject_duplicates,
+        parse_constant=reject_constant,
+        parse_float=finite_float,
+    )
     if not isinstance(value, dict):
         raise ValueError(f"{path} must contain a JSON object")
     return value
@@ -416,6 +439,10 @@ def validate_workflow_contract(
 def validate(root: Path = ROOT) -> dict[str, object]:
     root = root.resolve()
     errors: list[str] = []
+    try:
+        load_json(root / "machine/roadmap_state.json")
+    except (OSError, ValueError) as exc:
+        errors.append(f"live roadmap state JSON invalid: {exc}")
     contract = load_json(root / "machine/contract.json")
     provenance = contract.get("ci_provenance")
     if not isinstance(provenance, dict):

@@ -16,15 +16,17 @@ import importlib.util
 import json
 import math
 import re
+import stat
 import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = ROOT / "scripts/validate_lean_observation_foundation_pr21_pre_codex4.py"
 ARTIFACT_VERIFIER = ROOT / "scripts/verify_lean_observation_foundation_artifact.py"
+ROADMAP_STATE = ROOT / "machine/roadmap_state.json"
 EXPECTED_BASE_VALIDATOR_BLOB = "cb18daf549e87a94b64ae85b58369f9a2e329f91"
 EXPECTED_ARTIFACT_VERIFIER_BLOB = "a7c8eb9729aa637dd9172d89ed08bd09ab2f981d"
-EXPECTED_WORKFLOW_BLOB = "7361c8f06be5924cb071407fffaf165e9176e450"
+EXPECTED_WORKFLOW_BLOB = "65d32d493f80276fccf0c40992b1e1803cdfaad8"
 EXPECTED_CLAIM_SURFACE_BLOBS = {
     "human freeze": "06a9b6ed8914c5fae797cf65b990426fd9697292",
     "README4AI": "3c865866d5ac36982d315e19b9806c0b7817a739",
@@ -53,6 +55,8 @@ EXPECTED_WORKFLOW_PATHS = (
     '- "theory/LEAN_OBSERVATION_FOUNDATION.md"',
     '- "UFTID/**"',
     '- "**/*.lean"',
+    '- "**/*.olean"',
+    '- "**/*.ilean"',
     '- "lean-toolchain"',
     '- "**/lean-toolchain"',
     '- "lakefile.toml"',
@@ -78,6 +82,7 @@ EXPECTED_RETAINED_FREEZE_VERIFY_STEP_BODY = (
 PRETAG_PACKAGE_FILENAMES = frozenset(
     {"lean-toolchain", "lakefile.toml", "lake-manifest.json"}
 )
+PRETAG_LEAN_SUFFIXES = (".lean", ".olean", ".ilean")
 
 
 def local_git_blob_sha(path: Path) -> str:
@@ -152,6 +157,45 @@ for _name in dir(_base):
         globals()[_name] = getattr(_base, _name)
 
 
+EXPECTED_CURRENT_AUTHORITY_BLOBS = {
+    **EXPECTED_SOURCE_BLOBS,
+    "machine/contract.json": "37a351161095df5cd4c1d9be68bf0c6bb4203736",
+    "machine/roadmap_state.json": "eb2720c9df35627419984e864b2ce7117d4cb810",
+    "ROADMAP.md": EXPECTED_CLAIM_SURFACE_BLOBS["ROADMAP"],
+    "machine/lean_observation_foundation_contract.json": "9f9af5b296862bbcf227e939389ccadda3e8129c",
+    "theory/LEAN_OBSERVATION_FOUNDATION.md": EXPECTED_CLAIM_SURFACE_BLOBS["human freeze"],
+    "README4AI.md": EXPECTED_CLAIM_SURFACE_BLOBS["README4AI"],
+    ".github/workflows/vopson-corpus.yml": EXPECTED_WORKFLOW_BLOB,
+    "scripts/validate_lean_observation_foundation_pr21_frozen.py": EXPECTED_FROZEN_VALIDATOR_BLOB,
+    "scripts/validate_lean_observation_foundation_pr21_pre_codex4.py": EXPECTED_BASE_VALIDATOR_BLOB,
+    "scripts/verify_lean_observation_foundation_artifact.py": EXPECTED_ARTIFACT_VERIFIER_BLOB,
+}
+TRACKED_CURRENT_AUTHORITY_PATHS = tuple(
+    dict.fromkeys(
+        (
+            *EXPECTED_SOURCE_BLOBS,
+            "machine/roadmap_state.json",
+            "machine/lean_observation_foundation_contract.json",
+            "theory/LEAN_OBSERVATION_FOUNDATION.md",
+            "README4AI.md",
+            ".github/workflows/vopson-corpus.yml",
+            "scripts/validate_lean_observation_foundation.py",
+            "scripts/validate_lean_observation_foundation_pr21_frozen.py",
+            "scripts/validate_lean_observation_foundation_pr21_pre_codex4.py",
+            "scripts/verify_lean_observation_foundation_artifact.py",
+            "tests/test_lean_observation_foundation.py",
+        )
+    )
+)
+EXPECTED_CURRENT_AUTHORITY_MODES = {
+    relpath: "100644" for relpath in TRACKED_CURRENT_AUTHORITY_PATHS
+}
+EXPECTED_CURRENT_AUTHORITY_MODES["scripts/validate_lean_observation_foundation.py"] = "100755"
+EXPECTED_CURRENT_AUTHORITY_MODES[
+    "scripts/verify_lean_observation_foundation_artifact.py"
+] = "100755"
+
+
 def reject_duplicate_object_keys(
     pairs: list[tuple[str, object]],
 ) -> dict[str, object]:
@@ -192,6 +236,106 @@ def load_json(path: Path) -> dict[str, object]:
     return value
 
 
+def tracked_authority_object_errors(
+    root: Path = ROOT,
+    *,
+    expected_blobs: dict[str, str] | None = None,
+    expected_modes: dict[str, str] | None = None,
+    runner=subprocess.run,
+) -> list[str]:
+    """Bind frozen authority paths to regular files and exact HEAD tree objects."""
+    blobs = dict(
+        EXPECTED_CURRENT_AUTHORITY_BLOBS
+        if expected_blobs is None
+        else expected_blobs
+    )
+    modes = dict(
+        EXPECTED_CURRENT_AUTHORITY_MODES
+        if expected_modes is None
+        else expected_modes
+    )
+    if not set(blobs).issubset(modes):
+        return ["frozen authority Git object/mode registry malformed"]
+
+    result = runner(
+        ["git", "ls-tree", "-r", "-z", "--full-tree", "HEAD", "--", *modes],
+        cwd=root,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        return ["frozen authority tracked Git object inventory unavailable"]
+
+    output = result.stdout
+    if not isinstance(output, bytes) or (output and not output.endswith(b"\0")):
+        return ["frozen authority tracked Git object inventory malformed"]
+    encoded_records = output[:-1].split(b"\0") if output else []
+    if any(not record for record in encoded_records):
+        return ["frozen authority tracked Git object inventory malformed"]
+
+    entries: dict[str, tuple[str, str, str]] = {}
+    for record in encoded_records:
+        try:
+            header, encoded_path = record.split(b"\t", 1)
+            mode, object_type, object_sha = header.decode("ascii").split(" ")
+            relpath = encoded_path.decode("utf-8")
+        except (ValueError, UnicodeDecodeError):
+            return ["frozen authority tracked Git object inventory malformed"]
+        if (
+            re.fullmatch(r"[0-7]{6}", mode) is None
+            or object_type != "blob"
+            or re.fullmatch(r"[0-9a-f]{40}", object_sha) is None
+            or relpath in entries
+        ):
+            return ["frozen authority tracked Git object inventory malformed"]
+        entries[relpath] = (mode, object_type, object_sha)
+
+    errors: list[str] = []
+    unexpected = sorted(set(entries) - set(modes))
+    if unexpected:
+        errors.append(
+            "frozen authority tracked Git object inventory contains unexpected paths: "
+            + ", ".join(unexpected)
+        )
+    for relpath, expected_mode in modes.items():
+        entry = entries.get(relpath)
+        if entry is None:
+            errors.append(f"frozen authority tracked Git object missing: {relpath}")
+            continue
+        mode, _object_type, object_sha = entry
+        if mode != expected_mode:
+            errors.append(f"frozen authority tracked Git object/mode drift: {relpath}")
+        expected_sha = blobs.get(relpath)
+        if expected_sha is not None and object_sha != expected_sha:
+            errors.append(f"frozen authority tracked Git blob drift: {relpath}")
+
+        path = root / relpath
+        try:
+            working_mode = path.lstat().st_mode
+        except OSError:
+            errors.append(f"frozen authority working path missing: {relpath}")
+        else:
+            if stat.S_ISLNK(working_mode):
+                errors.append(
+                    f"frozen authority working path must not be a symlink: {relpath}"
+                )
+            elif not stat.S_ISREG(working_mode):
+                errors.append(
+                    f"frozen authority working path must be a regular file: {relpath}"
+                )
+            else:
+                try:
+                    working_sha = local_git_blob_sha(path)
+                except OSError:
+                    errors.append(f"frozen authority working path unreadable: {relpath}")
+                else:
+                    if working_sha != object_sha:
+                        errors.append(
+                            f"frozen authority working tree Git blob drift: {relpath}"
+                        )
+    return errors
+
+
 def tracked_pretag_lean_files(
     root: Path = ROOT,
     *,
@@ -221,7 +365,7 @@ def tracked_pretag_lean_files(
     forbidden = {
         relpath
         for relpath in paths
-        if relpath.endswith(".lean")
+        if relpath.endswith(PRETAG_LEAN_SUFFIXES)
         or relpath.rsplit("/", 1)[-1] in PRETAG_PACKAGE_FILENAMES
     }
     return sorted(forbidden), []
@@ -836,6 +980,7 @@ def validate_documents(freeze, source_theorems, source_counterexamples, base_con
     errors.extend(human_release_boundary_errors(freeze, human))
 
     if check_paths:
+        errors.extend(tracked_authority_object_errors())
         tracked_pretag_paths, inventory_errors = tracked_pretag_lean_files()
         errors.extend(inventory_errors)
         for relpath in tracked_pretag_paths:
@@ -855,12 +1000,24 @@ def validate_documents(freeze, source_theorems, source_counterexamples, base_con
 
 
 def validate(*, require_basis_objects: bool = True):
-    paths = [FREEZE, SOURCE_THEOREMS, SOURCE_COUNTEREXAMPLES, BASE_CONTRACT, HUMAN, ROADMAP, README4AI, WORKFLOW, FROZEN, BASE, ARTIFACT_VERIFIER]
+    paths = [FREEZE, SOURCE_THEOREMS, SOURCE_COUNTEREXAMPLES, BASE_CONTRACT, ROADMAP_STATE, HUMAN, ROADMAP, README4AI, WORKFLOW, FROZEN, BASE, ARTIFACT_VERIFIER]
     missing = [str(path.relative_to(ROOT)) for path in paths if not path.is_file()]
     if missing:
         return {
             "status": "error",
             "errors": [f"missing Lean observation freeze authority: {x}" for x in missing],
+            "batch_id": None,
+            "theorem_count": 0,
+            "deferred_count": 0,
+            "module_count": 0,
+            "basis_objects_verified": False,
+        }
+    try:
+        load_json(ROADMAP_STATE)
+    except (OSError, ValueError) as exc:
+        return {
+            "status": "error",
+            "errors": [f"live roadmap state JSON invalid: {exc}"],
             "batch_id": None,
             "theorem_count": 0,
             "deferred_count": 0,

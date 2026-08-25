@@ -13,6 +13,7 @@ import copy
 import hashlib
 import importlib.util
 import json
+import math
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -73,6 +74,41 @@ for _name in dir(_base):
     if not _name.startswith("__") and _name not in {"validate", "main", "_live_roadmap_errors", "_live_bootstrap_errors"}:
         globals()[_name] = getattr(_base, _name)
 
+
+def reject_duplicate_object_keys(
+    pairs: list[tuple[str, object]],
+) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON object key: {key}")
+        result[key] = value
+    return result
+
+
+def reject_nonfinite_constant(value: str):
+    raise ValueError(f"non-finite JSON number: {value}")
+
+
+def parse_finite_float(value: str) -> float:
+    parsed = float(value)
+    if not math.isfinite(parsed):
+        raise ValueError(f"non-finite JSON number: {value}")
+    return parsed
+
+
+def load_json(path: Path) -> dict[str, object]:
+    value = json.loads(
+        path.read_text(encoding="utf-8"),
+        object_pairs_hook=reject_duplicate_object_keys,
+        parse_constant=reject_nonfinite_constant,
+        parse_float=parse_finite_float,
+    )
+    if not isinstance(value, dict):
+        raise ValueError(f"{path} must contain an object")
+    return value
+
+
 EXPECTED_LIVE_ROADMAP = copy.deepcopy(_base.EXPECTED_LIVE_ROADMAP)
 for _item in EXPECTED_LIVE_ROADMAP["sequence"]:
     if _item.get("planned_pr") == 10:
@@ -103,7 +139,10 @@ STALE_SCHEDULE_PHRASE = (
 
 def _live_roadmap_errors() -> list[str]:
     errors: list[str] = []
-    roadmap = _base._original_load_json(ROADMAP_STATE)
+    try:
+        roadmap = load_json(ROADMAP_STATE)
+    except (OSError, ValueError) as exc:
+        return [f"EFP live roadmap JSON invalid: {exc}"]
     if roadmap.get("schema_version") != "1.7.0":
         errors.append("EFP live roadmap schema drift")
     if roadmap.get("snapshot_date") != "2026-08-24":
