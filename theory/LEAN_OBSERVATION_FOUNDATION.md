@@ -14,6 +14,7 @@ SOURCE_THEOREM != LEAN_ARTIFACT
 THEOREM_BATCH_FREEZE != SOURCE_RELEASE_TAG
 SOURCE_RELEASE_TAG != LEAN_VERIFIED
 LEAN_PROOF != RUNTIME_CONFORMANCE != EMPIRICAL_VALIDATION
+UFT-OBS-005_DEFERRED != UFT-OBS-005_DROPPED
 ```
 
 After this freeze PR merges, the next gate is exact merged-`main` CI plus hostile review, followed by an immutable source-release tag of that exact commit/tree. Lean proof implementation must target that tag rather than moving `main`.

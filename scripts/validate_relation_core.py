@@ -9,12 +9,57 @@ freezing to the post-merge source-release gate.
 from __future__ import annotations
 
 import copy
+import hashlib
 import importlib.util
+import json
 
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = ROOT / "scripts/validate_relation_core_pr21_pre_release_gate.py"
+FROZEN_BASE = ROOT / "scripts/validate_relation_core_frozen_pr11.py"
+EXPECTED_BASE_VALIDATOR_BLOB = "6f1e5629213276169c169f61ef6271a15f40a79e"
+EXPECTED_FROZEN_BASE_VALIDATOR_BLOB = "655fee62ff316a424a1b28ccc35c7fe82e0ed8e2"
+
+
+def local_git_blob_sha(path: Path) -> str:
+    data = path.read_bytes()
+    return hashlib.sha1(f"blob {len(data)}\0".encode("ascii") + data).hexdigest()
+
+
+def base_validator_blob_errors(path: Path = BASE) -> list[str]:
+    """Bind the immediate relation compatibility authority before importing it."""
+    if not path.is_file():
+        return ["pre-release-gate relation compatibility validator missing before import"]
+    actual = local_git_blob_sha(path)
+    if actual != EXPECTED_BASE_VALIDATOR_BLOB:
+        return [
+            "pre-release-gate relation compatibility validator blob drift: "
+            f"expected {EXPECTED_BASE_VALIDATOR_BLOB}, got {actual}"
+        ]
+    return []
+
+
+def frozen_base_validator_blob_errors(path: Path = FROZEN_BASE) -> list[str]:
+    """Bind the frozen PR11 engine imported by the immediate wrapper."""
+    if not path.is_file():
+        return ["frozen PR11 relation validator missing before compatibility import"]
+    actual = local_git_blob_sha(path)
+    if actual != EXPECTED_FROZEN_BASE_VALIDATOR_BLOB:
+        return [
+            "frozen PR11 relation validator blob drift: "
+            f"expected {EXPECTED_FROZEN_BASE_VALIDATOR_BLOB}, got {actual}"
+        ]
+    return []
+
+
+def compatibility_validator_blob_errors() -> list[str]:
+    return base_validator_blob_errors() + frozen_base_validator_blob_errors()
+
+
+_preload_base_errors = compatibility_validator_blob_errors()
+if _preload_base_errors:
+    raise RuntimeError("; ".join(_preload_base_errors))
 
 _spec = importlib.util.spec_from_file_location("relation_core_pr21_pre_release_gate", BASE)
 if _spec is None or _spec.loader is None:
@@ -54,5 +99,28 @@ for _name in dir(_base):
 globals()["EXPECTED_ROADMAP_STATE"] = EXPECTED_ROADMAP_STATE
 globals()["EXPECTED_ROADMAP_SEQUENCE"] = EXPECTED_ROADMAP_SEQUENCE
 
+
+def validate():
+    result = _base.validate()
+    errors = list(result.get("errors", []))
+    errors.extend(compatibility_validator_blob_errors())
+    result["errors"] = errors
+    result["status"] = "error" if errors else "ok"
+    return result
+
+
+def main() -> int:
+    parser = __import__("argparse").ArgumentParser()
+    parser.add_argument("--json", action="store_true")
+    args = parser.parse_args()
+    result = validate()
+    if args.json:
+        print(json.dumps(result, indent=2, sort_keys=True))
+    else:
+        print("PR11 relation/selection core:", result["status"])
+        for error in result["errors"]:
+            print(" -", error)
+    return 0 if result["status"] == "ok" else 1
+
 if __name__ == "__main__":
-    raise SystemExit(_base.main())
+    raise SystemExit(main())

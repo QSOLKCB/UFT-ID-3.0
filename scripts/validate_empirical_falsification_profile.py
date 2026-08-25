@@ -10,14 +10,58 @@ this is a phase transition, not a schema migration.
 from __future__ import annotations
 
 import copy
+import hashlib
 import importlib.util
 import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = ROOT / "scripts/validate_empirical_falsification_profile_pr21_pretag.py"
+FROZEN_BASE = ROOT / "scripts/validate_empirical_falsification_profile_pr19_frozen.py"
 ROADMAP_STATE = ROOT / "machine/roadmap_state.json"
 README4AI = ROOT / "README4AI.md"
+EXPECTED_BASE_VALIDATOR_BLOB = "6ca1901fa7bf7276ac49931b2b720d60b6b16e06"
+EXPECTED_FROZEN_BASE_VALIDATOR_BLOB = "9df33dbefa3463aa12560c475f6f02fcafd7933c"
+
+
+def local_git_blob_sha(path: Path) -> str:
+    data = path.read_bytes()
+    return hashlib.sha1(f"blob {len(data)}\0".encode("ascii") + data).hexdigest()
+
+
+def base_validator_blob_errors(path: Path = BASE) -> list[str]:
+    """Bind the immediate EFP compatibility authority before importing it."""
+    if not path.is_file():
+        return ["pre-release-gate EFP compatibility validator missing before import"]
+    actual = local_git_blob_sha(path)
+    if actual != EXPECTED_BASE_VALIDATOR_BLOB:
+        return [
+            "pre-release-gate EFP compatibility validator blob drift: "
+            f"expected {EXPECTED_BASE_VALIDATOR_BLOB}, got {actual}"
+        ]
+    return []
+
+
+def frozen_base_validator_blob_errors(path: Path = FROZEN_BASE) -> list[str]:
+    """Bind the historical EFP engine imported by the immediate wrapper."""
+    if not path.is_file():
+        return ["frozen PR19 EFP validator missing before compatibility import"]
+    actual = local_git_blob_sha(path)
+    if actual != EXPECTED_FROZEN_BASE_VALIDATOR_BLOB:
+        return [
+            "frozen PR19 EFP validator blob drift: "
+            f"expected {EXPECTED_FROZEN_BASE_VALIDATOR_BLOB}, got {actual}"
+        ]
+    return []
+
+
+def compatibility_validator_blob_errors() -> list[str]:
+    return base_validator_blob_errors() + frozen_base_validator_blob_errors()
+
+
+_preload_base_errors = compatibility_validator_blob_errors()
+if _preload_base_errors:
+    raise RuntimeError("; ".join(_preload_base_errors))
 
 _spec = importlib.util.spec_from_file_location("efp_validator_pr21_pretag", BASE)
 if _spec is None or _spec.loader is None:
@@ -124,11 +168,16 @@ def validate() -> dict[str, object]:
         _base._live_roadmap_errors = _live_roadmap_errors
         _base._live_bootstrap_errors = _live_bootstrap_errors
         _base.load_module = globals()["load_module"]
-        return _base.validate()
+        result = _base.validate()
     finally:
         _base._live_roadmap_errors = old_roadmap
         _base._live_bootstrap_errors = old_bootstrap
         _base.load_module = old_loader
+    errors = list(result.get("errors", []))
+    errors.extend(compatibility_validator_blob_errors())
+    result["errors"] = errors
+    result["status"] = "error" if errors else "ok"
+    return result
 
 
 def main() -> int:

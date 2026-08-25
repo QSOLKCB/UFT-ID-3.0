@@ -20,10 +20,49 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 BASE = ROOT / "scripts/validate_lean_observation_foundation_pr21_pre_codex4.py"
 EXPECTED_BASE_VALIDATOR_BLOB = "cb18daf549e87a94b64ae85b58369f9a2e329f91"
+EXPECTED_WORKFLOW_BLOB = "0cfe3a240010a07d3588682b806bed427c7d2aa8"
+EXPECTED_WORKFLOW_PATHS = (
+    '- "research/vopson/**"',
+    '- "scripts/validate_vopson_corpus.py"',
+    '- "scripts/render_vopson_docs.py"',
+    '- "scripts/validate_reproducibility.py"',
+    '- "scripts/validate_lean_observation_foundation.py"',
+    '- "scripts/validate_lean_observation_foundation_pr21_pre_codex4.py"',
+    '- "scripts/validate_lean_observation_foundation_pr21_frozen.py"',
+    '- "tests/**"',
+    '- "machine/**"',
+    '- "README.md"',
+    '- "README4AI.md"',
+    '- "ROADMAP.md"',
+    '- "AGENTS.md"',
+    '- "docs/REPRODUCIBILITY.md"',
+    '- "theory/LEAN_OBSERVATION_FOUNDATION.md"',
+    '- "UFTID/**"',
+    '- "**/*.lean"',
+    '- "lean-toolchain"',
+    '- "lakefile.toml"',
+    '- "lake-manifest.json"',
+    '- ".github/workflows/**"',
+)
+_EXPECTED_WORKFLOW_PATH_LINES = "".join(f"      {entry}\n" for entry in EXPECTED_WORKFLOW_PATHS)
+EXPECTED_WORKFLOW_EVENT_BODIES = {
+    "pull_request": "    paths:\n" + _EXPECTED_WORKFLOW_PATH_LINES,
+    "push": "    branches: [main]\n    paths:\n" + _EXPECTED_WORKFLOW_PATH_LINES + "\n",
+}
+EXPECTED_FREEZE_STEP_BODY = (
+    "        env:\n"
+    '          UFT_REQUIRE_BASIS_COMMIT_OBJECT: "1"\n'
+    "        run: python scripts/validate_lean_observation_foundation.py\n\n"
+)
 
 
 def local_git_blob_sha(path: Path) -> str:
     data = path.read_bytes()
+    return hashlib.sha1(f"blob {len(data)}\0".encode("ascii") + data).hexdigest()
+
+
+def text_git_blob_sha(text: str) -> str:
+    data = text.encode("utf-8")
     return hashlib.sha1(f"blob {len(data)}\0".encode("ascii") + data).hexdigest()
 
 
@@ -120,6 +159,19 @@ def _exact_freeze_environment_errors(freeze_step: str) -> list[str]:
     return errors
 
 
+def _exact_freeze_command_errors(freeze_step: str) -> list[str]:
+    normalized_step = _normalize_yaml_escapes_for_action_count(freeze_step)
+    run_key = r'(?:run|"run"|\'run\')'
+    values = tuple(
+        match.group("value")
+        for match in re.finditer(rf"(?m)^        {run_key}\s*:(?P<value>[^\n]*)$", normalized_step)
+    )
+    expected = (" python scripts/validate_lean_observation_foundation.py",)
+    if values != expected:
+        return ["registered Lean-freeze validator command must be exact and blocking"]
+    return []
+
+
 def _normalize_yaml_escapes_for_action_count(text: str) -> str:
     """Expose YAML double-quoted escapes before counting action identities."""
     normalized = re.sub(r"\\x([0-9a-fA-F]{2})", lambda match: chr(int(match.group(1), 16)), text)
@@ -169,11 +221,16 @@ def _checkout_revision_errors(job_body: str) -> list[str]:
 
 def workflow_contract_errors(text: str) -> list[str]:
     errors = list(_base.workflow_contract_errors(text))
+    if text_git_blob_sha(text) != EXPECTED_WORKFLOW_BLOB:
+        errors.append("registered Lean-freeze workflow complete Git blob drift")
     required_helper = '- "scripts/validate_lean_observation_foundation_pr21_pre_codex4.py"'
     for event in ("pull_request", "push"):
         event_paths = _base.workflow_event_paths(text, event)
+        event_body = _base.workflow_event_block(text, event)
         if event_paths is None or event_paths.count(required_helper) != 1:
             errors.append(f"registered Lean-freeze workflow {event} path trigger drift: {required_helper}")
+        if event_body != EXPECTED_WORKFLOW_EVENT_BODIES[event] or event_paths != EXPECTED_WORKFLOW_PATHS:
+            errors.append(f"registered Lean-freeze workflow {event} path list must match the exact canonical ordered set")
 
     job_body = _base.workflow_job_block(text, "validate-corpus")
     if job_body is None:
@@ -182,18 +239,20 @@ def workflow_contract_errors(text: str) -> list[str]:
     freeze_step = _base.workflow_named_step_block(job_body, "Validate Lean observation source freeze")
     if freeze_step is not None:
         errors.extend(_exact_freeze_environment_errors(freeze_step))
+        errors.extend(_exact_freeze_command_errors(freeze_step))
+        if freeze_step != EXPECTED_FREEZE_STEP_BODY:
+            errors.append("registered Lean-freeze validator step must match the exact canonical body")
     return errors
 
 
-def _human_text_block(human: str, heading: str, missing_error: str, block_error: str) -> tuple[str | None, list[str]]:
-    section = _base._frozen.section(human, heading)
-    if section is None:
-        return None, [missing_error]
-
+def _canonical_text_blocks(text: str, block_error: str) -> tuple[tuple[str, ...] | None, list[str]]:
+    """Parse only canonical, unindented triple-backtick text fences."""
+    if "<!--" in text or "-->" in text:
+        return None, [block_error]
     blocks: list[str] = []
     body_lines: list[str] = []
     inside = False
-    for line in section.splitlines():
+    for line in text.splitlines():
         if re.fullmatch(r"\s*(?:`{3,}|~{3,})(?:[^`]*)?", line) is None:
             if inside:
                 body_lines.append(line)
@@ -210,21 +269,125 @@ def _human_text_block(human: str, heading: str, missing_error: str, block_error:
             inside = False
     if inside or not blocks:
         return None, [block_error]
+    return tuple(blocks), []
+
+
+def _canonical_human_section(human: str, heading: str) -> str | None:
+    lines = human.splitlines()
+    exact = [line for line in lines if line == heading]
+    near = [line for line in lines if line.strip().casefold() == heading.casefold()]
+    if len(exact) != 1 or len(near) != 1:
+        return None
+    return _base._frozen.section(human, heading)
+
+
+def _human_text_blocks(human: str, heading: str, missing_error: str, block_error: str) -> tuple[tuple[str, ...] | None, list[str]]:
+    section = _canonical_human_section(human, heading)
+    if section is None:
+        return None, [missing_error]
+    return _canonical_text_blocks(section, block_error)
+
+
+def _human_text_block(human: str, heading: str, missing_error: str, block_error: str) -> tuple[str | None, list[str]]:
+    blocks, errors = _human_text_blocks(human, heading, missing_error, block_error)
+    if blocks is None:
+        return None, errors
+    if len(blocks) != 1:
+        return None, [block_error]
     return blocks[0], []
+
+
+def _block_lines(block: str) -> tuple[str, ...]:
+    return tuple(line.strip() for line in block.splitlines() if line.strip())
+
+
+def human_hard_boundary_errors(freeze: dict[str, object], human: str) -> list[str]:
+    expected = freeze.get("hard_boundaries")
+    if not isinstance(expected, list) or not expected or any(not isinstance(item, str) for item in expected):
+        return ["Lean observation machine hard boundaries malformed"]
+
+    heading = "## Frozen source authority"
+    if _canonical_human_section(human, heading) is None:
+        return ["Lean observation human hard-boundary preamble missing"]
+    lines = human.splitlines()
+    matches = [index for index, line in enumerate(lines) if line == heading]
+    preamble = "\n".join(lines[:matches[0]])
+    blocks, errors = _canonical_text_blocks(
+        preamble,
+        "Lean observation human hard-boundary code block missing",
+    )
+    if blocks is None:
+        return errors
+    if len(blocks) != 1 or _block_lines(blocks[0]) != tuple(expected):
+        return ["Lean observation human hard-boundary block drift"]
+    return []
+
+
+def human_batch_selection_errors(freeze: dict[str, object], human: str) -> list[str]:
+    theorem_ids = freeze.get("theorem_ids")
+    deferred_ids = freeze.get("deferred_theorem_ids")
+    boundaries = freeze.get("hard_boundaries")
+    if (
+        not isinstance(theorem_ids, list)
+        or not theorem_ids
+        or any(not isinstance(item, str) for item in theorem_ids)
+        or not isinstance(deferred_ids, list)
+        or not deferred_ids
+        or any(not isinstance(item, str) for item in deferred_ids)
+        or not isinstance(boundaries, list)
+        or any(not isinstance(item, str) for item in boundaries)
+    ):
+        return ["Lean observation machine batch selection malformed"]
+
+    blocks, errors = _human_text_blocks(
+        human,
+        "## Batch selection",
+        "Lean observation human batch selection missing",
+        "Lean observation human batch-selection code blocks drift",
+    )
+    if blocks is None:
+        return errors
+    deferred_boundaries = tuple(
+        boundary for boundary in boundaries if boundary.startswith("UFT-OBS-005_DEFERRED")
+    )
+    if len(deferred_boundaries) != 1:
+        return ["Lean observation machine deferred-theorem boundary malformed"]
+    if len(blocks) != 3:
+        return ["Lean observation human batch-selection code blocks drift"]
+
+    frozen_projection = "Frozen in batch 001:\n\n```text\n" + "\n".join(theorem_ids) + "\n```"
+    deferred_projection = "Deferred to a later Lean batch:\n\n```text\n" + "\n".join(deferred_ids) + "\n```"
+
+    result: list[str] = []
+    if section := _canonical_human_section(human, "## Batch selection"):
+        if section.count(frozen_projection) != 1 or section.count(deferred_projection) != 1:
+            result.append("Lean observation human batch-selection labels drift")
+        elif section.index(frozen_projection) > section.index(deferred_projection):
+            result.append("Lean observation human batch-selection ordering drift")
+    if _block_lines(blocks[0]) != tuple(theorem_ids):
+        result.append("Lean observation human frozen theorem list drift")
+    if _block_lines(blocks[1]) != tuple(deferred_ids):
+        result.append("Lean observation human deferred theorem list drift")
+    if _block_lines(blocks[2]) != deferred_boundaries:
+        result.append("Lean observation human deferred-theorem boundary drift")
+    return result
 
 
 def human_dependency_graph_errors(freeze: dict[str, object], human: str) -> list[str]:
     graph = freeze.get("dependency_graph")
     if not isinstance(graph, dict):
         return ["Lean observation machine dependency graph malformed"]
-    body, errors = _human_text_block(
+    blocks, errors = _human_text_blocks(
         human,
         "## Dependency graph",
         "Lean observation human dependency graph missing",
         "Lean observation human dependency graph code block missing",
     )
-    if body is None:
+    if blocks is None:
         return errors
+    if len(blocks) != 2:
+        return ["Lean observation human dependency graph code block missing"]
+    body = blocks[0]
 
     nodes: set[str] = set()
     edges: list[tuple[str, str]] = []
@@ -256,6 +419,72 @@ def human_dependency_graph_errors(freeze: dict[str, object], human: str) -> list
 
     if malformed or nodes != expected_nodes or set(edges) != expected_edges or len(edges) != len(expected_edges):
         return ["Lean observation human dependency graph drift"]
+    return []
+
+
+def human_counterexample_dependency_errors(freeze: dict[str, object], human: str) -> list[str]:
+    records = freeze.get("theorems")
+    if not isinstance(records, list) or any(not isinstance(item, dict) for item in records):
+        return ["Lean observation machine counterexample dependency map malformed"]
+
+    expected_by_counterexample: dict[str, list[str]] = {}
+    for record in records:
+        theorem_id = record.get("id")
+        dependencies = record.get("counterexample_dependencies")
+        if (
+            not isinstance(theorem_id, str)
+            or not isinstance(dependencies, list)
+            or any(not isinstance(item, str) for item in dependencies)
+        ):
+            return ["Lean observation machine counterexample dependency map malformed"]
+        for counterexample_id in dependencies:
+            expected_by_counterexample.setdefault(counterexample_id, []).append(theorem_id)
+
+    blocks, errors = _human_text_blocks(
+        human,
+        "## Dependency graph",
+        "Lean observation human dependency graph missing",
+        "Lean observation human counterexample dependency code block missing",
+    )
+    if blocks is None:
+        return errors
+    if len(blocks) != 2:
+        return ["Lean observation human counterexample dependency code block missing"]
+
+    parsed: list[tuple[str, tuple[str, ...]]] = []
+    malformed = False
+    for raw in blocks[1].splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        match = re.fullmatch(
+            r"(CX-OBS-\d{3})\s*->\s*(UFT-OBS-\d{3}(?:,\s*UFT-OBS-\d{3})*)",
+            line,
+        )
+        if match is None:
+            malformed = True
+            continue
+        theorem_ids = tuple(item.strip() for item in match.group(2).split(","))
+        parsed.append((match.group(1), theorem_ids))
+
+    expected = [
+        (counterexample_id, tuple(expected_by_counterexample[counterexample_id]))
+        for counterexample_id in sorted(expected_by_counterexample)
+    ]
+    section = _canonical_human_section(human, "## Dependency graph")
+    expected_block = "Adversarial companions remain separately typed:\n\n```text\n" + "\n".join(
+        counterexample_id + " -> " + ", ".join(theorem_ids)
+        for counterexample_id, theorem_ids in expected
+    ) + "\n```"
+    expected_nonpremise = "Counterexamples are not theorem premises and executable witnesses are not Lean proofs."
+    if (
+        malformed
+        or parsed != expected
+        or section is None
+        or section.count(expected_block) != 1
+        or section.count(expected_nonpremise) != 1
+    ):
+        return ["Lean observation human counterexample dependency graph drift"]
     return []
 
 
@@ -462,7 +691,10 @@ def validate_documents(freeze, source_theorems, source_counterexamples, base_con
         require_basis_objects=require_basis_objects,
     )
     errors = list(result.get("errors", []))
+    errors.extend(human_hard_boundary_errors(freeze, human))
+    errors.extend(human_batch_selection_errors(freeze, human))
     errors.extend(human_dependency_graph_errors(freeze, human))
+    errors.extend(human_counterexample_dependency_errors(freeze, human))
     errors.extend(human_lean_module_map_errors(freeze, human))
     errors.extend(human_release_boundary_errors(freeze, human))
 
