@@ -68,69 +68,80 @@ class LatestCodexLeanFreezeRegressions(unittest.TestCase):
                 with self.subTest(field=field, attack=attack.strip()):
                     docs = documents()
                     docs[field] += attack
-                    self.assert_error_contains(
-                        docs,
-                        f"{label} theorem-scoped Lean verification promotion",
-                    )
+                    self.assert_error_contains(docs, f"{label} theorem-scoped Lean verification promotion")
 
-    def test_human_batch_and_basis_metadata_are_exact_bound(self):
+    def test_generic_batch_lean_verification_claims_fail_closed(self):
+        attack = "\nThe frozen theorem batch passed Lean verification.\n"
+        for field, label in (("human", "human freeze"), ("readme", "README4AI"), ("roadmap", "ROADMAP")):
+            with self.subTest(field=field):
+                docs = documents()
+                docs[field] += attack
+                self.assert_error_contains(docs, f"{label} generic batch Lean verification promotion")
+
+    def test_source_tag_completion_claims_fail_closed(self):
+        attack = "\nThe immutable source-release tag has now been cut and published.\n"
+        for field, label in (("human", "human freeze"), ("readme", "README4AI"), ("roadmap", "ROADMAP")):
+            with self.subTest(field=field):
+                docs = documents()
+                docs[field] += attack
+                self.assert_error_contains(docs, f"{label} source-tag completion promotion")
+
+    def test_human_batch_basis_and_proof_reference_metadata_are_exact_bound(self):
         docs = documents()
-        docs["human"] = docs["human"].replace(
-            "**Batch:** `LEAN-OBS-BATCH-001`",
-            "**Batch:** `LEAN-OBS-BATCH-999`",
-            1,
-        )
+        docs["human"] = docs["human"].replace("**Batch:** `LEAN-OBS-BATCH-001`", "**Batch:** `LEAN-OBS-BATCH-999`", 1)
         self.assert_error_contains(docs, "human batch identity drift")
 
         docs = documents()
-        docs["human"] = docs["human"].replace(
-            f"**Basis commit:** `{V.BASIS_COMMIT}`",
-            "**Basis commit:** `0000000000000000000000000000000000000000`",
-            1,
-        )
+        docs["human"] = docs["human"].replace(f"**Basis commit:** `{V.BASIS_COMMIT}`", "**Basis commit:** `0000000000000000000000000000000000000000`", 1)
         self.assert_error_contains(docs, "human basis commit drift")
+
+        docs = documents()
+        correct = "**Proof reference:** `theory/OBSERVATION_CALCULUS.md#uft-obs-001-observational-equivalence`"
+        docs["human"] = docs["human"].replace(correct, correct + "\n**Proof reference:** `theory/WRONG.md#wrong`", 1)
+        self.assert_error_contains(docs, "UFT-OBS-001 human Proof reference drift")
 
     def test_registered_freeze_step_and_job_must_remain_blocking_even_with_quoted_keys(self):
         workflow = (ROOT / ".github/workflows/vopson-corpus.yml").read_text(encoding="utf-8")
         self.assertEqual(V.workflow_contract_errors(workflow), [])
-
         mutations = (
-            (
-                "      - name: Validate Lean observation source freeze\n",
-                "      - name: Validate Lean observation source freeze\n        if: false\n",
-                "validator step may not be conditional or nonblocking",
-            ),
-            (
-                "      - name: Validate Lean observation source freeze\n",
-                "      - name: Validate Lean observation source freeze\n        continue-on-error: true\n",
-                "validator step may not be conditional or nonblocking",
-            ),
-            (
-                "      - name: Validate Lean observation source freeze\n",
-                "      - name: Validate Lean observation source freeze\n        \"continue-on-error\": true\n",
-                "validator step may not be conditional or nonblocking",
-            ),
-            (
-                "  validate-corpus:\n",
-                "  validate-corpus:\n    if: false\n",
-                "validate-corpus job may not be conditional or nonblocking",
-            ),
-            (
-                "  validate-corpus:\n",
-                "  validate-corpus:\n    continue-on-error: true\n",
-                "validate-corpus job may not be conditional or nonblocking",
-            ),
-            (
-                "  validate-corpus:\n",
-                "  validate-corpus:\n    \"if\": false\n",
-                "validate-corpus job may not be conditional or nonblocking",
-            ),
+            ("      - name: Validate Lean observation source freeze\n", "      - name: Validate Lean observation source freeze\n        if: false\n", "validator step may not be conditional or nonblocking"),
+            ("      - name: Validate Lean observation source freeze\n", "      - name: Validate Lean observation source freeze\n        continue-on-error: true\n", "validator step may not be conditional or nonblocking"),
+            ("      - name: Validate Lean observation source freeze\n", "      - name: Validate Lean observation source freeze\n        \"continue-on-error\": true\n", "validator step may not be conditional or nonblocking"),
+            ("  validate-corpus:\n", "  validate-corpus:\n    if: false\n", "validate-corpus job may not be conditional or nonblocking"),
+            ("  validate-corpus:\n", "  validate-corpus:\n    continue-on-error: true\n", "validate-corpus job may not be conditional or nonblocking"),
+            ("  validate-corpus:\n", "  validate-corpus:\n    \"if\": false\n", "validate-corpus job may not be conditional or nonblocking"),
         )
         for old, new, fragment in mutations:
             with self.subTest(mutation=new.strip()):
-                mutated = workflow.replace(old, new, 1)
-                errors = V.workflow_contract_errors(mutated)
+                errors = V.workflow_contract_errors(workflow.replace(old, new, 1))
                 self.assertTrue(any(fragment in e for e in errors), errors)
+
+    def test_validator_command_and_env_are_bound_to_named_freeze_step(self):
+        workflow = (ROOT / ".github/workflows/vopson-corpus.yml").read_text(encoding="utf-8")
+        canonical = (
+            "      - name: Validate Lean observation source freeze\n"
+            "        env:\n"
+            "          UFT_REQUIRE_BASIS_COMMIT_OBJECT: \"1\"\n"
+            "        run: python scripts/validate_lean_observation_foundation.py\n"
+        )
+        decoy = (
+            "      - name: Validate Lean observation source freeze\n"
+            "        run: echo skipped\n\n"
+            "      - name: Decoy Lean freeze command\n"
+            "        if: false\n"
+            "        env:\n"
+            "          UFT_REQUIRE_BASIS_COMMIT_OBJECT: \"1\"\n"
+            "        run: python scripts/validate_lean_observation_foundation.py\n"
+        )
+        mutated = workflow.replace(canonical, decoy, 1)
+        errors = V.workflow_contract_errors(mutated)
+        self.assertTrue(any("named step command/env drift" in e for e in errors), errors)
+
+    def test_pull_request_activity_types_must_remain_unrestricted(self):
+        workflow = (ROOT / ".github/workflows/vopson-corpus.yml").read_text(encoding="utf-8")
+        mutated = workflow.replace("  pull_request:\n    paths:\n", "  pull_request:\n    types: [closed]\n    paths:\n", 1)
+        errors = V.workflow_contract_errors(mutated)
+        self.assertTrue(any("pull_request activity types must remain unrestricted" in e for e in errors), errors)
 
     def test_registered_push_branch_is_exactly_main(self):
         workflow = (ROOT / ".github/workflows/vopson-corpus.yml").read_text(encoding="utf-8")
@@ -155,10 +166,7 @@ class LatestCodexLeanFreezeRegressions(unittest.TestCase):
             self.assertEqual(result["status"], "error")
             self.assertFalse(result["basis_objects_verified"])
             self.assertTrue(any("basis commit blob object unavailable" in e for e in result["errors"]), result["errors"])
-            self.assertIn(
-                "complete PR9 basis dependency closure was not resolved from readable Git blob objects",
-                result["errors"],
-            )
+            self.assertIn("complete PR9 basis dependency closure was not resolved from readable Git blob objects", result["errors"])
 
             mutation_only = V.validate(require_basis_objects=False)
             self.assertEqual(mutation_only["status"], "ok", mutation_only["errors"])
