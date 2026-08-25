@@ -84,6 +84,18 @@ class LeanObservationProjectionBoundaryRegressions(unittest.TestCase):
         self.assertTrue(required_blob_paths.issubset(self.v._LIVE_AUTHORITY_MODES))
         self.assertEqual(
             self.v._LIVE_AUTHORITY_MODES["scripts/validate_lean_observation_foundation.py"],
+            "100644",
+        )
+        self.assertEqual(
+            self.v._LIVE_AUTHORITY_MODES[
+                "scripts/validate_lean_observation_foundation_pr21_final_frozen.py"
+            ],
+            "100755",
+        )
+        self.assertEqual(
+            self.v._LIVE_AUTHORITY_MODES[
+                "scripts/validate_lean_observation_foundation_pr22_batch2_precompiler.py"
+            ],
             "100755",
         )
         self.assertNotIn(
