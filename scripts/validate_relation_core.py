@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Post-tag live-schedule wrapper for the frozen PR11 relation authority.
+"""Verified-Lean live-schedule wrapper for the frozen PR11 relation authority.
 
 The exact pre-release-gate wrapper is preserved in
 validate_relation_core_pr21_pre_release_gate.py. PR11 theorem semantics remain
-frozen; only the shared live roadmap expectation advances to the post-tag Lean
-implementation/CI-hardening phase. The roadmap schema/snapshot remain 1.7.0 /
-2026-08-24 because this is a phase transition, not a schema migration.
+frozen; only the shared live roadmap expectation advances to the post-merge
+LEAN_VERIFIED phase. The roadmap schema/snapshot remain 1.7.0 / 2026-08-24
+because this is a phase transition, not a schema migration.
 """
 from __future__ import annotations
 
@@ -73,20 +73,23 @@ _spec.loader.exec_module(_base)
 EXPECTED_ROADMAP_STATE = copy.deepcopy(_base.EXPECTED_ROADMAP_STATE)
 for _item in EXPECTED_ROADMAP_STATE["sequence"]:
     if _item.get("planned_pr") == 10:
-        _item["status"] = "active-post-tag-lean-implementation-ci-hardening"
+        _item["status"] = "active-lean-verified-awaiting-context-and-archive"
 EXPECTED_ROADMAP_STATE["compatibility_note"] = (
     "machine/formalization_contract.json retains the PR9-era roadmap_rebase snapshot; frozen PR11, BridgeCore, "
     "Epistemic Bridge, Representation, Information Comparability, Recovery, CSP, EFP, and the v3.0.0 Lean "
     "source-freeze authorities retain their historical semantics. This file is the live post-tag schedule "
     "authority: immutable source tag v3.0.0 resolves to b7f51590985e60920c8b09fc9238b8aec6cfa3bc; "
     "LEAN-OBS-BATCH-001 implements UFT-OBS-001 through UFT-OBS-004 and LEAN-OBS-BATCH-002 implements "
-    "UFT-OBS-005. Both remain IMPLEMENTED_PENDING_CI until the pinned Lean build, source binding, hostile "
-    "review, and axiom audit are green."
+    "UFT-OBS-005. Both are LEAN_VERIFIED at formalization integration commit "
+    "bbcde19827921af4490c232bdc1edc401790d89e, tree b7ec78695f32a5b1cf78b416a5050627ad4f957d, "
+    "after exact merged-main finite-adversarial run 32876623204 and vopson-corpus run 32876623479 succeeded. "
+    "The next ordered gate is QSOL-CONTEXT verification capture, then DOI/archive work."
 )
 EXPECTED_ROADMAP_STATE["rules"][2] = (
     "The v3.0.0 source freeze remains immutable and historically records UFT-OBS-005 as deferred from batch 001; "
-    "live post-tag implementation may proceed only against that exact tag, with pinned Lean/Lake/Mathlib, exact "
-    "source binding, checked compilation, and explicit imported-axiom auditing before any LEAN_VERIFIED promotion."
+    "LEAN_VERIFIED is bound to that exact tag, pinned Lean/Lake/Mathlib, exact theorem-source identities, merged-main "
+    "build and validation at bbcde19827921af4490c232bdc1edc401790d89e, and the explicit imported-axiom audit. "
+    "Later changes require a new versioned verification state rather than rewriting this evidence."
 )
 EXPECTED_ROADMAP_SEQUENCE = [
     (item["planned_pr"], item["surface"], item["status"])
