@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""PR #21 live-schedule wrapper for the current PR11 compatibility validator.
+"""Post-tag live-schedule wrapper for the frozen PR11 relation authority.
 
 The exact pre-release-gate wrapper is preserved in
 validate_relation_core_pr21_pre_release_gate.py. PR11 theorem semantics remain
-frozen; only the shared live roadmap expectation advances from theorem-batch
-freezing to the post-merge source-release gate.
+frozen; only the shared live roadmap expectation advances to the post-tag Lean
+implementation/CI-hardening phase.
 """
 from __future__ import annotations
 
@@ -70,20 +70,24 @@ _base = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_base)
 
 EXPECTED_ROADMAP_STATE = copy.deepcopy(_base.EXPECTED_ROADMAP_STATE)
+EXPECTED_ROADMAP_STATE["schema_version"] = "1.8.0"
+EXPECTED_ROADMAP_STATE["snapshot_date"] = "2026-08-25"
 for _item in EXPECTED_ROADMAP_STATE["sequence"]:
     if _item.get("planned_pr") == 10:
-        _item["status"] = "active-post-merge-release-gate"
+        _item["status"] = "active-post-tag-lean-implementation-ci-hardening"
 EXPECTED_ROADMAP_STATE["compatibility_note"] = (
     "machine/formalization_contract.json retains the PR9-era roadmap_rebase snapshot; frozen PR11, BridgeCore, "
-    "Epistemic Bridge, Representation, Information Comparability, Recovery, CSP, and EFP theorem authorities retain "
-    "their historical semantics. This file is the live post-EFP schedule authority: the first PR #10 theorem batch "
-    "is frozen and the next gate is exact merged-main validation plus an immutable source-release tag before any Lean "
-    "proof implementation."
+    "Epistemic Bridge, Representation, Information Comparability, Recovery, CSP, EFP, and the v3.0.0 Lean "
+    "source-freeze authorities retain their historical semantics. This file is the live post-tag schedule "
+    "authority: immutable source tag v3.0.0 resolves to b7f51590985e60920c8b09fc9238b8aec6cfa3bc; "
+    "LEAN-OBS-BATCH-001 implements UFT-OBS-001 through UFT-OBS-004 and LEAN-OBS-BATCH-002 implements "
+    "UFT-OBS-005. Both remain IMPLEMENTED_PENDING_CI until the pinned Lean build, source binding, hostile "
+    "review, and axiom audit are green."
 )
 EXPECTED_ROADMAP_STATE["rules"][2] = (
-    "The first Lean theorem batch and dependency graph are frozen; exact merged-main validation and an immutable "
-    "source-release tag must complete before any Lean/Lake/Mathlib proof implementation, while mathematical proof, "
-    "Lean proof, runtime conformance, and empirical validation remain separately typed authorities."
+    "The v3.0.0 source freeze remains immutable and historically records UFT-OBS-005 as deferred from batch 001; "
+    "live post-tag implementation may proceed only against that exact tag, with pinned Lean/Lake/Mathlib, exact "
+    "source binding, checked compilation, and explicit imported-axiom auditing before any LEAN_VERIFIED promotion."
 )
 EXPECTED_ROADMAP_SEQUENCE = [
     (item["planned_pr"], item["surface"], item["status"])
