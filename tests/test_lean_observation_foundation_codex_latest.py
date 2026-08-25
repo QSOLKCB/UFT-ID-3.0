@@ -54,12 +54,14 @@ class LatestCodexLeanFreezeRegressions(unittest.TestCase):
         self.assertEqual(result["status"], "error")
         self.assertTrue(any(fragment in error for error in result["errors"]), result["errors"])
 
-    def test_perfect_tense_and_proven_theorem_scoped_claims_fail_closed(self):
+    def test_perfect_tense_proven_and_simple_past_theorem_scoped_claims_fail_closed(self):
         attacks = (
             "\nLean has proved UFT-OBS-001 through UFT-OBS-004.\n",
             "\nLean has verified UFT-OBS-001 through UFT-OBS-004.\n",
             "\nLean has proven UFT-OBS-001 through UFT-OBS-004.\n",
             "\nUFT-OBS-001 through UFT-OBS-004 have been proven in Lean.\n",
+            "\nLean proved UFT-OBS-001 through UFT-OBS-004.\n",
+            "\nLean verified LEAN-OBS-BATCH-001.\n",
         )
         for field, label in (("human", "human freeze"), ("readme", "README4AI"), ("roadmap", "ROADMAP")):
             for attack in attacks:
@@ -130,6 +132,21 @@ class LatestCodexLeanFreezeRegressions(unittest.TestCase):
                 errors = V.workflow_contract_errors(mutated)
                 self.assertTrue(any(fragment in e for e in errors), errors)
 
+    def test_registered_push_branch_is_exactly_main(self):
+        workflow = (ROOT / ".github/workflows/vopson-corpus.yml").read_text(encoding="utf-8")
+        self.assertEqual(V.workflow_event_branches(workflow, "push"), ("main",))
+        mutated = workflow.replace("    branches: [main]\n", "    branches: [staging]\n", 1)
+        errors = V.workflow_contract_errors(mutated)
+        self.assertTrue(any("push branch restriction must be exactly main" in e for e in errors), errors)
+
+    def test_basis_blob_resolution_requires_readable_blob_object(self):
+        original = V.git_object_is_blob
+        try:
+            V.git_object_is_blob = lambda object_sha: False
+            self.assertIsNone(V.basis_git_blob_sha("machine/observation_contract.json"))
+        finally:
+            V.git_object_is_blob = original
+
     def test_default_validation_requires_basis_objects(self):
         original = V.basis_git_blob_sha
         try:
@@ -137,9 +154,9 @@ class LatestCodexLeanFreezeRegressions(unittest.TestCase):
             result = V.validate()
             self.assertEqual(result["status"], "error")
             self.assertFalse(result["basis_objects_verified"])
-            self.assertTrue(any("basis commit object unavailable" in e for e in result["errors"]), result["errors"])
+            self.assertTrue(any("basis commit blob object unavailable" in e for e in result["errors"]), result["errors"])
             self.assertIn(
-                "complete PR9 basis dependency closure was not resolved from Git objects",
+                "complete PR9 basis dependency closure was not resolved from readable Git blob objects",
                 result["errors"],
             )
 
