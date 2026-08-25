@@ -3,10 +3,11 @@
 
 The combined Codex/Copilot review implementation is preserved byte-for-byte in
 ``validate_lean_observation_foundation_pr22_combined_review_frozen.py``. This
-small layer fixes two compatibility-projection details:
+small layer fixes the live/frozen compatibility boundary:
 
-* live post-tag authority surfaces are removed from both the frozen blob map and
-  the frozen mode map only for exact production projections;
+* exact production projections retain the frozen tracked-object registry and
+  overlay the registered post-tag blobs and modes, including mode-only binding
+  of this live wrapper so regular-file and symlink checks remain active;
 * workflow validation delegates through an independently loaded, hash-checked
   precompiler instead of a mutable nested module alias, preventing recursive
   wrapper re-entry while preserving the historical validator chain.
@@ -131,20 +132,35 @@ _COMPAT_BRIDGE_NAMES = tuple(
 )
 del _COMPAT_EXPORTS
 
-_LIVE_SUPERSEDED_AUTHORITY_PATHS = (
-    ".github/workflows/vopson-corpus.yml",
-    "README4AI.md",
-    "machine/roadmap_state.json",
-    "scripts/validate_lean_observation_foundation.py",
-)
+# Exact post-tag blob identities. The live wrapper itself is intentionally
+# mode-only below: a source file cannot embed a stable hash of its own bytes.
+# The inherited tracked-object checker still binds that path to the exact HEAD
+# tree object and working-tree bytes while enforcing regular-file status.
+_LIVE_AUTHORITY_BLOBS = {
+    ".github/workflows/vopson-corpus.yml": "9ec2a3f5dc6867f99955488cfc7ffc461e844e1c",
+    "README4AI.md": "f9d43b7c04494f59ef69955192aa4b3ddd00f5a0",
+    "machine/roadmap_state.json": "f36ee90d004454341300c359aa45b5da2b8ccf33",
+    "machine/lean_observation_verification.json": "bfd5b3eec5b8ee1feb6c6d168cf8d82adf0e3c37",
+    "scripts/validate_lean_observation_foundation_pr21_final_frozen.py": "42f2a2f30258cf99c1ee0755b54ef33d8d8c0d5f",
+    "scripts/validate_lean_observation_foundation_pr22_batch2_precompiler.py": EXPECTED_SAFE_PRECOMPILER_BLOB,
+    "scripts/validate_lean_observation_foundation_pr22_combined_review_frozen.py": EXPECTED_PREDECESSOR_BLOB,
+    "scripts/verify_lean_observation_axioms.py": "cf08e73685f2ba7ad7a7b0b96a686c6d3e3e330d",
+    "lean-toolchain": "a8afa7d1b02d96f0671eba854a8dc4b416beb473",
+    "lakefile.toml": "d124ac10242262e9c9b27c4e7d3efec3e01d8c5e",
+    "UFTID.lean": "6b9a25f631ed1b10f05095c04a3e19e8a862cdf8",
+    **_impl.EXPECTED_LEAN_SOURCE_BLOBS,
+}
+_LIVE_AUTHORITY_MODES = {path: "100644" for path in _LIVE_AUTHORITY_BLOBS}
+_LIVE_AUTHORITY_MODES["scripts/validate_lean_observation_foundation.py"] = "100755"
 
 
-def _without_live_replacements(mapping: dict[str, str]) -> dict[str, str]:
-    return {
-        path: value
-        for path, value in mapping.items()
-        if path not in _LIVE_SUPERSEDED_AUTHORITY_PATHS
-    }
+def _live_authority_projection() -> tuple[dict[str, str], dict[str, str]]:
+    """Overlay registered post-tag identities on the complete frozen registry."""
+    blobs = dict(_impl._frozen.EXPECTED_CURRENT_AUTHORITY_BLOBS)
+    modes = dict(_impl._frozen.EXPECTED_CURRENT_AUTHORITY_MODES)
+    blobs.update(_LIVE_AUTHORITY_BLOBS)
+    modes.update(_LIVE_AUTHORITY_MODES)
+    return blobs, modes
 
 
 def _is_exact_production_projection(
@@ -217,11 +233,9 @@ def tracked_authority_object_errors(
     runner=subprocess.run,
 ) -> list[str]:
     if expected_blobs is None and expected_modes is None:
-        blobs = dict(_impl._frozen.EXPECTED_CURRENT_AUTHORITY_BLOBS)
-        modes = dict(_impl._frozen.EXPECTED_CURRENT_AUTHORITY_MODES)
+        blobs, modes = _live_authority_projection()
     elif _is_exact_production_projection(expected_blobs, expected_modes):
-        blobs = dict(expected_blobs)
-        modes = dict(expected_modes)
+        blobs, modes = _live_authority_projection()
     else:
         return _IMPL_TRACKED_AUTHORITY_OBJECT_ERRORS(
             root,
@@ -230,8 +244,6 @@ def tracked_authority_object_errors(
             runner=runner,
         )
 
-    blobs = _without_live_replacements(blobs)
-    modes = _without_live_replacements(modes)
     return _IMPL_TRACKED_AUTHORITY_OBJECT_ERRORS(
         root,
         expected_blobs=blobs,
