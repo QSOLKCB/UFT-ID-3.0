@@ -92,6 +92,10 @@ del _COMPAT_EXPORTS
 # Preserve private compatibility handles used by the hostile regression suite.
 _base = _impl._base
 _frozen = _impl._frozen
+# Preserve the imported authority checker before validate_documents temporarily
+# replaces the module attribute with this live wrapper. Calling the attribute
+# dynamically from the wrapper would recurse into itself.
+_IMPL_TRACKED_AUTHORITY_OBJECT_ERRORS = _impl.tracked_authority_object_errors
 
 EXPECTED_LEAN_SOURCE_BLOBS = {
     "UFTID/Observation/Basic.lean": "55dbd9c883e2b3c15acc90f6f6f4085117d5d5ee",
@@ -278,7 +282,7 @@ def tracked_authority_object_errors(
     runner=subprocess.run,
 ) -> list[str]:
     if expected_blobs is not None or expected_modes is not None:
-        return _impl.tracked_authority_object_errors(
+        return _IMPL_TRACKED_AUTHORITY_OBJECT_ERRORS(
             root,
             expected_blobs=expected_blobs,
             expected_modes=expected_modes,
@@ -291,7 +295,7 @@ def tracked_authority_object_errors(
         "machine/roadmap_state.json",
     ):
         blobs.pop(relpath, None)
-    return _impl.tracked_authority_object_errors(
+    return _IMPL_TRACKED_AUTHORITY_OBJECT_ERRORS(
         root,
         expected_blobs=blobs,
         expected_modes=dict(_frozen.EXPECTED_CURRENT_AUTHORITY_MODES),
