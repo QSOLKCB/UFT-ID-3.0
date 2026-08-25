@@ -14,6 +14,7 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import math
 import re
 import subprocess
 from pathlib import Path
@@ -23,7 +24,7 @@ BASE = ROOT / "scripts/validate_lean_observation_foundation_pr21_pre_codex4.py"
 ARTIFACT_VERIFIER = ROOT / "scripts/verify_lean_observation_foundation_artifact.py"
 EXPECTED_BASE_VALIDATOR_BLOB = "cb18daf549e87a94b64ae85b58369f9a2e329f91"
 EXPECTED_ARTIFACT_VERIFIER_BLOB = "a7c8eb9729aa637dd9172d89ed08bd09ab2f981d"
-EXPECTED_WORKFLOW_BLOB = "640f19daa7f9846bbea30fc9410722883619ce89"
+EXPECTED_WORKFLOW_BLOB = "7361c8f06be5924cb071407fffaf165e9176e450"
 EXPECTED_CLAIM_SURFACE_BLOBS = {
     "human freeze": "06a9b6ed8914c5fae797cf65b990426fd9697292",
     "README4AI": "3c865866d5ac36982d315e19b9806c0b7817a739",
@@ -34,10 +35,13 @@ EXPECTED_WORKFLOW_PATHS = (
     '- "scripts/validate_vopson_corpus.py"',
     '- "scripts/render_vopson_docs.py"',
     '- "scripts/validate_reproducibility.py"',
+    '- "scripts/validate_observation_specs.py"',
     '- "scripts/validate_lean_observation_foundation.py"',
     '- "scripts/verify_lean_observation_foundation_artifact.py"',
     '- "scripts/validate_lean_observation_foundation_pr21_pre_codex4.py"',
     '- "scripts/validate_lean_observation_foundation_pr21_frozen.py"',
+    '- "experiments/observation/run.py"',
+    '- "experiments/run_pr9.py"',
     '- "tests/**"',
     '- "machine/**"',
     '- "README.md"',
@@ -45,12 +49,16 @@ EXPECTED_WORKFLOW_PATHS = (
     '- "ROADMAP.md"',
     '- "AGENTS.md"',
     '- "docs/REPRODUCIBILITY.md"',
+    '- "theory/OBSERVATION_CALCULUS.md"',
     '- "theory/LEAN_OBSERVATION_FOUNDATION.md"',
     '- "UFTID/**"',
     '- "**/*.lean"',
     '- "lean-toolchain"',
+    '- "**/lean-toolchain"',
     '- "lakefile.toml"',
+    '- "**/lakefile.toml"',
     '- "lake-manifest.json"',
+    '- "**/lake-manifest.json"',
     '- ".github/workflows/**"',
 )
 _EXPECTED_WORKFLOW_PATH_LINES = "".join(f"      {entry}\n" for entry in EXPECTED_WORKFLOW_PATHS)
@@ -66,6 +74,9 @@ EXPECTED_FREEZE_STEP_BODY = (
 EXPECTED_RETAINED_FREEZE_VERIFY_STEP_BODY = (
     "        if: always()\n"
     "        run: python scripts/verify_lean_observation_foundation_artifact.py artifacts\n\n"
+)
+PRETAG_PACKAGE_FILENAMES = frozenset(
+    {"lean-toolchain", "lakefile.toml", "lake-manifest.json"}
 )
 
 
@@ -139,6 +150,81 @@ for _name in dir(_base):
         "frozen_validator_blob_errors", "basis_git_blob_sha", "basis_source_object_errors",
     }:
         globals()[_name] = getattr(_base, _name)
+
+
+def reject_duplicate_object_keys(
+    pairs: list[tuple[str, object]],
+) -> dict[str, object]:
+    """Reject ambiguous JSON objects recursively, including escaped aliases."""
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON object key: {key}")
+        result[key] = value
+    return result
+
+
+def reject_nonfinite_constant(value: str):
+    raise ValueError(f"non-finite JSON number: {value}")
+
+
+def parse_finite_float(value: str) -> float:
+    parsed = float(value)
+    if not math.isfinite(parsed):
+        raise ValueError(f"non-finite JSON number: {value}")
+    return parsed
+
+
+def load_json(path: Path) -> dict[str, object]:
+    """Load a machine authority without silently collapsing JSON ambiguity."""
+    value = json.loads(
+        path.read_text(encoding="utf-8"),
+        object_pairs_hook=reject_duplicate_object_keys,
+        parse_constant=reject_nonfinite_constant,
+        parse_float=parse_finite_float,
+    )
+    if not isinstance(value, dict):
+        try:
+            display_path = path.relative_to(ROOT)
+        except ValueError:
+            display_path = path
+        raise ValueError(f"{display_path} must contain an object")
+    return value
+
+
+def tracked_pretag_lean_files(
+    root: Path = ROOT,
+    *,
+    runner=subprocess.run,
+) -> tuple[list[str], list[str]]:
+    """Inventory every tracked pre-tag Lean/package path, without directory skips."""
+    result = runner(
+        ["git", "ls-files", "--cached", "-z", "--"],
+        cwd=root,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        return [], ["tracked pre-tag Lean source inventory unavailable"]
+
+    output = result.stdout
+    if not isinstance(output, bytes) or (output and not output.endswith(b"\0")):
+        return [], ["tracked pre-tag Lean source inventory malformed"]
+    encoded_paths = output[:-1].split(b"\0") if output else []
+    if any(not encoded_path for encoded_path in encoded_paths):
+        return [], ["tracked pre-tag Lean source inventory malformed"]
+    try:
+        paths = [encoded_path.decode("utf-8") for encoded_path in encoded_paths]
+    except UnicodeDecodeError:
+        return [], ["tracked pre-tag Lean source inventory is not UTF-8"]
+
+    forbidden = {
+        relpath
+        for relpath in paths
+        if relpath.endswith(".lean")
+        or relpath.rsplit("/", 1)[-1] in PRETAG_PACKAGE_FILENAMES
+    }
+    return sorted(forbidden), []
 
 
 def frozen_validator_blob_errors(path: Path = FROZEN) -> list[str]:
@@ -748,6 +834,14 @@ def validate_documents(freeze, source_theorems, source_counterexamples, base_con
     errors.extend(human_counterexample_dependency_errors(freeze, human))
     errors.extend(human_lean_module_map_errors(freeze, human))
     errors.extend(human_release_boundary_errors(freeze, human))
+
+    if check_paths:
+        tracked_pretag_paths, inventory_errors = tracked_pretag_lean_files()
+        errors.extend(inventory_errors)
+        for relpath in tracked_pretag_paths:
+            diagnostic = f"pre-tag Lean source/toolchain forbidden: {relpath}"
+            if diagnostic not in errors:
+                errors.append(diagnostic)
 
     toolchain = freeze.get("toolchain")
     if isinstance(toolchain, dict) and toolchain.get("status") == "UNPINNED":
