@@ -1,14 +1,22 @@
 {
   "type": "uft-id-lean-observation-verification",
-  "schema_version": "1.2.0",
-  "status": "IMPLEMENTED_PENDING_CI",
+  "schema_version": "1.3.0",
+  "status": "LEAN_VERIFIED",
   "source_release": {
     "tag": "v3.0.0",
     "commit": "b7f51590985e60920c8b09fc9238b8aec6cfa3bc",
     "tree": "966bdf47596832f792e77d619b33222f4cf60c8d"
   },
+  "formalization_integration": {
+    "pull_request": 22,
+    "final_pr_head": "c32aaff36219961e3ec2a4e479ccdec521795bbe",
+    "merge_commit": "bbcde19827921af4490c232bdc1edc401790d89e",
+    "merge_tree": "b7ec78695f32a5b1cf78b416a5050627ad4f957d",
+    "source_release_unchanged": true
+  },
   "toolchain": {
     "lean": "v4.33.1",
+    "lake": "5.0.0-src+819816b",
     "mathlib_commit": "0df444a360eaa60ab8c11dca51a86af692955474",
     "lean_archive_url": "https://github.com/leanprover/lean4/releases/download/v4.33.1/lean-4.33.1-linux.tar.zst",
     "lean_archive_sha256": "890afd185370f85666025b883914ab4f4b339136f8c96167b69cfb62aecaf235"
@@ -23,7 +31,7 @@
         "UFT-OBS-004"
       ],
       "source_freeze_status": "FROZEN_IN_V3.0.0",
-      "implementation_status": "IMPLEMENTED_PENDING_CI"
+      "implementation_status": "LEAN_VERIFIED"
     },
     {
       "batch_id": "LEAN-OBS-BATCH-002",
@@ -31,7 +39,7 @@
         "UFT-OBS-005"
       ],
       "source_freeze_status": "DEFERRED_FROM_BATCH_001_IN_V3.0.0",
-      "implementation_status": "IMPLEMENTED_PENDING_CI"
+      "implementation_status": "LEAN_VERIFIED"
     }
   ],
   "theorems": [
@@ -73,7 +81,7 @@
   ],
   "axiom_audit": {
     "command": "python scripts/verify_lean_observation_axioms.py",
-    "status": "CI_REQUIRED_BEFORE_LEAN_VERIFIED",
+    "status": "VERIFIED_ON_MERGED_MAIN",
     "allowed_axioms": [
       "Classical.choice",
       "Quot.sound",
@@ -89,18 +97,79 @@
         "Classical.choice"
       ],
       "UFT-OBS-005": []
+    },
+    "observed_axioms_by_theorem": {
+      "UFT-OBS-001": [
+        "Quot.sound",
+        "propext"
+      ],
+      "UFT-OBS-002": [
+        "Quot.sound",
+        "propext"
+      ],
+      "UFT-OBS-003": [
+        "Classical.choice"
+      ],
+      "UFT-OBS-004": [
+        "Classical.choice"
+      ],
+      "UFT-OBS-005": [
+        "Classical.choice",
+        "Quot.sound",
+        "propext"
+      ]
     }
+  },
+  "merged_main_ci": [
+    {
+      "workflow": "finite-adversarial",
+      "workflow_id": 337029647,
+      "run_id": 32876623204,
+      "run_number": 421,
+      "event": "push",
+      "branch": "main",
+      "head_sha": "bbcde19827921af4490c232bdc1edc401790d89e",
+      "conclusion": "success",
+      "python_versions": [
+        "3.12",
+        "3.13"
+      ]
+    },
+    {
+      "workflow": "vopson-corpus",
+      "workflow_id": 337108839,
+      "run_id": 32876623479,
+      "run_number": 413,
+      "event": "push",
+      "branch": "main",
+      "head_sha": "bbcde19827921af4490c232bdc1edc401790d89e",
+      "conclusion": "success",
+      "python_versions": [
+        "3.12",
+        "3.13"
+      ],
+      "lean_build_job_id": 97895966100,
+      "lean_build_result": "Build completed successfully (8711 jobs)",
+      "axiom_audit_result": "ok"
+    }
+  ],
+  "review_evidence": {
+    "codex_no_major_issues_reviewed_commit": "111a9c7a0b6d26c999eb941f9c25f5c0f5176ed5",
+    "final_pr_head": "c32aaff36219961e3ec2a4e479ccdec521795bbe",
+    "note": "Codex explicitly reported no major issues on 111a9c7a0b. Later commits addressed compatibility and documentation review findings; the exact final PR head and merged-main integration commit subsequently passed the complete pinned CI and axiom-audit gates."
   },
   "source_freeze_deferred_theorem_ids": [
     "UFT-OBS-005"
   ],
   "current_deferred_theorem_ids": [],
+  "next_ordered_gate": "QSOL_CONTEXT_LEAN_VERIFIED_CAPTURE_THEN_DOI_ARCHIVE",
   "hard_boundaries": [
     "LEAN_PROOF != EMPIRICAL_VALIDATION",
     "LEAN_PROOF != PHYSICAL_ONTOLOGY",
     "UFT-OBS-005_DEFERRED_IN_BATCH_001 != UFT-OBS-005_DROPPED",
     "LATER_LEAN_BATCH != RETROACTIVE_SOURCE_FREEZE_REWRITE",
     "REGISTERED_DECLARATION_NAME != THEOREM_IDENTITY_WITHOUT_SOURCE_BINDING",
-    "IMPORTED_AXIOM != UFT_ID_THEOREM_RESULT"
+    "IMPORTED_AXIOM != UFT_ID_THEOREM_RESULT",
+    "SOURCE_RELEASE != LATER_LEAN_FORMALIZATION_LAYER"
   ]
 }
