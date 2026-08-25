@@ -86,9 +86,19 @@ _IMPL_LOAD_JSON = _impl.load_json
 _IMPL_LIVE_AUTHORITY_OBJECT_ERRORS = _impl.live_authority_object_errors
 _IMPL_EXPECTED_VERIFICATION_RECORD = _impl.expected_verification_record
 _IMPL_VERIFICATION_RECORD_ERRORS = _impl.verification_record_errors
+_IMPL_BASIS_GIT_BLOB_SHA = _impl.basis_git_blob_sha
+_IMPL_BASIS_SOURCE_OBJECT_ERRORS = _impl.basis_source_object_errors
+_IMPL_BASE_VALIDATOR_BLOB_ERRORS = _impl.base_validator_blob_errors
+_IMPL_FROZEN_VALIDATOR_BLOB_ERRORS = _impl.frozen_validator_blob_errors
+_IMPL_ARTIFACT_VERIFIER_BLOB_ERRORS = _impl.artifact_verifier_blob_errors
 _COMBINED_VALIDATE_DOCUMENTS = _combined.validate_documents
 
 _OVERRIDES = {
+    "basis_git_blob_sha",
+    "basis_source_object_errors",
+    "base_validator_blob_errors",
+    "frozen_validator_blob_errors",
+    "artifact_verifier_blob_errors",
     "expected_verification_record",
     "verification_record_errors",
     "load_json",
@@ -107,6 +117,13 @@ _COMPAT_EXPORTS = {
     and name != "_impl"
 }
 globals().update(_COMPAT_EXPORTS)
+_COMPAT_BRIDGE_NAMES = tuple(
+    sorted(
+        name
+        for name in _COMPAT_EXPORTS
+        if not name.startswith("_") and name not in _OVERRIDES
+    )
+)
 del _COMPAT_EXPORTS
 
 PENDING_ROADMAP_STATUS = "active-post-tag-lean-implementation-ci-hardening"
@@ -208,6 +225,56 @@ IMPORTED_AXIOM != UFT_ID_THEOREM_RESULT
 ```
 
 """
+
+
+def basis_git_blob_sha(relpath: str) -> str | None:
+    """Preserve the predecessor's Git-object mutation hook at the live layer."""
+    previous = _impl.git_object_is_blob
+    try:
+        _impl.git_object_is_blob = git_object_is_blob
+        return _IMPL_BASIS_GIT_BLOB_SHA(relpath)
+    finally:
+        _impl.git_object_is_blob = previous
+
+
+def basis_source_object_errors() -> list[str]:
+    """Preserve direct basis-resolution hostile-test injection."""
+    previous = _impl.basis_git_blob_sha
+    try:
+        _impl.basis_git_blob_sha = basis_git_blob_sha
+        return _IMPL_BASIS_SOURCE_OBJECT_ERRORS()
+    finally:
+        _impl.basis_git_blob_sha = previous
+
+
+def base_validator_blob_errors(path: Path = BASE) -> list[str]:
+    """Preserve direct local-Git-blob hostile-test injection."""
+    previous = _impl.local_git_blob_sha
+    try:
+        _impl.local_git_blob_sha = local_git_blob_sha
+        return _IMPL_BASE_VALIDATOR_BLOB_ERRORS(path)
+    finally:
+        _impl.local_git_blob_sha = previous
+
+
+def frozen_validator_blob_errors(path: Path = FROZEN) -> list[str]:
+    """Preserve direct frozen-validator hash hostile-test injection."""
+    previous = _impl.git_blob_sha
+    try:
+        _impl.git_blob_sha = git_blob_sha
+        return _IMPL_FROZEN_VALIDATOR_BLOB_ERRORS(path)
+    finally:
+        _impl.git_blob_sha = previous
+
+
+def artifact_verifier_blob_errors(path: Path = ARTIFACT_VERIFIER) -> list[str]:
+    """Preserve direct retained-artifact hash hostile-test injection."""
+    previous = _impl.local_git_blob_sha
+    try:
+        _impl.local_git_blob_sha = local_git_blob_sha
+        return _IMPL_ARTIFACT_VERIFIER_BLOB_ERRORS(path)
+    finally:
+        _impl.local_git_blob_sha = previous
 
 
 def expected_verification_record() -> dict[str, object]:
@@ -349,6 +416,10 @@ _VERIFIED_AUTHORITY_MODES.update(
         "scripts/validate_lean_observation_foundation_pr22_merged_frozen.py": "100644",
     }
 )
+# Public live registries always describe the current verification layer, while
+# the frozen predecessor keeps its own reviewed pending-CI maps internally.
+_LIVE_AUTHORITY_BLOBS = _VERIFIED_AUTHORITY_BLOBS
+_LIVE_AUTHORITY_MODES = _VERIFIED_AUTHORITY_MODES
 
 
 def _verified_authority_projection() -> tuple[dict[str, str], dict[str, str]]:
@@ -356,6 +427,9 @@ def _verified_authority_projection() -> tuple[dict[str, str], dict[str, str]]:
     blobs.update(_VERIFIED_AUTHORITY_BLOBS)
     modes.update(_VERIFIED_AUTHORITY_MODES)
     return blobs, modes
+
+
+_live_authority_projection = _verified_authority_projection
 
 
 def tracked_authority_object_errors(
@@ -376,7 +450,7 @@ def tracked_authority_object_errors(
             expected_modes=expected_modes,
             runner=runner,
         )
-    return _impl._IMPL_TRACKED_AUTHORITY_OBJECT_ERRORS(
+    return _IMPL_TRACKED_AUTHORITY_OBJECT_ERRORS(
         root,
         expected_blobs=blobs,
         expected_modes=modes,
@@ -402,18 +476,17 @@ def live_authority_object_errors() -> list[str]:
             errors.append(f"{label} blob drift: expected {expected}, got {actual}")
     errors.extend(_IMPL_LIVE_AUTHORITY_OBJECT_ERRORS())
     # The predecessor's expected live blobs are intentionally superseded for
-    # README/roadmap/verification. Remove only those exact stale diagnostics;
+    # README and roadmap state. Remove only those exact stale diagnostics;
     # every other predecessor authority check remains active.
     superseded_prefixes = (
         "README4AI live Lean phase blob drift:",
         "live roadmap state blob drift:",
     )
-    errors = [
+    return [
         error
         for error in errors
         if not any(error.startswith(prefix) for prefix in superseded_prefixes)
     ]
-    return errors
 
 
 def _project_verified_readme(text: str) -> str:
@@ -472,7 +545,32 @@ def workflow_contract_errors(text: str) -> list[str]:
     return errors
 
 
+def _mirror_predecessor_hooks() -> dict[str, object]:
+    previous: dict[str, object] = {}
+    module_globals = globals()
+    for name in _COMPAT_BRIDGE_NAMES:
+        if hasattr(_impl, name) and name in module_globals:
+            previous[name] = getattr(_impl, name)
+            setattr(_impl, name, module_globals[name])
+    for name in (
+        "basis_git_blob_sha",
+        "basis_source_object_errors",
+        "base_validator_blob_errors",
+        "frozen_validator_blob_errors",
+        "artifact_verifier_blob_errors",
+    ):
+        previous[name] = getattr(_impl, name)
+        setattr(_impl, name, module_globals[name])
+    return previous
+
+
+def _restore_predecessor_hooks(previous: dict[str, object]) -> None:
+    for name, value in previous.items():
+        setattr(_impl, name, value)
+
+
 def validate(*, require_basis_objects: bool = True):
+    bridged = _mirror_predecessor_hooks()
     old_values = {
         "tracked_authority_object_errors": _impl.tracked_authority_object_errors,
         "workflow_contract_errors": _impl.workflow_contract_errors,
@@ -495,6 +593,7 @@ def validate(*, require_basis_objects: bool = True):
         for name, value in old_values.items():
             setattr(_impl, name, value)
         _combined.validate_documents = old_combined_documents
+        _restore_predecessor_hooks(bridged)
 
     errors = list(result.get("errors", []))
     errors.extend(predecessor_validator_blob_errors())
