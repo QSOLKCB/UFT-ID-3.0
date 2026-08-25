@@ -13,13 +13,21 @@ LIVE_SCHEDULE_PHRASE = (
     "Live post-tag authority is now `machine/roadmap_state.json` plus `machine/lean_observation_verification.json`: "
     "immutable tag `v3.0.0` is cut at `b7f51590985e60920c8b09fc9238b8aec6cfa3bc`, `LEAN-OBS-BATCH-001` "
     "implements `UFT-OBS-001` through `004`, and arithmetic `LEAN-OBS-BATCH-002` implements `UFT-OBS-005`; both "
-    "remain `IMPLEMENTED_PENDING_CI` until the pinned build and axiom audit are green."
+    "are `LEAN_VERIFIED` at formalization integration commit `bbcde19827921af4490c232bdc1edc401790d89e`, tree "
+    "`b7ec78695f32a5b1cf78b416a5050627ad4f957d`, after exact merged-main `finite-adversarial` run `32876623204` "
+    "and `vopson-corpus` run `32876623479` succeeded. The next ordered gate is QSOL-CONTEXT verification capture, "
+    "then DOI/archive work."
 )
 LIVE_LEAN_PHRASE = (
     "PR #10 Lean observation foundation is the historical source-freeze authority. Source batch "
     "`LEAN-OBS-BATCH-001` remains frozen in `machine/lean_observation_foundation_contract.json`, covering "
     "`UFT-OBS-001` through `UFT-OBS-004`; the same v3.0.0 freeze records `UFT-OBS-005` as deferred from batch 001 "
     "rather than dropped."
+)
+LIVE_VERIFIED_PHRASE = (
+    "Both batches are `LEAN_VERIFIED`, bound to formalization integration commit "
+    "`bbcde19827921af4490c232bdc1edc401790d89e`, tree `b7ec78695f32a5b1cf78b416a5050627ad4f957d`, "
+    "exact merged-main `finite-adversarial` run `32876623204`, and exact merged-main `vopson-corpus` run `32876623479`."
 )
 STALE_RELEASE_GATE_PHRASE = (
     "Live scheduling authority is PR #10 Lean observation foundation: the first theorem batch and dependency graph "
@@ -50,6 +58,8 @@ class PostEfpBootstrapScheduleTests(unittest.TestCase):
         self.assertIn("The completed planned PR #18 surface defines a synthetic conformance procedure", text)
         self.assertIn(LIVE_SCHEDULE_PHRASE, text)
         self.assertIn(LIVE_LEAN_PHRASE, text)
+        self.assertIn(LIVE_VERIFIED_PHRASE, text)
+        self.assertNotIn("IMPLEMENTED_PENDING_CI", text)
         self.assertNotIn(STALE_RELEASE_GATE_PHRASE, text)
         self.assertNotIn(STALE_PRETAG_PHRASE, text)
         self.assertNotIn("The active planned PR #18 surface", text)
