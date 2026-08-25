@@ -48,8 +48,11 @@ class LeanObservationFoundationFreezeTests(unittest.TestCase):
         self.assertTrue(any(fragment in error for error in result["errors"]), result["errors"])
 
     def test_canonical_freeze_validates(self):
-        result = V.validate()
+        # Pure unit coverage intentionally avoids requiring repository-history
+        # objects. Production validate() and the CLI require them by default.
+        result = V.validate(require_basis_objects=False)
         self.assertEqual(result["status"], "ok", result["errors"])
+        self.assertFalse(result["basis_objects_verified"])
         self.assertEqual(result["batch_id"], "LEAN-OBS-BATCH-001")
         self.assertEqual(result["theorem_count"], 4)
         self.assertEqual(result["deferred_count"], 1)
@@ -113,14 +116,12 @@ class LeanObservationFoundationFreezeTests(unittest.TestCase):
         original = V.basis_git_blob_sha
         try:
             V.basis_git_blob_sha = lambda relpath: V.EXPECTED_SOURCE_BLOBS.get(relpath)
-            self.assertEqual(V.basis_source_object_errors(require_objects=True), [])
+            self.assertEqual(V.basis_source_object_errors(), [])
 
             V.basis_git_blob_sha = lambda relpath: None
-            errors = V.basis_source_object_errors(require_objects=True)
+            errors = V.basis_source_object_errors()
             self.assertTrue(any("basis commit object unavailable" in error for error in errors), errors)
             self.assertIn("complete PR9 basis dependency closure was not resolved from Git objects", errors)
-
-            self.assertEqual(V.basis_source_object_errors(require_objects=False), [])
         finally:
             V.basis_git_blob_sha = original
 
@@ -244,7 +245,7 @@ class LeanObservationFoundationFreezeTests(unittest.TestCase):
                     if path.parent != ROOT:
                         created_dirs.append(path.parent)
                     path.write_text("pre-tag forbidden fixture\n", encoding="utf-8")
-                    result = V.validate()
+                    result = V.validate(require_basis_objects=False)
                     self.assertEqual(result["status"], "error")
                     self.assertIn(
                         f"pre-tag Lean source/toolchain forbidden: {path.relative_to(ROOT).as_posix()}",
