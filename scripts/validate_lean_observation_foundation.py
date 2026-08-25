@@ -120,8 +120,31 @@ def _exact_freeze_environment_errors(freeze_step: str) -> list[str]:
     return errors
 
 
+def _normalize_yaml_escapes_for_action_count(text: str) -> str:
+    """Expose YAML double-quoted escapes before counting action identities."""
+    normalized = re.sub(r"\\x([0-9a-fA-F]{2})", lambda match: chr(int(match.group(1), 16)), text)
+    normalized = re.sub(r"\\u([0-9a-fA-F]{4})", lambda match: chr(int(match.group(1), 16)), normalized)
+    normalized = re.sub(r"\\U([0-9a-fA-F]{8})", lambda match: chr(int(match.group(1), 16)), normalized)
+    normalized = normalized.replace(r"\/", "/")
+    return re.sub(r"\\\r?\n[ \t]*", "", normalized)
+
+
 def _checkout_revision_errors(job_body: str) -> list[str]:
-    checkout_blocks = [block for block in _step_blocks(job_body) if re.search(r"(?m)^uses:\s*actions/checkout@", block)]
+    # Count before interpreting step layout: GitHub accepts quoted keys,
+    # flow mappings, YAML escapes, and aliases that evade a line-oriented
+    # subset parser while still replacing the validated workspace.
+    normalized_job = _normalize_yaml_escapes_for_action_count(job_body)
+    alias_or_merge = (
+        r"(?im)(?:(?:^\s*-?\s*|[,{]\s*)(?:(?:uses|\"uses\"|'uses')|<<)\s*:\s*\*"
+        r"|^\s*-\s*\*)"
+    )
+    if re.search(alias_or_merge, normalized_job):
+        return ["registered Lean-freeze workflow may not use YAML aliases or merge keys in executable steps"]
+    if len(re.findall(r"(?i)actions/checkout@", normalized_job)) != 1:
+        return ["registered Lean-freeze workflow must contain exactly one checkout step"]
+
+    checkout_uses = r"(?:uses|\"uses\"|'uses')\s*:\s*(?:\"|')?actions/checkout@"
+    checkout_blocks = [block for block in _step_blocks(job_body) if re.search(rf"(?m)^{checkout_uses}", block)]
     if len(checkout_blocks) != 1:
         return ["registered Lean-freeze workflow must contain exactly one checkout step"]
     checkout = checkout_blocks[0]
@@ -132,6 +155,15 @@ def _checkout_revision_errors(job_body: str) -> list[str]:
         errors.append("registered Lean-freeze checkout must validate the triggering event revision and may not override ref")
     if re.search(rf"(?m)^\s{{8,}}{repository_key}\s*:", checkout):
         errors.append("registered Lean-freeze checkout must validate this repository and may not override repository")
+
+    mappings = list(re.finditer(r"(?m)^        with:\n(?P<body>(?:          [^\n]+\n)+)", checkout))
+    expected_inputs = ("persist-credentials: false", "fetch-depth: 0")
+    if len(mappings) != 1:
+        errors.append("registered Lean-freeze checkout must use exactly one canonical block input mapping")
+    else:
+        entries = tuple(line.strip() for line in mappings[0].group("body").splitlines() if line.strip())
+        if entries != expected_inputs:
+            errors.append("registered Lean-freeze checkout inputs must be exact; revision, repository, path, and credential overrides are forbidden")
     return errors
 
 
@@ -157,10 +189,28 @@ def _human_text_block(human: str, heading: str, missing_error: str, block_error:
     section = _base._frozen.section(human, heading)
     if section is None:
         return None, [missing_error]
-    code = re.search(r"(?s)```text\n(?P<body>.*?)```", section)
-    if code is None:
+
+    blocks: list[str] = []
+    body_lines: list[str] = []
+    inside = False
+    for line in section.splitlines():
+        if re.fullmatch(r"\s*(?:`{3,}|~{3,})(?:[^`]*)?", line) is None:
+            if inside:
+                body_lines.append(line)
+            continue
+        if not inside:
+            if line != "```text":
+                return None, [block_error]
+            inside = True
+            body_lines = []
+        else:
+            if line != "```":
+                return None, [block_error]
+            blocks.append("\n".join(body_lines) + "\n")
+            inside = False
+    if inside or not blocks:
         return None, [block_error]
-    return code.group("body"), []
+    return blocks[0], []
 
 
 def human_dependency_graph_errors(freeze: dict[str, object], human: str) -> list[str]:
@@ -299,16 +349,98 @@ def human_release_boundary_errors(freeze: dict[str, object], human: str) -> list
     return []
 
 
-def toolchain_promotion(text: str) -> bool:
-    completed = re.compile(r"\b(?:pinned|selected|locked|fixed|chosen|specified|versioned)\b", re.IGNORECASE)
-    subject = re.compile(r"\b(?:Lean|Lake|Mathlib|toolchain)\b", re.IGNORECASE)
-    negation = re.compile(r"\b(?:no|not|unpinned|without)\b", re.IGNORECASE)
-    for clause in re.split(r"(?<=[.!?])\s+|\n+|;", text):
-        if not subject.search(clause) or not completed.search(clause):
-            continue
-        if negation.search(clause):
-            continue
+def _toolchain_claim_clauses(text: str) -> tuple[str, ...]:
+    return tuple(
+        clause.strip()
+        for clause in re.split(r"(?<=[.!?])\s+|\n+", text)
+        if clause.strip()
+    )
+
+
+def _noncurrent_toolchain_match(clause: str, match: re.Match[str]) -> bool:
+    prefix = clause[:match.start()].casefold()
+    suffix = clause[match.end():].casefold()
+    matched = match.group(0).casefold()
+
+    contrasts = list(re.finditer(r"\b(?:but|yet|however)\b", matched))
+    if contrasts:
+        positive_offset = contrasts[-1].end()
+        assertion_prefix = clause[:match.start() + positive_offset].casefold()
+        current_scope = matched[positive_offset:]
+        current_context = current_scope
+    else:
+        assertion_prefix = prefix
+        current_scope = matched
+        current_context = assertion_prefix[-96:] + " " + current_scope
+
+    immediate_prefix = assertion_prefix[-96:]
+    if re.search(r"\b(?:no|neither|nor)\s*$|\bnot\s+(?:(?:a|one|the|this)\s+|(?:true|the\s+case)\s+that\s*)$", immediate_prefix):
         return True
+    if re.search(r"\b(?:must\s+not|does\s+not|do\s+not|cannot)\s+(?:claim|state|say)\b", immediate_prefix):
+        return True
+    if re.search(r"\b(?:rejects?|rejected|forbids?|forbade|prohibits?|prohibited|disallows?|disallowed)\s+(?:(?:the|a)\s+)?(?:claim\s+)?that\s*$", immediate_prefix):
+        return True
+    if re.search(r"^\s*(?:is|are|was|were|must\s+be|should\s+be)\s+(?:rejected|forbidden|prohibited|disallowed|false|untrue|incorrect|invalid)\b", suffix):
+        return True
+    if re.search(r"\bwhether\s+(?:the\s+)?$|\b(?:unclear|unknown|uncertain)\s+whether\s+(?:the\s+)?$", immediate_prefix):
+        return True
+    if re.search(r"^\s*(?:is|are|was|were|remains?)\s+(?:unknown|unclear|uncertain|undetermined|unresolved)\b", suffix):
+        return True
+
+    temporal_context = prefix + " " + suffix[:128]
+    forbidden_order = (
+        re.search(r"\bpending\b", temporal_context) is not None
+        or re.search(
+            r"\b(?:before|until)\b.{0,96}\b(?:source(?:-release)?\s+tag|target\s+binding|release\s+gate)\b",
+            temporal_context,
+        ) is not None
+    )
+    if forbidden_order:
+        return False
+
+    current = (
+        re.search(r"\b(?:now|already|currently)\b", current_context) is not None
+        or re.search(r"\bcurrent\s+(?:the\s+)?$", immediate_prefix) is not None
+    )
+    if not current and re.search(r"\b(?:expected|target|required|future|later|planned|will|shall|must|should|would|may|might)\b", prefix):
+        return True
+    completion_side = (
+        r"(?:\bafter\b.{0,96}\b(?:release|(?:immutable\s+)?source(?:-release)?\s+tag|target\s+binding)\b)"
+        r"|(?:\bonce\b.{0,96}\b(?:release|(?:immutable\s+)?source(?:-release)?\s+tag|target\s+binding)\b)"
+        r"|(?:\bwhen\b.{0,96}\b(?:target\s+binding|(?:immutable\s+)?source(?:-release)?\s+tag)\b.{0,48}\b(?:completes?|exists?|is\s+(?:cut|published|bound|complete))\b)"
+    )
+    if not current and re.search(completion_side, temporal_context):
+        return True
+    return False
+
+
+def toolchain_promotion(text: str) -> bool:
+    dependency = r"(?:Lean|Lake|Mathlib)(?:\s+v?\d+(?:\.\d+)*)?"
+    named_revision = r"(?:Lean|Lake|Mathlib)\s+(?:toolchain\s+)?(?:version|revision|commit)(?:\s+[A-Za-z0-9][A-Za-z0-9._-]*)?"
+    separator = r"(?:\s*(?:/|\+|,)\s*(?:and\s+)?|\s+and\s+)"
+    dependency_group = rf"{dependency}(?:{separator}{dependency})*"
+    toolchain_subject = rf"(?:(?:the\s+)?toolchain|(?:the\s+)?{named_revision}|(?:the\s+)?{dependency_group}(?:\s+(?:toolchain|versions?))?)"
+    completed = r"(?:pinned|selected|locked|fixed|frozen|chosen)"
+    degree = r"(?:(?:fully|completely|exactly|immutably)\s+)?"
+    copula = r"(?:is|are|was|were|has|have|had)\s+(?:now\s+|already\s+|currently\s+)?(?:been\s+)?"
+    patterns = (
+        rf"\b{toolchain_subject}\b\s+{copula}{degree}{completed}\b",
+        rf"\b{toolchain_subject}\b.{{0,120}}\b(?:but|yet|however)\b\s+(?:it\s+)?{copula}{degree}{completed}\b",
+        rf"\b(?:we|this\s+batch|the\s+batch|the\s+project|UFT-ID)\b\s+(?:(?:has|have|had)\s+)?(?:now\s+|already\s+|currently\s+)?{degree}{completed}\s+(?:the\s+)?{toolchain_subject}\b",
+        rf"\b{degree}{completed}\s+(?:the\s+)?(?:toolchain|{dependency_group}\s+(?:toolchain|versions?))\b",
+        r"\btoolchain(?:\s+status)?\s*:\s*PINNED\b",
+        r"\btoolchain\s+(?:status|state)\s+(?:is|was|remains?)\s+(?:now\s+|currently\s+)?PINNED\b",
+        r"\b(?:the\s+)?toolchain(?:\s+(?:status|state))?\s+(?:remains?|has\s+become|have\s+become|became|becomes)\s+(?:now\s+|currently\s+)?(?:(?:fully|completely|exactly|immutably)\s+)?PINNED\b",
+        r"\btoolchain\s+pinning\s+(?:is|was|has\s+been)\s+(?:now\s+|already\s+)?(?:(?:fully|completely|exactly|immutably)\s+)?(?:complete|completed|done)\b",
+        rf"\btoolchain\s*:\s*{dependency_group}\b",
+        r"\b(?:Lean|Lake|Mathlib)\s+(?:toolchain\s+)?version\s*:\s*v?\d+(?:\.\d+)*\b",
+    )
+    for clause in _toolchain_claim_clauses(text):
+        scan_clause = re.sub(r"[*_`]", " ", clause)
+        for pattern in patterns:
+            for match in re.finditer(pattern, scan_clause, flags=re.IGNORECASE):
+                if not _noncurrent_toolchain_match(scan_clause, match):
+                    return True
     return False
 
 
