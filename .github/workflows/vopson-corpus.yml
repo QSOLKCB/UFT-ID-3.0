@@ -107,6 +107,26 @@ jobs:
           UFT_REQUIRE_BASIS_COMMIT_OBJECT: "1"
         run: python scripts/validate_lean_observation_foundation.py
 
+      - name: Build Lean observation formalization
+        if: matrix.python-version == '3.12'
+        env:
+          UFT_LEAN_URL: https://github.com/leanprover/lean4/releases/download/v4.33.1/lean-4.33.1-linux.tar.zst
+          UFT_LEAN_SHA256: 890afd185370f85666025b883914ab4f4b339136f8c96167b69cfb62aecaf235
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/lean-4.33.1-linux.tar.zst"
+          install_dir="$RUNNER_TEMP/lean-4.33.1"
+          curl --fail --location --retry 3 --output "$archive" "$UFT_LEAN_URL"
+          printf '%s  %s\n' "$UFT_LEAN_SHA256" "$archive" | sha256sum --check -
+          mkdir -p "$install_dir"
+          tar --zstd -xf "$archive" -C "$install_dir" --strip-components=1
+          export PATH="$install_dir/bin:$PATH"
+          lean --version
+          lake --version
+          lake update
+          lake exe cache get
+          lake build UFTID
+
       - name: Unit and adversarial tests
         run: python -m unittest discover -s tests -v
 
