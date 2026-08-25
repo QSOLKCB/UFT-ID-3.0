@@ -42,12 +42,41 @@ class LeanObservationCodexReviewRegressions(unittest.TestCase):
         self.assertEqual(roadmap["snapshot_date"], "2026-08-24")
         self.assertEqual(
             next(x for x in roadmap["sequence"] if x["planned_pr"] == 10)["status"],
-            "active-post-tag-lean-implementation-ci-hardening",
+            "active-lean-verified-awaiting-context-and-archive",
         )
         readme = (ROOT / "README4AI.md").read_text(encoding="utf-8")
-        self.assertIn("Live post-tag implementation authority", readme)
-        self.assertIn("IMPLEMENTED_PENDING_CI", readme)
+        self.assertIn("Live post-tag verification authority", readme)
+        self.assertIn("LEAN_VERIFIED", readme)
+        self.assertNotIn("IMPLEMENTED_PENDING_CI", readme)
         self.assertNotIn("Lean/Lake/Mathlib remain unpinned", readme)
+
+    def test_verified_record_binds_exact_merged_main_evidence(self):
+        record = V.expected_verification_record()
+        self.assertEqual(record["schema_version"], "1.3.0")
+        self.assertEqual(record["status"], "LEAN_VERIFIED")
+        self.assertEqual(record["source_release"]["tag"], "v3.0.0")
+        self.assertEqual(
+            record["source_release"]["commit"],
+            "b7f51590985e60920c8b09fc9238b8aec6cfa3bc",
+        )
+        self.assertEqual(
+            record["formalization_integration"]["merge_commit"],
+            "bbcde19827921af4490c232bdc1edc401790d89e",
+        )
+        self.assertEqual(
+            record["formalization_integration"]["merge_tree"],
+            "b7ec78695f32a5b1cf78b416a5050627ad4f957d",
+        )
+        self.assertEqual(
+            [item["run_id"] for item in record["merged_main_ci"]],
+            [32876623204, 32876623479],
+        )
+        self.assertEqual(
+            record["axiom_audit"]["observed_axioms_by_theorem"]["UFT-OBS-005"],
+            ["Classical.choice", "Quot.sound", "propext"],
+        )
+        self.assertEqual(record["current_deferred_theorem_ids"], [])
+        self.assertEqual(record["source_freeze_deferred_theorem_ids"], ["UFT-OBS-005"])
 
     def test_registered_theorem_sources_are_exact_blob_bound(self):
         self.assertEqual(V.lean_source_errors(), [])
@@ -151,6 +180,7 @@ class LeanObservationCodexReviewRegressions(unittest.TestCase):
     def test_workflow_routes_frozen_dependency_and_axiom_audit(self):
         workflow = (ROOT / ".github/workflows/vopson-corpus.yml").read_text(encoding="utf-8")
         self.assertEqual(V.workflow_contract_errors(workflow), [])
+        self.assertEqual(workflow.count("validate_lean_observation_foundation_pr22_merged_frozen.py"), 2)
         self.assertEqual(workflow.count("validate_lean_observation_foundation_pr21_final_frozen.py"), 2)
         self.assertEqual(workflow.count("verify_lean_observation_axioms.py"), 3)
         self.assertIn("--json-out artifacts/lean-observation-axioms.json", workflow)
