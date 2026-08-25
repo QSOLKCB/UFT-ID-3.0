@@ -78,6 +78,32 @@ _LIVE_SUPERSEDED_AUTHORITY_PATHS = (
 )
 
 
+def _without_live_replacements(mapping: dict[str, str]) -> dict[str, str]:
+    """Project a frozen authority map without the exact live replacements."""
+    return {
+        path: value
+        for path, value in mapping.items()
+        if path not in _LIVE_SUPERSEDED_AUTHORITY_PATHS
+    }
+
+
+def _is_exact_production_projection(
+    expected_blobs: dict[str, str] | None,
+    expected_modes: dict[str, str] | None,
+) -> bool:
+    """Recognize only the complete canonical PR21 production projection pair.
+
+    Exact equality is deliberate. A caller-supplied map with any changed,
+    missing, or extra entry is hostile/custom input and must remain untouched.
+    """
+    return (
+        expected_blobs is not None
+        and expected_modes is not None
+        and dict(expected_blobs) == dict(_impl._frozen.EXPECTED_CURRENT_AUTHORITY_BLOBS)
+        and dict(expected_modes) == dict(_impl._frozen.EXPECTED_CURRENT_AUTHORITY_MODES)
+    )
+
+
 def tracked_authority_object_errors(
     root: Path = ROOT,
     *,
@@ -87,11 +113,18 @@ def tracked_authority_object_errors(
 ) -> list[str]:
     """Validate frozen authorities while excluding exact live replacements.
 
-    Explicit maps supplied by hostile regression tests are forwarded unchanged.
-    Only the production default projection removes post-tag live surfaces, and
-    it removes each surface from both maps so blob/mode authority stays aligned.
+    The no-argument production projection and an explicitly passed *exact*
+    canonical PR21 blob/mode pair both remove post-tag live surfaces from both
+    maps. Any other explicit map pair is forwarded unchanged so hostile
+    regression fixtures remain fail-closed.
     """
-    if expected_blobs is not None or expected_modes is not None:
+    if expected_blobs is None and expected_modes is None:
+        blobs = dict(_impl._frozen.EXPECTED_CURRENT_AUTHORITY_BLOBS)
+        modes = dict(_impl._frozen.EXPECTED_CURRENT_AUTHORITY_MODES)
+    elif _is_exact_production_projection(expected_blobs, expected_modes):
+        blobs = dict(expected_blobs)
+        modes = dict(expected_modes)
+    else:
         return _IMPL_TRACKED_AUTHORITY_OBJECT_ERRORS(
             root,
             expected_blobs=expected_blobs,
@@ -99,11 +132,8 @@ def tracked_authority_object_errors(
             runner=runner,
         )
 
-    blobs = dict(_impl._frozen.EXPECTED_CURRENT_AUTHORITY_BLOBS)
-    modes = dict(_impl._frozen.EXPECTED_CURRENT_AUTHORITY_MODES)
-    for relpath in _LIVE_SUPERSEDED_AUTHORITY_PATHS:
-        blobs.pop(relpath, None)
-        modes.pop(relpath, None)
+    blobs = _without_live_replacements(blobs)
+    modes = _without_live_replacements(modes)
     return _IMPL_TRACKED_AUTHORITY_OBJECT_ERRORS(
         root,
         expected_blobs=blobs,
