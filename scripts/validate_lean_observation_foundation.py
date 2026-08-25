@@ -188,31 +188,16 @@ def workflow_step_key_present(text: str, key_name: str, *, indent: int = 8) -> b
 
 
 def workflow_defaults_run_shell_present(text: str, *, indent: int) -> bool:
-    """Detect an inherited defaults.run.shell at workflow or job scope."""
-    def key(name: str) -> str:
-        escaped = re.escape(name)
-        return rf"(?:{escaped}|\"{escaped}\"|'{escaped}')"
+    """Fail closed on inherited workflow/job defaults in the registered freeze path.
 
-    prefix = " " * indent
-    defaults_match = re.search(
-        rf"(?ms)^{prefix}{key('defaults')}\s*:\s*\n(?P<body>.*?)(?=^{prefix}\S|\Z)",
-        text,
-    )
-    if defaults_match is None:
-        return False
-    run_indent = indent + 2
-    run_prefix = " " * run_indent
-    run_match = re.search(
-        rf"(?ms)^{run_prefix}{key('run')}\s*:\s*\n(?P<body>.*?)(?=^{run_prefix}\S|\Z)",
-        defaults_match.group("body"),
-    )
-    if run_match is None:
-        return False
-    shell_prefix = " " * (indent + 4)
-    return re.search(
-        rf"(?m)^{shell_prefix}{key('shell')}\s*:",
-        run_match.group("body"),
-    ) is not None
+    GitHub Actions accepts block and flow mappings for ``defaults.run.shell``.
+    The canonical freeze workflow requires no inherited defaults at either scope,
+    so rejecting the parent ``defaults`` key closes every equivalent YAML spelling
+    instead of trying to enumerate syntax variants for a security-critical shell.
+    """
+    escaped = re.escape("defaults")
+    key = rf"(?:{escaped}|\"{escaped}\"|'{escaped}')"
+    return re.search(rf"(?m)^{' ' * indent}{key}\s*:", text) is not None
 
 
 def workflow_contract_errors(text: str) -> list[str]:
