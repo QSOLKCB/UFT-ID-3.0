@@ -10,7 +10,9 @@
   },
   "toolchain": {
     "lean": "v4.33.1",
-    "mathlib_commit": "0df444a360eaa60ab8c11dca51a86af692955474"
+    "mathlib_commit": "0df444a360eaa60ab8c11dca51a86af692955474",
+    "lean_archive_url": "https://github.com/leanprover/lean4/releases/download/v4.33.1/lean-4.33.1-linux.tar.zst",
+    "lean_archive_sha256": "890afd185370f85666025b883914ab4f4b339136f8c96167b69cfb62aecaf235"
   },
   "theorems": [
     {
