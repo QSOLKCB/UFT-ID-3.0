@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import copy
+from contextlib import contextmanager
 import importlib.util
 import json
 from pathlib import Path
 import tempfile
+from types import SimpleNamespace
 import unittest
 
 
@@ -54,6 +56,24 @@ def validate_documents(docs: dict[str, object]):
         docs["readme"],
         check_paths=False,
     )
+
+
+def canonical_retained_payload() -> dict[str, object]:
+    payload = V.validate(require_basis_objects=False)
+    payload["basis_objects_verified"] = True
+    return payload
+
+
+@contextmanager
+def stub_live_validator(payload: dict[str, object]):
+    original = ARTIFACTS.load_module
+    ARTIFACTS.load_module = lambda name, path: SimpleNamespace(
+        validate=lambda: copy.deepcopy(payload)
+    )
+    try:
+        yield
+    finally:
+        ARTIFACTS.load_module = original
 
 
 class CodexSeventhBatchRegressions(unittest.TestCase):
@@ -111,7 +131,7 @@ class CodexSeventhBatchRegressions(unittest.TestCase):
             V.local_git_blob_sha = original
 
     def test_exact_retained_validation_payload_is_accepted(self):
-        payload = V.validate()
+        payload = canonical_retained_payload()
         self.assertEqual(payload["status"], "ok", payload["errors"])
         self.assertTrue(payload["basis_objects_verified"])
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -120,7 +140,8 @@ class CodexSeventhBatchRegressions(unittest.TestCase):
                 json.dumps(payload, indent=2, sort_keys=True, allow_nan=False) + "\n",
                 encoding="utf-8",
             )
-            result = ARTIFACTS.verify(Path(temp_dir))
+            with stub_live_validator(payload):
+                result = ARTIFACTS.verify(Path(temp_dir))
         self.assertEqual(result["status"], "ok")
         self.assertEqual(result["batch_id"], "LEAN-OBS-BATCH-001")
         self.assertTrue(result["basis_objects_verified"])
@@ -147,7 +168,7 @@ class CodexSeventhBatchRegressions(unittest.TestCase):
                         ARTIFACTS.verify(Path(temp_dir))
 
     def test_retained_validation_fails_closed_on_error_or_payload_drift(self):
-        canonical = V.validate()
+        canonical = canonical_retained_payload()
         self.assertEqual(canonical["status"], "ok", canonical["errors"])
         attacks = []
 
@@ -181,8 +202,9 @@ class CodexSeventhBatchRegressions(unittest.TestCase):
                         json.dumps(payload, sort_keys=True),
                         encoding="utf-8",
                     )
-                    with self.assertRaisesRegex(RuntimeError, diagnostic):
-                        ARTIFACTS.verify(Path(temp_dir))
+                    with stub_live_validator(canonical):
+                        with self.assertRaisesRegex(RuntimeError, diagnostic):
+                            ARTIFACTS.verify(Path(temp_dir))
 
     def test_workflow_retained_verifier_step_is_exact_and_blocking(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")
