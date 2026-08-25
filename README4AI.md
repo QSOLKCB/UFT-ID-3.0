@@ -342,7 +342,7 @@ FINITE_STOCHASTIC_CONFORMANCE != GENERAL_STOCHASTIC_OR_CONTINUUM_THEORY
 
 ## Empirical Falsification Profile authority
 
-The completed planned PR #18 surface defines a synthetic conformance procedure for deciding whether a calibrated profile-matched evidence record crosses one versioned scoped rejection boundary. It specializes the PR8 `FalsificationSpec` scaffold without converting synthetic fixtures, matching hashes, or procedural labels into empirical evidence or preregistration proof. Historical scheduling authority for the v3.0.0 source freeze remains PR #10 Lean observation foundation. Live post-tag authority is now `machine/roadmap_state.json` plus `machine/lean_observation_verification.json`: immutable tag `v3.0.0` is cut at `b7f51590985e60920c8b09fc9238b8aec6cfa3bc`, `LEAN-OBS-BATCH-001` implements `UFT-OBS-001` through `004`, and arithmetic `LEAN-OBS-BATCH-002` implements `UFT-OBS-005`; both remain `IMPLEMENTED_PENDING_CI` until the pinned build and axiom audit are green.
+The completed planned PR #18 surface defines a synthetic conformance procedure for deciding whether a calibrated profile-matched evidence record crosses one versioned scoped rejection boundary. It specializes the PR8 `FalsificationSpec` scaffold without converting synthetic fixtures, matching hashes, or procedural labels into empirical evidence or preregistration proof. Historical scheduling authority for the v3.0.0 source freeze remains PR #10 Lean observation foundation. Live post-tag authority is now `machine/roadmap_state.json` plus `machine/lean_observation_verification.json`: immutable tag `v3.0.0` is cut at `b7f51590985e60920c8b09fc9238b8aec6cfa3bc`, `LEAN-OBS-BATCH-001` implements `UFT-OBS-001` through `004`, and arithmetic `LEAN-OBS-BATCH-002` implements `UFT-OBS-005`; both are `LEAN_VERIFIED` at formalization integration commit `bbcde19827921af4490c232bdc1edc401790d89e`, tree `b7ec78695f32a5b1cf78b416a5050627ad4f957d`, after exact merged-main `finite-adversarial` run `32876623204` and `vopson-corpus` run `32876623479` succeeded. The next ordered gate is QSOL-CONTEXT verification capture, then DOI/archive work.
 
 ```text
 EmpiricalFalsificationProfile = (
@@ -565,7 +565,7 @@ python experiments/run_pr6.py --json
 
 PR #10 Lean observation foundation is the historical source-freeze authority. Source batch `LEAN-OBS-BATCH-001` remains frozen in `machine/lean_observation_foundation_contract.json`, covering `UFT-OBS-001` through `UFT-OBS-004`; the same v3.0.0 freeze records `UFT-OBS-005` as deferred from batch 001 rather than dropped.
 
-Live post-tag implementation authority is `machine/lean_observation_verification.json`. Immutable source tag `v3.0.0` resolves to commit `b7f51590985e60920c8b09fc9238b8aec6cfa3bc` and tree `966bdf47596832f792e77d619b33222f4cf60c8d`. Lean is pinned to `v4.33.1`, mathlib to `0df444a360eaa60ab8c11dca51a86af692955474`, and the Lean release archive is SHA256-bound. `LEAN-OBS-BATCH-001` implements `UFT-OBS-001` through `004`; arithmetic `LEAN-OBS-BATCH-002` implements `UFT-OBS-005`. Current status is `IMPLEMENTED_PENDING_CI`, not `LEAN_VERIFIED`: promotion requires exact source-blob binding, successful `lake build UFTID`, hostile review, and the retained `#print axioms` audit.
+Live post-tag verification authority is `machine/lean_observation_verification.json`. Immutable source tag `v3.0.0` resolves to commit `b7f51590985e60920c8b09fc9238b8aec6cfa3bc` and tree `966bdf47596832f792e77d619b33222f4cf60c8d`. Lean is pinned to `v4.33.1`, mathlib to `0df444a360eaa60ab8c11dca51a86af692955474`, and the Lean release archive is SHA256-bound. `LEAN-OBS-BATCH-001` implements `UFT-OBS-001` through `004`; arithmetic `LEAN-OBS-BATCH-002` implements `UFT-OBS-005`. Both batches are `LEAN_VERIFIED`, bound to formalization integration commit `bbcde19827921af4490c232bdc1edc401790d89e`, tree `b7ec78695f32a5b1cf78b416a5050627ad4f957d`, exact merged-main `finite-adversarial` run `32876623204`, and exact merged-main `vopson-corpus` run `32876623479`. The pinned Python 3.12 Vopson lane completed `lake build UFTID` successfully and the retained kernel `#print axioms` audit passed. This verified scholarly layer does not rewrite the immutable `v3.0.0` source release. The next ordered gate is QSOL-CONTEXT verification capture, then DOI/archive work.
 
 Canonical source-freeze and live implementation surfaces:
 
@@ -633,7 +633,7 @@ IMPORTED_AXIOM != UFT_ID_THEOREM_RESULT
 42. `machine/empirical_falsification_profile_contract.json`
 43. `machine/empirical_falsification_profile_results.json`
 44. `scripts/validate_empirical_falsification_profile.py`
-45. `experiments/run_empirical_falsification_profile.py`
+45. `experiments/empirical_falsification_profile/run.py`
 46. `theory/CROSS_REPO_RESULTS.md`
 47. `research/CROSS_REPO_PATTERN_ATLAS.md`
 48. `machine/cross_repo_patterns.json`
