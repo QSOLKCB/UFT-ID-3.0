@@ -12,13 +12,12 @@ import copy
 import hashlib
 import importlib.util
 import json
-import os
 import re
 import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-FROZEN = ROOT / 'scripts/validate_lean_observation_foundation_pr21_frozen.py'
+FROZEN = ROOT / "scripts/validate_lean_observation_foundation_pr21_frozen.py"
 FREEZE = ROOT / "machine/lean_observation_foundation_contract.json"
 SOURCE_THEOREMS = ROOT / "machine/observation_theorems.json"
 SOURCE_COUNTEREXAMPLES = ROOT / "machine/observation_counterexamples.json"
@@ -27,7 +26,7 @@ HUMAN = ROOT / "theory/LEAN_OBSERVATION_FOUNDATION.md"
 ROADMAP = ROOT / "ROADMAP.md"
 README4AI = ROOT / "README4AI.md"
 WORKFLOW = ROOT / ".github/workflows/vopson-corpus.yml"
-BASIS_COMMIT = '6f3aeb7f4ac14389e7a08d2976c8c0d16549c093'
+BASIS_COMMIT = "6f3aeb7f4ac14389e7a08d2976c8c0d16549c093"
 
 
 def load_module(name: str, path: Path):
@@ -49,18 +48,18 @@ pretag_lean_files = _frozen.pretag_lean_files
 OLD_SOURCE_BLOBS = dict(_frozen.EXPECTED_SOURCE_BLOBS)
 
 EXPECTED_SOURCE_BLOBS = {
-    'machine/contract.json': '2aa342b83a698577c92ac7964ea0d8fcfc102a0b',
-    'machine/formalization_contract.json': '1c0827b5f760b08d8d375659667ca0067f722aa8',
-    'machine/observation_contract.json': '8eede68aa53c92666d7a25641a9e7e699668aea0',
-    'machine/observation_specs.json': '1f1868054763fa3c9e84c9a8664b0c3134ffcee8',
-    'machine/observation_theorems.json': 'fbb1d1081fe2fed6980068f9630a8890b31794b9',
-    'machine/observation_counterexamples.json': '1b8551ffb124076b9d50de4f13b4e9ceb0246a04',
-    'theory/OBSERVATION_CALCULUS.md': '8bf8fb39c3b7b6d08fdab24261efa455b2ee3b4a',
-    'scripts/validate_observation_specs.py': 'bdd68c1f7ff183f0efd7ae142c5ffcdc721dfd87',
-    'experiments/observation/run.py': '55e02cee0b33136fb8ee22896fdd923b281e8a9c',
-    'tests/test_pr9_observation.py': '5373773686d97d280d0a89c2bb0a6a953f6d7ec8',
-    'experiments/run_pr9.py': '78d7bf1e6d5998f8665b99207559876350bbb639',
-    'ROADMAP.md': '7a602769908e2ff83ae49a32539fd1a5a5340ce4',
+    "machine/contract.json": "2aa342b83a698577c92ac7964ea0d8fcfc102a0b",
+    "machine/formalization_contract.json": "1c0827b5f760b08d8d375659667ca0067f722aa8",
+    "machine/observation_contract.json": "8eede68aa53c92666d7a25641a9e7e699668aea0",
+    "machine/observation_specs.json": "1f1868054763fa3c9e84c9a8664b0c3134ffcee8",
+    "machine/observation_theorems.json": "fbb1d1081fe2fed6980068f9630a8890b31794b9",
+    "machine/observation_counterexamples.json": "1b8551ffb124076b9d50de4f13b4e9ceb0246a04",
+    "theory/OBSERVATION_CALCULUS.md": "8bf8fb39c3b7b6d08fdab24261efa455b2ee3b4a",
+    "scripts/validate_observation_specs.py": "bdd68c1f7ff183f0efd7ae142c5ffcdc721dfd87",
+    "experiments/observation/run.py": "55e02cee0b33136fb8ee22896fdd923b281e8a9c",
+    "tests/test_pr9_observation.py": "5373773686d97d280d0a89c2bb0a6a953f6d7ec8",
+    "experiments/run_pr9.py": "78d7bf1e6d5998f8665b99207559876350bbb639",
+    "ROADMAP.md": "7a602769908e2ff83ae49a32539fd1a5a5340ce4",
 }
 BASIS_ONLY_MOVING_PATHS = {"machine/contract.json", "ROADMAP.md"}
 
@@ -91,19 +90,19 @@ def basis_git_blob_sha(relpath: str) -> str | None:
     return value if re.fullmatch(r"[0-9a-f]{40}", value) else None
 
 
-def basis_source_object_errors(*, require_objects: bool) -> list[str]:
+def basis_source_object_errors() -> list[str]:
+    """Require every pinned PR9 basis object to resolve from the repository."""
     errors: list[str] = []
     resolved = 0
     for relpath, expected_sha in EXPECTED_SOURCE_BLOBS.items():
         actual = basis_git_blob_sha(relpath)
         if actual is None:
-            if require_objects:
-                errors.append(f"basis commit object unavailable: {BASIS_COMMIT}:{relpath}")
+            errors.append(f"basis commit object unavailable: {BASIS_COMMIT}:{relpath}")
             continue
         resolved += 1
         if actual != expected_sha:
             errors.append(f"basis commit Git blob mismatch: {relpath}")
-    if require_objects and resolved != len(EXPECTED_SOURCE_BLOBS):
+    if resolved != len(EXPECTED_SOURCE_BLOBS):
         errors.append("complete PR9 basis dependency closure was not resolved from Git objects")
     return errors
 
@@ -139,6 +138,12 @@ def workflow_named_step_block(job_body: str, step_name: str) -> str | None:
         job_body,
     )
     return match.group("body") if match is not None else None
+
+
+def workflow_control_key_present(text: str, *, indent: int) -> bool:
+    """Recognize YAML control keys whether bare or single/double quoted."""
+    key = r"(?:if|continue-on-error|\"(?:if|continue-on-error)\"|'(?:if|continue-on-error)')"
+    return re.search(rf"(?m)^{' ' * indent}{key}\s*:", text) is not None
 
 
 def workflow_contract_errors(text: str) -> list[str]:
@@ -184,13 +189,13 @@ def workflow_contract_errors(text: str) -> list[str]:
         errors.append("registered Lean-freeze workflow missing validate-corpus job")
         return errors
     job_header = job_body.split("    steps:\n", 1)[0]
-    if re.search(r"(?m)^    (?:if|continue-on-error):", job_header):
+    if workflow_control_key_present(job_header, indent=4):
         errors.append("registered Lean-freeze workflow validate-corpus job may not be conditional or nonblocking")
 
     freeze_step = workflow_named_step_block(job_body, "Validate Lean observation source freeze")
     if freeze_step is None:
         errors.append("registered Lean-freeze workflow missing named freeze step")
-    elif re.search(r"(?m)^        (?:if|continue-on-error):", freeze_step):
+    elif workflow_control_key_present(freeze_step, indent=8):
         errors.append("registered Lean-freeze validator step may not be conditional or nonblocking")
     return errors
 
@@ -198,20 +203,15 @@ def workflow_contract_errors(text: str) -> list[str]:
 def theorem_scoped_lean_promotion(text: str) -> bool:
     """Reject pre-tag Lean completion claims scoped by theorem or batch identity."""
     subject = r"(?:UFT-OBS-\d{3}|LEAN-OBS-BATCH-\d{3})"
-    completed = r"(?:proved|verified|checked|formalized|formalised|complete)"
-    participle = r"(?:proved|verified|checked|formalized|formalised|certified)"
+    completed = r"(?:proved|proven|verified|checked|formalized|formalised|complete)"
+    participle = r"(?:proved|proven|verified|checked|formalized|formalised|certified)"
     active = r"(?:proves?|verifies?|checks?|formalizes?|formalises?|certifies?)"
     proof_noun = r"(?:proofs?|verification|formalization|formalisation|certificate|certification)"
     patterns = (
-        # Subject-first completion: "UFT-OBS-001 ... have been proved in Lean".
         rf"(?is)\b{subject}\b.{{0,180}}\b(?:has|have|is|are|was|were)\s+(?:now\s+)?(?:been\s+)?(?:formally\s+)?{completed}\b.{{0,60}}\b(?:in|by|with)\s+Lean\b",
-        # Lean-first noun form: "Lean proof ... for UFT-OBS-001 ... is complete".
         rf"(?is)\bLean\b.{{0,60}}\b(?:proof|verification|formalization|formalisation)\b.{{0,100}}\b(?:for|of)\b.{{0,100}}\b{subject}\b.{{0,60}}\b(?:is|are|was|were|has|have)?\s*(?:now\s+)?(?:been\s+)?{completed}\b",
-        # Active voice: "Lean proves UFT-OBS-001 through UFT-OBS-004".
         rf"(?is)\bLean\b.{{0,40}}\b{active}\b.{{0,180}}\b{subject}\b",
-        # Perfect tense: "Lean has proved UFT-OBS-001 through UFT-OBS-004".
         rf"(?is)\bLean\b.{{0,40}}\b(?:has|have|had)\s+(?:now\s+)?(?:formally\s+)?{participle}\b.{{0,180}}\b{subject}\b",
-        # Proof-noun possession: "UFT-OBS-001 ... now have Lean proofs".
         rf"(?is)\b{subject}\b.{{0,180}}\b(?:now\s+)?(?:has|have|is|are|was|were)\s+(?:now\s+)?Lean\s+{proof_noun}\b",
     )
     return any(re.search(pattern, text) for pattern in patterns)
@@ -231,7 +231,18 @@ def _frozen_views(freeze: dict[str, object], base_contract: dict[str, object]):
     return old_freeze, old_base
 
 
-def validate_documents(freeze, source_theorems, source_counterexamples, base_contract, human, roadmap, readme, *, check_paths: bool = True):
+def validate_documents(
+    freeze,
+    source_theorems,
+    source_counterexamples,
+    base_contract,
+    human,
+    roadmap,
+    readme,
+    *,
+    check_paths: bool = True,
+    require_basis_objects: bool = False,
+):
     old_freeze, old_base = _frozen_views(freeze, base_contract)
     result = _frozen.validate_documents(
         old_freeze, source_theorems, source_counterexamples, old_base,
@@ -239,12 +250,6 @@ def validate_documents(freeze, source_theorems, source_counterexamples, base_con
     )
     errors = list(result.get("errors", []))
 
-    # The frozen validator already generic-promotion-scans the dedicated Lean
-    # human authority. README4AI and ROADMAP are also human authority inputs to
-    # this live wrapper, so they inherit that same generic guard. All three
-    # surfaces additionally receive the identity-scoped guard above so named
-    # theorem ranges or batch IDs cannot promote NOT_IMPLEMENTED work to Lean
-    # verification before the immutable source tag exists.
     for surface_name, surface_text in (("README4AI", readme), ("ROADMAP", roadmap)):
         if _frozen.human_promotion_errors(surface_text):
             errors.append(f"Lean observation {surface_name} Lean verification promotion")
@@ -267,7 +272,7 @@ def validate_documents(freeze, source_theorems, source_counterexamples, base_con
         "machine_contract": "machine/lean_observation_foundation_contract.json",
         "human": "theory/LEAN_OBSERVATION_FOUNDATION.md",
         "validator": "scripts/validate_lean_observation_foundation.py",
-        "frozen_validator": 'scripts/validate_lean_observation_foundation_pr21_frozen.py',
+        "frozen_validator": "scripts/validate_lean_observation_foundation_pr21_frozen.py",
         "tests": "tests/test_lean_observation_foundation.py",
         "source_theorems": "machine/observation_theorems.json",
         "source_counterexamples": "machine/observation_counterexamples.json",
@@ -278,6 +283,7 @@ def validate_documents(freeze, source_theorems, source_counterexamples, base_con
     if base_contract.get("lean_observation_foundation_authority") != expected_authority:
         errors.append("Lean observation live authority registration drift")
 
+    basis_errors: list[str] = []
     if check_paths:
         for relpath, expected_sha in EXPECTED_SOURCE_BLOBS.items():
             path = ROOT / relpath
@@ -285,25 +291,35 @@ def validate_documents(freeze, source_theorems, source_counterexamples, base_con
                 errors.append(f"missing frozen basis dependency: {relpath}")
             elif relpath not in BASIS_ONLY_MOVING_PATHS and git_blob_sha(path) != expected_sha:
                 errors.append(f"frozen current PR9 dependency blob drift: {relpath}")
-        errors.extend(basis_source_object_errors(
-            require_objects=os.environ.get("UFT_REQUIRE_BASIS_COMMIT_OBJECT") == "1"
-        ))
+        if require_basis_objects:
+            basis_errors = basis_source_object_errors()
+            errors.extend(basis_errors)
 
+    result["basis_objects_verified"] = bool(check_paths and require_basis_objects and not basis_errors)
     result["errors"] = errors
     result["status"] = "error" if errors else "ok"
     return result
 
 
-def validate():
+def validate(*, require_basis_objects: bool = True):
     paths = [FREEZE, SOURCE_THEOREMS, SOURCE_COUNTEREXAMPLES, BASE_CONTRACT, HUMAN, ROADMAP, README4AI, WORKFLOW, FROZEN]
     missing = [str(path.relative_to(ROOT)) for path in paths if not path.is_file()]
     if missing:
-        return {"status": "error", "errors": [f"missing Lean observation freeze authority: {x}" for x in missing], "batch_id": None, "theorem_count": 0, "deferred_count": 0, "module_count": 0}
+        return {
+            "status": "error",
+            "errors": [f"missing Lean observation freeze authority: {x}" for x in missing],
+            "batch_id": None,
+            "theorem_count": 0,
+            "deferred_count": 0,
+            "module_count": 0,
+            "basis_objects_verified": False,
+        }
     result = validate_documents(
         load_json(FREEZE), load_json(SOURCE_THEOREMS), load_json(SOURCE_COUNTEREXAMPLES),
         load_json(BASE_CONTRACT), HUMAN.read_text(encoding="utf-8"),
         ROADMAP.read_text(encoding="utf-8"), README4AI.read_text(encoding="utf-8"),
         check_paths=True,
+        require_basis_objects=require_basis_objects,
     )
     errors = list(result.get("errors", []))
     errors.extend(workflow_contract_errors(WORKFLOW.read_text(encoding="utf-8")))
