@@ -62,12 +62,14 @@ class LeanObservationProjectionBoundaryRegressions(unittest.TestCase):
         self.assertEqual(captured["blobs"], expected_blobs)
         self.assertEqual(captured["modes"], expected_modes)
 
-    def test_live_registry_covers_posttag_package_and_verification_files(self):
+    def test_live_registry_covers_verified_package_and_provenance_files(self):
         required_blob_paths = {
             ".github/workflows/vopson-corpus.yml",
             "README4AI.md",
+            "ROADMAP.md",
             "machine/roadmap_state.json",
             "machine/lean_observation_verification.json",
+            "scripts/validate_lean_observation_foundation_pr22_merged_frozen.py",
             "scripts/validate_lean_observation_foundation_pr21_final_frozen.py",
             "scripts/validate_lean_observation_foundation_pr22_batch2_precompiler.py",
             "scripts/validate_lean_observation_foundation_pr22_combined_review_frozen.py",
@@ -97,6 +99,12 @@ class LeanObservationProjectionBoundaryRegressions(unittest.TestCase):
                 "scripts/validate_lean_observation_foundation_pr22_batch2_precompiler.py"
             ],
             "100755",
+        )
+        self.assertEqual(
+            self.v._LIVE_AUTHORITY_MODES[
+                "scripts/validate_lean_observation_foundation_pr22_merged_frozen.py"
+            ],
+            "100644",
         )
         self.assertNotIn(
             "scripts/validate_lean_observation_foundation.py",
