@@ -91,9 +91,9 @@ experiments/run_empirical_falsification_profile.py
 
 All receipt families bind deterministic repository files and canonical result payloads while keeping runtime metadata outside portable fingerprints.
 
-## Lean observation source-freeze boundary
+## Lean observation source-freeze and post-tag implementation boundary
 
-`LEAN-OBS-BATCH-001` freezes source theorem identity for `UFT-OBS-001` through `UFT-OBS-004`, their dependency/counterexample links, and the expected future Lean module/declaration map. `UFT-OBS-005` remains explicitly deferred.
+`LEAN-OBS-BATCH-001` remains the immutable source-freeze authority for `UFT-OBS-001` through `UFT-OBS-004`, including their dependency/counterexample links and registered Lean module/declaration map. The same frozen `v3.0.0` authority records `UFT-OBS-005` as deferred from batch 001; that historical deferral is not rewritten. Live post-tag authority in `machine/lean_observation_verification.json` separately registers the implemented batch-001 theorems and arithmetic `LEAN-OBS-BATCH-002` for `UFT-OBS-005`.
 
 Canonical validation:
 
@@ -102,15 +102,20 @@ python scripts/validate_observation_specs.py
 python scripts/validate_lean_observation_foundation.py
 ```
 
-The freeze validator recomputes Git blob identities for the pinned PR9 source authority and rejects statement, hypothesis, nonclaim, dependency, module-map, toolchain, source-tag, or bootstrap drift.
+The live validator preserves the frozen source/theorem identities while checking the exact registered theorem source blobs, allowed Lean package inventory, pinned Lean/mathlib inputs, tracked Git object modes and regular-file status, and synchronized live verification/README/roadmap projections. On Python 3.12, the canonical `vopson-corpus` workflow additionally verifies the SHA256-pinned Lean 4.33.1 archive, builds `UFTID` against the pinned mathlib revision, and runs the kernel-backed `#print axioms` audit through `scripts/verify_lean_observation_axioms.py`.
 
 ```text
 SOURCE_THEOREM_FREEZE != LEAN_PROOF
 THEOREM_BATCH_FREEZE != SOURCE_RELEASE_TAG
 SOURCE_RELEASE_TAG != LEAN_VERIFIED
+UFT-OBS-005_DEFERRED_IN_BATCH_001 != UFT-OBS-005_DROPPED
+LATER_LEAN_BATCH != RETROACTIVE_SOURCE_FREEZE_REWRITE
+IMPORTED_AXIOM != UFT_ID_THEOREM_RESULT
+LEAN_PROOF != EMPIRICAL_VALIDATION
+LEAN_PROOF != PHYSICAL_ONTOLOGY
 ```
 
-No deterministic Lean receipt is created in this phase because no Lean toolchain or proof source exists yet.
+The workflow retains the Lean source-freeze validation artifact and the build-time axiom-audit report. Those repository evidence objects establish only that the declared formalization and audit checks passed for the tested commit/toolchain; they do not upgrade the theorem package into empirical validation or physical ontology.
 
 ## Graph-realization conformance boundary
 
