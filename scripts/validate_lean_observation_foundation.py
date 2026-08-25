@@ -11,7 +11,10 @@ small layer fixes two compatibility-projection details:
   precompiler instead of a mutable nested module alias, preventing recursive
   wrapper re-entry while preserving the historical validator chain.
 
-Historical validators and theorem/source authorities remain unchanged.
+Historical validators and theorem/source authorities remain unchanged. Public
+compatibility hooks are mirrored into the predecessor only while delegated
+validation runs, preserving the hostile regression tests without allowing any
+private predecessor module handle to overwrite the live wrapper.
 """
 from __future__ import annotations
 
@@ -109,6 +112,16 @@ _COMPAT_EXPORTS = {
     and name != "_impl"
 }
 globals().update(_COMPAT_EXPORTS)
+# Only public compatibility names participate in the temporary mutation bridge.
+# Private sentinels such as `_impl`, `_frozen`, and captured delegate handles are
+# intentionally excluded so the recursion/time-travel bug cannot return.
+_COMPAT_BRIDGE_NAMES = tuple(
+    sorted(
+        name
+        for name in _COMPAT_EXPORTS
+        if not name.startswith("_") and name not in _OVERRIDES
+    )
+)
 del _COMPAT_EXPORTS
 
 _LIVE_SUPERSEDED_AUTHORITY_PATHS = (
@@ -212,6 +225,28 @@ def workflow_contract_errors(text: str) -> list[str]:
     return errors
 
 
+def _mirror_live_compatibility_hooks() -> dict[str, object]:
+    """Temporarily project public live mutation hooks into the predecessor.
+
+    Historical hostile tests mutate these public names on the live module. The
+    predecessor is otherwise byte-stable, so delegated calls must see the live
+    substitutions only for the duration of the call. Private module handles and
+    wrapper-owned overrides never cross this bridge.
+    """
+    previous: dict[str, object] = {}
+    module_globals = globals()
+    for name in _COMPAT_BRIDGE_NAMES:
+        if hasattr(_impl, name) and name in module_globals:
+            previous[name] = getattr(_impl, name)
+            setattr(_impl, name, module_globals[name])
+    return previous
+
+
+def _restore_impl_hooks(previous: dict[str, object]) -> None:
+    for name, value in previous.items():
+        setattr(_impl, name, value)
+
+
 def validate_documents(
     freeze,
     source_theorems,
@@ -224,6 +259,7 @@ def validate_documents(
     check_paths: bool = True,
     require_basis_objects: bool = False,
 ):
+    previous = _mirror_live_compatibility_hooks()
     old_tracked = _impl.tracked_authority_object_errors
     try:
         _impl.tracked_authority_object_errors = tracked_authority_object_errors
@@ -240,9 +276,11 @@ def validate_documents(
         )
     finally:
         _impl.tracked_authority_object_errors = old_tracked
+        _restore_impl_hooks(previous)
 
 
 def validate(*, require_basis_objects: bool = True):
+    previous = _mirror_live_compatibility_hooks()
     old_tracked = _impl.tracked_authority_object_errors
     old_workflow = _impl.workflow_contract_errors
     try:
@@ -252,6 +290,7 @@ def validate(*, require_basis_objects: bool = True):
     finally:
         _impl.tracked_authority_object_errors = old_tracked
         _impl.workflow_contract_errors = old_workflow
+        _restore_impl_hooks(previous)
 
     errors = list(result.get("errors", []))
     errors.extend(predecessor_validator_blob_errors())
