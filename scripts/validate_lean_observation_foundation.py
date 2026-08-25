@@ -285,6 +285,7 @@ def tracked_authority_object_errors(
         ".github/workflows/vopson-corpus.yml",
         "README4AI.md",
         "machine/roadmap_state.json",
+        "scripts/validate_lean_observation_foundation.py",
     ):
         blobs.pop(relpath, None)
     return _IMPL_TRACKED_AUTHORITY_OBJECT_ERRORS(
@@ -317,8 +318,6 @@ def _legacy_readme_projection(text: str) -> str:
     projected = projected.replace(LIVE_EFP_PHASE, LEGACY_EFP_PHASE, 1)
     projected = projected.replace(LIVE_HARD_RULE_8, LEGACY_HARD_RULE_8, 1)
     projected = projected.replace(LIVE_LEAN_SECTION, LEGACY_LEAN_SECTION, 1)
-    # The frozen v3.0.0 README intentionally had no terminal newline. The live
-    # README now has one, so remove it only from this historical projection.
     return projected.rstrip("\n")
 
 
@@ -439,12 +438,6 @@ def verification_record_errors(record: dict[str, object]) -> list[str]:
 
 
 def _strip_lean_comments(text: str) -> str:
-    """Replace Lean line/block comments with whitespace while preserving lines.
-
-    Lean block comments nest. Keeping newlines and replacing other comment
-    bytes with spaces means later command matching remains line-oriented without
-    letting docstrings or comments masquerade as declarations.
-    """
     chars = list(text)
     i = 0
     depth = 0
