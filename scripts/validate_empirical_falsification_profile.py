@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Post-tag schedule wrapper for the live EFP compatibility validator.
+"""Verified-Lean schedule wrapper for the live EFP compatibility validator.
 
 The exact pre-advance validator is preserved in
 validate_empirical_falsification_profile_pr21_pretag.py. EFP semantics remain
-frozen; only the shared live PR10 schedule advances to the post-tag Lean
-implementation/CI-hardening phase. The roadmap schema/snapshot stay at 1.7.0 /
-2026-08-24 because this is a phase transition, not a schema migration.
+frozen; only the shared live PR10 schedule advances to the post-merge
+LEAN_VERIFIED phase. The roadmap schema/snapshot stay at 1.7.0 / 2026-08-24
+because this is a phase transition, not a schema migration.
 """
 from __future__ import annotations
 
@@ -112,20 +112,23 @@ def load_json(path: Path) -> dict[str, object]:
 EXPECTED_LIVE_ROADMAP = copy.deepcopy(_base.EXPECTED_LIVE_ROADMAP)
 for _item in EXPECTED_LIVE_ROADMAP["sequence"]:
     if _item.get("planned_pr") == 10:
-        _item["status"] = "active-post-tag-lean-implementation-ci-hardening"
+        _item["status"] = "active-lean-verified-awaiting-context-and-archive"
 EXPECTED_LIVE_ROADMAP["compatibility_note"] = (
     "machine/formalization_contract.json retains the PR9-era roadmap_rebase snapshot; frozen PR11, "
     "BridgeCore, Epistemic Bridge, Representation, Information Comparability, Recovery, CSP, EFP, and the "
     "v3.0.0 Lean source-freeze authorities retain their historical semantics. This file is the live post-tag "
     "schedule authority: immutable source tag v3.0.0 resolves to b7f51590985e60920c8b09fc9238b8aec6cfa3bc; "
     "LEAN-OBS-BATCH-001 implements UFT-OBS-001 through UFT-OBS-004 and LEAN-OBS-BATCH-002 implements UFT-OBS-005. "
-    "Both remain IMPLEMENTED_PENDING_CI until the pinned Lean build, source binding, hostile review, and axiom audit "
-    "are green."
+    "Both are LEAN_VERIFIED at formalization integration commit bbcde19827921af4490c232bdc1edc401790d89e, tree "
+    "b7ec78695f32a5b1cf78b416a5050627ad4f957d, after exact merged-main finite-adversarial run 32876623204 and "
+    "vopson-corpus run 32876623479 succeeded. The next ordered gate is QSOL-CONTEXT verification capture, then "
+    "DOI/archive work."
 )
 EXPECTED_LIVE_ROADMAP["rules"][2] = (
     "The v3.0.0 source freeze remains immutable and historically records UFT-OBS-005 as deferred from batch 001; "
-    "live post-tag implementation may proceed only against that exact tag, with pinned Lean/Lake/Mathlib, exact "
-    "source binding, checked compilation, and explicit imported-axiom auditing before any LEAN_VERIFIED promotion."
+    "LEAN_VERIFIED is bound to that exact tag, pinned Lean/Lake/Mathlib, exact theorem-source identities, merged-main "
+    "build and validation at bbcde19827921af4490c232bdc1edc401790d89e, and the explicit imported-axiom audit. "
+    "Later changes require a new versioned verification state rather than rewriting this evidence."
 )
 
 LIVE_SCHEDULE_PHRASE = (
@@ -133,7 +136,10 @@ LIVE_SCHEDULE_PHRASE = (
     "Live post-tag authority is now `machine/roadmap_state.json` plus `machine/lean_observation_verification.json`: "
     "immutable tag `v3.0.0` is cut at `b7f51590985e60920c8b09fc9238b8aec6cfa3bc`, `LEAN-OBS-BATCH-001` "
     "implements `UFT-OBS-001` through `004`, and arithmetic `LEAN-OBS-BATCH-002` implements `UFT-OBS-005`; both "
-    "remain `IMPLEMENTED_PENDING_CI` until the pinned build and axiom audit are green."
+    "are `LEAN_VERIFIED` at formalization integration commit `bbcde19827921af4490c232bdc1edc401790d89e`, tree "
+    "`b7ec78695f32a5b1cf78b416a5050627ad4f957d`, after exact merged-main `finite-adversarial` run `32876623204` "
+    "and `vopson-corpus` run `32876623479` succeeded. The next ordered gate is QSOL-CONTEXT verification capture, "
+    "then DOI/archive work."
 )
 LIVE_LEAN_FREEZE_PHRASE = (
     "PR #10 Lean observation foundation is the historical source-freeze authority. Source batch "
@@ -142,9 +148,14 @@ LIVE_LEAN_FREEZE_PHRASE = (
     "rather than dropped."
 )
 LIVE_LEAN_IMPLEMENTATION_PHRASE = (
-    "Live post-tag implementation authority is `machine/lean_observation_verification.json`. Immutable source tag "
+    "Live post-tag verification authority is `machine/lean_observation_verification.json`. Immutable source tag "
     "`v3.0.0` resolves to commit `b7f51590985e60920c8b09fc9238b8aec6cfa3bc` and tree "
     "`966bdf47596832f792e77d619b33222f4cf60c8d`."
+)
+LIVE_LEAN_VERIFIED_PHRASE = (
+    "Both batches are `LEAN_VERIFIED`, bound to formalization integration commit "
+    "`bbcde19827921af4490c232bdc1edc401790d89e`, tree `b7ec78695f32a5b1cf78b416a5050627ad4f957d`, "
+    "exact merged-main `finite-adversarial` run `32876623204`, and exact merged-main `vopson-corpus` run `32876623479`."
 )
 STALE_SCHEDULE_PHRASE = (
     "Live scheduling authority is PR #10 Lean observation foundation: the first theorem batch and dependency graph "
@@ -176,8 +187,8 @@ def _live_roadmap_errors() -> list[str]:
         errors.append("EFP live roadmap sequence malformed")
     else:
         by_pr = {item.get("planned_pr"): item for item in sequence if isinstance(item, dict)}
-        if by_pr.get(10, {}).get("status") != "active-post-tag-lean-implementation-ci-hardening":
-            errors.append("EFP live roadmap PR10 post-tag implementation activation drift")
+        if by_pr.get(10, {}).get("status") != "active-lean-verified-awaiting-context-and-archive":
+            errors.append("EFP live roadmap PR10 verified-state drift")
         if by_pr.get(18, {}).get("status") != "complete-merged-516cff5d6a45af54d6fc4ae9c72c2e8e9c668637":
             errors.append("EFP live roadmap PR18 completion drift")
     if roadmap != EXPECTED_LIVE_ROADMAP:
@@ -197,6 +208,7 @@ def _live_bootstrap_errors() -> list[str]:
         LIVE_SCHEDULE_PHRASE,
         LIVE_LEAN_FREEZE_PHRASE,
         LIVE_LEAN_IMPLEMENTATION_PHRASE,
+        LIVE_LEAN_VERIFIED_PHRASE,
     )
     for phrase in required:
         if text.count(phrase) != 1:
@@ -207,6 +219,7 @@ def _live_bootstrap_errors() -> list[str]:
         "Lean remains deferred until source reproduction",
         "PR #10 Lean observation foundation is active only for theorem-batch and dependency-graph freezing.",
         "Lean/Lake/Mathlib remain unpinned",
+        "IMPLEMENTED_PENDING_CI",
     )
     for phrase in forbidden:
         if phrase in text:
