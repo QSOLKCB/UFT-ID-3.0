@@ -1,7 +1,6 @@
 {
   "type": "uft-id-lean-observation-verification",
-  "schema_version": "1.0.0",
-  "batch_id": "LEAN-OBS-BATCH-001",
+  "schema_version": "1.1.0",
   "status": "IMPLEMENTED_PENDING_CI",
   "source_release": {
     "tag": "v3.0.0",
@@ -14,6 +13,27 @@
     "lean_archive_url": "https://github.com/leanprover/lean4/releases/download/v4.33.1/lean-4.33.1-linux.tar.zst",
     "lean_archive_sha256": "890afd185370f85666025b883914ab4f4b339136f8c96167b69cfb62aecaf235"
   },
+  "batches": [
+    {
+      "batch_id": "LEAN-OBS-BATCH-001",
+      "theorem_ids": [
+        "UFT-OBS-001",
+        "UFT-OBS-002",
+        "UFT-OBS-003",
+        "UFT-OBS-004"
+      ],
+      "source_freeze_status": "FROZEN_IN_V3.0.0",
+      "implementation_status": "IMPLEMENTED_PENDING_CI"
+    },
+    {
+      "batch_id": "LEAN-OBS-BATCH-002",
+      "theorem_ids": [
+        "UFT-OBS-005"
+      ],
+      "source_freeze_status": "DEFERRED_FROM_BATCH_001_IN_V3.0.0",
+      "implementation_status": "IMPLEMENTED_PENDING_CI"
+    }
+  ],
   "theorems": [
     {
       "id": "UFT-OBS-001",
@@ -38,12 +58,22 @@
       "module": "UFTID.Observation.Reconstruction",
       "path": "UFTID/Observation/Reconstruction.lean",
       "declaration": "uft_obs_004_noninjective_no_global_left_inverse"
+    },
+    {
+      "id": "UFT-OBS-005",
+      "module": "UFTID.Observation.Sampling",
+      "path": "UFTID/Observation/Sampling.lean",
+      "declaration": "uft_obs_005_uniform_floor_sampling"
     }
   ],
-  "deferred_theorem_ids": ["UFT-OBS-005"],
+  "source_freeze_deferred_theorem_ids": [
+    "UFT-OBS-005"
+  ],
+  "current_deferred_theorem_ids": [],
   "hard_boundaries": [
     "LEAN_PROOF != EMPIRICAL_VALIDATION",
     "LEAN_PROOF != PHYSICAL_ONTOLOGY",
-    "UFT-OBS-005_DEFERRED != UFT-OBS-005_DROPPED"
+    "UFT-OBS-005_DEFERRED_IN_BATCH_001 != UFT-OBS-005_DROPPED",
+    "LATER_LEAN_BATCH != RETROACTIVE_SOURCE_FREEZE_REWRITE"
   ]
 }

@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-"""Post-tag validator for LEAN-OBS-BATCH-001.
+"""Post-tag Lean validator for the deterministic observation theorem programme.
 
 The final pre-tag PR #21 validator is preserved byte-for-byte in
 ``validate_lean_observation_foundation_pr21_final_frozen.py``. This wrapper
-keeps that source-freeze authority intact, then adds the only transition the
-v3.0.0 release gate permits: an exact, pinned Lean package implementing
-UFT-OBS-001 through UFT-OBS-004 against the immutable v3.0.0 source commit.
+keeps that source-freeze authority intact and validates two later Lean layers:
 
-UFT-OBS-005 remains deferred. Lean compilation is formal verification of the
-abstract set-theoretic statements only; it is not empirical validation or a
-physical-ontology claim.
+* ``LEAN-OBS-BATCH-001`` implements UFT-OBS-001 through UFT-OBS-004;
+* ``LEAN-OBS-BATCH-002`` implements the arithmetic theorem UFT-OBS-005.
+
+The second batch does not rewrite the v3.0.0 freeze. UFT-OBS-005 remains
+historically deferred from batch 001 and is formalized only in the separately
+registered arithmetic batch.
 """
 from __future__ import annotations
 
@@ -55,27 +56,33 @@ _frozen = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_frozen)
 _PRETAG_FINAL_MODULE = _frozen
 
-# Preserve the reviewed helper/test surface. Keep one stable predecessor handle
-# while exporting its private compatibility helpers: the predecessor itself has
-# a private `_frozen` attribute, and copying that name over our live handle would
-# change the module being iterated halfway through this loop.
+# Preserve the complete reviewed helper surface. A stable predecessor handle is
+# required because the predecessor itself also exports a private `_frozen`
+# module. Copying that name into this module would replace the object being
+# traversed halfway through the export loop.
 for _name in dir(_PRETAG_FINAL_MODULE):
     if not _name.startswith("__") and _name not in {
         "_frozen",
         "validate_documents",
         "validate",
         "main",
+        "basis_git_blob_sha",
         "basis_source_object_errors",
         "tracked_authority_object_errors",
         "workflow_contract_errors",
+        "base_validator_blob_errors",
+        "frozen_validator_blob_errors",
         "artifact_verifier_blob_errors",
     }:
         globals()[_name] = getattr(_PRETAG_FINAL_MODULE, _name)
 _frozen = _PRETAG_FINAL_MODULE
 
+_FROZEN_BASIS_GIT_BLOB_SHA = _frozen.basis_git_blob_sha
 _FROZEN_BASIS_SOURCE_OBJECT_ERRORS = _frozen.basis_source_object_errors
 _FROZEN_TRACKED_AUTHORITY_OBJECT_ERRORS = _frozen.tracked_authority_object_errors
 _FROZEN_WORKFLOW_CONTRACT_ERRORS = _frozen.workflow_contract_errors
+_FROZEN_BASE_VALIDATOR_BLOB_ERRORS = _frozen.base_validator_blob_errors
+_FROZEN_FROZEN_VALIDATOR_BLOB_ERRORS = _frozen.frozen_validator_blob_errors
 _FROZEN_ARTIFACT_VERIFIER_BLOB_ERRORS = _frozen.artifact_verifier_blob_errors
 
 FREEZE = _frozen.FREEZE
@@ -96,6 +103,7 @@ LEAN_ROOT = ROOT / "UFTID.lean"
 LEAN_BASIC = ROOT / "UFTID/Observation/Basic.lean"
 LEAN_QUOTIENT = ROOT / "UFTID/Observation/Quotient.lean"
 LEAN_RECONSTRUCTION = ROOT / "UFTID/Observation/Reconstruction.lean"
+LEAN_SAMPLING = ROOT / "UFTID/Observation/Sampling.lean"
 
 SOURCE_TAG = "v3.0.0"
 SOURCE_COMMIT = "b7f51590985e60920c8b09fc9238b8aec6cfa3bc"
@@ -114,6 +122,7 @@ EXPECTED_ALLOWED_LEAN_PATHS = frozenset(
         "UFTID/Observation/Basic.lean",
         "UFTID/Observation/Quotient.lean",
         "UFTID/Observation/Reconstruction.lean",
+        "UFTID/Observation/Sampling.lean",
         "lean-toolchain",
         "lakefile.toml",
     }
@@ -135,6 +144,10 @@ EXPECTED_DECLARATIONS = {
     "UFT-OBS-004": (
         "UFTID/Observation/Reconstruction.lean",
         "uft_obs_004_noninjective_no_global_left_inverse",
+    ),
+    "UFT-OBS-005": (
+        "UFTID/Observation/Sampling.lean",
+        "uft_obs_005_uniform_floor_sampling",
     ),
 }
 
@@ -159,6 +172,7 @@ EXPECTED_ROOT_IMPORTS = (
     "import UFTID.Observation.Basic",
     "import UFTID.Observation.Quotient",
     "import UFTID.Observation.Reconstruction",
+    "import UFTID.Observation.Sampling",
 )
 
 LEAN_WORKFLOW_STEP = '''
@@ -182,6 +196,36 @@ LEAN_WORKFLOW_STEP = '''
           lake exe cache get
           lake build UFTID
 '''
+
+
+def base_validator_blob_errors(path: Path = BASE) -> list[str]:
+    """Preserve the historical mutation hook for the base-validator hash."""
+    previous = _frozen.local_git_blob_sha
+    try:
+        _frozen.local_git_blob_sha = local_git_blob_sha
+        return _FROZEN_BASE_VALIDATOR_BLOB_ERRORS(path)
+    finally:
+        _frozen.local_git_blob_sha = previous
+
+
+def frozen_validator_blob_errors(path: Path = FROZEN) -> list[str]:
+    """Preserve the historical mutation hook for the frozen-validator hash."""
+    previous = _frozen.git_blob_sha
+    try:
+        _frozen.git_blob_sha = git_blob_sha
+        return _FROZEN_FROZEN_VALIDATOR_BLOB_ERRORS(path)
+    finally:
+        _frozen.git_blob_sha = previous
+
+
+def basis_git_blob_sha(relpath: str) -> str | None:
+    """Preserve the historical Git-object type mutation hook."""
+    previous = _frozen.git_object_is_blob
+    try:
+        _frozen.git_object_is_blob = git_object_is_blob
+        return _FROZEN_BASIS_GIT_BLOB_SHA(relpath)
+    finally:
+        _frozen.git_object_is_blob = previous
 
 
 def basis_source_object_errors() -> list[str]:
@@ -225,9 +269,13 @@ def tracked_authority_object_errors(
 
 
 def artifact_verifier_blob_errors(path: Path = ARTIFACT_VERIFIER) -> list[str]:
-    # The retained-evidence verifier is intentionally unchanged across the
-    # transition because the validator keeps its canonical seven-field payload.
-    return _FROZEN_ARTIFACT_VERIFIER_BLOB_ERRORS(path)
+    """Keep the retained-artifact verifier hash hook live for old regressions."""
+    previous = _frozen.local_git_blob_sha
+    try:
+        _frozen.local_git_blob_sha = local_git_blob_sha
+        return _FROZEN_ARTIFACT_VERIFIER_BLOB_ERRORS(path)
+    finally:
+        _frozen.local_git_blob_sha = previous
 
 
 def _pretag_workflow_projection(text: str) -> tuple[str, list[str]]:
@@ -274,16 +322,9 @@ def source_release_errors() -> list[str]:
 
 
 def expected_verification_record() -> dict[str, object]:
-    modules = {
-        "UFT-OBS-001": "UFTID.Observation.Basic",
-        "UFT-OBS-002": "UFTID.Observation.Quotient",
-        "UFT-OBS-003": "UFTID.Observation.Reconstruction",
-        "UFT-OBS-004": "UFTID.Observation.Reconstruction",
-    }
     return {
         "type": "uft-id-lean-observation-verification",
-        "schema_version": "1.0.0",
-        "batch_id": "LEAN-OBS-BATCH-001",
+        "schema_version": "1.1.0",
         "status": "IMPLEMENTED_PENDING_CI",
         "source_release": {
             "tag": SOURCE_TAG,
@@ -296,20 +337,47 @@ def expected_verification_record() -> dict[str, object]:
             "lean_archive_url": LEAN_ARCHIVE_URL,
             "lean_archive_sha256": LEAN_ARCHIVE_SHA256,
         },
+        "batches": [
+            {
+                "batch_id": "LEAN-OBS-BATCH-001",
+                "theorem_ids": [
+                    "UFT-OBS-001",
+                    "UFT-OBS-002",
+                    "UFT-OBS-003",
+                    "UFT-OBS-004",
+                ],
+                "source_freeze_status": "FROZEN_IN_V3.0.0",
+                "implementation_status": "IMPLEMENTED_PENDING_CI",
+            },
+            {
+                "batch_id": "LEAN-OBS-BATCH-002",
+                "theorem_ids": ["UFT-OBS-005"],
+                "source_freeze_status": "DEFERRED_FROM_BATCH_001_IN_V3.0.0",
+                "implementation_status": "IMPLEMENTED_PENDING_CI",
+            },
+        ],
         "theorems": [
             {
                 "id": theorem_id,
-                "module": modules[theorem_id],
+                "module": {
+                    "UFT-OBS-001": "UFTID.Observation.Basic",
+                    "UFT-OBS-002": "UFTID.Observation.Quotient",
+                    "UFT-OBS-003": "UFTID.Observation.Reconstruction",
+                    "UFT-OBS-004": "UFTID.Observation.Reconstruction",
+                    "UFT-OBS-005": "UFTID.Observation.Sampling",
+                }[theorem_id],
                 "path": path,
                 "declaration": declaration,
             }
             for theorem_id, (path, declaration) in EXPECTED_DECLARATIONS.items()
         ],
-        "deferred_theorem_ids": ["UFT-OBS-005"],
+        "source_freeze_deferred_theorem_ids": ["UFT-OBS-005"],
+        "current_deferred_theorem_ids": [],
         "hard_boundaries": [
             "LEAN_PROOF != EMPIRICAL_VALIDATION",
             "LEAN_PROOF != PHYSICAL_ONTOLOGY",
-            "UFT-OBS-005_DEFERRED != UFT-OBS-005_DROPPED",
+            "UFT-OBS-005_DEFERRED_IN_BATCH_001 != UFT-OBS-005_DROPPED",
+            "LATER_LEAN_BATCH != RETROACTIVE_SOURCE_FREEZE_REWRITE",
         ],
     }
 
@@ -323,10 +391,10 @@ def verification_record_errors(record: dict[str, object]) -> list[str]:
 def posttag_path_errors() -> list[str]:
     """Allow only the exact registered Lean package after v3.0.0.
 
-    The historical inventory helper is deliberately reused so old adversarial
-    tests keep proving that hidden `.lean`, `.olean`, `.ilean`, and package
-    files are found. Generated compiled modules remain forbidden from source
-    control.
+    The historical tracked-file inventory is deliberately reused, so old
+    adversarial tests still prove that hidden `.lean`, `.olean`, `.ilean`, and
+    package files are found. Generated compiled modules remain forbidden from
+    source control.
     """
     tracked, inventory_errors = tracked_pretag_lean_files()
     errors = list(inventory_errors)
@@ -345,6 +413,7 @@ def lean_source_errors() -> list[str]:
         "UFTID/Observation/Basic.lean": LEAN_BASIC,
         "UFTID/Observation/Quotient.lean": LEAN_QUOTIENT,
         "UFTID/Observation/Reconstruction.lean": LEAN_RECONSTRUCTION,
+        "UFTID/Observation/Sampling.lean": LEAN_SAMPLING,
     }
     texts: dict[str, str] = {}
     for relpath, path in paths.items():
@@ -358,14 +427,27 @@ def lean_source_errors() -> list[str]:
             errors.append(f"Lean proof escape hatch forbidden: axiom in {relpath}")
         if re.search(r"\b(?:sorry|admit)\b", text):
             errors.append(f"Lean proof hole forbidden in {relpath}")
-        if "UFT-OBS-005" in text or "uft_obs_005" in text:
-            errors.append(f"deferred UFT-OBS-005 leaked into Lean batch 001: {relpath}")
 
     for theorem_id, (relpath, declaration) in EXPECTED_DECLARATIONS.items():
         text = texts.get(relpath, "")
         matches = re.findall(rf"(?m)^theorem\s+{re.escape(declaration)}\b", text)
         if len(matches) != 1:
             errors.append(f"{theorem_id} Lean declaration count drift: {declaration}")
+
+    for relpath in (
+        "UFTID.lean",
+        "UFTID/Observation/Basic.lean",
+        "UFTID/Observation/Quotient.lean",
+        "UFTID/Observation/Reconstruction.lean",
+    ):
+        text = texts.get(relpath, "")
+        if "UFT-OBS-005" in text or "uft_obs_005" in text:
+            errors.append(
+                f"UFT-OBS-005 arithmetic batch leaked into batch-001 module: {relpath}"
+            )
+    sampling = texts.get("UFTID/Observation/Sampling.lean", "")
+    if sampling.count("UFT-OBS-005") != 1:
+        errors.append("UFT-OBS-005 Sampling theorem documentation identity drift")
 
     root_lines = tuple(
         line.strip() for line in texts.get("UFTID.lean", "").splitlines() if line.strip()
@@ -376,6 +458,7 @@ def lean_source_errors() -> list[str]:
     basic = texts.get("UFTID/Observation/Basic.lean", "")
     quotient = texts.get("UFTID/Observation/Quotient.lean", "")
     reconstruction = texts.get("UFTID/Observation/Reconstruction.lean", "")
+    sampling = texts.get("UFTID/Observation/Sampling.lean", "")
     if "import UFTID." in basic:
         errors.append("UFT-OBS-001 module gained an undeclared UFTID dependency")
     if tuple(
@@ -386,6 +469,10 @@ def lean_source_errors() -> list[str]:
         line.strip() for line in reconstruction.splitlines() if line.startswith("import ")
     ) != ("import UFTID.Observation.Basic",):
         errors.append("UFT-OBS-003/004 Lean module dependency drift")
+    if tuple(
+        line.strip() for line in sampling.splitlines() if line.startswith("import ")
+    ) != ("import Mathlib",):
+        errors.append("UFT-OBS-005 arithmetic batch dependency drift")
     return errors
 
 
@@ -417,17 +504,26 @@ def validate_documents(
     # All theorem identity, statement, hypothesis, dependency, counterexample,
     # human-authority, and pre-release nonclaim checks remain frozen. Only the
     # historical path embargo is replaced after the source tag exists.
-    result = _frozen.validate_documents(
-        freeze,
-        source_theorems,
-        source_counterexamples,
-        base_contract,
-        human,
-        roadmap,
-        readme,
-        check_paths=False,
-        require_basis_objects=require_basis_objects,
-    )
+    old_basis_sha = _frozen.basis_git_blob_sha
+    old_basis_errors = _frozen.basis_source_object_errors
+    try:
+        _frozen.basis_git_blob_sha = basis_git_blob_sha
+        _frozen.basis_source_object_errors = basis_source_object_errors
+        result = _frozen.validate_documents(
+            freeze,
+            source_theorems,
+            source_counterexamples,
+            base_contract,
+            human,
+            roadmap,
+            readme,
+            check_paths=False,
+            require_basis_objects=require_basis_objects,
+        )
+    finally:
+        _frozen.basis_git_blob_sha = old_basis_sha
+        _frozen.basis_source_object_errors = old_basis_errors
+
     errors = list(result.get("errors", []))
     if check_paths:
         errors.extend(tracked_authority_object_errors())
@@ -456,6 +552,7 @@ def validate(*, require_basis_objects: bool = True):
         LEAN_BASIC,
         LEAN_QUOTIENT,
         LEAN_RECONSTRUCTION,
+        LEAN_SAMPLING,
         ARTIFACT_VERIFIER,
     ]
     missing = [str(path.relative_to(ROOT)) for path in paths if not path.is_file()]
@@ -500,7 +597,8 @@ def validate(*, require_basis_objects: bool = True):
     errors.extend(frozen_validator_blob_errors())
     errors.extend(artifact_verifier_blob_errors())
     errors.extend(workflow_contract_errors(WORKFLOW.read_text(encoding="utf-8")))
-    errors.extend(source_release_errors())
+    if require_basis_objects:
+        errors.extend(source_release_errors())
     errors.extend(verification_record_errors(load_json(VERIFICATION)))
     errors.extend(toolchain_errors())
     errors.extend(lean_source_errors())
@@ -519,7 +617,8 @@ def main() -> int:
     elif result["status"] == "ok":
         print(
             "Lean observation implementation: ok "
-            f"({result['theorem_count']} theorems, source {SOURCE_TAG}, Lean {LEAN_VERSION})"
+            f"({result['theorem_count']} frozen batch-001 theorems + UFT-OBS-005 batch 002; "
+            f"source {SOURCE_TAG}, Lean {LEAN_VERSION})"
         )
     else:
         for error in result["errors"]:

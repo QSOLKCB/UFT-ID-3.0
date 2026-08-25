@@ -32,7 +32,13 @@ theorem uft_obs_001_observational_equivalence (O : S → Y) :
     Equivalence (ObservationalRel O) ∧
       ∀ x : S, observationalClass O x = observationFiber O (O x) := by
   constructor
-  · exact ⟨fun x => rfl, fun _ _ h => h.symm, fun _ _ _ hxy hyz => hxy.trans hyz⟩
+  · constructor
+    · intro x
+      rfl
+    · intro x y hxy
+      exact Eq.symm hxy
+    · intro x y z hxy hyz
+      exact Eq.trans hxy hyz
   · intro x
     ext x'
     simp [observationalClass, observationFiber, ObservationalRel]
