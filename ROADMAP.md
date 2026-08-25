@@ -22,6 +22,21 @@ but relation, observation, bridge, epistemic, representation, information, recov
 
 # Live implementation status
 
+## Post-merge Lean verification state: LEAN_VERIFIED
+
+The PR #10 observation formalization track is now `LEAN_VERIFIED` against immutable source release `v3.0.0`. `LEAN-OBS-BATCH-001` implements `UFT-OBS-001` through `UFT-OBS-004`; separately registered arithmetic `LEAN-OBS-BATCH-002` implements `UFT-OBS-005`. The historical `v3.0.0` batch-001 record that deferred `UFT-OBS-005` is preserved and is not a current deferral.
+
+Formalization integration is GitHub PR #22, merged at `bbcde19827921af4490c232bdc1edc401790d89e` with tree `b7ec78695f32a5b1cf78b416a5050627ad4f957d`. Exact merged-`main` `finite-adversarial` run `32876623204` and `vopson-corpus` run `32876623479` both succeeded. The pinned Python 3.12 Vopson lane completed `lake build UFTID` successfully and the kernel-backed imported-axiom audit passed.
+
+The next ordered gate is to advance the existing QSOL-CONTEXT formalization target binding through `LEAN_VERIFIED`, then proceed to DOI reservation and deterministic archive construction. The older PR #10 status/checklist prose retained below predates the completed formalization and remains only as historical compatibility text; it does not override this live state or `machine/roadmap_state.json`.
+
+```text
+SOURCE_RELEASE != LATER_LEAN_FORMALIZATION_LAYER
+LEAN_PROOF != EMPIRICAL_VALIDATION
+LEAN_PROOF != PHYSICAL_ONTOLOGY
+IMPORTED_AXIOM != UFT_ID_THEOREM_RESULT
+```
+
 ## Completed roadmap surfaces
 
 ### Phase 0: lineage and provenance — COMPLETE
