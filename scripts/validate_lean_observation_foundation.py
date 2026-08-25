@@ -98,10 +98,15 @@ _OVERRIDES = {
     "validate",
     "main",
 }
+# Keep the live wrapper's predecessor handle stable. The predecessor exports a
+# private `_impl` compatibility alias of its own; copying that name here would
+# silently replace this module's combined-review handle with an older layer.
 _COMPAT_EXPORTS = {
     name: getattr(_impl, name)
     for name in dir(_impl)
-    if not name.startswith("__") and name not in _OVERRIDES
+    if not name.startswith("__")
+    and name not in _OVERRIDES
+    and name != "_impl"
 }
 globals().update(_COMPAT_EXPORTS)
 del _COMPAT_EXPORTS
@@ -179,14 +184,7 @@ def tracked_authority_object_errors(
 
 
 def workflow_contract_errors(text: str) -> list[str]:
-    """Validate the live workflow without recursive compatibility re-entry.
-
-    The combined-review predecessor's intended projection is reproduced here
-    using constants frozen in that predecessor, then delegated to a separately
-    loaded exact precompiler. This preserves the historical checks while
-    avoiding the predecessor's mutable nested `_impl.workflow_contract_errors`
-    alias, which can otherwise resolve back to this live wrapper.
-    """
+    """Validate the live workflow without recursive compatibility re-entry."""
     errors: list[str] = []
     if text.count(PREDECESSOR_WORKFLOW_ROUTE) != 2:
         errors.append("registered combined-review Lean-validator workflow route drift")
