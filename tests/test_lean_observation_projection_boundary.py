@@ -50,23 +50,46 @@ class LeanObservationProjectionBoundaryRegressions(unittest.TestCase):
         self.assertEqual(errors, [])
         return captured
 
-    def test_exact_production_pair_filters_live_replacements_from_both_maps(self):
+    def test_exact_production_pair_overlays_live_authorities_in_both_maps(self):
         captured = self.capture_projection(
             blobs=dict(self.canonical_blobs),
             modes=dict(self.canonical_modes),
         )
-        expected_blobs = {
-            path: value
-            for path, value in self.canonical_blobs.items()
-            if path not in self.v._LIVE_SUPERSEDED_AUTHORITY_PATHS
-        }
-        expected_modes = {
-            path: value
-            for path, value in self.canonical_modes.items()
-            if path not in self.v._LIVE_SUPERSEDED_AUTHORITY_PATHS
-        }
+        expected_blobs = dict(self.canonical_blobs)
+        expected_blobs.update(self.v._LIVE_AUTHORITY_BLOBS)
+        expected_modes = dict(self.canonical_modes)
+        expected_modes.update(self.v._LIVE_AUTHORITY_MODES)
         self.assertEqual(captured["blobs"], expected_blobs)
         self.assertEqual(captured["modes"], expected_modes)
+
+    def test_live_registry_covers_posttag_package_and_verification_files(self):
+        required_blob_paths = {
+            ".github/workflows/vopson-corpus.yml",
+            "README4AI.md",
+            "machine/roadmap_state.json",
+            "machine/lean_observation_verification.json",
+            "scripts/validate_lean_observation_foundation_pr21_final_frozen.py",
+            "scripts/validate_lean_observation_foundation_pr22_batch2_precompiler.py",
+            "scripts/validate_lean_observation_foundation_pr22_combined_review_frozen.py",
+            "scripts/verify_lean_observation_axioms.py",
+            "lean-toolchain",
+            "lakefile.toml",
+            "UFTID.lean",
+            "UFTID/Observation/Basic.lean",
+            "UFTID/Observation/Quotient.lean",
+            "UFTID/Observation/Reconstruction.lean",
+            "UFTID/Observation/Sampling.lean",
+        }
+        self.assertTrue(required_blob_paths.issubset(self.v._LIVE_AUTHORITY_BLOBS))
+        self.assertTrue(required_blob_paths.issubset(self.v._LIVE_AUTHORITY_MODES))
+        self.assertEqual(
+            self.v._LIVE_AUTHORITY_MODES["scripts/validate_lean_observation_foundation.py"],
+            "100755",
+        )
+        self.assertNotIn(
+            "scripts/validate_lean_observation_foundation.py",
+            self.v._LIVE_AUTHORITY_BLOBS,
+        )
 
     def test_modified_explicit_pair_is_forwarded_unchanged(self):
         cases = []
