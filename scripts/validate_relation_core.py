@@ -4,7 +4,8 @@
 The exact pre-release-gate wrapper is preserved in
 validate_relation_core_pr21_pre_release_gate.py. PR11 theorem semantics remain
 frozen; only the shared live roadmap expectation advances to the post-tag Lean
-implementation/CI-hardening phase.
+implementation/CI-hardening phase. The roadmap schema/snapshot remain 1.7.0 /
+2026-08-24 because this is a phase transition, not a schema migration.
 """
 from __future__ import annotations
 
@@ -70,8 +71,6 @@ _base = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_base)
 
 EXPECTED_ROADMAP_STATE = copy.deepcopy(_base.EXPECTED_ROADMAP_STATE)
-EXPECTED_ROADMAP_STATE["schema_version"] = "1.8.0"
-EXPECTED_ROADMAP_STATE["snapshot_date"] = "2026-08-25"
 for _item in EXPECTED_ROADMAP_STATE["sequence"]:
     if _item.get("planned_pr") == 10:
         _item["status"] = "active-post-tag-lean-implementation-ci-hardening"

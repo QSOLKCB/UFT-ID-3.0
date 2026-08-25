@@ -20,9 +20,9 @@ ROOT = Path(__file__).resolve().parents[1]
 PRECOMPILER = ROOT / "scripts/validate_lean_observation_foundation_pr22_batch2_precompiler.py"
 EXPECTED_PRECOMPILER_BLOB = "bc8cb796d12f84d05a532403df1a6f4d5b161f39"
 AXIOM_AUDITOR = ROOT / "scripts/verify_lean_observation_axioms.py"
-EXPECTED_AXIOM_AUDITOR_BLOB = "f6d9698c90658de9dccd3c5ff4d845ee0bb3b14c"
+EXPECTED_AXIOM_AUDITOR_BLOB = "cf08e73685f2ba7ad7a7b0b96a686c6d3e3e330d"
 EXPECTED_LIVE_README_BLOB = "f9d43b7c04494f59ef69955192aa4b3ddd00f5a0"
-EXPECTED_LIVE_ROADMAP_STATE_BLOB = "d820ad17d23201df574f6e19e421067ee5e4e7d8"
+EXPECTED_LIVE_ROADMAP_STATE_BLOB = "f36ee90d004454341300c359aa45b5da2b8ccf33"
 
 PRECOMPILER_WORKFLOW_ROUTE = (
     '      - "scripts/validate_lean_observation_foundation_pr22_batch2_precompiler.py"\n'
@@ -438,11 +438,57 @@ def verification_record_errors(record: dict[str, object]) -> list[str]:
     return []
 
 
+def _strip_lean_comments(text: str) -> str:
+    """Replace Lean line/block comments with whitespace while preserving lines.
+
+    Lean block comments nest. Keeping newlines and replacing other comment
+    bytes with spaces means later command matching remains line-oriented without
+    letting docstrings or comments masquerade as declarations.
+    """
+    chars = list(text)
+    i = 0
+    depth = 0
+    while i < len(chars):
+        if depth == 0 and i + 1 < len(chars) and chars[i] == "-" and chars[i + 1] == "-":
+            chars[i] = " "
+            chars[i + 1] = " "
+            i += 2
+            while i < len(chars) and chars[i] != "\n":
+                chars[i] = " "
+                i += 1
+            continue
+        if i + 1 < len(chars) and chars[i] == "/" and chars[i + 1] == "-":
+            depth += 1
+            chars[i] = " "
+            chars[i + 1] = " "
+            i += 2
+            continue
+        if depth > 0 and i + 1 < len(chars) and chars[i] == "-" and chars[i + 1] == "/":
+            depth -= 1
+            chars[i] = " "
+            chars[i + 1] = " "
+            i += 2
+            continue
+        if depth > 0 and chars[i] != "\n":
+            chars[i] = " "
+        i += 1
+    return "".join(chars)
+
+
+def _has_assumption_command(text: str) -> bool:
+    code = _strip_lean_comments(text)
+    command = re.compile(
+        r"(?m)^\s*(?:(?:private|protected|unsafe|noncomputable)\s+)*(?:axiom|constant)\b"
+    )
+    return command.search(code) is not None
+
+
 def lean_source_errors() -> list[str]:
     errors = [
         error
         for error in _impl.lean_source_errors()
         if error != "UFT-OBS-005 Sampling theorem documentation identity drift"
+        and not error.startswith("Lean proof escape hatch forbidden: axiom in ")
     ]
     if LEAN_SAMPLING.is_file():
         sampling = LEAN_SAMPLING.read_text(encoding="utf-8")
@@ -462,7 +508,7 @@ def lean_source_errors() -> list[str]:
                 f"expected {expected_sha}, got {actual_sha}"
             )
         text = path.read_text(encoding="utf-8")
-        if re.search(r"\b(?:axiom|constant)\b", text):
+        if _has_assumption_command(text):
             errors.append(f"Lean undeclared assumption command forbidden in {relpath}")
     return errors
 

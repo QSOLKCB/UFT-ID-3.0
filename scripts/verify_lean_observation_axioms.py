@@ -32,34 +32,44 @@ def load_policy() -> dict[str, object]:
 
 
 def parse_axiom_output(stdout: str) -> dict[str, list[str]]:
+    """Parse only Lean's canonical `#print axioms` result lines.
+
+    Non-result chatter is ignored. Repeated results for one declaration must be
+    identical, otherwise the audit fails closed rather than silently accepting
+    whichever line happened to appear last.
+    """
     result: dict[str, list[str]] = {}
     for raw_line in stdout.splitlines():
         line = raw_line.strip()
+        parsed: tuple[str, list[str]] | None = None
         match = NO_AXIOMS_RE.fullmatch(line)
         if match:
-            result[match.group(1)] = []
+            parsed = (match.group(1), [])
+        else:
+            match = AXIOMS_RE.fullmatch(line)
+            if match:
+                body = match.group(2).strip()
+                axioms = [] if not body else [
+                    item.strip() for item in body.split(",") if item.strip()
+                ]
+                parsed = (match.group(1), axioms)
+        if parsed is None:
             continue
-        match = AXIOMS_RE.fullmatch(line)
-        if match:
-            body = match.group(2).strip()
-            result[match.group(1)] = (
-                [] if not body else [item.strip() for item in body.split(",") if item.strip()]
-            )
+        name, axioms = parsed
+        canonical = sorted(set(axioms))
+        if name in result and result[name] != canonical:
+            raise RuntimeError(f"conflicting #print axioms results for {name}")
+        result[name] = canonical
     return result
 
 
-def run_audit(lake: str) -> dict[str, object]:
-    loaded = load_policy()
-    record = loaded["record"]
-    policy = loaded["policy"]
-    assert isinstance(record, dict)
-    assert isinstance(policy, dict)
-
+def declarations_from_record(record: dict[str, object]) -> dict[str, str]:
     theorem_records = record.get("theorems")
     if not isinstance(theorem_records, list):
         raise RuntimeError("verification record theorem list is malformed")
 
     declarations: dict[str, str] = {}
+    seen_full_names: set[str] = set()
     for item in theorem_records:
         if not isinstance(item, dict):
             raise RuntimeError("verification theorem entry is malformed")
@@ -67,11 +77,85 @@ def run_audit(lake: str) -> dict[str, object]:
         declaration = item.get("declaration")
         if not isinstance(theorem_id, str) or not isinstance(declaration, str):
             raise RuntimeError("verification theorem identity is malformed")
-        declarations[theorem_id] = f"UFTID.Observation.{declaration}"
+        if theorem_id in declarations:
+            raise RuntimeError(f"duplicate verification theorem id: {theorem_id}")
+        full_name = f"UFTID.Observation.{declaration}"
+        if full_name in seen_full_names:
+            raise RuntimeError(f"duplicate verification Lean declaration: {full_name}")
+        declarations[theorem_id] = full_name
+        seen_full_names.add(full_name)
+    return declarations
 
+
+def evaluate_axiom_policy(
+    record: dict[str, object],
+    policy: dict[str, object],
+    parsed: dict[str, list[str]],
+) -> dict[str, object]:
+    """Evaluate parsed kernel output against the machine axiom policy."""
+    declarations = declarations_from_record(record)
+    allowed = policy.get("allowed_axioms")
+    required = policy.get("required_axioms_by_theorem")
+    if not isinstance(allowed, list) or not all(isinstance(x, str) for x in allowed):
+        raise RuntimeError("axiom_audit.allowed_axioms is malformed")
+    if not isinstance(required, dict):
+        raise RuntimeError("axiom_audit.required_axioms_by_theorem is malformed")
+    allowed_set = set(allowed)
+
+    unknown_required = sorted(set(required) - set(declarations))
+    if unknown_required:
+        raise RuntimeError(
+            f"axiom_audit required policy names unknown theorem ids: {unknown_required}"
+        )
+
+    errors: list[str] = []
+    observed_by_id: dict[str, list[str]] = {}
+    for theorem_id, full_name in declarations.items():
+        if full_name not in parsed:
+            errors.append(f"missing #print axioms result for {theorem_id}: {full_name}")
+            continue
+        actual = sorted(set(parsed[full_name]))
+        observed_by_id[theorem_id] = actual
+        undeclared = sorted(set(actual) - allowed_set)
+        if undeclared:
+            errors.append(f"{theorem_id} uses undeclared axioms: {undeclared}")
+        expected_required = required.get(theorem_id, [])
+        if not isinstance(expected_required, list) or not all(
+            isinstance(x, str) for x in expected_required
+        ):
+            errors.append(f"{theorem_id} required axiom policy is malformed")
+            continue
+        missing_required = sorted(set(expected_required) - set(actual))
+        if missing_required:
+            errors.append(f"{theorem_id} missing recorded required axioms: {missing_required}")
+
+    unexpected_results = sorted(set(parsed) - set(declarations.values()))
+    if unexpected_results:
+        errors.append(f"unexpected #print axioms results: {unexpected_results}")
+
+    return {
+        "type": "uft-id-lean-observation-axiom-report",
+        "schema_version": "1.0.0",
+        "status": "error" if errors else "ok",
+        "source_release": record.get("source_release"),
+        "toolchain": record.get("toolchain"),
+        "allowed_axioms": sorted(allowed_set),
+        "observed_axioms_by_theorem": observed_by_id,
+        "errors": errors,
+    }
+
+
+def run_audit(lake: str) -> dict[str, object]:
+    loaded = load_policy()
+    record = loaded["record"]
+    policy = loaded["policy"]
+    if not isinstance(record, dict) or not isinstance(policy, dict):
+        raise RuntimeError("verification axiom policy payload is malformed")
+
+    declarations = declarations_from_record(record)
     lines = ["import UFTID", ""]
-    for theorem_id in declarations:
-        lines.append(f"#print axioms {declarations[theorem_id]}")
+    for full_name in declarations.values():
+        lines.append(f"#print axioms {full_name}")
     source = "\n".join(lines) + "\n"
 
     with tempfile.NamedTemporaryFile(
@@ -97,45 +181,7 @@ def run_audit(lake: str) -> dict[str, object]:
         )
 
     parsed = parse_axiom_output(proc.stdout)
-    allowed = policy.get("allowed_axioms")
-    required = policy.get("required_axioms_by_theorem")
-    if not isinstance(allowed, list) or not all(isinstance(x, str) for x in allowed):
-        raise RuntimeError("axiom_audit.allowed_axioms is malformed")
-    if not isinstance(required, dict):
-        raise RuntimeError("axiom_audit.required_axioms_by_theorem is malformed")
-    allowed_set = set(allowed)
-
-    errors: list[str] = []
-    observed_by_id: dict[str, list[str]] = {}
-    for theorem_id, full_name in declarations.items():
-        if full_name not in parsed:
-            errors.append(f"missing #print axioms result for {theorem_id}: {full_name}")
-            continue
-        actual = sorted(set(parsed[full_name]))
-        observed_by_id[theorem_id] = actual
-        undeclared = sorted(set(actual) - allowed_set)
-        if undeclared:
-            errors.append(f"{theorem_id} uses undeclared axioms: {undeclared}")
-        expected_required = required.get(theorem_id, [])
-        if not isinstance(expected_required, list) or not all(
-            isinstance(x, str) for x in expected_required
-        ):
-            errors.append(f"{theorem_id} required axiom policy is malformed")
-            continue
-        missing_required = sorted(set(expected_required) - set(actual))
-        if missing_required:
-            errors.append(f"{theorem_id} missing recorded required axioms: {missing_required}")
-
-    return {
-        "type": "uft-id-lean-observation-axiom-report",
-        "schema_version": "1.0.0",
-        "status": "error" if errors else "ok",
-        "source_release": record.get("source_release"),
-        "toolchain": record.get("toolchain"),
-        "allowed_axioms": sorted(allowed_set),
-        "observed_axioms_by_theorem": observed_by_id,
-        "errors": errors,
-    }
+    return evaluate_axiom_policy(record, policy, parsed)
 
 
 def main() -> int:
