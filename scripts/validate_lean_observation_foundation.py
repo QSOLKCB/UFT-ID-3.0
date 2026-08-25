@@ -87,6 +87,11 @@ _safe_precompiler = importlib.util.module_from_spec(_safe_spec)
 _safe_spec.loader.exec_module(_safe_precompiler)
 
 _IMPL_TRACKED_AUTHORITY_OBJECT_ERRORS = _impl.tracked_authority_object_errors
+_IMPL_BASIS_GIT_BLOB_SHA = _impl.basis_git_blob_sha
+_IMPL_BASIS_SOURCE_OBJECT_ERRORS = _impl.basis_source_object_errors
+_IMPL_BASE_VALIDATOR_BLOB_ERRORS = _impl.base_validator_blob_errors
+_IMPL_FROZEN_VALIDATOR_BLOB_ERRORS = _impl.frozen_validator_blob_errors
+_IMPL_ARTIFACT_VERIFIER_BLOB_ERRORS = _impl.artifact_verifier_blob_errors
 _SAFE_PRECOMPILER_WORKFLOW_CONTRACT_ERRORS = _safe_precompiler.workflow_contract_errors
 _SAFE_PRECOMPILER_LEAN_WORKFLOW_STEP = _safe_precompiler.LEAN_WORKFLOW_STEP
 _COMBINED_PRECOMPILER_WORKFLOW_ROUTE = _impl.PRECOMPILER_WORKFLOW_ROUTE
@@ -95,6 +100,11 @@ _COMBINED_AXIOM_AUDIT_WORKFLOW_ROUTE = _impl.AXIOM_AUDIT_WORKFLOW_ROUTE
 _COMBINED_AUDITED_LEAN_WORKFLOW_STEP = _impl.AUDITED_LEAN_WORKFLOW_STEP
 
 _OVERRIDES = {
+    "basis_git_blob_sha",
+    "basis_source_object_errors",
+    "base_validator_blob_errors",
+    "frozen_validator_blob_errors",
+    "artifact_verifier_blob_errors",
     "tracked_authority_object_errors",
     "workflow_contract_errors",
     "validate_documents",
@@ -112,9 +122,6 @@ _COMPAT_EXPORTS = {
     and name != "_impl"
 }
 globals().update(_COMPAT_EXPORTS)
-# Only public compatibility names participate in the temporary mutation bridge.
-# Private sentinels such as `_impl`, `_frozen`, and captured delegate handles are
-# intentionally excluded so the recursion/time-travel bug cannot return.
 _COMPAT_BRIDGE_NAMES = tuple(
     sorted(
         name
@@ -133,7 +140,6 @@ _LIVE_SUPERSEDED_AUTHORITY_PATHS = (
 
 
 def _without_live_replacements(mapping: dict[str, str]) -> dict[str, str]:
-    """Project a frozen authority map without the exact live replacements."""
     return {
         path: value
         for path, value in mapping.items()
@@ -145,17 +151,62 @@ def _is_exact_production_projection(
     expected_blobs: dict[str, str] | None,
     expected_modes: dict[str, str] | None,
 ) -> bool:
-    """Recognize only the complete canonical PR21 production projection pair.
-
-    Exact equality is deliberate. A caller-supplied map with any changed,
-    missing, or extra entry is hostile/custom input and must remain untouched.
-    """
     return (
         expected_blobs is not None
         and expected_modes is not None
         and dict(expected_blobs) == dict(_impl._frozen.EXPECTED_CURRENT_AUTHORITY_BLOBS)
         and dict(expected_modes) == dict(_impl._frozen.EXPECTED_CURRENT_AUTHORITY_MODES)
     )
+
+
+def basis_git_blob_sha(relpath: str) -> str | None:
+    """Preserve the historical Git-object type mutation hook."""
+    previous = _impl.git_object_is_blob
+    try:
+        _impl.git_object_is_blob = git_object_is_blob
+        return _IMPL_BASIS_GIT_BLOB_SHA(relpath)
+    finally:
+        _impl.git_object_is_blob = previous
+
+
+def basis_source_object_errors() -> list[str]:
+    """Preserve the historical basis-object resolution mutation hook."""
+    previous = _impl.basis_git_blob_sha
+    try:
+        _impl.basis_git_blob_sha = basis_git_blob_sha
+        return _IMPL_BASIS_SOURCE_OBJECT_ERRORS()
+    finally:
+        _impl.basis_git_blob_sha = previous
+
+
+def base_validator_blob_errors(path: Path = BASE) -> list[str]:
+    """Preserve the historical local Git-blob mutation hook."""
+    previous = _impl.local_git_blob_sha
+    try:
+        _impl.local_git_blob_sha = local_git_blob_sha
+        return _IMPL_BASE_VALIDATOR_BLOB_ERRORS(path)
+    finally:
+        _impl.local_git_blob_sha = previous
+
+
+def frozen_validator_blob_errors(path: Path = FROZEN) -> list[str]:
+    """Preserve the historical frozen-validator hash mutation hook."""
+    previous = _impl.git_blob_sha
+    try:
+        _impl.git_blob_sha = git_blob_sha
+        return _IMPL_FROZEN_VALIDATOR_BLOB_ERRORS(path)
+    finally:
+        _impl.git_blob_sha = previous
+
+
+def artifact_verifier_blob_errors(path: Path = ARTIFACT_VERIFIER) -> list[str]:
+    """Preserve the historical retained-artifact hash mutation hook."""
+    previous = _impl.local_git_blob_sha
+    try:
+        _impl.local_git_blob_sha = local_git_blob_sha
+        return _IMPL_ARTIFACT_VERIFIER_BLOB_ERRORS(path)
+    finally:
+        _impl.local_git_blob_sha = previous
 
 
 def tracked_authority_object_errors(
@@ -165,13 +216,6 @@ def tracked_authority_object_errors(
     expected_modes: dict[str, str] | None = None,
     runner=subprocess.run,
 ) -> list[str]:
-    """Validate frozen authorities while excluding exact live replacements.
-
-    The no-argument production projection and an explicitly passed *exact*
-    canonical PR21 blob/mode pair both remove post-tag live surfaces from both
-    maps. Any other explicit map pair is forwarded unchanged so hostile
-    regression fixtures remain fail-closed.
-    """
     if expected_blobs is None and expected_modes is None:
         blobs = dict(_impl._frozen.EXPECTED_CURRENT_AUTHORITY_BLOBS)
         modes = dict(_impl._frozen.EXPECTED_CURRENT_AUTHORITY_MODES)
@@ -197,7 +241,6 @@ def tracked_authority_object_errors(
 
 
 def workflow_contract_errors(text: str) -> list[str]:
-    """Validate the live workflow without recursive compatibility re-entry."""
     errors: list[str] = []
     if text.count(PREDECESSOR_WORKFLOW_ROUTE) != 2:
         errors.append("registered combined-review Lean-validator workflow route drift")
@@ -226,19 +269,23 @@ def workflow_contract_errors(text: str) -> list[str]:
 
 
 def _mirror_live_compatibility_hooks() -> dict[str, object]:
-    """Temporarily project public live mutation hooks into the predecessor.
-
-    Historical hostile tests mutate these public names on the live module. The
-    predecessor is otherwise byte-stable, so delegated calls must see the live
-    substitutions only for the duration of the call. Private module handles and
-    wrapper-owned overrides never cross this bridge.
-    """
     previous: dict[str, object] = {}
     module_globals = globals()
     for name in _COMPAT_BRIDGE_NAMES:
         if hasattr(_impl, name) and name in module_globals:
             previous[name] = getattr(_impl, name)
             setattr(_impl, name, module_globals[name])
+    # Wrapper-owned direct hook shims are bridged explicitly because they are
+    # excluded from the generic public export set by design.
+    for name in (
+        "basis_git_blob_sha",
+        "basis_source_object_errors",
+        "base_validator_blob_errors",
+        "frozen_validator_blob_errors",
+        "artifact_verifier_blob_errors",
+    ):
+        previous[name] = getattr(_impl, name)
+        setattr(_impl, name, module_globals[name])
     return previous
 
 
