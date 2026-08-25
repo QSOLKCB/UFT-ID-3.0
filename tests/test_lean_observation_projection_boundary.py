@@ -87,6 +87,10 @@ class LeanObservationProjectionBoundaryRegressions(unittest.TestCase):
                 self.assertEqual(captured["blobs"], blobs)
                 self.assertEqual(captured["modes"], modes)
 
+    def test_live_workflow_contract_terminates_without_recursive_reentry(self):
+        workflow = self.v.WORKFLOW.read_text(encoding="utf-8")
+        self.assertEqual(self.v.workflow_contract_errors(workflow), [])
+
 
 if __name__ == "__main__":
     unittest.main()
