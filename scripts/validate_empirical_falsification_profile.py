@@ -17,6 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 BASE = ROOT / "scripts/validate_empirical_falsification_profile_pr21_pretag.py"
 ROADMAP_STATE = ROOT / "machine/roadmap_state.json"
+README4AI = ROOT / "README4AI.md"
 
 _spec = importlib.util.spec_from_file_location("efp_validator_pr21_pretag", BASE)
 if _spec is None or _spec.loader is None:
@@ -25,7 +26,7 @@ _base = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_base)
 
 for _name in dir(_base):
-    if not _name.startswith("__") and _name not in {"validate", "main", "_live_roadmap_errors"}:
+    if not _name.startswith("__") and _name not in {"validate", "main", "_live_roadmap_errors", "_live_bootstrap_errors"}:
         globals()[_name] = getattr(_base, _name)
 
 EXPECTED_LIVE_ROADMAP = copy.deepcopy(_base.EXPECTED_LIVE_ROADMAP)
@@ -43,6 +44,16 @@ EXPECTED_LIVE_ROADMAP["rules"][2] = (
     "The first Lean theorem batch and dependency graph are frozen; exact merged-main validation and an immutable "
     "source-release tag must complete before any Lean/Lake/Mathlib proof implementation, while mathematical proof, "
     "Lean proof, runtime conformance, and empirical validation remain separately typed authorities."
+)
+
+LIVE_SCHEDULE_PHRASE = (
+    "Live scheduling authority is PR #10 Lean observation foundation: the first theorem batch and dependency graph "
+    "are frozen, and the active phase is the post-merge release gate for exact merged-main validation plus immutable "
+    "source tagging before Lean implementation."
+)
+STALE_SCHEDULE_PHRASE = (
+    "Live scheduling authority is PR #10 Lean observation foundation, active only for first-theorem-batch and "
+    "dependency-graph freezing."
 )
 
 
@@ -79,18 +90,44 @@ def _live_roadmap_errors() -> list[str]:
     return errors
 
 
+def _live_bootstrap_errors() -> list[str]:
+    errors: list[str] = []
+    text = README4AI.read_text(encoding="utf-8")
+    required = (
+        "The completed planned PR #18 surface defines a synthetic conformance procedure",
+        LIVE_SCHEDULE_PHRASE,
+        "PR #10 Lean observation foundation is active. Source batch `LEAN-OBS-BATCH-001` is frozen in `machine/lean_observation_foundation_contract.json`, covering `UFT-OBS-001` through `UFT-OBS-004`; `UFT-OBS-005` remains deferred to a later arithmetic-focused batch.",
+    )
+    for phrase in required:
+        if text.count(phrase) != 1:
+            errors.append(f"README4AI live schedule anchor drift: {phrase}")
+    forbidden = (
+        STALE_SCHEDULE_PHRASE,
+        "The active planned PR #18 surface",
+        "Lean remains deferred until source reproduction",
+        "PR #10 Lean observation foundation is active only for theorem-batch and dependency-graph freezing.",
+    )
+    for phrase in forbidden:
+        if phrase in text:
+            errors.append(f"README4AI stale schedule anchor present: {phrase}")
+    return errors
+
+
 def validate() -> dict[str, object]:
     # Preserve existing adversarial mutation hooks across the compatibility
     # boundary. Tests intentionally replace the public load_module function to
     # prove runtime projection/fixture drift is detected.
     old_roadmap = _base._live_roadmap_errors
+    old_bootstrap = _base._live_bootstrap_errors
     old_loader = _base.load_module
     try:
         _base._live_roadmap_errors = _live_roadmap_errors
+        _base._live_bootstrap_errors = _live_bootstrap_errors
         _base.load_module = globals()["load_module"]
         return _base.validate()
     finally:
         _base._live_roadmap_errors = old_roadmap
+        _base._live_bootstrap_errors = old_bootstrap
         _base.load_module = old_loader
 
 

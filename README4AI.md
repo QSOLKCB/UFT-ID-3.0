@@ -342,7 +342,7 @@ FINITE_STOCHASTIC_CONFORMANCE != GENERAL_STOCHASTIC_OR_CONTINUUM_THEORY
 
 ## Empirical Falsification Profile authority
 
-The completed planned PR #18 surface defines a synthetic conformance procedure for deciding whether a calibrated profile-matched evidence record crosses one versioned scoped rejection boundary. It specializes the PR8 `FalsificationSpec` scaffold without converting synthetic fixtures, matching hashes, or procedural labels into empirical evidence or preregistration proof. Live scheduling authority is PR #10 Lean observation foundation, active only for first-theorem-batch and dependency-graph freezing.
+The completed planned PR #18 surface defines a synthetic conformance procedure for deciding whether a calibrated profile-matched evidence record crosses one versioned scoped rejection boundary. It specializes the PR8 `FalsificationSpec` scaffold without converting synthetic fixtures, matching hashes, or procedural labels into empirical evidence or preregistration proof. Live scheduling authority is PR #10 Lean observation foundation: the first theorem batch and dependency graph are frozen, and the active phase is the post-merge release gate for exact merged-main validation plus immutable source tagging before Lean implementation.
 
 ```text
 EmpiricalFalsificationProfile = (

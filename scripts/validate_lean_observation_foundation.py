@@ -2,10 +2,11 @@
 """Latest PR #21 hardening wrapper around the exact prior live validator.
 
 The prior live validator is preserved byte-for-byte in
-validate_lean_observation_foundation_pr21_pre_codex4.py. This wrapper adds the
-fourth hostile-review hardening batch without rewriting already-reviewed
-semantics: exact freeze-step environment binding, checkout-ref rejection, and
-human dependency-graph synchronization.
+validate_lean_observation_foundation_pr21_pre_codex4.py. This wrapper adds
+later hostile-review hardening without rewriting already-reviewed semantics:
+workflow checkout identity, compatibility-validator identity, and exact human
+projections of the frozen dependency graph, Lean module map, release ordering,
+and pre-toolchain state.
 """
 from __future__ import annotations
 
@@ -18,6 +19,30 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = ROOT / "scripts/validate_lean_observation_foundation_pr21_pre_codex4.py"
+EXPECTED_BASE_VALIDATOR_BLOB = "cb18daf549e87a94b64ae85b58369f9a2e329f91"
+
+
+def local_git_blob_sha(path: Path) -> str:
+    data = path.read_bytes()
+    return hashlib.sha1(f"blob {len(data)}\0".encode("ascii") + data).hexdigest()
+
+
+def base_validator_blob_errors(path: Path = BASE) -> list[str]:
+    """Bind the immediately prior live validator before executing its code."""
+    if not path.is_file():
+        return ["pre-Codex4 PR21 validator missing before import"]
+    actual = local_git_blob_sha(path)
+    if actual != EXPECTED_BASE_VALIDATOR_BLOB:
+        return [
+            "pre-Codex4 PR21 validator blob drift: "
+            f"expected {EXPECTED_BASE_VALIDATOR_BLOB}, got {actual}"
+        ]
+    return []
+
+
+_preload_base_errors = base_validator_blob_errors()
+if _preload_base_errors:
+    raise RuntimeError("; ".join(_preload_base_errors))
 
 _spec = importlib.util.spec_from_file_location("lean_observation_pr21_pre_codex4", BASE)
 if _spec is None or _spec.loader is None:
@@ -101,9 +126,13 @@ def _checkout_revision_errors(job_body: str) -> list[str]:
         return ["registered Lean-freeze workflow must contain exactly one checkout step"]
     checkout = checkout_blocks[0]
     ref_key = r"(?:ref|\"ref\"|'ref')"
+    repository_key = r"(?:repository|\"repository\"|'repository')"
+    errors: list[str] = []
     if re.search(rf"(?m)^\s{{8,}}{ref_key}\s*:", checkout):
-        return ["registered Lean-freeze checkout must validate the triggering event revision and may not override ref"]
-    return []
+        errors.append("registered Lean-freeze checkout must validate the triggering event revision and may not override ref")
+    if re.search(rf"(?m)^\s{{8,}}{repository_key}\s*:", checkout):
+        errors.append("registered Lean-freeze checkout must validate this repository and may not override repository")
+    return errors
 
 
 def workflow_contract_errors(text: str) -> list[str]:
@@ -124,22 +153,34 @@ def workflow_contract_errors(text: str) -> list[str]:
     return errors
 
 
+def _human_text_block(human: str, heading: str, missing_error: str, block_error: str) -> tuple[str | None, list[str]]:
+    section = _base._frozen.section(human, heading)
+    if section is None:
+        return None, [missing_error]
+    code = re.search(r"(?s)```text\n(?P<body>.*?)```", section)
+    if code is None:
+        return None, [block_error]
+    return code.group("body"), []
+
+
 def human_dependency_graph_errors(freeze: dict[str, object], human: str) -> list[str]:
     graph = freeze.get("dependency_graph")
     if not isinstance(graph, dict):
         return ["Lean observation machine dependency graph malformed"]
-    section = _base._frozen.section(human, "## Dependency graph")
-    if section is None:
-        return ["Lean observation human dependency graph missing"]
-    code = re.search(r"(?s)```text\n(?P<body>.*?)```", section)
-    if code is None:
-        return ["Lean observation human dependency graph code block missing"]
+    body, errors = _human_text_block(
+        human,
+        "## Dependency graph",
+        "Lean observation human dependency graph missing",
+        "Lean observation human dependency graph code block missing",
+    )
+    if body is None:
+        return errors
 
     nodes: set[str] = set()
     edges: list[tuple[str, str]] = []
     parent: str | None = None
     malformed = False
-    for raw in code.group("body").splitlines():
+    for raw in body.splitlines():
         line = raw.strip()
         if not line:
             continue
@@ -168,6 +209,106 @@ def human_dependency_graph_errors(freeze: dict[str, object], human: str) -> list
     return []
 
 
+def human_lean_module_map_errors(freeze: dict[str, object], human: str) -> list[str]:
+    expected = freeze.get("lean_module_map")
+    if not isinstance(expected, list) or any(not isinstance(item, dict) for item in expected):
+        return ["Lean observation machine Lean module map malformed"]
+    body, errors = _human_text_block(
+        human,
+        "## Expected Lean module map",
+        "Lean observation human Lean module map missing",
+        "Lean observation human Lean module map code block missing",
+    )
+    if body is None:
+        return errors
+
+    parsed: list[dict[str, object]] = []
+    current: dict[str, object] | None = None
+    malformed = False
+    module_re = re.compile(r"UFTID(?:\.[A-Za-z0-9_]+)+")
+    path_re = re.compile(r"UFTID/[A-Za-z0-9_./-]+\.lean")
+    theorem_re = re.compile(r"UFT-OBS-\d{3}")
+
+    for raw in body.splitlines():
+        if not raw.strip():
+            continue
+        indent = len(raw) - len(raw.lstrip(" "))
+        line = raw.strip()
+        if indent == 0 and module_re.fullmatch(line):
+            if current is not None:
+                parsed.append(current)
+            current = {"module": line, "path": None, "depends_on": [], "theorem_ids": []}
+            continue
+        if current is None or indent == 0:
+            malformed = True
+            continue
+        if path_re.fullmatch(line):
+            if current["path"] is not None:
+                malformed = True
+            else:
+                current["path"] = line
+            continue
+        if line.startswith("depends on "):
+            dependency = line.removeprefix("depends on ").strip()
+            if not module_re.fullmatch(dependency):
+                malformed = True
+            else:
+                current["depends_on"].append(dependency)
+            continue
+        if theorem_re.fullmatch(line):
+            current["theorem_ids"].append(line)
+            continue
+        malformed = True
+
+    if current is not None:
+        parsed.append(current)
+    if any(item.get("path") is None for item in parsed):
+        malformed = True
+    if malformed or parsed != expected:
+        return ["Lean observation human Lean module map drift"]
+    return []
+
+
+EXPECTED_RELEASE_BOUNDARY = (
+    "FREEZE PR MERGED",
+    "-> EXACT MERGED-MAIN CI + HOSTILE REVIEW",
+    "-> IMMUTABLE SOURCE-RELEASE TAG",
+    "-> QSOL-CONTEXT TARGET BINDING",
+    "-> PIN LEAN / LAKE / MATHLIB",
+    "-> LEAN PROOF IMPLEMENTATION",
+)
+
+
+def human_release_boundary_errors(freeze: dict[str, object], human: str) -> list[str]:
+    gate = freeze.get("release_gate")
+    if not isinstance(gate, dict):
+        return ["Lean observation machine release gate malformed"]
+    body, errors = _human_text_block(
+        human,
+        "## Release boundary",
+        "Lean observation human release boundary missing",
+        "Lean observation human release boundary code block missing",
+    )
+    if body is None:
+        return errors
+    actual = tuple(line.strip() for line in body.splitlines() if line.strip())
+    if actual != EXPECTED_RELEASE_BOUNDARY:
+        return ["Lean observation human release boundary ordering drift"]
+    if gate.get("status") != "PENDING_POST_MERGE" or gate.get("source_tag") is not None:
+        return ["Lean observation machine release gate drift"]
+    return []
+
+
+def toolchain_promotion(text: str) -> bool:
+    subject = r"(?:Lean(?:\s+\d+(?:\.\d+)*)?|Lake(?:\s+\d+(?:\.\d+)*)?|Mathlib(?:\s+\d+(?:\.\d+)*)?|Lean\s*/\s*Lake\s*/\s*Mathlib|toolchain)"
+    completed = r"(?:pinned|selected|locked|fixed|chosen|specified|versioned)"
+    patterns = (
+        rf"(?is)\b{subject}\b.{{0,140}}\b(?:is|are|has|have|was|were)\s+(?:now\s+)?(?:been\s+)?{completed}\b",
+        rf"(?is)\b{completed}\b.{{0,140}}\b{subject}\b",
+    )
+    return any(re.search(pattern, text) for pattern in patterns)
+
+
 def validate_documents(freeze, source_theorems, source_counterexamples, base_contract, human, roadmap, readme, *, check_paths: bool = True, require_basis_objects: bool = False):
     # Preserve the original module's mutation-test hooks by making its delegated
     # validation resolve these live wrapper functions, which tests may monkeypatch.
@@ -187,6 +328,15 @@ def validate_documents(freeze, source_theorems, source_counterexamples, base_con
     )
     errors = list(result.get("errors", []))
     errors.extend(human_dependency_graph_errors(freeze, human))
+    errors.extend(human_lean_module_map_errors(freeze, human))
+    errors.extend(human_release_boundary_errors(freeze, human))
+
+    toolchain = freeze.get("toolchain")
+    if isinstance(toolchain, dict) and toolchain.get("status") == "UNPINNED":
+        for surface_name, surface_text in (("human freeze", human), ("README4AI", readme), ("ROADMAP", roadmap)):
+            if toolchain_promotion(surface_text):
+                errors.append(f"Lean observation {surface_name} premature toolchain-pinning promotion")
+
     result["errors"] = errors
     result["status"] = "error" if errors else "ok"
     return result
@@ -217,6 +367,7 @@ def validate(*, require_basis_objects: bool = True):
         require_basis_objects=require_basis_objects,
     )
     errors = list(result.get("errors", []))
+    errors.extend(base_validator_blob_errors())
     errors.extend(workflow_contract_errors(WORKFLOW.read_text(encoding="utf-8")))
     result["errors"] = errors
     result["status"] = "error" if errors else "ok"
