@@ -53,11 +53,15 @@ if _spec is None or _spec.loader is None:
     raise RuntimeError(f"cannot load final pre-tag validator: {PRETAG_FINAL}")
 _frozen = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_frozen)
+_PRETAG_FINAL_MODULE = _frozen
 
-# Preserve the reviewed helper/test surface. The post-tag functions overridden
-# below are intentionally excluded.
-for _name in dir(_frozen):
+# Preserve the reviewed helper/test surface. Keep one stable predecessor handle
+# while exporting its private compatibility helpers: the predecessor itself has
+# a private `_frozen` attribute, and copying that name over our live handle would
+# change the module being iterated halfway through this loop.
+for _name in dir(_PRETAG_FINAL_MODULE):
     if not _name.startswith("__") and _name not in {
+        "_frozen",
         "validate_documents",
         "validate",
         "main",
@@ -66,7 +70,8 @@ for _name in dir(_frozen):
         "workflow_contract_errors",
         "artifact_verifier_blob_errors",
     }:
-        globals()[_name] = getattr(_frozen, _name)
+        globals()[_name] = getattr(_PRETAG_FINAL_MODULE, _name)
+_frozen = _PRETAG_FINAL_MODULE
 
 _FROZEN_BASIS_SOURCE_OBJECT_ERRORS = _frozen.basis_source_object_errors
 _FROZEN_TRACKED_AUTHORITY_OBJECT_ERRORS = _frozen.tracked_authority_object_errors
