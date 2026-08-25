@@ -3,8 +3,14 @@
 
 The combined Codex/Copilot review implementation is preserved byte-for-byte in
 ``validate_lean_observation_foundation_pr22_combined_review_frozen.py``. This
-small layer fixes one compatibility-projection detail: live post-tag authority
-surfaces must be removed from both the frozen blob map and the frozen mode map.
+small layer fixes two compatibility-projection details:
+
+* live post-tag authority surfaces are removed from both the frozen blob map and
+  the frozen mode map only for exact production projections;
+* workflow validation delegates through an independently loaded, hash-checked
+  precompiler instead of a mutable nested module alias, preventing recursive
+  wrapper re-entry while preserving the historical validator chain.
+
 Historical validators and theorem/source authorities remain unchanged.
 """
 from __future__ import annotations
@@ -18,6 +24,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PREDECESSOR = ROOT / "scripts/validate_lean_observation_foundation_pr22_combined_review_frozen.py"
 EXPECTED_PREDECESSOR_BLOB = "a5b129c9562faa1d4560d45835af70c21d1ed2de"
+SAFE_PRECOMPILER = ROOT / "scripts/validate_lean_observation_foundation_pr22_batch2_precompiler.py"
+EXPECTED_SAFE_PRECOMPILER_BLOB = "bc8cb796d12f84d05a532403df1a6f4d5b161f39"
 PREDECESSOR_WORKFLOW_ROUTE = (
     '      - "scripts/validate_lean_observation_foundation_pr22_combined_review_frozen.py"\n'
 )
@@ -40,7 +48,19 @@ def predecessor_validator_blob_errors(path: Path = PREDECESSOR) -> list[str]:
     return []
 
 
-_preload_errors = predecessor_validator_blob_errors()
+def safe_precompiler_blob_errors(path: Path = SAFE_PRECOMPILER) -> list[str]:
+    if not path.is_file():
+        return ["batch-002 precompiler missing before safe workflow delegation"]
+    actual = _git_blob_sha(path)
+    if actual != EXPECTED_SAFE_PRECOMPILER_BLOB:
+        return [
+            "batch-002 precompiler blob drift before safe workflow delegation: "
+            f"expected {EXPECTED_SAFE_PRECOMPILER_BLOB}, got {actual}"
+        ]
+    return []
+
+
+_preload_errors = predecessor_validator_blob_errors() + safe_precompiler_blob_errors()
 if _preload_errors:
     raise RuntimeError("; ".join(_preload_errors))
 
@@ -52,8 +72,24 @@ if _spec is None or _spec.loader is None:
 _impl = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_impl)
 
+# Load the exact precompiler under a distinct module object. The preserved
+# combined-review module exports nested private compatibility names, so its
+# mutable `_impl` alias is intentionally not used as a workflow delegate here.
+_safe_spec = importlib.util.spec_from_file_location(
+    "lean_observation_pr22_safe_precompiler", SAFE_PRECOMPILER
+)
+if _safe_spec is None or _safe_spec.loader is None:
+    raise RuntimeError(f"cannot load safe batch-002 precompiler: {SAFE_PRECOMPILER}")
+_safe_precompiler = importlib.util.module_from_spec(_safe_spec)
+_safe_spec.loader.exec_module(_safe_precompiler)
+
 _IMPL_TRACKED_AUTHORITY_OBJECT_ERRORS = _impl.tracked_authority_object_errors
-_IMPL_WORKFLOW_CONTRACT_ERRORS = _impl.workflow_contract_errors
+_SAFE_PRECOMPILER_WORKFLOW_CONTRACT_ERRORS = _safe_precompiler.workflow_contract_errors
+_SAFE_PRECOMPILER_LEAN_WORKFLOW_STEP = _safe_precompiler.LEAN_WORKFLOW_STEP
+_COMBINED_PRECOMPILER_WORKFLOW_ROUTE = _impl.PRECOMPILER_WORKFLOW_ROUTE
+_COMBINED_FINAL_FROZEN_WORKFLOW_ROUTE = _impl.FINAL_FROZEN_WORKFLOW_ROUTE
+_COMBINED_AXIOM_AUDIT_WORKFLOW_ROUTE = _impl.AXIOM_AUDIT_WORKFLOW_ROUTE
+_COMBINED_AUDITED_LEAN_WORKFLOW_STEP = _impl.AUDITED_LEAN_WORKFLOW_STEP
 
 _OVERRIDES = {
     "tracked_authority_object_errors",
@@ -143,11 +179,38 @@ def tracked_authority_object_errors(
 
 
 def workflow_contract_errors(text: str) -> list[str]:
+    """Validate the live workflow without recursive compatibility re-entry.
+
+    The combined-review predecessor's intended projection is reproduced here
+    using constants frozen in that predecessor, then delegated to a separately
+    loaded exact precompiler. This preserves the historical checks while
+    avoiding the predecessor's mutable nested `_impl.workflow_contract_errors`
+    alias, which can otherwise resolve back to this live wrapper.
+    """
     errors: list[str] = []
     if text.count(PREDECESSOR_WORKFLOW_ROUTE) != 2:
         errors.append("registered combined-review Lean-validator workflow route drift")
     projected = text.replace(PREDECESSOR_WORKFLOW_ROUTE, "")
-    errors.extend(_IMPL_WORKFLOW_CONTRACT_ERRORS(projected))
+
+    for route, label in (
+        (_COMBINED_PRECOMPILER_WORKFLOW_ROUTE, "batch-002 compatibility-validator"),
+        (_COMBINED_FINAL_FROZEN_WORKFLOW_ROUTE, "final frozen-validator"),
+        (_COMBINED_AXIOM_AUDIT_WORKFLOW_ROUTE, "axiom-auditor"),
+    ):
+        if projected.count(route) != 2:
+            errors.append(f"registered {label} workflow route drift")
+        projected = projected.replace(route, "")
+
+    if projected.count(_COMBINED_AUDITED_LEAN_WORKFLOW_STEP) != 1:
+        errors.append("registered Lean build-and-axiom-audit workflow step drift")
+    else:
+        projected = projected.replace(
+            _COMBINED_AUDITED_LEAN_WORKFLOW_STEP,
+            _SAFE_PRECOMPILER_LEAN_WORKFLOW_STEP,
+            1,
+        )
+
+    errors.extend(_SAFE_PRECOMPILER_WORKFLOW_CONTRACT_ERRORS(projected))
     return errors
 
 
@@ -194,6 +257,7 @@ def validate(*, require_basis_objects: bool = True):
 
     errors = list(result.get("errors", []))
     errors.extend(predecessor_validator_blob_errors())
+    errors.extend(safe_precompiler_blob_errors())
     errors = list(dict.fromkeys(errors))
     result["errors"] = errors
     result["status"] = "error" if errors else "ok"
