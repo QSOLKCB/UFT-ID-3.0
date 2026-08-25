@@ -62,10 +62,6 @@ if _spec is None or _spec.loader is None:
 _impl = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_impl)
 
-# Snapshot all compatibility exports before mutating this module's globals. A
-# dict-comprehension scope avoids the loop-sentinel self-overwrite that a prior
-# `globals()[_name] = ...` loop could trigger when an imported wrapper retained
-# its own `_name` residue.
 _OVERRIDES = {
     "validate_documents",
     "validate",
@@ -89,12 +85,8 @@ _COMPAT_EXPORTS = {
 globals().update(_COMPAT_EXPORTS)
 del _COMPAT_EXPORTS
 
-# Preserve private compatibility handles used by the hostile regression suite.
 _base = _impl._base
 _frozen = _impl._frozen
-# Preserve the imported authority checker before validate_documents temporarily
-# replaces the module attribute with this live wrapper. Calling the attribute
-# dynamically from the wrapper would recurse into itself.
 _IMPL_TRACKED_AUTHORITY_OBJECT_ERRORS = _impl.tracked_authority_object_errors
 
 EXPECTED_LEAN_SOURCE_BLOBS = {
@@ -325,7 +317,9 @@ def _legacy_readme_projection(text: str) -> str:
     projected = projected.replace(LIVE_EFP_PHASE, LEGACY_EFP_PHASE, 1)
     projected = projected.replace(LIVE_HARD_RULE_8, LEGACY_HARD_RULE_8, 1)
     projected = projected.replace(LIVE_LEAN_SECTION, LEGACY_LEAN_SECTION, 1)
-    return projected
+    # The frozen v3.0.0 README intentionally had no terminal newline. The live
+    # README now has one, so remove it only from this historical projection.
+    return projected.rstrip("\n")
 
 
 def workflow_contract_errors(text: str) -> list[str]:
