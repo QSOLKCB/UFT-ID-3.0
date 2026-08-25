@@ -300,10 +300,16 @@ def human_release_boundary_errors(freeze: dict[str, object], human: str) -> list
 
 
 def toolchain_promotion(text: str) -> bool:
-    subject = r"(?:Lean(?:\s+\d+(?:\.\d+)*)?|Lake(?:\s+\d+(?:\.\d+)*)?|Mathlib(?:\s+\d+(?:\.\d+)*)?|Lean\s*/\s*Lake\s*/\s*Mathlib|toolchain)"
-    completed = r"(?:pinned|selected|locked|fixed|chosen|specified|versioned)"
-    pattern = rf"(?is)(?<!No )\b{subject}\b.{{0,140}}\b(?:is|are|has|have|was|were)\s+(?:now\s+)?(?:been\s+)?(?!not\s){completed}\b"
-    return re.search(pattern, text) is not None
+    completed = re.compile(r"\b(?:pinned|selected|locked|fixed|chosen|specified|versioned)\b", re.IGNORECASE)
+    subject = re.compile(r"\b(?:Lean|Lake|Mathlib|toolchain)\b", re.IGNORECASE)
+    negation = re.compile(r"\b(?:no|not|unpinned|without)\b", re.IGNORECASE)
+    for clause in re.split(r"(?<=[.!?])\s+|\n+|;", text):
+        if not subject.search(clause) or not completed.search(clause):
+            continue
+        if negation.search(clause):
+            continue
+        return True
+    return False
 
 
 def validate_documents(freeze, source_theorems, source_counterexamples, base_contract, human, roadmap, readme, *, check_paths: bool = True, require_basis_objects: bool = False):
