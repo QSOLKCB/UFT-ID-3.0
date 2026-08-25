@@ -125,6 +125,22 @@ def workflow_event_paths(text: str, event: str) -> tuple[str, ...] | None:
     return tuple(line.strip() for line in paths_match.group("paths").splitlines())
 
 
+def workflow_job_block(text: str, job_name: str) -> str | None:
+    match = re.search(
+        rf"(?ms)^  {re.escape(job_name)}:\n(?P<body>.*?)(?=^  [A-Za-z_][A-Za-z0-9_-]*:|\Z)",
+        text.split("jobs:\n", 1)[1] if "jobs:\n" in text else "",
+    )
+    return match.group("body") if match is not None else None
+
+
+def workflow_named_step_block(job_body: str, step_name: str) -> str | None:
+    match = re.search(
+        rf"(?ms)^      - name: {re.escape(step_name)}\n(?P<body>.*?)(?=^      - |\Z)",
+        job_body,
+    )
+    return match.group("body") if match is not None else None
+
+
 def workflow_contract_errors(text: str) -> list[str]:
     errors: list[str] = []
     required_paths = (
@@ -149,6 +165,7 @@ def workflow_contract_errors(text: str) -> list[str]:
                 errors.append(
                     f"registered Lean-freeze workflow {event} path trigger drift: {anchor}"
                 )
+
     direct = (
         '      - name: Validate Lean observation source freeze',
         '          UFT_REQUIRE_BASIS_COMMIT_OBJECT: "1"',
@@ -161,6 +178,20 @@ def workflow_contract_errors(text: str) -> list[str]:
     for anchor in direct:
         if text.count(anchor) != 1:
             errors.append(f"registered Lean-freeze workflow direct validator/policy drift: {anchor.strip()}")
+
+    job_body = workflow_job_block(text, "validate-corpus")
+    if job_body is None:
+        errors.append("registered Lean-freeze workflow missing validate-corpus job")
+        return errors
+    job_header = job_body.split("    steps:\n", 1)[0]
+    if re.search(r"(?m)^    (?:if|continue-on-error):", job_header):
+        errors.append("registered Lean-freeze workflow validate-corpus job may not be conditional or nonblocking")
+
+    freeze_step = workflow_named_step_block(job_body, "Validate Lean observation source freeze")
+    if freeze_step is None:
+        errors.append("registered Lean-freeze workflow missing named freeze step")
+    elif re.search(r"(?m)^        (?:if|continue-on-error):", freeze_step):
+        errors.append("registered Lean-freeze validator step may not be conditional or nonblocking")
     return errors
 
 
@@ -168,6 +199,7 @@ def theorem_scoped_lean_promotion(text: str) -> bool:
     """Reject pre-tag Lean completion claims scoped by theorem or batch identity."""
     subject = r"(?:UFT-OBS-\d{3}|LEAN-OBS-BATCH-\d{3})"
     completed = r"(?:proved|verified|checked|formalized|formalised|complete)"
+    participle = r"(?:proved|verified|checked|formalized|formalised|certified)"
     active = r"(?:proves?|verifies?|checks?|formalizes?|formalises?|certifies?)"
     proof_noun = r"(?:proofs?|verification|formalization|formalisation|certificate|certification)"
     patterns = (
@@ -177,6 +209,8 @@ def theorem_scoped_lean_promotion(text: str) -> bool:
         rf"(?is)\bLean\b.{{0,60}}\b(?:proof|verification|formalization|formalisation)\b.{{0,100}}\b(?:for|of)\b.{{0,100}}\b{subject}\b.{{0,60}}\b(?:is|are|was|were|has|have)?\s*(?:now\s+)?(?:been\s+)?{completed}\b",
         # Active voice: "Lean proves UFT-OBS-001 through UFT-OBS-004".
         rf"(?is)\bLean\b.{{0,40}}\b{active}\b.{{0,180}}\b{subject}\b",
+        # Perfect tense: "Lean has proved UFT-OBS-001 through UFT-OBS-004".
+        rf"(?is)\bLean\b.{{0,40}}\b(?:has|have|had)\s+(?:now\s+)?(?:formally\s+)?{participle}\b.{{0,180}}\b{subject}\b",
         # Proof-noun possession: "UFT-OBS-001 ... now have Lean proofs".
         rf"(?is)\b{subject}\b.{{0,180}}\b(?:now\s+)?(?:has|have|is|are|was|were)\s+(?:now\s+)?Lean\s+{proof_noun}\b",
     )
@@ -217,6 +251,11 @@ def validate_documents(freeze, source_theorems, source_counterexamples, base_con
     for surface_name, surface_text in (("human freeze", human), ("README4AI", readme), ("ROADMAP", roadmap)):
         if theorem_scoped_lean_promotion(surface_text):
             errors.append(f"Lean observation {surface_name} theorem-scoped Lean verification promotion")
+
+    if _frozen.strip_code(_frozen.metadata(human, "Batch")) != "LEAN-OBS-BATCH-001":
+        errors.append("Lean observation human batch identity drift")
+    if _frozen.strip_code(_frozen.metadata(human, "Basis commit")) != BASIS_COMMIT:
+        errors.append("Lean observation human basis commit drift")
 
     if freeze.get("schema_version") != "1.0.1":
         errors.append("Lean observation freeze schema drift")
