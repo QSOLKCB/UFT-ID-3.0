@@ -1,391 +1,169 @@
 #!/usr/bin/env python3
-"""Latest PR #21 hardening wrapper around the exact prior live validator.
+"""Post-tag validator for LEAN-OBS-BATCH-001.
 
-The prior live validator is preserved byte-for-byte in
-validate_lean_observation_foundation_pr21_pre_codex4.py. This wrapper adds
-later hostile-review hardening without rewriting already-reviewed semantics:
-workflow checkout identity, compatibility-validator identity, and exact human
-projections of the frozen dependency graph, Lean module map, release ordering,
-pre-toolchain state, complete claim-bearing human surfaces, and retained
-source-freeze evidence.
+The final pre-tag PR #21 validator is preserved byte-for-byte in
+``validate_lean_observation_foundation_pr21_final_frozen.py``.  This wrapper
+keeps that source-freeze authority intact, then adds the only transition the
+v3.0.0 release gate permits: an exact, pinned Lean package implementing
+UFT-OBS-001 through UFT-OBS-004 against the immutable v3.0.0 source commit.
+
+UFT-OBS-005 remains deferred.  Lean compilation is formal verification of the
+abstract set-theoretic statements only; it is not empirical validation or a
+physical-ontology claim.
 """
 from __future__ import annotations
 
 import hashlib
 import importlib.util
 import json
-import math
 import re
-import stat
 import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE = ROOT / "scripts/validate_lean_observation_foundation_pr21_pre_codex4.py"
-ARTIFACT_VERIFIER = ROOT / "scripts/verify_lean_observation_foundation_artifact.py"
-ROADMAP_STATE = ROOT / "machine/roadmap_state.json"
-EXPECTED_BASE_VALIDATOR_BLOB = "cb18daf549e87a94b64ae85b58369f9a2e329f91"
-EXPECTED_ARTIFACT_VERIFIER_BLOB = "a7c8eb9729aa637dd9172d89ed08bd09ab2f981d"
-EXPECTED_WORKFLOW_BLOB = "65d32d493f80276fccf0c40992b1e1803cdfaad8"
-EXPECTED_CLAIM_SURFACE_BLOBS = {
-    "human freeze": "06a9b6ed8914c5fae797cf65b990426fd9697292",
-    "README4AI": "3c865866d5ac36982d315e19b9806c0b7817a739",
-    "ROADMAP": "b4322084be5191db5a43548f66c083bb8be1ec9b",
-}
-EXPECTED_WORKFLOW_PATHS = (
-    '- "research/vopson/**"',
-    '- "scripts/validate_vopson_corpus.py"',
-    '- "scripts/render_vopson_docs.py"',
-    '- "scripts/validate_reproducibility.py"',
-    '- "scripts/validate_observation_specs.py"',
-    '- "scripts/validate_lean_observation_foundation.py"',
-    '- "scripts/verify_lean_observation_foundation_artifact.py"',
-    '- "scripts/validate_lean_observation_foundation_pr21_pre_codex4.py"',
-    '- "scripts/validate_lean_observation_foundation_pr21_frozen.py"',
-    '- "experiments/observation/run.py"',
-    '- "experiments/run_pr9.py"',
-    '- "tests/**"',
-    '- "machine/**"',
-    '- "README.md"',
-    '- "README4AI.md"',
-    '- "ROADMAP.md"',
-    '- "AGENTS.md"',
-    '- "docs/REPRODUCIBILITY.md"',
-    '- "theory/OBSERVATION_CALCULUS.md"',
-    '- "theory/LEAN_OBSERVATION_FOUNDATION.md"',
-    '- "UFTID/**"',
-    '- "**/*.lean"',
-    '- "**/*.olean"',
-    '- "**/*.ilean"',
-    '- "lean-toolchain"',
-    '- "**/lean-toolchain"',
-    '- "lakefile.toml"',
-    '- "**/lakefile.toml"',
-    '- "lake-manifest.json"',
-    '- "**/lake-manifest.json"',
-    '- ".github/workflows/**"',
-)
-_EXPECTED_WORKFLOW_PATH_LINES = "".join(f"      {entry}\n" for entry in EXPECTED_WORKFLOW_PATHS)
-EXPECTED_WORKFLOW_EVENT_BODIES = {
-    "pull_request": "    paths:\n" + _EXPECTED_WORKFLOW_PATH_LINES,
-    "push": "    branches: [main]\n    paths:\n" + _EXPECTED_WORKFLOW_PATH_LINES + "\n",
-}
-EXPECTED_FREEZE_STEP_BODY = (
-    "        env:\n"
-    '          UFT_REQUIRE_BASIS_COMMIT_OBJECT: "1"\n'
-    "        run: python scripts/validate_lean_observation_foundation.py\n\n"
-)
-EXPECTED_RETAINED_FREEZE_VERIFY_STEP_BODY = (
-    "        if: always()\n"
-    "        run: python scripts/verify_lean_observation_foundation_artifact.py artifacts\n\n"
-)
-PRETAG_PACKAGE_FILENAMES = frozenset(
-    {"lean-toolchain", "lakefile.toml", "lake-manifest.json"}
-)
-PRETAG_LEAN_SUFFIXES = (".lean", ".olean", ".ilean")
+PRETAG_FINAL = ROOT / "scripts/validate_lean_observation_foundation_pr21_final_frozen.py"
+EXPECTED_PRETAG_FINAL_BLOB = "42f2a2f30258cf99c1ee0755b54ef33d8d8c0d5f"
 
 
-def local_git_blob_sha(path: Path) -> str:
+def _git_blob_sha(path: Path) -> str:
     data = path.read_bytes()
     return hashlib.sha1(f"blob {len(data)}\0".encode("ascii") + data).hexdigest()
 
 
-def text_git_blob_sha(text: str) -> str:
-    data = text.encode("utf-8")
-    return hashlib.sha1(f"blob {len(data)}\0".encode("ascii") + data).hexdigest()
-
-
-def claim_surface_blob_errors(human: str, roadmap: str, readme: str) -> list[str]:
-    """Freeze complete claim-bearing prose instead of guessing every synonym."""
-    errors: list[str] = []
-    surfaces = {
-        "human freeze": human,
-        "README4AI": readme,
-        "ROADMAP": roadmap,
-    }
-    for surface_name, surface_text in surfaces.items():
-        actual = text_git_blob_sha(surface_text)
-        expected = EXPECTED_CLAIM_SURFACE_BLOBS[surface_name]
-        if actual != expected:
-            errors.append(
-                f"Lean observation {surface_name} complete claim surface Git blob drift"
-            )
-    return errors
-
-
-def base_validator_blob_errors(path: Path = BASE) -> list[str]:
-    """Bind the immediately prior live validator before executing its code."""
+def predecessor_validator_blob_errors(path: Path = PRETAG_FINAL) -> list[str]:
     if not path.is_file():
-        return ["pre-Codex4 PR21 validator missing before import"]
-    actual = local_git_blob_sha(path)
-    if actual != EXPECTED_BASE_VALIDATOR_BLOB:
+        return ["final pre-tag Lean validator missing before import"]
+    actual = _git_blob_sha(path)
+    if actual != EXPECTED_PRETAG_FINAL_BLOB:
         return [
-            "pre-Codex4 PR21 validator blob drift: "
-            f"expected {EXPECTED_BASE_VALIDATOR_BLOB}, got {actual}"
+            "final pre-tag Lean validator blob drift: "
+            f"expected {EXPECTED_PRETAG_FINAL_BLOB}, got {actual}"
         ]
     return []
 
 
-def artifact_verifier_blob_errors(path: Path = ARTIFACT_VERIFIER) -> list[str]:
-    """Bind the retained-artifact verifier before accepting its workflow step."""
-    if not path.is_file():
-        return ["Lean observation retained-artifact verifier missing"]
-    actual = local_git_blob_sha(path)
-    if actual != EXPECTED_ARTIFACT_VERIFIER_BLOB:
-        return [
-            "Lean observation retained-artifact verifier blob drift: "
-            f"expected {EXPECTED_ARTIFACT_VERIFIER_BLOB}, got {actual}"
-        ]
-    return []
+_preload_errors = predecessor_validator_blob_errors()
+if _preload_errors:
+    raise RuntimeError("; ".join(_preload_errors))
 
-
-_preload_base_errors = base_validator_blob_errors()
-if _preload_base_errors:
-    raise RuntimeError("; ".join(_preload_base_errors))
-
-_spec = importlib.util.spec_from_file_location("lean_observation_pr21_pre_codex4", BASE)
-if _spec is None or _spec.loader is None:
-    raise RuntimeError(f"cannot load prior PR21 validator: {BASE}")
-_base = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(_base)
-
-for _name in dir(_base):
-    if not _name.startswith("__") and _name not in {
-        "workflow_contract_errors", "validate_documents", "validate", "main",
-        "frozen_validator_blob_errors", "basis_git_blob_sha", "basis_source_object_errors",
-    }:
-        globals()[_name] = getattr(_base, _name)
-
-
-EXPECTED_CURRENT_AUTHORITY_BLOBS = {
-    **EXPECTED_SOURCE_BLOBS,
-    "machine/contract.json": "37a351161095df5cd4c1d9be68bf0c6bb4203736",
-    "machine/roadmap_state.json": "eb2720c9df35627419984e864b2ce7117d4cb810",
-    "ROADMAP.md": EXPECTED_CLAIM_SURFACE_BLOBS["ROADMAP"],
-    "machine/lean_observation_foundation_contract.json": "9f9af5b296862bbcf227e939389ccadda3e8129c",
-    "theory/LEAN_OBSERVATION_FOUNDATION.md": EXPECTED_CLAIM_SURFACE_BLOBS["human freeze"],
-    "README4AI.md": EXPECTED_CLAIM_SURFACE_BLOBS["README4AI"],
-    ".github/workflows/vopson-corpus.yml": EXPECTED_WORKFLOW_BLOB,
-    "scripts/validate_lean_observation_foundation_pr21_frozen.py": EXPECTED_FROZEN_VALIDATOR_BLOB,
-    "scripts/validate_lean_observation_foundation_pr21_pre_codex4.py": EXPECTED_BASE_VALIDATOR_BLOB,
-    "scripts/verify_lean_observation_foundation_artifact.py": EXPECTED_ARTIFACT_VERIFIER_BLOB,
-}
-TRACKED_CURRENT_AUTHORITY_PATHS = tuple(
-    dict.fromkeys(
-        (
-            *EXPECTED_SOURCE_BLOBS,
-            "machine/roadmap_state.json",
-            "machine/lean_observation_foundation_contract.json",
-            "theory/LEAN_OBSERVATION_FOUNDATION.md",
-            "README4AI.md",
-            ".github/workflows/vopson-corpus.yml",
-            "scripts/validate_lean_observation_foundation.py",
-            "scripts/validate_lean_observation_foundation_pr21_frozen.py",
-            "scripts/validate_lean_observation_foundation_pr21_pre_codex4.py",
-            "scripts/verify_lean_observation_foundation_artifact.py",
-            "tests/test_lean_observation_foundation.py",
-        )
-    )
+_spec = importlib.util.spec_from_file_location(
+    "lean_observation_pr21_final_frozen", PRETAG_FINAL
 )
-EXPECTED_CURRENT_AUTHORITY_MODES = {
-    relpath: "100644" for relpath in TRACKED_CURRENT_AUTHORITY_PATHS
-}
-EXPECTED_CURRENT_AUTHORITY_MODES["scripts/validate_lean_observation_foundation.py"] = "100755"
-EXPECTED_CURRENT_AUTHORITY_MODES[
-    "scripts/verify_lean_observation_foundation_artifact.py"
-] = "100755"
+if _spec is None or _spec.loader is None:
+    raise RuntimeError(f"cannot load final pre-tag validator: {PRETAG_FINAL}")
+_frozen = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_frozen)
 
+# Preserve the reviewed helper/test surface.  The post-tag functions overridden
+# below are intentionally excluded.
+for _name in dir(_frozen):
+    if not _name.startswith("__") and _name not in {
+        "validate_documents",
+        "validate",
+        "main",
+        "basis_source_object_errors",
+    }:
+        globals()[_name] = getattr(_frozen, _name)
 
-def reject_duplicate_object_keys(
-    pairs: list[tuple[str, object]],
-) -> dict[str, object]:
-    """Reject ambiguous JSON objects recursively, including escaped aliases."""
-    result: dict[str, object] = {}
-    for key, value in pairs:
-        if key in result:
-            raise ValueError(f"duplicate JSON object key: {key}")
-        result[key] = value
-    return result
+_FROZEN_BASIS_SOURCE_OBJECT_ERRORS = _frozen.basis_source_object_errors
 
+FREEZE = _frozen.FREEZE
+SOURCE_THEOREMS = _frozen.SOURCE_THEOREMS
+SOURCE_COUNTEREXAMPLES = _frozen.SOURCE_COUNTEREXAMPLES
+BASE_CONTRACT = _frozen.BASE_CONTRACT
+HUMAN = _frozen.HUMAN
+ROADMAP = _frozen.ROADMAP
+README4AI = _frozen.README4AI
+WORKFLOW = _frozen.WORKFLOW
+ROADMAP_STATE = _frozen.ROADMAP_STATE
 
-def reject_nonfinite_constant(value: str):
-    raise ValueError(f"non-finite JSON number: {value}")
+VERIFICATION = ROOT / "machine/lean_observation_verification.json"
+LEAN_TOOLCHAIN = ROOT / "lean-toolchain"
+LAKEFILE = ROOT / "lakefile.toml"
+LEAN_ROOT = ROOT / "UFTID.lean"
+LEAN_BASIC = ROOT / "UFTID/Observation/Basic.lean"
+LEAN_QUOTIENT = ROOT / "UFTID/Observation/Quotient.lean"
+LEAN_RECONSTRUCTION = ROOT / "UFTID/Observation/Reconstruction.lean"
+LEAN_WORKFLOW = ROOT / ".github/workflows/lean-observation.yml"
 
+SOURCE_TAG = "v3.0.0"
+SOURCE_COMMIT = "b7f51590985e60920c8b09fc9238b8aec6cfa3bc"
+SOURCE_TREE = "966bdf47596832f792e77d619b33222f4cf60c8d"
+LEAN_VERSION = "v4.33.1"
+MATHLIB_COMMIT = "0df444a360eaa60ab8c11dca51a86af692955474"
+LEAN_ARCHIVE_SHA256 = "890afd185370f85666025b883914ab4f4b339136f8c96167b69cfb62aecaf235"
+LEAN_ARCHIVE_URL = (
+    "https://github.com/leanprover/lean4/releases/download/"
+    "v4.33.1/lean-4.33.1-linux.tar.zst"
+)
 
-def parse_finite_float(value: str) -> float:
-    parsed = float(value)
-    if not math.isfinite(parsed):
-        raise ValueError(f"non-finite JSON number: {value}")
-    return parsed
-
-
-def load_json(path: Path) -> dict[str, object]:
-    """Load a machine authority without silently collapsing JSON ambiguity."""
-    value = json.loads(
-        path.read_text(encoding="utf-8"),
-        object_pairs_hook=reject_duplicate_object_keys,
-        parse_constant=reject_nonfinite_constant,
-        parse_float=parse_finite_float,
-    )
-    if not isinstance(value, dict):
-        try:
-            display_path = path.relative_to(ROOT)
-        except ValueError:
-            display_path = path
-        raise ValueError(f"{display_path} must contain an object")
-    return value
-
-
-def tracked_authority_object_errors(
-    root: Path = ROOT,
-    *,
-    expected_blobs: dict[str, str] | None = None,
-    expected_modes: dict[str, str] | None = None,
-    runner=subprocess.run,
-) -> list[str]:
-    """Bind frozen authority paths to regular files and exact HEAD tree objects."""
-    blobs = dict(
-        EXPECTED_CURRENT_AUTHORITY_BLOBS
-        if expected_blobs is None
-        else expected_blobs
-    )
-    modes = dict(
-        EXPECTED_CURRENT_AUTHORITY_MODES
-        if expected_modes is None
-        else expected_modes
-    )
-    if not set(blobs).issubset(modes):
-        return ["frozen authority Git object/mode registry malformed"]
-
-    result = runner(
-        ["git", "ls-tree", "-r", "-z", "--full-tree", "HEAD", "--", *modes],
-        cwd=root,
-        capture_output=True,
-        check=False,
-    )
-    if result.returncode != 0:
-        return ["frozen authority tracked Git object inventory unavailable"]
-
-    output = result.stdout
-    if not isinstance(output, bytes) or (output and not output.endswith(b"\0")):
-        return ["frozen authority tracked Git object inventory malformed"]
-    encoded_records = output[:-1].split(b"\0") if output else []
-    if any(not record for record in encoded_records):
-        return ["frozen authority tracked Git object inventory malformed"]
-
-    entries: dict[str, tuple[str, str, str]] = {}
-    for record in encoded_records:
-        try:
-            header, encoded_path = record.split(b"\t", 1)
-            mode, object_type, object_sha = header.decode("ascii").split(" ")
-            relpath = encoded_path.decode("utf-8")
-        except (ValueError, UnicodeDecodeError):
-            return ["frozen authority tracked Git object inventory malformed"]
-        if (
-            re.fullmatch(r"[0-7]{6}", mode) is None
-            or object_type != "blob"
-            or re.fullmatch(r"[0-9a-f]{40}", object_sha) is None
-            or relpath in entries
-        ):
-            return ["frozen authority tracked Git object inventory malformed"]
-        entries[relpath] = (mode, object_type, object_sha)
-
-    errors: list[str] = []
-    unexpected = sorted(set(entries) - set(modes))
-    if unexpected:
-        errors.append(
-            "frozen authority tracked Git object inventory contains unexpected paths: "
-            + ", ".join(unexpected)
-        )
-    for relpath, expected_mode in modes.items():
-        entry = entries.get(relpath)
-        if entry is None:
-            errors.append(f"frozen authority tracked Git object missing: {relpath}")
-            continue
-        mode, _object_type, object_sha = entry
-        if mode != expected_mode:
-            errors.append(f"frozen authority tracked Git object/mode drift: {relpath}")
-        expected_sha = blobs.get(relpath)
-        if expected_sha is not None and object_sha != expected_sha:
-            errors.append(f"frozen authority tracked Git blob drift: {relpath}")
-
-        path = root / relpath
-        try:
-            working_mode = path.lstat().st_mode
-        except OSError:
-            errors.append(f"frozen authority working path missing: {relpath}")
-        else:
-            if stat.S_ISLNK(working_mode):
-                errors.append(
-                    f"frozen authority working path must not be a symlink: {relpath}"
-                )
-            elif not stat.S_ISREG(working_mode):
-                errors.append(
-                    f"frozen authority working path must be a regular file: {relpath}"
-                )
-            else:
-                try:
-                    working_sha = local_git_blob_sha(path)
-                except OSError:
-                    errors.append(f"frozen authority working path unreadable: {relpath}")
-                else:
-                    if working_sha != object_sha:
-                        errors.append(
-                            f"frozen authority working tree Git blob drift: {relpath}"
-                        )
-    return errors
-
-
-def tracked_pretag_lean_files(
-    root: Path = ROOT,
-    *,
-    runner=subprocess.run,
-) -> tuple[list[str], list[str]]:
-    """Inventory every tracked pre-tag Lean/package path, without directory skips."""
-    result = runner(
-        ["git", "ls-files", "--cached", "-z", "--"],
-        cwd=root,
-        capture_output=True,
-        check=False,
-    )
-    if result.returncode != 0:
-        return [], ["tracked pre-tag Lean source inventory unavailable"]
-
-    output = result.stdout
-    if not isinstance(output, bytes) or (output and not output.endswith(b"\0")):
-        return [], ["tracked pre-tag Lean source inventory malformed"]
-    encoded_paths = output[:-1].split(b"\0") if output else []
-    if any(not encoded_path for encoded_path in encoded_paths):
-        return [], ["tracked pre-tag Lean source inventory malformed"]
-    try:
-        paths = [encoded_path.decode("utf-8") for encoded_path in encoded_paths]
-    except UnicodeDecodeError:
-        return [], ["tracked pre-tag Lean source inventory is not UTF-8"]
-
-    forbidden = {
-        relpath
-        for relpath in paths
-        if relpath.endswith(PRETAG_LEAN_SUFFIXES)
-        or relpath.rsplit("/", 1)[-1] in PRETAG_PACKAGE_FILENAMES
+EXPECTED_ALLOWED_LEAN_PATHS = frozenset(
+    {
+        "UFTID.lean",
+        "UFTID/Observation/Basic.lean",
+        "UFTID/Observation/Quotient.lean",
+        "UFTID/Observation/Reconstruction.lean",
+        "lean-toolchain",
+        "lakefile.toml",
     }
-    return sorted(forbidden), []
+)
+
+EXPECTED_DECLARATIONS = {
+    "UFT-OBS-001": (
+        "UFTID/Observation/Basic.lean",
+        "uft_obs_001_observational_equivalence",
+    ),
+    "UFT-OBS-002": (
+        "UFTID/Observation/Quotient.lean",
+        "uft_obs_002_quotient_to_image",
+    ),
+    "UFT-OBS-003": (
+        "UFTID/Observation/Reconstruction.lean",
+        "uft_obs_003_image_reconstruction_iff_injective",
+    ),
+    "UFT-OBS-004": (
+        "UFTID/Observation/Reconstruction.lean",
+        "uft_obs_004_noninjective_no_global_left_inverse",
+    ),
+}
+
+EXPECTED_LAKEFILE = f'''name = "UFTID"
+version = "3.0.0"
+defaultTargets = ["UFTID"]
+
+[leanOptions]
+autoImplicit = false
+relaxedAutoImplicit = false
+
+[[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4.git"
+rev = "{MATHLIB_COMMIT}"
+
+[[lean_lib]]
+name = "UFTID"
+'''
+
+EXPECTED_ROOT_IMPORTS = (
+    "import UFTID.Observation.Basic",
+    "import UFTID.Observation.Quotient",
+    "import UFTID.Observation.Reconstruction",
+)
 
 
-def frozen_validator_blob_errors(path: Path = FROZEN) -> list[str]:
-    if not path.is_file():
-        return ["frozen PR21 validator missing before import"]
-    actual = git_blob_sha(path)
-    if actual != EXPECTED_FROZEN_VALIDATOR_BLOB:
-        return [
-            "frozen PR21 validator blob drift: "
-            f"expected {EXPECTED_FROZEN_VALIDATOR_BLOB}, got {actual}"
-        ]
-    return []
+def basis_source_object_errors() -> list[str]:
+    """Retain the old mutation-test hook while calling the frozen checker."""
+    previous = _frozen.basis_git_blob_sha
+    try:
+        _frozen.basis_git_blob_sha = basis_git_blob_sha
+        return _FROZEN_BASIS_SOURCE_OBJECT_ERRORS()
+    finally:
+        _frozen.basis_git_blob_sha = previous
 
 
-def basis_git_blob_sha(relpath: str) -> str | None:
+def _git_rev_parse(expression: str) -> str | None:
     result = subprocess.run(
-        ["git", "rev-parse", f"{BASIS_COMMIT}:{relpath}"],
+        ["git", "rev-parse", expression],
         cwd=ROOT,
         text=True,
         capture_output=True,
@@ -394,572 +172,172 @@ def basis_git_blob_sha(relpath: str) -> str | None:
     if result.returncode != 0:
         return None
     value = result.stdout.strip()
-    if re.fullmatch(r"[0-9a-f]{40}", value) is None:
-        return None
-    return value if git_object_is_blob(value) else None
+    return value if re.fullmatch(r"[0-9a-f]{40}", value) else None
 
 
-def basis_source_object_errors() -> list[str]:
+def source_release_errors() -> list[str]:
     errors: list[str] = []
-    resolved = 0
-    for relpath, expected_sha in EXPECTED_SOURCE_BLOBS.items():
-        actual = basis_git_blob_sha(relpath)
-        if actual is None:
-            errors.append(f"basis commit blob object unavailable: {BASIS_COMMIT}:{relpath}")
-            continue
-        resolved += 1
-        if actual != expected_sha:
-            errors.append(f"basis commit Git blob mismatch: {relpath}")
-    if resolved != len(EXPECTED_SOURCE_BLOBS):
-        errors.append("complete PR9 basis dependency closure was not resolved from readable Git blob objects")
-    return errors
-
-
-def _step_blocks(job_body: str) -> tuple[str, ...]:
-    return tuple(match.group("body") for match in re.finditer(r"(?ms)^      - (?P<body>.*?)(?=^      - |\Z)", job_body))
-
-
-def _exact_freeze_environment_errors(freeze_step: str) -> list[str]:
-    errors: list[str] = []
-    match = re.search(r"(?m)^        env:\n(?P<body>(?:          [^\n]+\n)+)", freeze_step)
-    if match is None:
-        return ["registered Lean-freeze validator step must have the exact canonical environment mapping"]
-    entries = tuple(line.strip() for line in match.group("body").splitlines() if line.strip())
-    expected = ('UFT_REQUIRE_BASIS_COMMIT_OBJECT: "1"',)
-    if entries != expected:
-        errors.append("registered Lean-freeze validator step environment must be exact; Python startup/path overrides are forbidden")
-    if len(re.findall(r"(?m)^        env:\s*$", freeze_step)) != 1:
-        errors.append("registered Lean-freeze validator step must contain exactly one env mapping")
-    return errors
-
-
-def _exact_freeze_command_errors(freeze_step: str) -> list[str]:
-    normalized_step = _normalize_yaml_escapes_for_action_count(freeze_step)
-    run_key = r'(?:run|"run"|\'run\')'
-    values = tuple(
-        match.group("value")
-        for match in re.finditer(rf"(?m)^        {run_key}\s*:(?P<value>[^\n]*)$", normalized_step)
-    )
-    expected = (" python scripts/validate_lean_observation_foundation.py",)
-    if values != expected:
-        return ["registered Lean-freeze validator command must be exact and blocking"]
-    return []
-
-
-def _normalize_yaml_escapes_for_action_count(text: str) -> str:
-    """Expose YAML double-quoted escapes before counting action identities."""
-    normalized = re.sub(r"\\x([0-9a-fA-F]{2})", lambda match: chr(int(match.group(1), 16)), text)
-    normalized = re.sub(r"\\u([0-9a-fA-F]{4})", lambda match: chr(int(match.group(1), 16)), normalized)
-    normalized = re.sub(r"\\U([0-9a-fA-F]{8})", lambda match: chr(int(match.group(1), 16)), normalized)
-    normalized = normalized.replace(r"\/", "/")
-    return re.sub(r"\\\r?\n[ \t]*", "", normalized)
-
-
-def _checkout_revision_errors(job_body: str) -> list[str]:
-    # Count before interpreting step layout: GitHub accepts quoted keys,
-    # flow mappings, YAML escapes, and aliases that evade a line-oriented
-    # subset parser while still replacing the validated workspace.
-    normalized_job = _normalize_yaml_escapes_for_action_count(job_body)
-    alias_or_merge = (
-        r"(?im)(?:(?:^\s*-?\s*|[,{]\s*)(?:(?:uses|\"uses\"|'uses')|<<)\s*:\s*\*"
-        r"|^\s*-\s*\*)"
-    )
-    if re.search(alias_or_merge, normalized_job):
-        return ["registered Lean-freeze workflow may not use YAML aliases or merge keys in executable steps"]
-    if len(re.findall(r"(?i)actions/checkout@", normalized_job)) != 1:
-        return ["registered Lean-freeze workflow must contain exactly one checkout step"]
-
-    checkout_uses = r"(?:uses|\"uses\"|'uses')\s*:\s*(?:\"|')?actions/checkout@"
-    checkout_blocks = [block for block in _step_blocks(job_body) if re.search(rf"(?m)^{checkout_uses}", block)]
-    if len(checkout_blocks) != 1:
-        return ["registered Lean-freeze workflow must contain exactly one checkout step"]
-    checkout = checkout_blocks[0]
-    ref_key = r"(?:ref|\"ref\"|'ref')"
-    repository_key = r"(?:repository|\"repository\"|'repository')"
-    errors: list[str] = []
-    if re.search(rf"(?m)^\s{{8,}}{ref_key}\s*:", checkout):
-        errors.append("registered Lean-freeze checkout must validate the triggering event revision and may not override ref")
-    if re.search(rf"(?m)^\s{{8,}}{repository_key}\s*:", checkout):
-        errors.append("registered Lean-freeze checkout must validate this repository and may not override repository")
-
-    mappings = list(re.finditer(r"(?m)^        with:\n(?P<body>(?:          [^\n]+\n)+)", checkout))
-    expected_inputs = ("persist-credentials: false", "fetch-depth: 0")
-    if len(mappings) != 1:
-        errors.append("registered Lean-freeze checkout must use exactly one canonical block input mapping")
-    else:
-        entries = tuple(line.strip() for line in mappings[0].group("body").splitlines() if line.strip())
-        if entries != expected_inputs:
-            errors.append("registered Lean-freeze checkout inputs must be exact; revision, repository, path, and credential overrides are forbidden")
-    return errors
-
-
-def workflow_contract_errors(text: str) -> list[str]:
-    errors = list(_base.workflow_contract_errors(text))
-    if text_git_blob_sha(text) != EXPECTED_WORKFLOW_BLOB:
-        errors.append("registered Lean-freeze workflow complete Git blob drift")
-    required_helper = '- "scripts/validate_lean_observation_foundation_pr21_pre_codex4.py"'
-    for event in ("pull_request", "push"):
-        event_paths = _base.workflow_event_paths(text, event)
-        event_body = _base.workflow_event_block(text, event)
-        if event_paths is None or event_paths.count(required_helper) != 1:
-            errors.append(f"registered Lean-freeze workflow {event} path trigger drift: {required_helper}")
-        if event_body != EXPECTED_WORKFLOW_EVENT_BODIES[event] or event_paths != EXPECTED_WORKFLOW_PATHS:
-            errors.append(f"registered Lean-freeze workflow {event} path list must match the exact canonical ordered set")
-
-    job_body = _base.workflow_job_block(text, "validate-corpus")
-    if job_body is None:
-        return errors
-    errors.extend(_checkout_revision_errors(job_body))
-    freeze_step = _base.workflow_named_step_block(job_body, "Validate Lean observation source freeze")
-    if freeze_step is not None:
-        errors.extend(_exact_freeze_environment_errors(freeze_step))
-        errors.extend(_exact_freeze_command_errors(freeze_step))
-        if freeze_step != EXPECTED_FREEZE_STEP_BODY:
-            errors.append("registered Lean-freeze validator step must match the exact canonical body")
-    verify_step_name = "Verify retained Lean observation freeze evidence"
-    verify_step = _base.workflow_named_step_block(job_body, verify_step_name)
-    if text.count(f"      - name: {verify_step_name}\n") != 1 or verify_step is None:
-        errors.append("registered Lean-freeze workflow missing unique retained-artifact verification step")
-    elif verify_step != EXPECTED_RETAINED_FREEZE_VERIFY_STEP_BODY:
-        errors.append("registered Lean-freeze retained-artifact verification step must be exact and blocking")
-    return errors
-
-
-def _canonical_text_blocks(text: str, block_error: str) -> tuple[tuple[str, ...] | None, list[str]]:
-    """Parse only canonical, unindented triple-backtick text fences."""
-    if "<!--" in text or "-->" in text:
-        return None, [block_error]
-    blocks: list[str] = []
-    body_lines: list[str] = []
-    inside = False
-    for line in text.splitlines():
-        if re.fullmatch(r"\s*(?:`{3,}|~{3,})(?:[^`]*)?", line) is None:
-            if inside:
-                body_lines.append(line)
-            continue
-        if not inside:
-            if line != "```text":
-                return None, [block_error]
-            inside = True
-            body_lines = []
-        else:
-            if line != "```":
-                return None, [block_error]
-            blocks.append("\n".join(body_lines) + "\n")
-            inside = False
-    if inside or not blocks:
-        return None, [block_error]
-    return tuple(blocks), []
-
-
-def _canonical_human_section(human: str, heading: str) -> str | None:
-    lines = human.splitlines()
-    exact = [line for line in lines if line == heading]
-    near = [line for line in lines if line.strip().casefold() == heading.casefold()]
-    if len(exact) != 1 or len(near) != 1:
-        return None
-    return _base._frozen.section(human, heading)
-
-
-def _human_text_blocks(human: str, heading: str, missing_error: str, block_error: str) -> tuple[tuple[str, ...] | None, list[str]]:
-    section = _canonical_human_section(human, heading)
-    if section is None:
-        return None, [missing_error]
-    return _canonical_text_blocks(section, block_error)
-
-
-def _human_text_block(human: str, heading: str, missing_error: str, block_error: str) -> tuple[str | None, list[str]]:
-    blocks, errors = _human_text_blocks(human, heading, missing_error, block_error)
-    if blocks is None:
-        return None, errors
-    if len(blocks) != 1:
-        return None, [block_error]
-    return blocks[0], []
-
-
-def _block_lines(block: str) -> tuple[str, ...]:
-    return tuple(line.strip() for line in block.splitlines() if line.strip())
-
-
-def human_hard_boundary_errors(freeze: dict[str, object], human: str) -> list[str]:
-    expected = freeze.get("hard_boundaries")
-    if not isinstance(expected, list) or not expected or any(not isinstance(item, str) for item in expected):
-        return ["Lean observation machine hard boundaries malformed"]
-
-    heading = "## Frozen source authority"
-    if _canonical_human_section(human, heading) is None:
-        return ["Lean observation human hard-boundary preamble missing"]
-    lines = human.splitlines()
-    matches = [index for index, line in enumerate(lines) if line == heading]
-    preamble = "\n".join(lines[:matches[0]])
-    blocks, errors = _canonical_text_blocks(
-        preamble,
-        "Lean observation human hard-boundary code block missing",
-    )
-    if blocks is None:
-        return errors
-    if len(blocks) != 1 or _block_lines(blocks[0]) != tuple(expected):
-        return ["Lean observation human hard-boundary block drift"]
-    return []
-
-
-def human_batch_selection_errors(freeze: dict[str, object], human: str) -> list[str]:
-    theorem_ids = freeze.get("theorem_ids")
-    deferred_ids = freeze.get("deferred_theorem_ids")
-    boundaries = freeze.get("hard_boundaries")
-    if (
-        not isinstance(theorem_ids, list)
-        or not theorem_ids
-        or any(not isinstance(item, str) for item in theorem_ids)
-        or not isinstance(deferred_ids, list)
-        or not deferred_ids
-        or any(not isinstance(item, str) for item in deferred_ids)
-        or not isinstance(boundaries, list)
-        or any(not isinstance(item, str) for item in boundaries)
-    ):
-        return ["Lean observation machine batch selection malformed"]
-
-    blocks, errors = _human_text_blocks(
-        human,
-        "## Batch selection",
-        "Lean observation human batch selection missing",
-        "Lean observation human batch-selection code blocks drift",
-    )
-    if blocks is None:
-        return errors
-    deferred_boundaries = tuple(
-        boundary for boundary in boundaries if boundary.startswith("UFT-OBS-005_DEFERRED")
-    )
-    if len(deferred_boundaries) != 1:
-        return ["Lean observation machine deferred-theorem boundary malformed"]
-    if len(blocks) != 3:
-        return ["Lean observation human batch-selection code blocks drift"]
-
-    frozen_projection = "Frozen in batch 001:\n\n```text\n" + "\n".join(theorem_ids) + "\n```"
-    deferred_projection = "Deferred to a later Lean batch:\n\n```text\n" + "\n".join(deferred_ids) + "\n```"
-
-    result: list[str] = []
-    if section := _canonical_human_section(human, "## Batch selection"):
-        if section.count(frozen_projection) != 1 or section.count(deferred_projection) != 1:
-            result.append("Lean observation human batch-selection labels drift")
-        elif section.index(frozen_projection) > section.index(deferred_projection):
-            result.append("Lean observation human batch-selection ordering drift")
-    if _block_lines(blocks[0]) != tuple(theorem_ids):
-        result.append("Lean observation human frozen theorem list drift")
-    if _block_lines(blocks[1]) != tuple(deferred_ids):
-        result.append("Lean observation human deferred theorem list drift")
-    if _block_lines(blocks[2]) != deferred_boundaries:
-        result.append("Lean observation human deferred-theorem boundary drift")
-    return result
-
-
-def human_dependency_graph_errors(freeze: dict[str, object], human: str) -> list[str]:
-    graph = freeze.get("dependency_graph")
-    if not isinstance(graph, dict):
-        return ["Lean observation machine dependency graph malformed"]
-    blocks, errors = _human_text_blocks(
-        human,
-        "## Dependency graph",
-        "Lean observation human dependency graph missing",
-        "Lean observation human dependency graph code block missing",
-    )
-    if blocks is None:
-        return errors
-    if len(blocks) != 2:
-        return ["Lean observation human dependency graph code block missing"]
-    body = blocks[0]
-
-    nodes: set[str] = set()
-    edges: list[tuple[str, str]] = []
-    parent: str | None = None
-    malformed = False
-    for raw in body.splitlines():
-        line = raw.strip()
-        if not line:
-            continue
-        if re.fullmatch(r"UFT-OBS-\d{3}", line):
-            parent = line
-            nodes.add(line)
-            continue
-        arrow = re.fullmatch(r"->\s*(UFT-OBS-\d{3})", line)
-        if arrow is not None and parent is not None:
-            child = arrow.group(1)
-            nodes.add(child)
-            edges.append((parent, child))
-            continue
-        malformed = True
-
-    expected_nodes = set(graph)
-    expected_edges: set[tuple[str, str]] = set()
-    for theorem_id, dependencies in graph.items():
-        if not isinstance(theorem_id, str) or not isinstance(dependencies, list) or any(not isinstance(dep, str) for dep in dependencies):
-            return ["Lean observation machine dependency graph malformed"]
-        for dependency in dependencies:
-            expected_edges.add((dependency, theorem_id))
-
-    if malformed or nodes != expected_nodes or set(edges) != expected_edges or len(edges) != len(expected_edges):
-        return ["Lean observation human dependency graph drift"]
-    return []
-
-
-def human_counterexample_dependency_errors(freeze: dict[str, object], human: str) -> list[str]:
-    records = freeze.get("theorems")
-    if not isinstance(records, list) or any(not isinstance(item, dict) for item in records):
-        return ["Lean observation machine counterexample dependency map malformed"]
-
-    expected_by_counterexample: dict[str, list[str]] = {}
-    for record in records:
-        theorem_id = record.get("id")
-        dependencies = record.get("counterexample_dependencies")
-        if (
-            not isinstance(theorem_id, str)
-            or not isinstance(dependencies, list)
-            or any(not isinstance(item, str) for item in dependencies)
-        ):
-            return ["Lean observation machine counterexample dependency map malformed"]
-        for counterexample_id in dependencies:
-            expected_by_counterexample.setdefault(counterexample_id, []).append(theorem_id)
-
-    blocks, errors = _human_text_blocks(
-        human,
-        "## Dependency graph",
-        "Lean observation human dependency graph missing",
-        "Lean observation human counterexample dependency code block missing",
-    )
-    if blocks is None:
-        return errors
-    if len(blocks) != 2:
-        return ["Lean observation human counterexample dependency code block missing"]
-
-    parsed: list[tuple[str, tuple[str, ...]]] = []
-    malformed = False
-    for raw in blocks[1].splitlines():
-        line = raw.strip()
-        if not line:
-            continue
-        match = re.fullmatch(
-            r"(CX-OBS-\d{3})\s*->\s*(UFT-OBS-\d{3}(?:,\s*UFT-OBS-\d{3})*)",
-            line,
+    actual_commit = _git_rev_parse(f"refs/tags/{SOURCE_TAG}^{{commit}}")
+    actual_tree = _git_rev_parse(f"refs/tags/{SOURCE_TAG}^{{tree}}")
+    if actual_commit != SOURCE_COMMIT:
+        errors.append(
+            f"Lean source tag identity drift: expected {SOURCE_TAG} -> {SOURCE_COMMIT}, "
+            f"got {actual_commit}"
         )
-        if match is None:
-            malformed = True
-            continue
-        theorem_ids = tuple(item.strip() for item in match.group(2).split(","))
-        parsed.append((match.group(1), theorem_ids))
+    if actual_tree != SOURCE_TREE:
+        errors.append(
+            f"Lean source tag tree drift: expected {SOURCE_TREE}, got {actual_tree}"
+        )
+    return errors
 
-    expected = [
-        (counterexample_id, tuple(expected_by_counterexample[counterexample_id]))
-        for counterexample_id in sorted(expected_by_counterexample)
-    ]
-    section = _canonical_human_section(human, "## Dependency graph")
-    expected_block = "Adversarial companions remain separately typed:\n\n```text\n" + "\n".join(
-        counterexample_id + " -> " + ", ".join(theorem_ids)
-        for counterexample_id, theorem_ids in expected
-    ) + "\n```"
-    expected_nonpremise = "Counterexamples are not theorem premises and executable witnesses are not Lean proofs."
-    if (
-        malformed
-        or parsed != expected
-        or section is None
-        or section.count(expected_block) != 1
-        or section.count(expected_nonpremise) != 1
-    ):
-        return ["Lean observation human counterexample dependency graph drift"]
+
+def expected_verification_record() -> dict[str, object]:
+    return {
+        "type": "uft-id-lean-observation-verification",
+        "schema_version": "1.0.0",
+        "batch_id": "LEAN-OBS-BATCH-001",
+        "status": "IMPLEMENTED_PENDING_CI",
+        "source_release": {
+            "tag": SOURCE_TAG,
+            "commit": SOURCE_COMMIT,
+            "tree": SOURCE_TREE,
+        },
+        "toolchain": {
+            "lean": LEAN_VERSION,
+            "mathlib_commit": MATHLIB_COMMIT,
+            "lean_archive_url": LEAN_ARCHIVE_URL,
+            "lean_archive_sha256": LEAN_ARCHIVE_SHA256,
+        },
+        "theorems": [
+            {
+                "id": theorem_id,
+                "module": {
+                    "UFT-OBS-001": "UFTID.Observation.Basic",
+                    "UFT-OBS-002": "UFTID.Observation.Quotient",
+                    "UFT-OBS-003": "UFTID.Observation.Reconstruction",
+                    "UFT-OBS-004": "UFTID.Observation.Reconstruction",
+                }[theorem_id],
+                "path": path,
+                "declaration": declaration,
+            }
+            for theorem_id, (path, declaration) in EXPECTED_DECLARATIONS.items()
+        ],
+        "deferred_theorem_ids": ["UFT-OBS-005"],
+        "hard_boundaries": [
+            "LEAN_PROOF != EMPIRICAL_VALIDATION",
+            "LEAN_PROOF != PHYSICAL_ONTOLOGY",
+            "UFT-OBS-005_DEFERRED != UFT-OBS-005_DROPPED",
+        ],
+    }
+
+
+def verification_record_errors(record: dict[str, object]) -> list[str]:
+    if record != expected_verification_record():
+        return ["Lean observation implementation verification record drift"]
     return []
 
 
-def human_lean_module_map_errors(freeze: dict[str, object], human: str) -> list[str]:
-    expected = freeze.get("lean_module_map")
-    if not isinstance(expected, list) or any(not isinstance(item, dict) for item in expected):
-        return ["Lean observation machine Lean module map malformed"]
-    body, errors = _human_text_block(
-        human,
-        "## Expected Lean module map",
-        "Lean observation human Lean module map missing",
-        "Lean observation human Lean module map code block missing",
-    )
-    if body is None:
-        return errors
+def posttag_path_errors() -> list[str]:
+    """Allow only the exact registered Lean package after v3.0.0.
 
-    parsed: list[dict[str, object]] = []
-    current: dict[str, object] | None = None
-    malformed = False
-    module_re = re.compile(r"UFTID(?:\.[A-Za-z0-9_]+)+")
-    path_re = re.compile(r"UFTID/[A-Za-z0-9_./-]+\.lean")
-    theorem_re = re.compile(r"UFT-OBS-\d{3}")
+    The historical helper is deliberately reused so old adversarial tests keep
+    proving that hidden `.lean`, `.olean`, `.ilean`, and package files are found.
+    Generated compiled modules remain forbidden from source control.
+    """
+    tracked, inventory_errors = tracked_pretag_lean_files()
+    errors = list(inventory_errors)
+    actual = set(tracked)
+    for relpath in sorted(actual - EXPECTED_ALLOWED_LEAN_PATHS):
+        errors.append(f"pre-tag Lean source/toolchain forbidden: {relpath}")
+    for relpath in sorted(EXPECTED_ALLOWED_LEAN_PATHS - actual):
+        errors.append(f"registered post-tag Lean source/toolchain missing: {relpath}")
+    return errors
 
-    for raw in body.splitlines():
-        if not raw.strip():
+
+def lean_source_errors() -> list[str]:
+    errors: list[str] = []
+    paths = {
+        "UFTID.lean": LEAN_ROOT,
+        "UFTID/Observation/Basic.lean": LEAN_BASIC,
+        "UFTID/Observation/Quotient.lean": LEAN_QUOTIENT,
+        "UFTID/Observation/Reconstruction.lean": LEAN_RECONSTRUCTION,
+    }
+    texts: dict[str, str] = {}
+    for relpath, path in paths.items():
+        if not path.is_file():
+            errors.append(f"registered Lean source missing: {relpath}")
             continue
-        indent = len(raw) - len(raw.lstrip(" "))
-        line = raw.strip()
-        if indent == 0 and module_re.fullmatch(line):
-            if current is not None:
-                parsed.append(current)
-            current = {"module": line, "path": None, "depends_on": [], "theorem_ids": []}
-            continue
-        if current is None or indent == 0:
-            malformed = True
-            continue
-        if path_re.fullmatch(line):
-            if current["path"] is not None:
-                malformed = True
-            else:
-                current["path"] = line
-            continue
-        if line.startswith("depends on "):
-            dependency = line.removeprefix("depends on ").strip()
-            if not module_re.fullmatch(dependency):
-                malformed = True
-            else:
-                current["depends_on"].append(dependency)
-            continue
-        if theorem_re.fullmatch(line):
-            current["theorem_ids"].append(line)
-            continue
-        malformed = True
+        texts[relpath] = path.read_text(encoding="utf-8")
 
-    if current is not None:
-        parsed.append(current)
-    if any(item.get("path") is None for item in parsed):
-        malformed = True
-    if malformed or parsed != expected:
-        return ["Lean observation human Lean module map drift"]
-    return []
+    for relpath, text in texts.items():
+        if re.search(r"(?m)^\s*(?:axiom|unsafe\s+axiom)\b", text):
+            errors.append(f"Lean proof escape hatch forbidden: axiom in {relpath}")
+        if re.search(r"\b(?:sorry|admit)\b", text):
+            errors.append(f"Lean proof hole forbidden in {relpath}")
+        if "UFT-OBS-005" in text or "uft_obs_005" in text:
+            errors.append(f"deferred UFT-OBS-005 leaked into Lean batch 001: {relpath}")
 
+    for theorem_id, (relpath, declaration) in EXPECTED_DECLARATIONS.items():
+        text = texts.get(relpath, "")
+        matches = re.findall(
+            rf"(?m)^theorem\s+{re.escape(declaration)}\b", text
+        )
+        if len(matches) != 1:
+            errors.append(
+                f"{theorem_id} Lean declaration count drift: {declaration}"
+            )
 
-EXPECTED_RELEASE_BOUNDARY = (
-    "FREEZE PR MERGED",
-    "-> EXACT MERGED-MAIN CI + HOSTILE REVIEW",
-    "-> IMMUTABLE SOURCE-RELEASE TAG",
-    "-> QSOL-CONTEXT TARGET BINDING",
-    "-> PIN LEAN / LAKE / MATHLIB",
-    "-> LEAN PROOF IMPLEMENTATION",
-)
-
-
-def human_release_boundary_errors(freeze: dict[str, object], human: str) -> list[str]:
-    gate = freeze.get("release_gate")
-    if not isinstance(gate, dict):
-        return ["Lean observation machine release gate malformed"]
-    body, errors = _human_text_block(
-        human,
-        "## Release boundary",
-        "Lean observation human release boundary missing",
-        "Lean observation human release boundary code block missing",
+    root_lines = tuple(
+        line.strip() for line in texts.get("UFTID.lean", "").splitlines() if line.strip()
     )
-    if body is None:
-        return errors
-    actual = tuple(line.strip() for line in body.splitlines() if line.strip())
-    if actual != EXPECTED_RELEASE_BOUNDARY:
-        return ["Lean observation human release boundary ordering drift"]
-    if gate.get("status") != "PENDING_POST_MERGE" or gate.get("source_tag") is not None:
-        return ["Lean observation machine release gate drift"]
-    return []
+    if root_lines != EXPECTED_ROOT_IMPORTS:
+        errors.append("UFTID root Lean import surface drift")
+
+    basic = texts.get("UFTID/Observation/Basic.lean", "")
+    quotient = texts.get("UFTID/Observation/Quotient.lean", "")
+    reconstruction = texts.get("UFTID/Observation/Reconstruction.lean", "")
+    if "import UFTID." in basic:
+        errors.append("UFT-OBS-001 module gained an undeclared UFTID dependency")
+    if tuple(
+        line.strip() for line in quotient.splitlines() if line.startswith("import ")
+    ) != ("import UFTID.Observation.Basic",):
+        errors.append("UFT-OBS-002 Lean module dependency drift")
+    if tuple(
+        line.strip() for line in reconstruction.splitlines() if line.startswith("import ")
+    ) != ("import UFTID.Observation.Basic",):
+        errors.append("UFT-OBS-003/004 Lean module dependency drift")
+    return errors
 
 
-def _toolchain_claim_clauses(text: str) -> tuple[str, ...]:
-    return tuple(
-        clause.strip()
-        for clause in re.split(r"(?<=[.!?])\s+|\n+", text)
-        if clause.strip()
-    )
+def toolchain_errors() -> list[str]:
+    errors: list[str] = []
+    if not LEAN_TOOLCHAIN.is_file():
+        errors.append("lean-toolchain missing")
+    elif LEAN_TOOLCHAIN.read_text(encoding="utf-8") != f"leanprover/lean4:{LEAN_VERSION}\n":
+        errors.append("Lean toolchain pin drift")
+    if not LAKEFILE.is_file():
+        errors.append("lakefile.toml missing")
+    elif LAKEFILE.read_text(encoding="utf-8") != EXPECTED_LAKEFILE:
+        errors.append("Lake/mathlib exact pin drift")
+    return errors
 
 
-def _noncurrent_toolchain_match(clause: str, match: re.Match[str]) -> bool:
-    prefix = clause[:match.start()].casefold()
-    suffix = clause[match.end():].casefold()
-    matched = match.group(0).casefold()
-
-    contrasts = list(re.finditer(r"\b(?:but|yet|however)\b", matched))
-    if contrasts:
-        positive_offset = contrasts[-1].end()
-        assertion_prefix = clause[:match.start() + positive_offset].casefold()
-        current_scope = matched[positive_offset:]
-        current_context = current_scope
-    else:
-        assertion_prefix = prefix
-        current_scope = matched
-        current_context = assertion_prefix[-96:] + " " + current_scope
-
-    immediate_prefix = assertion_prefix[-96:]
-    if re.search(r"\b(?:no|neither|nor)\s*$|\bnot\s+(?:(?:a|one|the|this)\s+|(?:true|the\s+case)\s+that\s*)$", immediate_prefix):
-        return True
-    if re.search(r"\b(?:must\s+not|does\s+not|do\s+not|cannot)\s+(?:claim|state|say)\b", immediate_prefix):
-        return True
-    if re.search(r"\b(?:rejects?|rejected|forbids?|forbade|prohibits?|prohibited|disallows?|disallowed)\s+(?:(?:the|a)\s+)?(?:claim\s+)?that\s*$", immediate_prefix):
-        return True
-    if re.search(r"^\s*(?:is|are|was|were|must\s+be|should\s+be)\s+(?:rejected|forbidden|prohibited|disallowed|false|untrue|incorrect|invalid)\b", suffix):
-        return True
-    if re.search(r"\bwhether\s+(?:the\s+)?$|\b(?:unclear|unknown|uncertain)\s+whether\s+(?:the\s+)?$", immediate_prefix):
-        return True
-    if re.search(r"^\s*(?:is|are|was|were|remains?)\s+(?:unknown|unclear|uncertain|undetermined|unresolved)\b", suffix):
-        return True
-
-    temporal_context = prefix + " " + suffix[:128]
-    forbidden_order = (
-        re.search(r"\bpending\b", temporal_context) is not None
-        or re.search(
-            r"\b(?:before|until)\b.{0,96}\b(?:source(?:-release)?\s+tag|target\s+binding|release\s+gate)\b",
-            temporal_context,
-        ) is not None
-    )
-    if forbidden_order:
-        return False
-
-    current = (
-        re.search(r"\b(?:now|already|currently)\b", current_context) is not None
-        or re.search(r"\bcurrent\s+(?:the\s+)?$", immediate_prefix) is not None
-    )
-    if not current and re.search(r"\b(?:expected|target|required|future|later|planned|will|shall|must|should|would|may|might)\b", prefix):
-        return True
-    completion_side = (
-        r"(?:\bafter\b.{0,96}\b(?:release|(?:immutable\s+)?source(?:-release)?\s+tag|target\s+binding)\b)"
-        r"|(?:\bonce\b.{0,96}\b(?:release|(?:immutable\s+)?source(?:-release)?\s+tag|target\s+binding)\b)"
-        r"|(?:\bwhen\b.{0,96}\b(?:target\s+binding|(?:immutable\s+)?source(?:-release)?\s+tag)\b.{0,48}\b(?:completes?|exists?|is\s+(?:cut|published|bound|complete))\b)"
-    )
-    if not current and re.search(completion_side, temporal_context):
-        return True
-    return False
-
-
-def toolchain_promotion(text: str) -> bool:
-    dependency = r"(?:Lean|Lake|Mathlib)(?:\s+v?\d+(?:\.\d+)*)?"
-    named_revision = r"(?:Lean|Lake|Mathlib)\s+(?:toolchain\s+)?(?:version|revision|commit)(?:\s+[A-Za-z0-9][A-Za-z0-9._-]*)?"
-    separator = r"(?:\s*(?:/|\+|,)\s*(?:and\s+)?|\s+and\s+)"
-    dependency_group = rf"{dependency}(?:{separator}{dependency})*"
-    toolchain_subject = rf"(?:(?:the\s+)?toolchain|(?:the\s+)?{named_revision}|(?:the\s+)?{dependency_group}(?:\s+(?:toolchain|versions?))?)"
-    completed = r"(?:pinned|selected|locked|fixed|frozen|chosen)"
-    degree = r"(?:(?:fully|completely|exactly|immutably)\s+)?"
-    copula = r"(?:is|are|was|were|has|have|had)\s+(?:now\s+|already\s+|currently\s+)?(?:been\s+)?"
-    patterns = (
-        rf"\b{toolchain_subject}\b\s+{copula}{degree}{completed}\b",
-        rf"\b{toolchain_subject}\b.{{0,120}}\b(?:but|yet|however)\b\s+(?:it\s+)?{copula}{degree}{completed}\b",
-        rf"\b(?:we|this\s+batch|the\s+batch|the\s+project|UFT-ID)\b\s+(?:(?:has|have|had)\s+)?(?:now\s+|already\s+|currently\s+)?{degree}{completed}\s+(?:the\s+)?{toolchain_subject}\b",
-        rf"\b{degree}{completed}\s+(?:the\s+)?(?:toolchain|{dependency_group}\s+(?:toolchain|versions?))\b",
-        r"\btoolchain(?:\s+status)?\s*:\s*PINNED\b",
-        r"\btoolchain\s+(?:status|state)\s+(?:is|was|remains?)\s+(?:now\s+|currently\s+)?PINNED\b",
-        r"\b(?:the\s+)?toolchain(?:\s+(?:status|state))?\s+(?:remains?|has\s+become|have\s+become|became|becomes)\s+(?:now\s+|currently\s+)?(?:(?:fully|completely|exactly|immutably)\s+)?PINNED\b",
-        r"\btoolchain\s+pinning\s+(?:is|was|has\s+been)\s+(?:now\s+|already\s+)?(?:(?:fully|completely|exactly|immutably)\s+)?(?:complete|completed|done)\b",
-        rf"\btoolchain\s*:\s*{dependency_group}\b",
-        r"\b(?:Lean|Lake|Mathlib)\s+(?:toolchain\s+)?version\s*:\s*v?\d+(?:\.\d+)*\b",
-    )
-    for clause in _toolchain_claim_clauses(text):
-        scan_clause = re.sub(r"[*_`]", " ", clause)
-        for pattern in patterns:
-            for match in re.finditer(pattern, scan_clause, flags=re.IGNORECASE):
-                if not _noncurrent_toolchain_match(scan_clause, match):
-                    return True
-    return False
-
-
-def validate_documents(freeze, source_theorems, source_counterexamples, base_contract, human, roadmap, readme, *, check_paths: bool = True, require_basis_objects: bool = False):
-    # Preserve the original module's mutation-test hooks by making its delegated
-    # validation resolve these live wrapper functions, which tests may monkeypatch.
-    _base.frozen_validator_blob_errors = frozen_validator_blob_errors
-    _base.basis_git_blob_sha = basis_git_blob_sha
-    _base.basis_source_object_errors = basis_source_object_errors
-    result = _base.validate_documents(
+def validate_documents(
+    freeze,
+    source_theorems,
+    source_counterexamples,
+    base_contract,
+    human,
+    roadmap,
+    readme,
+    *,
+    check_paths: bool = True,
+    require_basis_objects: bool = False,
+):
+    # All theorem identity, statement, hypothesis, dependency, counterexample,
+    # human-authority, and pre-release nonclaim checks remain frozen.  Only the
+    # historical path embargo is replaced after the source tag exists.
+    result = _frozen.validate_documents(
         freeze,
         source_theorems,
         source_counterexamples,
@@ -967,51 +345,53 @@ def validate_documents(freeze, source_theorems, source_counterexamples, base_con
         human,
         roadmap,
         readme,
-        check_paths=check_paths,
+        check_paths=False,
         require_basis_objects=require_basis_objects,
     )
     errors = list(result.get("errors", []))
-    errors.extend(claim_surface_blob_errors(human, roadmap, readme))
-    errors.extend(human_hard_boundary_errors(freeze, human))
-    errors.extend(human_batch_selection_errors(freeze, human))
-    errors.extend(human_dependency_graph_errors(freeze, human))
-    errors.extend(human_counterexample_dependency_errors(freeze, human))
-    errors.extend(human_lean_module_map_errors(freeze, human))
-    errors.extend(human_release_boundary_errors(freeze, human))
-
     if check_paths:
         errors.extend(tracked_authority_object_errors())
-        tracked_pretag_paths, inventory_errors = tracked_pretag_lean_files()
-        errors.extend(inventory_errors)
-        for relpath in tracked_pretag_paths:
-            diagnostic = f"pre-tag Lean source/toolchain forbidden: {relpath}"
-            if diagnostic not in errors:
-                errors.append(diagnostic)
-
-    toolchain = freeze.get("toolchain")
-    if isinstance(toolchain, dict) and toolchain.get("status") == "UNPINNED":
-        for surface_name, surface_text in (("human freeze", human), ("README4AI", readme), ("ROADMAP", roadmap)):
-            if toolchain_promotion(surface_text):
-                errors.append(f"Lean observation {surface_name} premature toolchain-pinning promotion")
-
+        errors.extend(posttag_path_errors())
     result["errors"] = errors
     result["status"] = "error" if errors else "ok"
     return result
 
 
 def validate(*, require_basis_objects: bool = True):
-    paths = [FREEZE, SOURCE_THEOREMS, SOURCE_COUNTEREXAMPLES, BASE_CONTRACT, ROADMAP_STATE, HUMAN, ROADMAP, README4AI, WORKFLOW, FROZEN, BASE, ARTIFACT_VERIFIER]
+    paths = [
+        FREEZE,
+        SOURCE_THEOREMS,
+        SOURCE_COUNTEREXAMPLES,
+        BASE_CONTRACT,
+        ROADMAP_STATE,
+        HUMAN,
+        ROADMAP,
+        README4AI,
+        WORKFLOW,
+        PRETAG_FINAL,
+        VERIFICATION,
+        LEAN_TOOLCHAIN,
+        LAKEFILE,
+        LEAN_ROOT,
+        LEAN_BASIC,
+        LEAN_QUOTIENT,
+        LEAN_RECONSTRUCTION,
+        LEAN_WORKFLOW,
+    ]
     missing = [str(path.relative_to(ROOT)) for path in paths if not path.is_file()]
     if missing:
         return {
             "status": "error",
-            "errors": [f"missing Lean observation freeze authority: {x}" for x in missing],
+            "errors": [f"missing Lean observation authority: {item}" for item in missing],
             "batch_id": None,
             "theorem_count": 0,
             "deferred_count": 0,
             "module_count": 0,
             "basis_objects_verified": False,
         }
+
+    # Strict-load the live roadmap first, preserving the existing duplicate-key
+    # and non-finite-number failure behaviour.
     try:
         load_json(ROADMAP_STATE)
     except (OSError, ValueError) as exc:
@@ -1024,6 +404,7 @@ def validate(*, require_basis_objects: bool = True):
             "module_count": 0,
             "basis_objects_verified": False,
         }
+
     result = validate_documents(
         load_json(FREEZE),
         load_json(SOURCE_THEOREMS),
@@ -1036,11 +417,22 @@ def validate(*, require_basis_objects: bool = True):
         require_basis_objects=require_basis_objects,
     )
     errors = list(result.get("errors", []))
+    errors.extend(predecessor_validator_blob_errors())
     errors.extend(base_validator_blob_errors())
+    errors.extend(frozen_validator_blob_errors())
     errors.extend(artifact_verifier_blob_errors())
     errors.extend(workflow_contract_errors(WORKFLOW.read_text(encoding="utf-8")))
+    errors.extend(source_release_errors())
+    errors.extend(verification_record_errors(load_json(VERIFICATION)))
+    errors.extend(toolchain_errors())
+    errors.extend(lean_source_errors())
     result["errors"] = errors
     result["status"] = "error" if errors else "ok"
+    result["source_tag"] = SOURCE_TAG
+    result["source_commit"] = SOURCE_COMMIT
+    result["lean_version"] = LEAN_VERSION
+    result["mathlib_commit"] = MATHLIB_COMMIT
+    result["implementation_status"] = "IMPLEMENTED_PENDING_CI"
     return result
 
 
@@ -1052,7 +444,10 @@ def main() -> int:
     if args.json:
         print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
     elif result["status"] == "ok":
-        print(f"Lean observation source freeze: ok ({result['theorem_count']} theorems, {result['module_count']} modules, {result['deferred_count']} deferred)")
+        print(
+            "Lean observation implementation: ok "
+            f"({result['theorem_count']} theorems, source {SOURCE_TAG}, Lean {LEAN_VERSION})"
+        )
     else:
         for error in result["errors"]:
             print(error)
