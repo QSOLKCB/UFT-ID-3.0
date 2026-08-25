@@ -120,8 +120,8 @@ class LeanObservationFoundationFreezeTests(unittest.TestCase):
 
             V.basis_git_blob_sha = lambda relpath: None
             errors = V.basis_source_object_errors()
-            self.assertTrue(any("basis commit object unavailable" in error for error in errors), errors)
-            self.assertIn("complete PR9 basis dependency closure was not resolved from Git objects", errors)
+            self.assertTrue(any("basis commit blob object unavailable" in error for error in errors), errors)
+            self.assertIn("complete PR9 basis dependency closure was not resolved from readable Git blob objects", errors)
         finally:
             V.basis_git_blob_sha = original
 
