@@ -6,7 +6,8 @@ validate_lean_observation_foundation_pr21_pre_codex4.py. This wrapper adds
 later hostile-review hardening without rewriting already-reviewed semantics:
 workflow checkout identity, compatibility-validator identity, and exact human
 projections of the frozen dependency graph, Lean module map, release ordering,
-and pre-toolchain state.
+pre-toolchain state, complete claim-bearing human surfaces, and retained
+source-freeze evidence.
 """
 from __future__ import annotations
 
@@ -19,14 +20,22 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = ROOT / "scripts/validate_lean_observation_foundation_pr21_pre_codex4.py"
+ARTIFACT_VERIFIER = ROOT / "scripts/verify_lean_observation_foundation_artifact.py"
 EXPECTED_BASE_VALIDATOR_BLOB = "cb18daf549e87a94b64ae85b58369f9a2e329f91"
-EXPECTED_WORKFLOW_BLOB = "0cfe3a240010a07d3588682b806bed427c7d2aa8"
+EXPECTED_ARTIFACT_VERIFIER_BLOB = "a7c8eb9729aa637dd9172d89ed08bd09ab2f981d"
+EXPECTED_WORKFLOW_BLOB = "640f19daa7f9846bbea30fc9410722883619ce89"
+EXPECTED_CLAIM_SURFACE_BLOBS = {
+    "human freeze": "06a9b6ed8914c5fae797cf65b990426fd9697292",
+    "README4AI": "3c865866d5ac36982d315e19b9806c0b7817a739",
+    "ROADMAP": "b4322084be5191db5a43548f66c083bb8be1ec9b",
+}
 EXPECTED_WORKFLOW_PATHS = (
     '- "research/vopson/**"',
     '- "scripts/validate_vopson_corpus.py"',
     '- "scripts/render_vopson_docs.py"',
     '- "scripts/validate_reproducibility.py"',
     '- "scripts/validate_lean_observation_foundation.py"',
+    '- "scripts/verify_lean_observation_foundation_artifact.py"',
     '- "scripts/validate_lean_observation_foundation_pr21_pre_codex4.py"',
     '- "scripts/validate_lean_observation_foundation_pr21_frozen.py"',
     '- "tests/**"',
@@ -54,6 +63,10 @@ EXPECTED_FREEZE_STEP_BODY = (
     '          UFT_REQUIRE_BASIS_COMMIT_OBJECT: "1"\n'
     "        run: python scripts/validate_lean_observation_foundation.py\n\n"
 )
+EXPECTED_RETAINED_FREEZE_VERIFY_STEP_BODY = (
+    "        if: always()\n"
+    "        run: python scripts/verify_lean_observation_foundation_artifact.py artifacts\n\n"
+)
 
 
 def local_git_blob_sha(path: Path) -> str:
@@ -66,6 +79,24 @@ def text_git_blob_sha(text: str) -> str:
     return hashlib.sha1(f"blob {len(data)}\0".encode("ascii") + data).hexdigest()
 
 
+def claim_surface_blob_errors(human: str, roadmap: str, readme: str) -> list[str]:
+    """Freeze complete claim-bearing prose instead of guessing every synonym."""
+    errors: list[str] = []
+    surfaces = {
+        "human freeze": human,
+        "README4AI": readme,
+        "ROADMAP": roadmap,
+    }
+    for surface_name, surface_text in surfaces.items():
+        actual = text_git_blob_sha(surface_text)
+        expected = EXPECTED_CLAIM_SURFACE_BLOBS[surface_name]
+        if actual != expected:
+            errors.append(
+                f"Lean observation {surface_name} complete claim surface Git blob drift"
+            )
+    return errors
+
+
 def base_validator_blob_errors(path: Path = BASE) -> list[str]:
     """Bind the immediately prior live validator before executing its code."""
     if not path.is_file():
@@ -75,6 +106,19 @@ def base_validator_blob_errors(path: Path = BASE) -> list[str]:
         return [
             "pre-Codex4 PR21 validator blob drift: "
             f"expected {EXPECTED_BASE_VALIDATOR_BLOB}, got {actual}"
+        ]
+    return []
+
+
+def artifact_verifier_blob_errors(path: Path = ARTIFACT_VERIFIER) -> list[str]:
+    """Bind the retained-artifact verifier before accepting its workflow step."""
+    if not path.is_file():
+        return ["Lean observation retained-artifact verifier missing"]
+    actual = local_git_blob_sha(path)
+    if actual != EXPECTED_ARTIFACT_VERIFIER_BLOB:
+        return [
+            "Lean observation retained-artifact verifier blob drift: "
+            f"expected {EXPECTED_ARTIFACT_VERIFIER_BLOB}, got {actual}"
         ]
     return []
 
@@ -242,6 +286,12 @@ def workflow_contract_errors(text: str) -> list[str]:
         errors.extend(_exact_freeze_command_errors(freeze_step))
         if freeze_step != EXPECTED_FREEZE_STEP_BODY:
             errors.append("registered Lean-freeze validator step must match the exact canonical body")
+    verify_step_name = "Verify retained Lean observation freeze evidence"
+    verify_step = _base.workflow_named_step_block(job_body, verify_step_name)
+    if text.count(f"      - name: {verify_step_name}\n") != 1 or verify_step is None:
+        errors.append("registered Lean-freeze workflow missing unique retained-artifact verification step")
+    elif verify_step != EXPECTED_RETAINED_FREEZE_VERIFY_STEP_BODY:
+        errors.append("registered Lean-freeze retained-artifact verification step must be exact and blocking")
     return errors
 
 
@@ -691,6 +741,7 @@ def validate_documents(freeze, source_theorems, source_counterexamples, base_con
         require_basis_objects=require_basis_objects,
     )
     errors = list(result.get("errors", []))
+    errors.extend(claim_surface_blob_errors(human, roadmap, readme))
     errors.extend(human_hard_boundary_errors(freeze, human))
     errors.extend(human_batch_selection_errors(freeze, human))
     errors.extend(human_dependency_graph_errors(freeze, human))
@@ -710,7 +761,7 @@ def validate_documents(freeze, source_theorems, source_counterexamples, base_con
 
 
 def validate(*, require_basis_objects: bool = True):
-    paths = [FREEZE, SOURCE_THEOREMS, SOURCE_COUNTEREXAMPLES, BASE_CONTRACT, HUMAN, ROADMAP, README4AI, WORKFLOW, FROZEN, BASE]
+    paths = [FREEZE, SOURCE_THEOREMS, SOURCE_COUNTEREXAMPLES, BASE_CONTRACT, HUMAN, ROADMAP, README4AI, WORKFLOW, FROZEN, BASE, ARTIFACT_VERIFIER]
     missing = [str(path.relative_to(ROOT)) for path in paths if not path.is_file()]
     if missing:
         return {
@@ -735,6 +786,7 @@ def validate(*, require_basis_objects: bool = True):
     )
     errors = list(result.get("errors", []))
     errors.extend(base_validator_blob_errors())
+    errors.extend(artifact_verifier_blob_errors())
     errors.extend(workflow_contract_errors(WORKFLOW.read_text(encoding="utf-8")))
     result["errors"] = errors
     result["status"] = "error" if errors else "ok"

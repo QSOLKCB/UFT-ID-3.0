@@ -8,6 +8,7 @@ on:
       - "scripts/render_vopson_docs.py"
       - "scripts/validate_reproducibility.py"
       - "scripts/validate_lean_observation_foundation.py"
+      - "scripts/verify_lean_observation_foundation_artifact.py"
       - "scripts/validate_lean_observation_foundation_pr21_pre_codex4.py"
       - "scripts/validate_lean_observation_foundation_pr21_frozen.py"
       - "tests/**"
@@ -32,6 +33,7 @@ on:
       - "scripts/render_vopson_docs.py"
       - "scripts/validate_reproducibility.py"
       - "scripts/validate_lean_observation_foundation.py"
+      - "scripts/verify_lean_observation_foundation_artifact.py"
       - "scripts/validate_lean_observation_foundation_pr21_pre_codex4.py"
       - "scripts/validate_lean_observation_foundation_pr21_frozen.py"
       - "tests/**"
@@ -102,6 +104,10 @@ jobs:
           python scripts/validate_reproducibility.py --json > artifacts/reproducibility-validation.json 2> artifacts/reproducibility-validation.stderr.txt || true
           UFT_REQUIRE_BASIS_COMMIT_OBJECT=1 python scripts/validate_lean_observation_foundation.py --json > artifacts/lean-observation-freeze-validation.json 2> artifacts/lean-observation-freeze-validation.stderr.txt || true
           python experiments/run_pr2.py --json > artifacts/pr2-receipt.json 2> artifacts/pr2-receipt.stderr.txt || true
+
+      - name: Verify retained Lean observation freeze evidence
+        if: always()
+        run: python scripts/verify_lean_observation_foundation_artifact.py artifacts
 
       - name: Retain corpus evidence bundle
         if: always()
