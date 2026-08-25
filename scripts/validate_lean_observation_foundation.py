@@ -77,34 +77,15 @@ def git_blob_sha(path: Path) -> str:
 
 
 def git_object_is_blob(object_sha: str) -> bool:
-    """Require the named Git object to exist and be readable as a blob."""
-    exists = subprocess.run(
-        ["git", "cat-file", "-e", object_sha],
-        cwd=ROOT,
-        text=True,
-        capture_output=True,
-        check=False,
-    )
+    exists = subprocess.run(["git", "cat-file", "-e", object_sha], cwd=ROOT, text=True, capture_output=True, check=False)
     if exists.returncode != 0:
         return False
-    object_type = subprocess.run(
-        ["git", "cat-file", "-t", object_sha],
-        cwd=ROOT,
-        text=True,
-        capture_output=True,
-        check=False,
-    )
+    object_type = subprocess.run(["git", "cat-file", "-t", object_sha], cwd=ROOT, text=True, capture_output=True, check=False)
     return object_type.returncode == 0 and object_type.stdout.strip() == "blob"
 
 
 def basis_git_blob_sha(relpath: str) -> str | None:
-    result = subprocess.run(
-        ["git", "rev-parse", f"{BASIS_COMMIT}:{relpath}"],
-        cwd=ROOT,
-        text=True,
-        capture_output=True,
-        check=False,
-    )
+    result = subprocess.run(["git", "rev-parse", f"{BASIS_COMMIT}:{relpath}"], cwd=ROOT, text=True, capture_output=True, check=False)
     if result.returncode != 0:
         return None
     value = result.stdout.strip()
@@ -114,7 +95,6 @@ def basis_git_blob_sha(relpath: str) -> str | None:
 
 
 def basis_source_object_errors() -> list[str]:
-    """Require every pinned PR9 basis object to resolve from the repository."""
     errors: list[str] = []
     resolved = 0
     for relpath, expected_sha in EXPECTED_SOURCE_BLOBS.items():
@@ -131,29 +111,21 @@ def basis_source_object_errors() -> list[str]:
 
 
 def workflow_event_block(text: str, event: str) -> str | None:
-    match = re.search(
-        rf"(?ms)^  {re.escape(event)}:\n(?P<body>.*?)(?=^  [A-Za-z_][A-Za-z0-9_-]*:|^\S|\Z)",
-        text,
-    )
+    match = re.search(rf"(?ms)^  {re.escape(event)}:\n(?P<body>.*?)(?=^  [A-Za-z_][A-Za-z0-9_-]*:|^\S|\Z)", text)
     return match.group("body") if match is not None else None
 
 
 def workflow_event_paths(text: str, event: str) -> tuple[str, ...] | None:
-    """Return one event's paths list without conflating it with sibling events."""
     body = workflow_event_block(text, event)
     if body is None:
         return None
-    paths_match = re.search(
-        r"(?m)^    paths:\n(?P<paths>(?:      - .*\n)+)",
-        body,
-    )
+    paths_match = re.search(r"(?m)^    paths:\n(?P<paths>(?:      - .*\n)+)", body)
     if paths_match is None:
         return None
     return tuple(line.strip() for line in paths_match.group("paths").splitlines())
 
 
 def workflow_event_branches(text: str, event: str) -> tuple[str, ...] | None:
-    """Return a normalized event branch allowlist for inline or block YAML lists."""
     body = workflow_event_block(text, event)
     if body is None:
         return None
@@ -164,32 +136,28 @@ def workflow_event_branches(text: str, event: str) -> tuple[str, ...] | None:
     block = re.search(r"(?m)^    branches:\n(?P<values>(?:      - .*\n)+)", body)
     if block is None:
         return None
-    values = []
-    for line in block.group("values").splitlines():
-        value = line.strip()[2:].strip().strip("\"'")
-        if value:
-            values.append(value)
-    return tuple(values)
+    return tuple(line.strip()[2:].strip().strip("\"'") for line in block.group("values").splitlines() if line.strip()[2:].strip())
+
+
+def workflow_event_has_types(text: str, event: str) -> bool:
+    body = workflow_event_block(text, event)
+    if body is None:
+        return False
+    key = r"(?:types|\"types\"|'types')"
+    return re.search(rf"(?m)^    {key}\s*:", body) is not None
 
 
 def workflow_job_block(text: str, job_name: str) -> str | None:
-    match = re.search(
-        rf"(?ms)^  {re.escape(job_name)}:\n(?P<body>.*?)(?=^  [A-Za-z_][A-Za-z0-9_-]*:|\Z)",
-        text.split("jobs:\n", 1)[1] if "jobs:\n" in text else "",
-    )
+    match = re.search(rf"(?ms)^  {re.escape(job_name)}:\n(?P<body>.*?)(?=^  [A-Za-z_][A-Za-z0-9_-]*:|\Z)", text.split("jobs:\n", 1)[1] if "jobs:\n" in text else "")
     return match.group("body") if match is not None else None
 
 
 def workflow_named_step_block(job_body: str, step_name: str) -> str | None:
-    match = re.search(
-        rf"(?ms)^      - name: {re.escape(step_name)}\n(?P<body>.*?)(?=^      - |\Z)",
-        job_body,
-    )
+    match = re.search(rf"(?ms)^      - name: {re.escape(step_name)}\n(?P<body>.*?)(?=^      - |\Z)", job_body)
     return match.group("body") if match is not None else None
 
 
 def workflow_control_key_present(text: str, *, indent: int) -> bool:
-    """Recognize YAML control keys whether bare or single/double quoted."""
     key = r"(?:if|continue-on-error|\"(?:if|continue-on-error)\"|'(?:if|continue-on-error)')"
     return re.search(rf"(?m)^{' ' * indent}{key}\s*:", text) is not None
 
@@ -215,17 +183,15 @@ def workflow_contract_errors(text: str) -> list[str]:
             continue
         for anchor in required_paths:
             if event_paths.count(anchor) != 1:
-                errors.append(
-                    f"registered Lean-freeze workflow {event} path trigger drift: {anchor}"
-                )
+                errors.append(f"registered Lean-freeze workflow {event} path trigger drift: {anchor}")
 
+    if workflow_event_has_types(text, "pull_request"):
+        errors.append("registered Lean-freeze workflow pull_request activity types must remain unrestricted")
     if workflow_event_branches(text, "push") != ("main",):
         errors.append("registered Lean-freeze workflow push branch restriction must be exactly main")
 
     direct = (
         '      - name: Validate Lean observation source freeze',
-        '          UFT_REQUIRE_BASIS_COMMIT_OBJECT: "1"',
-        '        run: python scripts/validate_lean_observation_foundation.py',
         '          fetch-depth: 0',
         '          persist-credentials: false',
         'permissions:',
@@ -246,13 +212,23 @@ def workflow_contract_errors(text: str) -> list[str]:
     freeze_step = workflow_named_step_block(job_body, "Validate Lean observation source freeze")
     if freeze_step is None:
         errors.append("registered Lean-freeze workflow missing named freeze step")
-    elif workflow_control_key_present(freeze_step, indent=8):
-        errors.append("registered Lean-freeze validator step may not be conditional or nonblocking")
+    else:
+        if workflow_control_key_present(freeze_step, indent=8):
+            errors.append("registered Lean-freeze validator step may not be conditional or nonblocking")
+        required_step = (
+            '        env:',
+            '          UFT_REQUIRE_BASIS_COMMIT_OBJECT: "1"',
+            '        run: python scripts/validate_lean_observation_foundation.py',
+        )
+        for anchor in required_step:
+            if freeze_step.count(anchor) != 1:
+                errors.append(f"registered Lean-freeze named step command/env drift: {anchor.strip()}")
+        if len(re.findall(r"(?m)^        run:", freeze_step)) != 1:
+            errors.append("registered Lean-freeze named step must contain exactly one run directive")
     return errors
 
 
 def theorem_scoped_lean_promotion(text: str) -> bool:
-    """Reject pre-tag Lean completion claims scoped by theorem or batch identity."""
     subject = r"(?:UFT-OBS-\d{3}|LEAN-OBS-BATCH-\d{3})"
     completed = r"(?:proved|proven|verified|checked|formalized|formalised|complete)"
     participle = r"(?:proved|proven|verified|checked|formalized|formalised|certified)"
@@ -270,12 +246,29 @@ def theorem_scoped_lean_promotion(text: str) -> bool:
     return any(re.search(pattern, text) for pattern in patterns)
 
 
+def generic_batch_lean_promotion(text: str) -> bool:
+    batch = r"(?:the\s+)?(?:frozen\s+)?(?:theorem\s+)?batch"
+    patterns = (
+        rf"(?is)\b{batch}\b.{{0,80}}\b(?:passed|completed|achieved|has|have|is|was|were)\b.{{0,50}}\bLean\b.{{0,30}}\b(?:verification|proofs?|formalization|formalisation|certification)\b",
+        rf"(?is)\b{batch}\b.{{0,80}}\b(?:verified|proved|proven|checked|formalized|formalised|certified)\b.{{0,40}}\b(?:in|by|with)\s+Lean\b",
+        rf"(?is)\bLean\b.{{0,30}}\b(?:verification|proofs?|formalization|formalisation|certification)\b.{{0,80}}\b{batch}\b.{{0,40}}\b(?:passed|complete|completed|verified|proved|proven|checked)\b",
+    )
+    return any(re.search(pattern, text) for pattern in patterns)
+
+
+def source_tag_promotion(text: str) -> bool:
+    tag = r"(?:immutable\s+)?source[- ]release\s+tag"
+    patterns = (
+        rf"(?is)\b{tag}\b.{{0,60}}\b(?:has|have|is|was|were)\s+(?:now\s+)?(?:been\s+)?(?:cut|created|published|issued|recorded|tagged)\b",
+        rf"(?is)\b{tag}\b.{{0,40}}\b(?:now\s+)?exists\b",
+    )
+    return any(re.search(pattern, text) for pattern in patterns)
+
+
 def _frozen_views(freeze: dict[str, object], base_contract: dict[str, object]):
     old_freeze = copy.deepcopy(freeze)
     old_freeze["schema_version"] = "1.0.0"
-    old_freeze["source_authorities"] = [
-        {"path": path, "git_blob_sha": sha} for path, sha in OLD_SOURCE_BLOBS.items()
-    ]
+    old_freeze["source_authorities"] = [{"path": path, "git_blob_sha": sha} for path, sha in OLD_SOURCE_BLOBS.items()]
     old_base = copy.deepcopy(base_contract)
     authority = old_base.get("lean_observation_foundation_authority")
     if isinstance(authority, dict):
@@ -284,23 +277,9 @@ def _frozen_views(freeze: dict[str, object], base_contract: dict[str, object]):
     return old_freeze, old_base
 
 
-def validate_documents(
-    freeze,
-    source_theorems,
-    source_counterexamples,
-    base_contract,
-    human,
-    roadmap,
-    readme,
-    *,
-    check_paths: bool = True,
-    require_basis_objects: bool = False,
-):
+def validate_documents(freeze, source_theorems, source_counterexamples, base_contract, human, roadmap, readme, *, check_paths: bool = True, require_basis_objects: bool = False):
     old_freeze, old_base = _frozen_views(freeze, base_contract)
-    result = _frozen.validate_documents(
-        old_freeze, source_theorems, source_counterexamples, old_base,
-        human, roadmap, readme, check_paths=check_paths,
-    )
+    result = _frozen.validate_documents(old_freeze, source_theorems, source_counterexamples, old_base, human, roadmap, readme, check_paths=check_paths)
     errors = list(result.get("errors", []))
 
     for surface_name, surface_text in (("README4AI", readme), ("ROADMAP", roadmap)):
@@ -309,11 +288,22 @@ def validate_documents(
     for surface_name, surface_text in (("human freeze", human), ("README4AI", readme), ("ROADMAP", roadmap)):
         if theorem_scoped_lean_promotion(surface_text):
             errors.append(f"Lean observation {surface_name} theorem-scoped Lean verification promotion")
+        if generic_batch_lean_promotion(surface_text):
+            errors.append(f"Lean observation {surface_name} generic batch Lean verification promotion")
+        if source_tag_promotion(surface_text):
+            errors.append(f"Lean observation {surface_name} source-tag completion promotion")
 
     if _frozen.strip_code(_frozen.metadata(human, "Batch")) != "LEAN-OBS-BATCH-001":
         errors.append("Lean observation human batch identity drift")
     if _frozen.strip_code(_frozen.metadata(human, "Basis commit")) != BASIS_COMMIT:
         errors.append("Lean observation human basis commit drift")
+
+    for theorem_id, expected in EXPECTED_THEOREMS.items():
+        sec = _frozen.section(human, f"## {theorem_id} {expected['name']}")
+        if sec is None:
+            continue
+        if _frozen.strip_code(_frozen.metadata(sec, "Proof reference")) != expected["proof_reference"]:
+            errors.append(f"{theorem_id} human Proof reference drift")
 
     if freeze.get("schema_version") != "1.0.1":
         errors.append("Lean observation freeze schema drift")
@@ -358,22 +348,8 @@ def validate(*, require_basis_objects: bool = True):
     paths = [FREEZE, SOURCE_THEOREMS, SOURCE_COUNTEREXAMPLES, BASE_CONTRACT, HUMAN, ROADMAP, README4AI, WORKFLOW, FROZEN]
     missing = [str(path.relative_to(ROOT)) for path in paths if not path.is_file()]
     if missing:
-        return {
-            "status": "error",
-            "errors": [f"missing Lean observation freeze authority: {x}" for x in missing],
-            "batch_id": None,
-            "theorem_count": 0,
-            "deferred_count": 0,
-            "module_count": 0,
-            "basis_objects_verified": False,
-        }
-    result = validate_documents(
-        load_json(FREEZE), load_json(SOURCE_THEOREMS), load_json(SOURCE_COUNTEREXAMPLES),
-        load_json(BASE_CONTRACT), HUMAN.read_text(encoding="utf-8"),
-        ROADMAP.read_text(encoding="utf-8"), README4AI.read_text(encoding="utf-8"),
-        check_paths=True,
-        require_basis_objects=require_basis_objects,
-    )
+        return {"status": "error", "errors": [f"missing Lean observation freeze authority: {x}" for x in missing], "batch_id": None, "theorem_count": 0, "deferred_count": 0, "module_count": 0, "basis_objects_verified": False}
+    result = validate_documents(load_json(FREEZE), load_json(SOURCE_THEOREMS), load_json(SOURCE_COUNTEREXAMPLES), load_json(BASE_CONTRACT), HUMAN.read_text(encoding="utf-8"), ROADMAP.read_text(encoding="utf-8"), README4AI.read_text(encoding="utf-8"), check_paths=True, require_basis_objects=require_basis_objects)
     errors = list(result.get("errors", []))
     errors.extend(workflow_contract_errors(WORKFLOW.read_text(encoding="utf-8")))
     result["errors"] = errors
