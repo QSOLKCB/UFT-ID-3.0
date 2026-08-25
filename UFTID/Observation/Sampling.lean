@@ -80,7 +80,7 @@ lemma uniformFloorNat_strict_of_lt
   have hq : uniformFloorNat L R i * R ≤ i * L := by
     unfold uniformFloorNat
     exact Nat.div_mul_le_self _ _
-  have hstep : (uniformFloorNat L R i + 1) * R ≤ k * L := by
+  have hstep_lt : (uniformFloorNat L R i + 1) * R < k * L := by
     calc
       (uniformFloorNat L R i + 1) * R = uniformFloorNat L R i * R + R := by
         simp [Nat.add_mul]
@@ -88,6 +88,7 @@ lemma uniformFloorNat_strict_of_lt
       _ < i * L + L := Nat.add_lt_add_left hRL (i * L)
       _ = (i + 1) * L := by simp [Nat.add_mul]
       _ ≤ k * L := Nat.mul_le_mul_right L (Nat.succ_le_iff.2 hik)
+  have hstep : (uniformFloorNat L R i + 1) * R ≤ k * L := hstep_lt.le
   have hsucc : uniformFloorNat L R i + 1 ≤ uniformFloorNat L R k := by
     unfold uniformFloorNat
     exact (Nat.le_div_iff_mul_le hR).2 hstep
@@ -118,7 +119,7 @@ lemma uniformFloorSample_self (n : ℕ) (hn : 0 < n) :
   funext i
   apply Fin.ext
   change i.val * n / n = i.val
-  exact Nat.mul_div_right i.val hn
+  simpa [Nat.mul_comm] using (Nat.mul_div_right i.val hn)
 
 lemma uniformFloorSample_surjective_of_lt
     {L R : ℕ} (hL : 0 < L) (hR : 0 < R) (hLR : L < R) :

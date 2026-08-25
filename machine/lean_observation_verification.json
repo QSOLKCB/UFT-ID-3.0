@@ -1,6 +1,6 @@
 {
   "type": "uft-id-lean-observation-verification",
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "status": "IMPLEMENTED_PENDING_CI",
   "source_release": {
     "tag": "v3.0.0",
@@ -39,33 +39,58 @@
       "id": "UFT-OBS-001",
       "module": "UFTID.Observation.Basic",
       "path": "UFTID/Observation/Basic.lean",
-      "declaration": "uft_obs_001_observational_equivalence"
+      "declaration": "uft_obs_001_observational_equivalence",
+      "source_blob_sha": "55dbd9c883e2b3c15acc90f6f6f4085117d5d5ee"
     },
     {
       "id": "UFT-OBS-002",
       "module": "UFTID.Observation.Quotient",
       "path": "UFTID/Observation/Quotient.lean",
-      "declaration": "uft_obs_002_quotient_to_image"
+      "declaration": "uft_obs_002_quotient_to_image",
+      "source_blob_sha": "a1e62ca0f439c00e79d3c68866708fadc4acff0b"
     },
     {
       "id": "UFT-OBS-003",
       "module": "UFTID.Observation.Reconstruction",
       "path": "UFTID/Observation/Reconstruction.lean",
-      "declaration": "uft_obs_003_image_reconstruction_iff_injective"
+      "declaration": "uft_obs_003_image_reconstruction_iff_injective",
+      "source_blob_sha": "248c535cbafb7d0b83ba62e391578978ffdebd18"
     },
     {
       "id": "UFT-OBS-004",
       "module": "UFTID.Observation.Reconstruction",
       "path": "UFTID/Observation/Reconstruction.lean",
-      "declaration": "uft_obs_004_noninjective_no_global_left_inverse"
+      "declaration": "uft_obs_004_noninjective_no_global_left_inverse",
+      "source_blob_sha": "248c535cbafb7d0b83ba62e391578978ffdebd18"
     },
     {
       "id": "UFT-OBS-005",
       "module": "UFTID.Observation.Sampling",
       "path": "UFTID/Observation/Sampling.lean",
-      "declaration": "uft_obs_005_uniform_floor_sampling"
+      "declaration": "uft_obs_005_uniform_floor_sampling",
+      "source_blob_sha": "d587ff9321dc7f3a8f5cb40fe6e9e1aa49c37ebc"
     }
   ],
+  "axiom_audit": {
+    "command": "python scripts/verify_lean_observation_axioms.py",
+    "status": "CI_REQUIRED_BEFORE_LEAN_VERIFIED",
+    "allowed_axioms": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "required_axioms_by_theorem": {
+      "UFT-OBS-001": [],
+      "UFT-OBS-002": [],
+      "UFT-OBS-003": [
+        "Classical.choice"
+      ],
+      "UFT-OBS-004": [
+        "Classical.choice"
+      ],
+      "UFT-OBS-005": []
+    }
+  },
   "source_freeze_deferred_theorem_ids": [
     "UFT-OBS-005"
   ],
@@ -74,6 +99,8 @@
     "LEAN_PROOF != EMPIRICAL_VALIDATION",
     "LEAN_PROOF != PHYSICAL_ONTOLOGY",
     "UFT-OBS-005_DEFERRED_IN_BATCH_001 != UFT-OBS-005_DROPPED",
-    "LATER_LEAN_BATCH != RETROACTIVE_SOURCE_FREEZE_REWRITE"
+    "LATER_LEAN_BATCH != RETROACTIVE_SOURCE_FREEZE_REWRITE",
+    "REGISTERED_DECLARATION_NAME != THEOREM_IDENTITY_WITHOUT_SOURCE_BINDING",
+    "IMPORTED_AXIOM != UFT_ID_THEOREM_RESULT"
   ]
 }
