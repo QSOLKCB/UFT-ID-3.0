@@ -151,7 +151,9 @@ _LIVE_AUTHORITY_BLOBS = {
     **_impl.EXPECTED_LEAN_SOURCE_BLOBS,
 }
 _LIVE_AUTHORITY_MODES = {path: "100644" for path in _LIVE_AUTHORITY_BLOBS}
-_LIVE_AUTHORITY_MODES["scripts/validate_lean_observation_foundation.py"] = "100755"
+_LIVE_AUTHORITY_MODES["scripts/validate_lean_observation_foundation.py"] = "100644"
+_LIVE_AUTHORITY_MODES["scripts/validate_lean_observation_foundation_pr21_final_frozen.py"] = "100755"
+_LIVE_AUTHORITY_MODES["scripts/validate_lean_observation_foundation_pr22_batch2_precompiler.py"] = "100755"
 
 
 def _live_authority_projection() -> tuple[dict[str, str], dict[str, str]]:
