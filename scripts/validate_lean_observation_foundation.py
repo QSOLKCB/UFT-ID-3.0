@@ -9,9 +9,11 @@ human dependency-graph synchronization.
 """
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import json
 import re
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,8 +26,55 @@ _base = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_base)
 
 for _name in dir(_base):
-    if not _name.startswith("__") and _name not in {"workflow_contract_errors", "validate_documents", "validate", "main"}:
+    if not _name.startswith("__") and _name not in {
+        "workflow_contract_errors", "validate_documents", "validate", "main",
+        "frozen_validator_blob_errors", "basis_git_blob_sha", "basis_source_object_errors",
+    }:
         globals()[_name] = getattr(_base, _name)
+
+
+def frozen_validator_blob_errors(path: Path = FROZEN) -> list[str]:
+    if not path.is_file():
+        return ["frozen PR21 validator missing before import"]
+    actual = git_blob_sha(path)
+    if actual != EXPECTED_FROZEN_VALIDATOR_BLOB:
+        return [
+            "frozen PR21 validator blob drift: "
+            f"expected {EXPECTED_FROZEN_VALIDATOR_BLOB}, got {actual}"
+        ]
+    return []
+
+
+def basis_git_blob_sha(relpath: str) -> str | None:
+    result = subprocess.run(
+        ["git", "rev-parse", f"{BASIS_COMMIT}:{relpath}"],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        return None
+    value = result.stdout.strip()
+    if re.fullmatch(r"[0-9a-f]{40}", value) is None:
+        return None
+    return value if git_object_is_blob(value) else None
+
+
+def basis_source_object_errors() -> list[str]:
+    errors: list[str] = []
+    resolved = 0
+    for relpath, expected_sha in EXPECTED_SOURCE_BLOBS.items():
+        actual = basis_git_blob_sha(relpath)
+        if actual is None:
+            errors.append(f"basis commit blob object unavailable: {BASIS_COMMIT}:{relpath}")
+            continue
+        resolved += 1
+        if actual != expected_sha:
+            errors.append(f"basis commit Git blob mismatch: {relpath}")
+    if resolved != len(EXPECTED_SOURCE_BLOBS):
+        errors.append("complete PR9 basis dependency closure was not resolved from readable Git blob objects")
+    return errors
 
 
 def _step_blocks(job_body: str) -> tuple[str, ...]:
@@ -120,6 +169,11 @@ def human_dependency_graph_errors(freeze: dict[str, object], human: str) -> list
 
 
 def validate_documents(freeze, source_theorems, source_counterexamples, base_contract, human, roadmap, readme, *, check_paths: bool = True, require_basis_objects: bool = False):
+    # Preserve the original module's mutation-test hooks by making its delegated
+    # validation resolve these live wrapper functions, which tests may monkeypatch.
+    _base.frozen_validator_blob_errors = frozen_validator_blob_errors
+    _base.basis_git_blob_sha = basis_git_blob_sha
+    _base.basis_source_object_errors = basis_source_object_errors
     result = _base.validate_documents(
         freeze,
         source_theorems,

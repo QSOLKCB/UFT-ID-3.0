@@ -1,7 +1,7 @@
 {
   "type": "uft-id-roadmap-state",
-  "schema_version": "1.8.0",
-  "snapshot_date": "2026-08-25",
+  "schema_version": "1.7.0",
+  "snapshot_date": "2026-08-24",
   "basis_commit": "516cff5d6a45af54d6fc4ae9c72c2e8e9c668637",
   "completed": [
     5,

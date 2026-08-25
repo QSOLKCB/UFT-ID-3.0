@@ -22,6 +22,7 @@ def load_module(name: str, path: Path):
 
 V = load_module("lean_observation_freeze_codex4", ROOT / "scripts/validate_lean_observation_foundation.py")
 EFP = load_module("efp_schedule_codex4", ROOT / "scripts/validate_empirical_falsification_profile.py")
+REL = load_module("relation_schedule_codex4", ROOT / "scripts/validate_relation_core.py")
 
 
 class CodexFourthBatchRegressions(unittest.TestCase):
@@ -71,13 +72,14 @@ class CodexFourthBatchRegressions(unittest.TestCase):
         self.assertEqual(result["status"], "error")
         self.assertIn("Lean observation human dependency graph drift", result["errors"])
 
-    def test_machine_schedule_advances_to_release_gate(self):
+    def test_machine_schedule_advances_to_release_gate_without_schema_migration(self):
         roadmap = json.loads(ROADMAP_STATE.read_text(encoding="utf-8"))
-        self.assertEqual(roadmap["schema_version"], "1.8.0")
-        self.assertEqual(roadmap["snapshot_date"], "2026-08-25")
+        self.assertEqual(roadmap["schema_version"], "1.7.0")
+        self.assertEqual(roadmap["snapshot_date"], "2026-08-24")
         by_pr = {item["planned_pr"]: item for item in roadmap["sequence"]}
         self.assertEqual(by_pr[10]["status"], "active-post-merge-release-gate")
         self.assertEqual(EFP._live_roadmap_errors(), [])
+        self.assertEqual(REL._live_roadmap_errors(roadmap), [])
         result = EFP.validate()
         self.assertEqual(result["status"], "ok", result["errors"])
 

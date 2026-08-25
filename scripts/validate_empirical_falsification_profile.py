@@ -4,7 +4,8 @@
 The exact pre-advance validator is preserved in
 validate_empirical_falsification_profile_pr21_pretag.py. EFP semantics remain
 frozen; only the live post-EFP roadmap phase advances after the first Lean
-observation source batch freeze.
+observation source batch freeze. The roadmap schema/snapshot stay unchanged:
+this is a phase transition, not a schema migration.
 """
 from __future__ import annotations
 
@@ -28,8 +29,6 @@ for _name in dir(_base):
         globals()[_name] = getattr(_base, _name)
 
 EXPECTED_LIVE_ROADMAP = copy.deepcopy(_base.EXPECTED_LIVE_ROADMAP)
-EXPECTED_LIVE_ROADMAP["schema_version"] = "1.8.0"
-EXPECTED_LIVE_ROADMAP["snapshot_date"] = "2026-08-25"
 for _item in EXPECTED_LIVE_ROADMAP["sequence"]:
     if _item.get("planned_pr") == 10:
         _item["status"] = "active-post-merge-release-gate"
@@ -50,9 +49,9 @@ EXPECTED_LIVE_ROADMAP["rules"][2] = (
 def _live_roadmap_errors() -> list[str]:
     errors: list[str] = []
     roadmap = _base._original_load_json(ROADMAP_STATE)
-    if roadmap.get("schema_version") != "1.8.0":
+    if roadmap.get("schema_version") != "1.7.0":
         errors.append("EFP live roadmap schema drift")
-    if roadmap.get("snapshot_date") != "2026-08-25":
+    if roadmap.get("snapshot_date") != "2026-08-24":
         errors.append("EFP live roadmap snapshot drift")
     if roadmap.get("basis_commit") != "516cff5d6a45af54d6fc4ae9c72c2e8e9c668637":
         errors.append("EFP live roadmap basis commit must remain merged PR #19 until PR #21 merges")
