@@ -60,6 +60,7 @@ UFT-OBS-005_DEFERRED != UFT-OBS-005_DROPPED
 **Canonical hypotheses:** `["O is a total deterministic function S->Y"]`  
 **Formalization scope:** `set-theoretic deterministic observation only`  
 **Source nonclaims:** `["Observational equivalence is not physical identity."]`  
+**Proof reference:** `theory/OBSERVATION_CALCULUS.md#uft-obs-001-observational-equivalence`  
 **Theorem dependencies:** `[]`  
 **Counterexample dependencies:** `[]`  
 **Expected Lean module:** `UFTID.Observation.Basic`  
@@ -74,6 +75,7 @@ UFT-OBS-005_DEFERRED != UFT-OBS-005_DROPPED
 **Canonical hypotheses:** `["O is a total deterministic function S->Y"]`  
 **Formalization scope:** `set-theoretic deterministic observation only`  
 **Source nonclaims:** `["The quotient is not canonically the full codomain Y unless O is surjective."]`  
+**Proof reference:** `theory/OBSERVATION_CALCULUS.md#uft-obs-002-quotient-to-image-correspondence`  
 **Theorem dependencies:** `["UFT-OBS-001"]`  
 **Counterexample dependencies:** `["CX-OBS-002"]`  
 **Expected Lean module:** `UFTID.Observation.Quotient`  
@@ -88,6 +90,7 @@ UFT-OBS-005_DEFERRED != UFT-OBS-005_DROPPED
 **Canonical hypotheses:** `["O is a total deterministic function S->Y", "Reconstruction is scoped to im(O)"]`  
 **Formalization scope:** `set-theoretic deterministic observation only`  
 **Source nonclaims:** `["Exact mathematical reconstruction does not establish that an original physical state persisted or was observed directly."]`  
+**Proof reference:** `theory/OBSERVATION_CALCULUS.md#uft-obs-003-image-scoped-exact-reconstruction`  
 **Theorem dependencies:** `[]`  
 **Counterexample dependencies:** `["CX-OBS-001"]`  
 **Expected Lean module:** `UFTID.Observation.Reconstruction`  
@@ -102,6 +105,7 @@ UFT-OBS-005_DEFERRED != UFT-OBS-005_DROPPED
 **Canonical hypotheses:** `["O is a total deterministic function S->Y", "O is noninjective"]`  
 **Formalization scope:** `set-theoretic deterministic observation only`  
 **Source nonclaims:** `["Noninjectivity does not forbid partial, representative, probabilistic, or task-specific reconstruction."]`  
+**Proof reference:** `theory/OBSERVATION_CALCULUS.md#uft-obs-004-noninjective-observation-blocks-global-exact-reconstruction`  
 **Theorem dependencies:** `["UFT-OBS-003"]`  
 **Counterexample dependencies:** `["CX-OBS-001"]`  
 **Expected Lean module:** `UFTID.Observation.Reconstruction`  
