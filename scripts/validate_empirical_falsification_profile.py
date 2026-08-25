@@ -80,12 +80,18 @@ def _live_roadmap_errors() -> list[str]:
 
 
 def validate() -> dict[str, object]:
-    old = _base._live_roadmap_errors
+    # Preserve existing adversarial mutation hooks across the compatibility
+    # boundary. Tests intentionally replace the public load_module function to
+    # prove runtime projection/fixture drift is detected.
+    old_roadmap = _base._live_roadmap_errors
+    old_loader = _base.load_module
     try:
         _base._live_roadmap_errors = _live_roadmap_errors
+        _base.load_module = globals()["load_module"]
         return _base.validate()
     finally:
-        _base._live_roadmap_errors = old
+        _base._live_roadmap_errors = old_roadmap
+        _base.load_module = old_loader
 
 
 def main() -> int:
