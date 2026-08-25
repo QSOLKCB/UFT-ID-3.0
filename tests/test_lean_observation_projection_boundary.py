@@ -62,6 +62,20 @@ class LeanObservationProjectionBoundaryRegressions(unittest.TestCase):
         self.assertEqual(captured["blobs"], expected_blobs)
         self.assertEqual(captured["modes"], expected_modes)
 
+    def test_verified_human_surfaces_project_to_exact_pr22_blobs(self):
+        readme = self.v.README4AI.read_text(encoding="utf-8")
+        roadmap = self.v.ROADMAP.read_text(encoding="utf-8")
+        projected_readme = self.v._project_verified_readme(readme)
+        projected_roadmap = self.v._project_verified_roadmap(roadmap)
+        self.assertEqual(
+            self.v._text_git_blob_sha(projected_readme),
+            "f9d43b7c04494f59ef69955192aa4b3ddd00f5a0",
+        )
+        self.assertEqual(
+            self.v._text_git_blob_sha(projected_roadmap),
+            "b4322084be5191db5a43548f66c083bb8be1ec9b",
+        )
+
     def test_live_registry_covers_verified_package_and_provenance_files(self):
         required_blob_paths = {
             ".github/workflows/vopson-corpus.yml",
