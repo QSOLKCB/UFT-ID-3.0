@@ -4,7 +4,7 @@
 The frozen module preserves all theorem, human-status, pre-tag Lean embargo, and
 roadmap checks already reviewed on the previous clean head. This wrapper adds
 complete PR9 basis dependency closure, registered-workflow enforcement, and
-cross-surface human promotion guards, including theorem-ID/batch-scoped claims.
+cross-surface human promotion/nonclaim guards.
 """
 from __future__ import annotations
 
@@ -27,6 +27,25 @@ ROADMAP = ROOT / "ROADMAP.md"
 README4AI = ROOT / "README4AI.md"
 WORKFLOW = ROOT / ".github/workflows/vopson-corpus.yml"
 BASIS_COMMIT = "6f3aeb7f4ac14389e7a08d2976c8c0d16549c093"
+EXPECTED_FROZEN_VALIDATOR_BLOB = "2355065a6811cf5f3b91132703953e46fbd0e877"
+
+
+def git_blob_sha(path: Path) -> str:
+    data = path.read_bytes()
+    return hashlib.sha1(f"blob {len(data)}\0".encode("ascii") + data).hexdigest()
+
+
+def frozen_validator_blob_errors(path: Path = FROZEN) -> list[str]:
+    """Bind the compatibility validator before any of its authority is imported."""
+    if not path.is_file():
+        return ["frozen PR21 validator missing before import"]
+    actual = git_blob_sha(path)
+    if actual != EXPECTED_FROZEN_VALIDATOR_BLOB:
+        return [
+            "frozen PR21 validator blob drift: "
+            f"expected {EXPECTED_FROZEN_VALIDATOR_BLOB}, got {actual}"
+        ]
+    return []
 
 
 def load_module(name: str, path: Path):
@@ -37,6 +56,10 @@ def load_module(name: str, path: Path):
     spec.loader.exec_module(module)
     return module
 
+
+_preload_frozen_errors = frozen_validator_blob_errors()
+if _preload_frozen_errors:
+    raise RuntimeError("; ".join(_preload_frozen_errors))
 
 _frozen = load_module("pr21_lean_observation_freeze_frozen", FROZEN)
 EXPECTED_THEOREMS = _frozen.EXPECTED_THEOREMS
@@ -69,11 +92,6 @@ def load_json(path: Path) -> dict[str, object]:
     if not isinstance(value, dict):
         raise ValueError(f"{path.relative_to(ROOT)} must contain an object")
     return value
-
-
-def git_blob_sha(path: Path) -> str:
-    data = path.read_bytes()
-    return hashlib.sha1(f"blob {len(data)}\0".encode("ascii") + data).hexdigest()
 
 
 def git_object_is_blob(object_sha: str) -> bool:
@@ -139,11 +157,12 @@ def workflow_event_branches(text: str, event: str) -> tuple[str, ...] | None:
     return tuple(line.strip()[2:].strip().strip("\"'") for line in block.group("values").splitlines() if line.strip()[2:].strip())
 
 
-def workflow_event_has_types(text: str, event: str) -> bool:
+def workflow_event_key_present(text: str, event: str, key_name: str) -> bool:
     body = workflow_event_block(text, event)
     if body is None:
         return False
-    key = r"(?:types|\"types\"|'types')"
+    escaped = re.escape(key_name)
+    key = rf"(?:{escaped}|\"{escaped}\"|'{escaped}')"
     return re.search(rf"(?m)^    {key}\s*:", body) is not None
 
 
@@ -159,6 +178,12 @@ def workflow_named_step_block(job_body: str, step_name: str) -> str | None:
 
 def workflow_control_key_present(text: str, *, indent: int) -> bool:
     key = r"(?:if|continue-on-error|\"(?:if|continue-on-error)\"|'(?:if|continue-on-error)')"
+    return re.search(rf"(?m)^{' ' * indent}{key}\s*:", text) is not None
+
+
+def workflow_step_key_present(text: str, key_name: str, *, indent: int = 8) -> bool:
+    escaped = re.escape(key_name)
+    key = rf"(?:{escaped}|\"{escaped}\"|'{escaped}')"
     return re.search(rf"(?m)^{' ' * indent}{key}\s*:", text) is not None
 
 
@@ -185,8 +210,10 @@ def workflow_contract_errors(text: str) -> list[str]:
             if event_paths.count(anchor) != 1:
                 errors.append(f"registered Lean-freeze workflow {event} path trigger drift: {anchor}")
 
-    if workflow_event_has_types(text, "pull_request"):
+    if workflow_event_key_present(text, "pull_request", "types"):
         errors.append("registered Lean-freeze workflow pull_request activity types must remain unrestricted")
+    if workflow_event_key_present(text, "pull_request", "branches") or workflow_event_key_present(text, "pull_request", "branches-ignore"):
+        errors.append("registered Lean-freeze workflow pull_request branch filters must remain unrestricted")
     if workflow_event_branches(text, "push") != ("main",):
         errors.append("registered Lean-freeze workflow push branch restriction must be exactly main")
 
@@ -215,6 +242,8 @@ def workflow_contract_errors(text: str) -> list[str]:
     else:
         if workflow_control_key_present(freeze_step, indent=8):
             errors.append("registered Lean-freeze validator step may not be conditional or nonblocking")
+        if workflow_step_key_present(freeze_step, "shell"):
+            errors.append("registered Lean-freeze validator step may not override its executing shell")
         required_step = (
             '        env:',
             '          UFT_REQUIRE_BASIS_COMMIT_OBJECT: "1"',
@@ -265,6 +294,17 @@ def source_tag_promotion(text: str) -> bool:
     return any(re.search(pattern, text) for pattern in patterns)
 
 
+def theorem_nonclaim_reversal(text: str) -> bool:
+    """Reject positive prose that asserts the inverse of a frozen theorem nonclaim."""
+    patterns = (
+        r"(?is)\bUFT-OBS-001\b.{0,100}\b(?:proves?|shows?|establishes?|implies?|means?)\b.{0,100}\bobservational equivalence\b.{0,60}\b(?:is|equals?|constitutes?)\b.{0,30}\bphysical identity\b",
+        r"(?is)\bUFT-OBS-002\b.{0,100}\b(?:proves?|shows?|establishes?|implies?|means?)\b.{0,100}\bquotient\b.{0,60}\b(?:is|equals?|constitutes?)\b.{0,40}\b(?:the\s+)?full codomain\b",
+        r"(?is)\bUFT-OBS-003\b.{0,100}\b(?:proves?|shows?|establishes?|implies?|means?)\b.{0,100}\bexact(?: mathematical)? reconstruction\b.{0,100}\b(?:physical state persisted|original physical state persisted|observed directly)\b",
+        r"(?is)\bUFT-OBS-004\b.{0,100}\b(?:proves?|shows?|establishes?|implies?|means?)\b.{0,100}\bnoninjectiv(?:ity|e)\b.{0,80}\b(?:forbids?|precludes?|rules? out)\b.{0,80}\b(?:partial|representative|probabilistic|task-specific)\b.{0,30}\breconstruction\b",
+    )
+    return any(re.search(pattern, text) for pattern in patterns)
+
+
 def _frozen_views(freeze: dict[str, object], base_contract: dict[str, object]):
     old_freeze = copy.deepcopy(freeze)
     old_freeze["schema_version"] = "1.0.0"
@@ -292,6 +332,8 @@ def validate_documents(freeze, source_theorems, source_counterexamples, base_con
             errors.append(f"Lean observation {surface_name} generic batch Lean verification promotion")
         if source_tag_promotion(surface_text):
             errors.append(f"Lean observation {surface_name} source-tag completion promotion")
+        if theorem_nonclaim_reversal(surface_text):
+            errors.append(f"Lean observation {surface_name} frozen theorem nonclaim reversal")
 
     if _frozen.strip_code(_frozen.metadata(human, "Batch")) != "LEAN-OBS-BATCH-001":
         errors.append("Lean observation human batch identity drift")
@@ -328,6 +370,7 @@ def validate_documents(freeze, source_theorems, source_counterexamples, base_con
 
     basis_errors: list[str] = []
     if check_paths:
+        errors.extend(frozen_validator_blob_errors())
         for relpath, expected_sha in EXPECTED_SOURCE_BLOBS.items():
             path = ROOT / relpath
             if not path.is_file():
