@@ -76,6 +76,27 @@ def git_blob_sha(path: Path) -> str:
     return hashlib.sha1(f"blob {len(data)}\0".encode("ascii") + data).hexdigest()
 
 
+def git_object_is_blob(object_sha: str) -> bool:
+    """Require the named Git object to exist and be readable as a blob."""
+    exists = subprocess.run(
+        ["git", "cat-file", "-e", object_sha],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if exists.returncode != 0:
+        return False
+    object_type = subprocess.run(
+        ["git", "cat-file", "-t", object_sha],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    return object_type.returncode == 0 and object_type.stdout.strip() == "blob"
+
+
 def basis_git_blob_sha(relpath: str) -> str | None:
     result = subprocess.run(
         ["git", "rev-parse", f"{BASIS_COMMIT}:{relpath}"],
@@ -87,7 +108,9 @@ def basis_git_blob_sha(relpath: str) -> str | None:
     if result.returncode != 0:
         return None
     value = result.stdout.strip()
-    return value if re.fullmatch(r"[0-9a-f]{40}", value) else None
+    if re.fullmatch(r"[0-9a-f]{40}", value) is None:
+        return None
+    return value if git_object_is_blob(value) else None
 
 
 def basis_source_object_errors() -> list[str]:
@@ -97,31 +120,56 @@ def basis_source_object_errors() -> list[str]:
     for relpath, expected_sha in EXPECTED_SOURCE_BLOBS.items():
         actual = basis_git_blob_sha(relpath)
         if actual is None:
-            errors.append(f"basis commit object unavailable: {BASIS_COMMIT}:{relpath}")
+            errors.append(f"basis commit blob object unavailable: {BASIS_COMMIT}:{relpath}")
             continue
         resolved += 1
         if actual != expected_sha:
             errors.append(f"basis commit Git blob mismatch: {relpath}")
     if resolved != len(EXPECTED_SOURCE_BLOBS):
-        errors.append("complete PR9 basis dependency closure was not resolved from Git objects")
+        errors.append("complete PR9 basis dependency closure was not resolved from readable Git blob objects")
     return errors
+
+
+def workflow_event_block(text: str, event: str) -> str | None:
+    match = re.search(
+        rf"(?ms)^  {re.escape(event)}:\n(?P<body>.*?)(?=^  [A-Za-z_][A-Za-z0-9_-]*:|^\S|\Z)",
+        text,
+    )
+    return match.group("body") if match is not None else None
 
 
 def workflow_event_paths(text: str, event: str) -> tuple[str, ...] | None:
     """Return one event's paths list without conflating it with sibling events."""
-    event_match = re.search(
-        rf"(?ms)^  {re.escape(event)}:\n(?P<body>.*?)(?=^  [A-Za-z_][A-Za-z0-9_-]*:|^\S|\Z)",
-        text,
-    )
-    if event_match is None:
+    body = workflow_event_block(text, event)
+    if body is None:
         return None
     paths_match = re.search(
         r"(?m)^    paths:\n(?P<paths>(?:      - .*\n)+)",
-        event_match.group("body"),
+        body,
     )
     if paths_match is None:
         return None
     return tuple(line.strip() for line in paths_match.group("paths").splitlines())
+
+
+def workflow_event_branches(text: str, event: str) -> tuple[str, ...] | None:
+    """Return a normalized event branch allowlist for inline or block YAML lists."""
+    body = workflow_event_block(text, event)
+    if body is None:
+        return None
+    inline = re.search(r"(?m)^    branches:\s*\[(?P<values>[^\]]*)\]\s*$", body)
+    if inline is not None:
+        values = [value.strip().strip("\"'") for value in inline.group("values").split(",")]
+        return tuple(value for value in values if value)
+    block = re.search(r"(?m)^    branches:\n(?P<values>(?:      - .*\n)+)", body)
+    if block is None:
+        return None
+    values = []
+    for line in block.group("values").splitlines():
+        value = line.strip()[2:].strip().strip("\"'")
+        if value:
+            values.append(value)
+    return tuple(values)
 
 
 def workflow_job_block(text: str, job_name: str) -> str | None:
@@ -171,6 +219,9 @@ def workflow_contract_errors(text: str) -> list[str]:
                     f"registered Lean-freeze workflow {event} path trigger drift: {anchor}"
                 )
 
+    if workflow_event_branches(text, "push") != ("main",):
+        errors.append("registered Lean-freeze workflow push branch restriction must be exactly main")
+
     direct = (
         '      - name: Validate Lean observation source freeze',
         '          UFT_REQUIRE_BASIS_COMMIT_OBJECT: "1"',
@@ -206,12 +257,14 @@ def theorem_scoped_lean_promotion(text: str) -> bool:
     completed = r"(?:proved|proven|verified|checked|formalized|formalised|complete)"
     participle = r"(?:proved|proven|verified|checked|formalized|formalised|certified)"
     active = r"(?:proves?|verifies?|checks?|formalizes?|formalises?|certifies?)"
+    simple_past = r"(?:proved|proven|verified|checked|formalized|formalised|certified)"
     proof_noun = r"(?:proofs?|verification|formalization|formalisation|certificate|certification)"
     patterns = (
         rf"(?is)\b{subject}\b.{{0,180}}\b(?:has|have|is|are|was|were)\s+(?:now\s+)?(?:been\s+)?(?:formally\s+)?{completed}\b.{{0,60}}\b(?:in|by|with)\s+Lean\b",
         rf"(?is)\bLean\b.{{0,60}}\b(?:proof|verification|formalization|formalisation)\b.{{0,100}}\b(?:for|of)\b.{{0,100}}\b{subject}\b.{{0,60}}\b(?:is|are|was|were|has|have)?\s*(?:now\s+)?(?:been\s+)?{completed}\b",
         rf"(?is)\bLean\b.{{0,40}}\b{active}\b.{{0,180}}\b{subject}\b",
         rf"(?is)\bLean\b.{{0,40}}\b(?:has|have|had)\s+(?:now\s+)?(?:formally\s+)?{participle}\b.{{0,180}}\b{subject}\b",
+        rf"(?is)\bLean\b.{{0,40}}\b{simple_past}\b.{{0,180}}\b{subject}\b",
         rf"(?is)\b{subject}\b.{{0,180}}\b(?:now\s+)?(?:has|have|is|are|was|were)\s+(?:now\s+)?Lean\s+{proof_noun}\b",
     )
     return any(re.search(pattern, text) for pattern in patterns)
