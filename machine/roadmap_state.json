@@ -1,7 +1,7 @@
 {
   "type": "uft-id-roadmap-state",
-  "schema_version": "1.7.0",
-  "snapshot_date": "2026-08-24",
+  "schema_version": "1.8.0",
+  "snapshot_date": "2026-08-25",
   "basis_commit": "516cff5d6a45af54d6fc4ae9c72c2e8e9c668637",
   "completed": [
     5,
@@ -29,7 +29,7 @@
     {
       "planned_pr": 10,
       "surface": "lean-observation-foundation",
-      "status": "active-first-theorem-batch-freeze"
+      "status": "active-post-merge-release-gate"
     },
     {
       "planned_pr": 11,
@@ -72,12 +72,12 @@
       "status": "complete-merged-516cff5d6a45af54d6fc4ae9c72c2e8e9c668637"
     }
   ],
-  "compatibility_note": "machine/formalization_contract.json retains the PR9-era roadmap_rebase snapshot; frozen PR11, BridgeCore, Epistemic Bridge, Representation, Information Comparability, Recovery, CSP, and EFP theorem authorities retain their historical semantics. This file is the live post-EFP schedule authority with PR #10 activated for first-theorem-batch freezing.",
+  "compatibility_note": "machine/formalization_contract.json retains the PR9-era roadmap_rebase snapshot; frozen PR11, BridgeCore, Epistemic Bridge, Representation, Information Comparability, Recovery, CSP, and EFP theorem authorities retain their historical semantics. This file is the live post-EFP schedule authority: the first PR #10 theorem batch is frozen and the next gate is exact merged-main validation plus an immutable source-release tag before any Lean proof implementation.",
   "fixture_policy": "Minimal fixtures travel with the theorem or counterexample that requires them.",
   "rules": [
     "NO_GIANT_FORMALIZATION_PR",
     "NO_STANDALONE_FINITE_FIXTURE_ZOO",
-    "Lean activation begins with theorem-batch and dependency-graph freezing; mathematical proof, Lean proof, runtime conformance, and empirical validation remain separately typed authorities.",
+    "The first Lean theorem batch and dependency graph are frozen; exact merged-main validation and an immutable source-release tag must complete before any Lean/Lake/Mathlib proof implementation, while mathematical proof, Lean proof, runtime conformance, and empirical validation remain separately typed authorities.",
     "A unique-selection claim requires an actual discriminating theorem or uniqueness proof, not compatibility or one successful construction.",
     "No semantic lifting is licensed without an explicit typed bridge declaring preserved structure, lost structure, scope, and version compatibility.",
     "Structural transport, retrieval, inference, execution, storage, or replay cannot create verification authority without an explicit epistemic operation and receipt.",
