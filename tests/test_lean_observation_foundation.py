@@ -79,7 +79,7 @@ class LeanObservationFoundationFreezeTests(unittest.TestCase):
         mutated = workflow.replace('      - "ROADMAP.md"\n', "", 1)
         self.assertTrue(any("path trigger drift" in e for e in V.workflow_contract_errors(mutated)))
         mutated = workflow.replace("        run: python scripts/validate_lean_observation_foundation.py\n", "        run: python -c 'pass'\n", 1)
-        self.assertTrue(any("direct validator/policy drift" in e for e in V.workflow_contract_errors(mutated)))
+        self.assertTrue(any("named step command/env drift" in e for e in V.workflow_contract_errors(mutated)))
 
     def test_workflow_paths_are_validated_per_event_not_by_global_count(self):
         workflow = (ROOT / ".github/workflows/vopson-corpus.yml").read_text(encoding="utf-8")
