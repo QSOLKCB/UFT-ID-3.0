@@ -342,7 +342,7 @@ FINITE_STOCHASTIC_CONFORMANCE != GENERAL_STOCHASTIC_OR_CONTINUUM_THEORY
 
 ## Empirical Falsification Profile authority
 
-The completed planned PR #18 surface defines a synthetic conformance procedure for deciding whether a calibrated profile-matched evidence record crosses one versioned scoped rejection boundary. It specializes the PR8 `FalsificationSpec` scaffold without converting synthetic fixtures, matching hashes, or procedural labels into empirical evidence or preregistration proof. Live scheduling authority is PR #10 Lean observation foundation: the first theorem batch and dependency graph are frozen, and the active phase is the post-merge release gate for exact merged-main validation plus immutable source tagging before Lean implementation.
+The completed planned PR #18 surface defines a synthetic conformance procedure for deciding whether a calibrated profile-matched evidence record crosses one versioned scoped rejection boundary. It specializes the PR8 `FalsificationSpec` scaffold without converting synthetic fixtures, matching hashes, or procedural labels into empirical evidence or preregistration proof. Historical scheduling authority for the v3.0.0 source freeze remains PR #10 Lean observation foundation. Live post-tag authority is now `machine/roadmap_state.json` plus `machine/lean_observation_verification.json`: immutable tag `v3.0.0` is cut at `b7f51590985e60920c8b09fc9238b8aec6cfa3bc`, `LEAN-OBS-BATCH-001` implements `UFT-OBS-001` through `004`, and arithmetic `LEAN-OBS-BATCH-002` implements `UFT-OBS-005`; both remain `IMPLEMENTED_PENDING_CI` until the pinned build and axiom audit are green.
 
 ```text
 EmpiricalFalsificationProfile = (
@@ -522,7 +522,7 @@ python experiments/run_pr6.py --json
 5. Do not turn cross-domain or cross-repository analogy into shared mechanism.
 6. Simulation output is not proof.
 7. A successful fit is not a unique explanation.
-8. Lean verification requires checked source and green CI.
+8. Lean verification requires checked source, exact source binding, an explicit imported-axiom report, and green pinned CI.
 9. Critique equations, assumptions, data, and inference, not people.
 10. Do not infer truth from hash integrity, replay, storage, retrieval, consensus, recovery, transport, inference, or execution.
 11. Do not infer intrinsic stored-bit energy from the Landauer erasure bound without an independently justified physical bridge.
@@ -563,16 +563,19 @@ python experiments/run_pr6.py --json
 
 ## Lean
 
-PR #10 Lean observation foundation is active. Source batch `LEAN-OBS-BATCH-001` is frozen in `machine/lean_observation_foundation_contract.json`, covering `UFT-OBS-001` through `UFT-OBS-004`; `UFT-OBS-005` remains deferred to a later arithmetic-focused batch.
+PR #10 Lean observation foundation is the historical source-freeze authority. Source batch `LEAN-OBS-BATCH-001` remains frozen in `machine/lean_observation_foundation_contract.json`, covering `UFT-OBS-001` through `UFT-OBS-004`; the same v3.0.0 freeze records `UFT-OBS-005` as deferred from batch 001 rather than dropped.
 
-No Lean proof object is claimed by this freeze. Lean/Lake/Mathlib remain unpinned. After PR #21 merges, the next gate is exact merged-`main` CI plus hostile review, then tag that exact merged commit/tree before Lean proof implementation. QSOL-CONTEXT target binding and Zenodo publication remain later ordered gates in `ROADMAP.md`.
+Live post-tag implementation authority is `machine/lean_observation_verification.json`. Immutable source tag `v3.0.0` resolves to commit `b7f51590985e60920c8b09fc9238b8aec6cfa3bc` and tree `966bdf47596832f792e77d619b33222f4cf60c8d`. Lean is pinned to `v4.33.1`, mathlib to `0df444a360eaa60ab8c11dca51a86af692955474`, and the Lean release archive is SHA256-bound. `LEAN-OBS-BATCH-001` implements `UFT-OBS-001` through `004`; arithmetic `LEAN-OBS-BATCH-002` implements `UFT-OBS-005`. Current status is `IMPLEMENTED_PENDING_CI`, not `LEAN_VERIFIED`: promotion requires exact source-blob binding, successful `lake build UFTID`, hostile review, and the retained `#print axioms` audit.
 
-Canonical source-freeze surfaces:
+Canonical source-freeze and live implementation surfaces:
 
 ```text
 machine/lean_observation_foundation_contract.json
+machine/lean_observation_verification.json
+machine/roadmap_state.json
 theory/LEAN_OBSERVATION_FOUNDATION.md
 scripts/validate_lean_observation_foundation.py
+scripts/verify_lean_observation_axioms.py
 tests/test_lean_observation_foundation.py
 ```
 
@@ -581,6 +584,7 @@ MATHEMATICAL_PROOF != LEAN_PROOF
 SOURCE_THEOREM != LEAN_ARTIFACT
 THEOREM_BATCH_FREEZE != SOURCE_RELEASE_TAG
 SOURCE_RELEASE_TAG != LEAN_VERIFIED
+IMPORTED_AXIOM != UFT_ID_THEOREM_RESULT
 ```
 
 ## Read next

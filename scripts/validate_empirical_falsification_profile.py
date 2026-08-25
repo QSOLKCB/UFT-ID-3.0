@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""PR #21 schedule-advance wrapper for the live EFP compatibility validator.
+"""Post-tag schedule wrapper for the live EFP compatibility validator.
 
 The exact pre-advance validator is preserved in
 validate_empirical_falsification_profile_pr21_pretag.py. EFP semantics remain
-frozen; only the live post-EFP roadmap phase advances after the first Lean
-observation source batch freeze. The roadmap schema/snapshot stay unchanged:
-this is a phase transition, not a schema migration.
+frozen; only the shared live PR10 schedule advances to the post-tag Lean
+implementation/CI-hardening phase. The roadmap schema/snapshot stay at 1.7.0 /
+2026-08-24 because this is a phase transition, not a schema migration.
 """
 from __future__ import annotations
 
@@ -112,28 +112,44 @@ def load_json(path: Path) -> dict[str, object]:
 EXPECTED_LIVE_ROADMAP = copy.deepcopy(_base.EXPECTED_LIVE_ROADMAP)
 for _item in EXPECTED_LIVE_ROADMAP["sequence"]:
     if _item.get("planned_pr") == 10:
-        _item["status"] = "active-post-merge-release-gate"
+        _item["status"] = "active-post-tag-lean-implementation-ci-hardening"
 EXPECTED_LIVE_ROADMAP["compatibility_note"] = (
     "machine/formalization_contract.json retains the PR9-era roadmap_rebase snapshot; frozen PR11, "
-    "BridgeCore, Epistemic Bridge, Representation, Information Comparability, Recovery, CSP, and EFP theorem "
-    "authorities retain their historical semantics. This file is the live post-EFP schedule authority: the first "
-    "PR #10 theorem batch is frozen and the next gate is exact merged-main validation plus an immutable source-release "
-    "tag before any Lean proof implementation."
+    "BridgeCore, Epistemic Bridge, Representation, Information Comparability, Recovery, CSP, EFP, and the "
+    "v3.0.0 Lean source-freeze authorities retain their historical semantics. This file is the live post-tag "
+    "schedule authority: immutable source tag v3.0.0 resolves to b7f51590985e60920c8b09fc9238b8aec6cfa3bc; "
+    "LEAN-OBS-BATCH-001 implements UFT-OBS-001 through UFT-OBS-004 and LEAN-OBS-BATCH-002 implements UFT-OBS-005. "
+    "Both remain IMPLEMENTED_PENDING_CI until the pinned Lean build, source binding, hostile review, and axiom audit "
+    "are green."
 )
 EXPECTED_LIVE_ROADMAP["rules"][2] = (
-    "The first Lean theorem batch and dependency graph are frozen; exact merged-main validation and an immutable "
-    "source-release tag must complete before any Lean/Lake/Mathlib proof implementation, while mathematical proof, "
-    "Lean proof, runtime conformance, and empirical validation remain separately typed authorities."
+    "The v3.0.0 source freeze remains immutable and historically records UFT-OBS-005 as deferred from batch 001; "
+    "live post-tag implementation may proceed only against that exact tag, with pinned Lean/Lake/Mathlib, exact "
+    "source binding, checked compilation, and explicit imported-axiom auditing before any LEAN_VERIFIED promotion."
 )
 
 LIVE_SCHEDULE_PHRASE = (
+    "Historical scheduling authority for the v3.0.0 source freeze remains PR #10 Lean observation foundation. "
+    "Live post-tag authority is now `machine/roadmap_state.json` plus `machine/lean_observation_verification.json`: "
+    "immutable tag `v3.0.0` is cut at `b7f51590985e60920c8b09fc9238b8aec6cfa3bc`, `LEAN-OBS-BATCH-001` "
+    "implements `UFT-OBS-001` through `004`, and arithmetic `LEAN-OBS-BATCH-002` implements `UFT-OBS-005`; both "
+    "remain `IMPLEMENTED_PENDING_CI` until the pinned build and axiom audit are green."
+)
+LIVE_LEAN_FREEZE_PHRASE = (
+    "PR #10 Lean observation foundation is the historical source-freeze authority. Source batch "
+    "`LEAN-OBS-BATCH-001` remains frozen in `machine/lean_observation_foundation_contract.json`, covering "
+    "`UFT-OBS-001` through `UFT-OBS-004`; the same v3.0.0 freeze records `UFT-OBS-005` as deferred from batch 001 "
+    "rather than dropped."
+)
+LIVE_LEAN_IMPLEMENTATION_PHRASE = (
+    "Live post-tag implementation authority is `machine/lean_observation_verification.json`. Immutable source tag "
+    "`v3.0.0` resolves to commit `b7f51590985e60920c8b09fc9238b8aec6cfa3bc` and tree "
+    "`966bdf47596832f792e77d619b33222f4cf60c8d`."
+)
+STALE_SCHEDULE_PHRASE = (
     "Live scheduling authority is PR #10 Lean observation foundation: the first theorem batch and dependency graph "
     "are frozen, and the active phase is the post-merge release gate for exact merged-main validation plus immutable "
     "source tagging before Lean implementation."
-)
-STALE_SCHEDULE_PHRASE = (
-    "Live scheduling authority is PR #10 Lean observation foundation, active only for first-theorem-batch and "
-    "dependency-graph freezing."
 )
 
 
@@ -148,7 +164,7 @@ def _live_roadmap_errors() -> list[str]:
     if roadmap.get("snapshot_date") != "2026-08-24":
         errors.append("EFP live roadmap snapshot drift")
     if roadmap.get("basis_commit") != "516cff5d6a45af54d6fc4ae9c72c2e8e9c668637":
-        errors.append("EFP live roadmap basis commit must remain merged PR #19 until PR #21 merges")
+        errors.append("EFP live roadmap basis commit must remain merged PR #19 until a later explicit rebase")
     if roadmap.get("active_planned_surface") != 10:
         errors.append("EFP live roadmap active surface must be PR #10")
     if roadmap.get("completed") != [5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18]:
@@ -160,8 +176,8 @@ def _live_roadmap_errors() -> list[str]:
         errors.append("EFP live roadmap sequence malformed")
     else:
         by_pr = {item.get("planned_pr"): item for item in sequence if isinstance(item, dict)}
-        if by_pr.get(10, {}).get("status") != "active-post-merge-release-gate":
-            errors.append("EFP live roadmap PR10 release-gate activation drift")
+        if by_pr.get(10, {}).get("status") != "active-post-tag-lean-implementation-ci-hardening":
+            errors.append("EFP live roadmap PR10 post-tag implementation activation drift")
         if by_pr.get(18, {}).get("status") != "complete-merged-516cff5d6a45af54d6fc4ae9c72c2e8e9c668637":
             errors.append("EFP live roadmap PR18 completion drift")
     if roadmap != EXPECTED_LIVE_ROADMAP:
@@ -179,7 +195,8 @@ def _live_bootstrap_errors() -> list[str]:
     required = (
         "The completed planned PR #18 surface defines a synthetic conformance procedure",
         LIVE_SCHEDULE_PHRASE,
-        "PR #10 Lean observation foundation is active. Source batch `LEAN-OBS-BATCH-001` is frozen in `machine/lean_observation_foundation_contract.json`, covering `UFT-OBS-001` through `UFT-OBS-004`; `UFT-OBS-005` remains deferred to a later arithmetic-focused batch.",
+        LIVE_LEAN_FREEZE_PHRASE,
+        LIVE_LEAN_IMPLEMENTATION_PHRASE,
     )
     for phrase in required:
         if text.count(phrase) != 1:
@@ -189,6 +206,7 @@ def _live_bootstrap_errors() -> list[str]:
         "The active planned PR #18 surface",
         "Lean remains deferred until source reproduction",
         "PR #10 Lean observation foundation is active only for theorem-batch and dependency-graph freezing.",
+        "Lean/Lake/Mathlib remain unpinned",
     )
     for phrase in forbidden:
         if phrase in text:
@@ -226,11 +244,10 @@ def main() -> int:
     result = validate()
     if args.json:
         print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
-    elif result["status"] == "ok":
-        print("Empirical Falsification Profile authority: ok")
     else:
+        print("Empirical falsification profile:", result["status"])
         for error in result["errors"]:
-            print(error)
+            print(" -", error)
     return 0 if result["status"] == "ok" else 1
 
 

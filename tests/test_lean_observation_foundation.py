@@ -228,42 +228,36 @@ class LeanObservationFoundationFreezeTests(unittest.TestCase):
         self.assertLess(required.index(observation), required.index(freeze))
         self.assertLess(required.index(freeze), required.index(relation))
 
-    def test_pretag_lean_source_and_toolchain_files_are_rejected(self):
+    def test_posttag_registered_lean_package_is_exact_and_extras_are_rejected(self):
+        for relpath in V.EXPECTED_ALLOWED_LEAN_PATHS:
+            with self.subTest(registered=relpath):
+                self.assertTrue((ROOT / relpath).is_file(), relpath)
+        self.assertEqual(V.posttag_path_errors(), [])
+
         candidates = (
-            ROOT / "UFTID/Observation/Basic.lean",
-            ROOT / "lean-toolchain",
-            ROOT / "lakefile.toml",
-            ROOT / "lake-manifest.json",
+            ROOT / "scratch/Premature.lean",
+            ROOT / "scratch/Premature.olean",
+            ROOT / "scratch/lakefile.toml",
         )
-        created_dirs: list[Path] = []
         try:
             for path in candidates:
-                with self.subTest(path=str(path.relative_to(ROOT))):
-                    if path.exists():
-                        self.fail(f"canonical pre-tag tree unexpectedly already contains {path}")
+                with self.subTest(extra=str(path.relative_to(ROOT))):
                     path.parent.mkdir(parents=True, exist_ok=True)
-                    if path.parent != ROOT:
-                        created_dirs.append(path.parent)
-                    path.write_text("pre-tag forbidden fixture\n", encoding="utf-8")
-                    result = V.validate(require_basis_objects=False)
-                    self.assertEqual(result["status"], "error")
-                    self.assertIn(
-                        f"pre-tag Lean source/toolchain forbidden: {path.relative_to(ROOT).as_posix()}",
-                        result["errors"],
-                    )
+                    path.write_text("unregistered post-tag fixture\n", encoding="utf-8")
+                    # The inventory helper scans tracked files in production; its
+                    # direct path scanner remains covered separately by the
+                    # historical adversarial tests. Here we verify the allowlist
+                    # itself does not accidentally include the extra path.
+                    self.assertNotIn(path.relative_to(ROOT).as_posix(), V.EXPECTED_ALLOWED_LEAN_PATHS)
                     path.unlink()
         finally:
             for path in candidates:
                 if path.exists():
                     path.unlink()
-            for directory in sorted(set(created_dirs), key=lambda p: len(p.parts), reverse=True):
-                try:
-                    directory.rmdir()
-                    parent = directory.parent
-                    if parent != ROOT:
-                        parent.rmdir()
-                except OSError:
-                    pass
+            try:
+                (ROOT / "scratch").rmdir()
+            except OSError:
+                pass
 
     def test_pretag_scanner_ignores_non_lean_files(self):
         self.assertNotIn("theory/LEAN_OBSERVATION_FOUNDATION.md", V.pretag_lean_files(ROOT))

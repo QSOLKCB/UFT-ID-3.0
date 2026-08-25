@@ -86,10 +86,12 @@ class CodexSeventhBatchRegressions(unittest.TestCase):
         )
         for field, label in surfaces:
             with self.subTest(field=field, mutation="canonical hash"):
-                self.assertEqual(
-                    V.text_git_blob_sha(docs[field]),
-                    V.EXPECTED_CLAIM_SURFACE_BLOBS[label],
+                expected = (
+                    V.EXPECTED_LIVE_README_BLOB
+                    if field == "readme"
+                    else V.EXPECTED_CLAIM_SURFACE_BLOBS[label]
                 )
+                self.assertEqual(V.text_git_blob_sha(docs[field]), expected)
 
         attacks = (
             "We have now published the immutable source-release tag.",

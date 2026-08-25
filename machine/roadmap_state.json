@@ -29,7 +29,7 @@
     {
       "planned_pr": 10,
       "surface": "lean-observation-foundation",
-      "status": "active-post-merge-release-gate"
+      "status": "active-post-tag-lean-implementation-ci-hardening"
     },
     {
       "planned_pr": 11,
@@ -72,12 +72,12 @@
       "status": "complete-merged-516cff5d6a45af54d6fc4ae9c72c2e8e9c668637"
     }
   ],
-  "compatibility_note": "machine/formalization_contract.json retains the PR9-era roadmap_rebase snapshot; frozen PR11, BridgeCore, Epistemic Bridge, Representation, Information Comparability, Recovery, CSP, and EFP theorem authorities retain their historical semantics. This file is the live post-EFP schedule authority: the first PR #10 theorem batch is frozen and the next gate is exact merged-main validation plus an immutable source-release tag before any Lean proof implementation.",
+  "compatibility_note": "machine/formalization_contract.json retains the PR9-era roadmap_rebase snapshot; frozen PR11, BridgeCore, Epistemic Bridge, Representation, Information Comparability, Recovery, CSP, EFP, and the v3.0.0 Lean source-freeze authorities retain their historical semantics. This file is the live post-tag schedule authority: immutable source tag v3.0.0 resolves to b7f51590985e60920c8b09fc9238b8aec6cfa3bc; LEAN-OBS-BATCH-001 implements UFT-OBS-001 through UFT-OBS-004 and LEAN-OBS-BATCH-002 implements UFT-OBS-005. Both remain IMPLEMENTED_PENDING_CI until the pinned Lean build, source binding, hostile review, and axiom audit are green.",
   "fixture_policy": "Minimal fixtures travel with the theorem or counterexample that requires them.",
   "rules": [
     "NO_GIANT_FORMALIZATION_PR",
     "NO_STANDALONE_FINITE_FIXTURE_ZOO",
-    "The first Lean theorem batch and dependency graph are frozen; exact merged-main validation and an immutable source-release tag must complete before any Lean/Lake/Mathlib proof implementation, while mathematical proof, Lean proof, runtime conformance, and empirical validation remain separately typed authorities.",
+    "The v3.0.0 source freeze remains immutable and historically records UFT-OBS-005 as deferred from batch 001; live post-tag implementation may proceed only against that exact tag, with pinned Lean/Lake/Mathlib, exact source binding, checked compilation, and explicit imported-axiom auditing before any LEAN_VERIFIED promotion.",
     "A unique-selection claim requires an actual discriminating theorem or uniqueness proof, not compatibility or one successful construction.",
     "No semantic lifting is licensed without an explicit typed bridge declaring preserved structure, lost structure, scope, and version compatibility.",
     "Structural transport, retrieval, inference, execution, storage, or replay cannot create verification authority without an explicit epistemic operation and receipt.",

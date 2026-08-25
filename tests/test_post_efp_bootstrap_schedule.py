@@ -9,11 +9,24 @@ VALIDATOR = ROOT / "scripts/validate_empirical_falsification_profile.py"
 README = ROOT / "README4AI.md"
 
 LIVE_SCHEDULE_PHRASE = (
+    "Historical scheduling authority for the v3.0.0 source freeze remains PR #10 Lean observation foundation. "
+    "Live post-tag authority is now `machine/roadmap_state.json` plus `machine/lean_observation_verification.json`: "
+    "immutable tag `v3.0.0` is cut at `b7f51590985e60920c8b09fc9238b8aec6cfa3bc`, `LEAN-OBS-BATCH-001` "
+    "implements `UFT-OBS-001` through `004`, and arithmetic `LEAN-OBS-BATCH-002` implements `UFT-OBS-005`; both "
+    "remain `IMPLEMENTED_PENDING_CI` until the pinned build and axiom audit are green."
+)
+LIVE_LEAN_PHRASE = (
+    "PR #10 Lean observation foundation is the historical source-freeze authority. Source batch "
+    "`LEAN-OBS-BATCH-001` remains frozen in `machine/lean_observation_foundation_contract.json`, covering "
+    "`UFT-OBS-001` through `UFT-OBS-004`; the same v3.0.0 freeze records `UFT-OBS-005` as deferred from batch 001 "
+    "rather than dropped."
+)
+STALE_RELEASE_GATE_PHRASE = (
     "Live scheduling authority is PR #10 Lean observation foundation: the first theorem batch and dependency graph "
     "are frozen, and the active phase is the post-merge release gate for exact merged-main validation plus immutable "
     "source tagging before Lean implementation."
 )
-STALE_SCHEDULE_PHRASE = (
+STALE_PRETAG_PHRASE = (
     "Live scheduling authority is PR #10 Lean observation foundation, active only for first-theorem-batch and "
     "dependency-graph freezing."
 )
@@ -36,10 +49,12 @@ class PostEfpBootstrapScheduleTests(unittest.TestCase):
         text = README.read_text(encoding="utf-8")
         self.assertIn("The completed planned PR #18 surface defines a synthetic conformance procedure", text)
         self.assertIn(LIVE_SCHEDULE_PHRASE, text)
-        self.assertNotIn(STALE_SCHEDULE_PHRASE, text)
-        self.assertIn("PR #10 Lean observation foundation is active. Source batch `LEAN-OBS-BATCH-001` is frozen in `machine/lean_observation_foundation_contract.json`, covering `UFT-OBS-001` through `UFT-OBS-004`; `UFT-OBS-005` remains deferred to a later arithmetic-focused batch.", text)
+        self.assertIn(LIVE_LEAN_PHRASE, text)
+        self.assertNotIn(STALE_RELEASE_GATE_PHRASE, text)
+        self.assertNotIn(STALE_PRETAG_PHRASE, text)
         self.assertNotIn("The active planned PR #18 surface", text)
         self.assertNotIn("Lean remains deferred until source reproduction", text)
+        self.assertNotIn("Lean/Lake/Mathlib remain unpinned", text)
 
     def test_stale_pr18_active_bootstrap_fails_closed(self):
         validator = load_validator()

@@ -72,12 +72,15 @@ class CodexFourthBatchRegressions(unittest.TestCase):
         self.assertEqual(result["status"], "error")
         self.assertIn("Lean observation human dependency graph drift", result["errors"])
 
-    def test_machine_schedule_advances_to_release_gate_without_schema_migration(self):
+    def test_machine_schedule_advances_post_tag_without_schema_migration(self):
         roadmap = json.loads(ROADMAP_STATE.read_text(encoding="utf-8"))
         self.assertEqual(roadmap["schema_version"], "1.7.0")
         self.assertEqual(roadmap["snapshot_date"], "2026-08-24")
         by_pr = {item["planned_pr"]: item for item in roadmap["sequence"]}
-        self.assertEqual(by_pr[10]["status"], "active-post-merge-release-gate")
+        self.assertEqual(
+            by_pr[10]["status"],
+            "active-post-tag-lean-implementation-ci-hardening",
+        )
         self.assertEqual(EFP._live_roadmap_errors(), [])
         self.assertEqual(REL._live_roadmap_errors(roadmap), [])
         result = EFP.validate()
