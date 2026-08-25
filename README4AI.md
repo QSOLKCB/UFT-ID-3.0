@@ -342,7 +342,7 @@ FINITE_STOCHASTIC_CONFORMANCE != GENERAL_STOCHASTIC_OR_CONTINUUM_THEORY
 
 ## Empirical Falsification Profile authority
 
-The completed planned PR #18 surface defines a synthetic conformance procedure for deciding whether a calibrated profile-matched evidence record crosses one versioned scoped rejection boundary. It specializes the PR8 `FalsificationSpec` scaffold without converting synthetic fixtures, matching hashes, or procedural labels into empirical evidence or preregistration proof. Live scheduling authority is PR #10 Lean observation foundation, active only for first-theorem-batch and dependency-graph freezing.
+The completed planned PR #18 surface defines a synthetic conformance procedure for deciding whether a calibrated profile-matched evidence record crosses one versioned scoped rejection boundary. It specializes the PR8 `FalsificationSpec` scaffold without converting synthetic fixtures, matching hashes, or procedural labels into empirical evidence or preregistration proof. Live scheduling authority is PR #10 Lean observation foundation: the first theorem batch and dependency graph are frozen, and the active phase is the post-merge release gate for exact merged-main validation plus immutable source tagging before Lean implementation.
 
 ```text
 EmpiricalFalsificationProfile = (
@@ -479,6 +479,7 @@ python scripts/validate_vopson_2019_mei.py
 python scripts/validate_reproducibility.py
 python scripts/validate_formalization_contracts.py
 python scripts/validate_observation_specs.py
+python scripts/validate_lean_observation_foundation.py
 python scripts/validate_relation_core.py
 python scripts/validate_graph_realization.py
 python experiments/graph_realization/run.py --json
@@ -562,7 +563,25 @@ python experiments/run_pr6.py --json
 
 ## Lean
 
-PR #10 Lean observation foundation is active only for theorem-batch and dependency-graph freezing. Lean proof implementation, source tagging, QSOL-CONTEXT target binding, and Zenodo publication are not claimed by this rollover and remain gated by the ordered workflow in `ROADMAP.md`. Detailed formalization/publication workflow planning remains ROADMAP-only and is not promoted into current proof, empirical, or publication authority.
+PR #10 Lean observation foundation is active. Source batch `LEAN-OBS-BATCH-001` is frozen in `machine/lean_observation_foundation_contract.json`, covering `UFT-OBS-001` through `UFT-OBS-004`; `UFT-OBS-005` remains deferred to a later arithmetic-focused batch.
+
+No Lean proof object is claimed by this freeze. Lean/Lake/Mathlib remain unpinned. After PR #21 merges, the next gate is exact merged-`main` CI plus hostile review, then tag that exact merged commit/tree before Lean proof implementation. QSOL-CONTEXT target binding and Zenodo publication remain later ordered gates in `ROADMAP.md`.
+
+Canonical source-freeze surfaces:
+
+```text
+machine/lean_observation_foundation_contract.json
+theory/LEAN_OBSERVATION_FOUNDATION.md
+scripts/validate_lean_observation_foundation.py
+tests/test_lean_observation_foundation.py
+```
+
+```text
+MATHEMATICAL_PROOF != LEAN_PROOF
+SOURCE_THEOREM != LEAN_ARTIFACT
+THEOREM_BATCH_FREEZE != SOURCE_RELEASE_TAG
+SOURCE_RELEASE_TAG != LEAN_VERIFIED
+```
 
 ## Read next
 

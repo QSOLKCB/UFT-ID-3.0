@@ -1,0 +1,184 @@
+#!/usr/bin/env python3
+"""Current-state wrapper for the frozen PR #11 relation validator.
+
+The merged PR #11 validator is preserved byte-for-byte in
+validate_relation_core_frozen_pr11.py. This wrapper changes only the live
+roadmap-state expectation as later formal surfaces complete. All PR11 relation
+theorem, counterexample, selection, source, and proof checks remain frozen.
+"""
+from __future__ import annotations
+
+import copy
+import importlib.util
+import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+FROZEN = ROOT / "scripts/validate_relation_core_frozen_pr11.py"
+
+
+def _load_frozen():
+    spec = importlib.util.spec_from_file_location("uft_pr11_relation_validator_frozen", FROZEN)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"cannot load frozen PR11 validator: {FROZEN}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+_FROZEN = _load_frozen()
+
+for _name in dir(_FROZEN):
+    if _name.startswith("__") or _name in {"validate", "validate_documents", "main", "EXPECTED_ROADMAP_SEQUENCE", "EXPECTED_ROADMAP_STATE"}:
+        continue
+    globals()[_name] = getattr(_FROZEN, _name)
+
+EXPECTED_ROADMAP_SEQUENCE = [(9, 'deterministic-observation-calculus', 'complete'),
+ (10, 'lean-observation-foundation', 'active-first-theorem-batch-freeze'),
+ (11, 'relation-first-recovery-core-plus-graph-realization-interlude', 'complete-merged-a72dab3170e9880ca8bf120766d8547d6cc0110b'),
+ (12, 'bridge-core', 'complete-merged-2242f96564f4d27af4ba641b45f45f011a49a7c7'),
+ (13, 'epistemic-bridge-specialization', 'complete-merged-083aa9ae9e812cae86302d856f70ad83e5cf806b'),
+ (14, 'representation-and-congruence-calculus', 'complete-merged-a094ec469f311bc6cc11442ee5f850f5dc130e2f'),
+ (15, 'information-comparability-core', 'complete-merged-22b589c4e2e2042d180d64db837f092a007e0813'),
+ (16, 'recovery-specializations', 'complete-merged-2f2cdd2af195a2e74a55e14abfbc4f88e0901a8f'),
+ (17, 'continuum-stochastic-prevalence-obligations', 'complete-merged-353e55a11a8cb6d6bcf571110e0fd6f32823fc77'),
+ (18, 'empirical-falsification-profile', 'complete-merged-516cff5d6a45af54d6fc4ae9c72c2e8e9c668637')]
+
+EXPECTED_ROADMAP_STATE = {'type': 'uft-id-roadmap-state',
+ 'schema_version': '1.7.0',
+ 'snapshot_date': '2026-08-24',
+ 'basis_commit': '516cff5d6a45af54d6fc4ae9c72c2e8e9c668637',
+ 'completed': [5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18],
+ 'active_planned_surface': 10,
+ 'deferred': [],
+ 'sequence': [{'planned_pr': 9, 'surface': 'deterministic-observation-calculus', 'status': 'complete'},
+              {'planned_pr': 10, 'surface': 'lean-observation-foundation', 'status': 'active-first-theorem-batch-freeze'},
+              {'planned_pr': 11,
+               'surface': 'relation-first-recovery-core-plus-graph-realization-interlude',
+               'status': 'complete-merged-a72dab3170e9880ca8bf120766d8547d6cc0110b'},
+              {'planned_pr': 12, 'surface': 'bridge-core', 'status': 'complete-merged-2242f96564f4d27af4ba641b45f45f011a49a7c7'},
+              {'planned_pr': 13,
+               'surface': 'epistemic-bridge-specialization',
+               'status': 'complete-merged-083aa9ae9e812cae86302d856f70ad83e5cf806b'},
+              {'planned_pr': 14,
+               'surface': 'representation-and-congruence-calculus',
+               'status': 'complete-merged-a094ec469f311bc6cc11442ee5f850f5dc130e2f'},
+              {'planned_pr': 15,
+               'surface': 'information-comparability-core',
+               'status': 'complete-merged-22b589c4e2e2042d180d64db837f092a007e0813'},
+              {'planned_pr': 16,
+               'surface': 'recovery-specializations',
+               'status': 'complete-merged-2f2cdd2af195a2e74a55e14abfbc4f88e0901a8f'},
+              {'planned_pr': 17,
+               'surface': 'continuum-stochastic-prevalence-obligations',
+               'status': 'complete-merged-353e55a11a8cb6d6bcf571110e0fd6f32823fc77'},
+              {'planned_pr': 18,
+               'surface': 'empirical-falsification-profile',
+               'status': 'complete-merged-516cff5d6a45af54d6fc4ae9c72c2e8e9c668637'}],
+ 'compatibility_note': 'machine/formalization_contract.json retains the PR9-era roadmap_rebase snapshot; frozen PR11, BridgeCore, '
+                       'Epistemic Bridge, Representation, Information Comparability, Recovery, CSP, and EFP theorem authorities retain '
+                       'their historical semantics. This file is the live post-EFP schedule authority with PR #10 activated for '
+                       'first-theorem-batch freezing.',
+ 'fixture_policy': 'Minimal fixtures travel with the theorem or counterexample that requires them.',
+ 'rules': ['NO_GIANT_FORMALIZATION_PR',
+           'NO_STANDALONE_FINITE_FIXTURE_ZOO',
+           'Lean activation begins with theorem-batch and dependency-graph freezing; mathematical proof, Lean proof, runtime conformance, '
+           'and empirical validation remain separately typed authorities.',
+           'A unique-selection claim requires an actual discriminating theorem or uniqueness proof, not compatibility or one successful '
+           'construction.',
+           'No semantic lifting is licensed without an explicit typed bridge declaring preserved structure, lost structure, scope, and '
+           'version compatibility.',
+           'Structural transport, retrieval, inference, execution, storage, or replay cannot create verification authority without an '
+           'explicit epistemic operation and receipt.',
+           'Conflict and unknown remain separately represented; verified and conflict may coexist.',
+           'Every representation invariant must name the transformation class and hypotheses under which it is preserved.',
+           'Similarity, congruence, coordinate change, and receiver re-encoding remain separately typed and cannot imply semantic or '
+           'physical identity by name alone.',
+           'No information comparison is licensed by shared vocabulary, scalar codomain, unit, functional name, or numeric equality alone; '
+           'comparison requires the declared InformationSpec relation or an explicit registered conversion.',
+           'A deterministic recovery selector is a specialization of the generic relation only when its non-fixed steps are '
+           'relation-sound; executable normalization additionally requires explicit termination/progress and fixed-point/normal-state '
+           'obligations.',
+           'Stochastic, prevalence, infinite-horizon, and continuum claims require separately declared probability/measure and lifting '
+           'obligations; finite reachability, finite samples, counterexamples, or grid conformance cannot supply them by default.',
+           'Empirical rejection requires complete calibrated profile-matched evidence and remains scoped to one hypothesis/profile '
+           'version; formal counterexamples, synthetic fixtures, non-rejection, or model fit cannot be promoted into empirical '
+           'falsification, confirmation, or unique explanation by default.']}
+
+def _live_roadmap_errors(roadmap_state: dict[str, object]) -> list[str]:
+    errors: list[str] = []
+    if roadmap_state.get("active_planned_surface") != 10:
+        errors.append("live roadmap active planned surface must be PR10")
+        errors.append("live roadmap active planned surface must be PR17")
+        errors.append("live roadmap active planned surface must be PR16")
+    if roadmap_state.get("completed") != [5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18]:
+        errors.append("live roadmap completed set drift")
+    sequence = roadmap_state.get("sequence")
+    actual_sequence: list[tuple[object, object, object]] = []
+    if isinstance(sequence, list):
+        for item in sequence:
+            if isinstance(item, dict):
+                actual_sequence.append((item.get("planned_pr"), item.get("surface"), item.get("status")))
+    if actual_sequence != EXPECTED_ROADMAP_SEQUENCE:
+        errors.append("live roadmap sequence/status drift")
+    if roadmap_state != EXPECTED_ROADMAP_STATE:
+        errors.append("live roadmap state canonical payload drift")
+    _FROZEN.no_private_locators(roadmap_state, "roadmap state", errors)
+    return errors
+
+
+def validate_documents(contract, theorems, counterexamples, selection, cross_repo_patterns,
+                       roadmap_state, base_contract, human, roadmap, *, check_paths: bool = True):
+    frozen_state = copy.deepcopy(_FROZEN.EXPECTED_ROADMAP_STATE)
+    result = _FROZEN.validate_documents(
+        contract, theorems, counterexamples, selection, cross_repo_patterns,
+        frozen_state, base_contract, human, roadmap, check_paths=check_paths,
+    )
+    errors = list(result.get("errors", []))
+    errors.extend(_live_roadmap_errors(roadmap_state))
+    result["errors"] = errors
+    result["status"] = "error" if errors else "ok"
+    return result
+
+
+def validate():
+    missing = [str(path.relative_to(ROOT)) for path in PATHS.values() if not path.is_file()]
+    if missing:
+        return {
+            "status": "error",
+            "errors": [f"missing relation authority file: {path}" for path in missing],
+            "theorem_count": 0,
+            "counterexample_count": 0,
+            "public_context_ref_count": 0,
+            "exhaustive_relation_count": 0,
+        }
+    return validate_documents(
+        load(PATHS["contract"]),
+        load(PATHS["theorems"]),
+        load(PATHS["counterexamples"]),
+        load(PATHS["selection"]),
+        load(PATHS["cross_repo_patterns"]),
+        load(PATHS["roadmap_state"]),
+        load(PATHS["base_contract"]),
+        PATHS["human"].read_text(encoding="utf-8"),
+        PATHS["roadmap"].read_text(encoding="utf-8"),
+        check_paths=True,
+    )
+
+
+def main() -> int:
+    parser = __import__("argparse").ArgumentParser()
+    parser.add_argument("--json", action="store_true")
+    args = parser.parse_args()
+    result = validate()
+    if args.json:
+        print(json.dumps(result, indent=2, sort_keys=True))
+    else:
+        print("PR11 relation/selection core:", result["status"])
+        for error in result["errors"]:
+            print(" -", error)
+    return 0 if result["status"] == "ok" else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

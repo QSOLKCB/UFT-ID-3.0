@@ -38,6 +38,7 @@ python scripts/render_vopson_docs.py --check
 python scripts/validate_vopson_corpus.py
 python scripts/validate_cross_repo_patterns.py
 python scripts/validate_reproducibility.py
+python scripts/validate_lean_observation_foundation.py
 python -m unittest discover -s tests -v
 python -O -m unittest discover -s tests -v
 python experiments/run_pr2.py --json
@@ -190,9 +191,12 @@ Treat publications as scientific targets, never people as targets. ORCID
 
 ## Formal verification rule
 
-Lean remains deferred. When it begins, compile it in CI, map theorem IDs to the
-paper, distinguish imported theorems from UFT-ID results, and never claim an
-ontology is proved merely because an abstract theorem compiles.
+PR #10 source theorem freezing is active, but Lean proof implementation remains
+gated until the frozen batch is merged, exact merged-main CI/audit is green, and
+an immutable source-release tag binds the target commit/tree. When Lean proof work
+begins, compile it in CI, map theorem IDs to the source authority, distinguish
+imported theorems from UFT-ID results, and never claim an ontology is proved merely
+because an abstract theorem compiles.
 
 Cross-repository candidates that are especially suitable for later finite Lean
 work include coprime cyclic traversal and finite minimum sufficient-basis

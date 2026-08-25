@@ -7,12 +7,32 @@ on:
       - "scripts/validate_vopson_corpus.py"
       - "scripts/render_vopson_docs.py"
       - "scripts/validate_reproducibility.py"
+      - "scripts/validate_observation_specs.py"
+      - "scripts/validate_lean_observation_foundation.py"
+      - "scripts/verify_lean_observation_foundation_artifact.py"
+      - "scripts/validate_lean_observation_foundation_pr21_pre_codex4.py"
+      - "scripts/validate_lean_observation_foundation_pr21_frozen.py"
+      - "experiments/observation/run.py"
+      - "experiments/run_pr9.py"
       - "tests/**"
       - "machine/**"
       - "README.md"
       - "README4AI.md"
+      - "ROADMAP.md"
       - "AGENTS.md"
       - "docs/REPRODUCIBILITY.md"
+      - "theory/OBSERVATION_CALCULUS.md"
+      - "theory/LEAN_OBSERVATION_FOUNDATION.md"
+      - "UFTID/**"
+      - "**/*.lean"
+      - "**/*.olean"
+      - "**/*.ilean"
+      - "lean-toolchain"
+      - "**/lean-toolchain"
+      - "lakefile.toml"
+      - "**/lakefile.toml"
+      - "lake-manifest.json"
+      - "**/lake-manifest.json"
       - ".github/workflows/**"
   push:
     branches: [main]
@@ -21,12 +41,32 @@ on:
       - "scripts/validate_vopson_corpus.py"
       - "scripts/render_vopson_docs.py"
       - "scripts/validate_reproducibility.py"
+      - "scripts/validate_observation_specs.py"
+      - "scripts/validate_lean_observation_foundation.py"
+      - "scripts/verify_lean_observation_foundation_artifact.py"
+      - "scripts/validate_lean_observation_foundation_pr21_pre_codex4.py"
+      - "scripts/validate_lean_observation_foundation_pr21_frozen.py"
+      - "experiments/observation/run.py"
+      - "experiments/run_pr9.py"
       - "tests/**"
       - "machine/**"
       - "README.md"
       - "README4AI.md"
+      - "ROADMAP.md"
       - "AGENTS.md"
       - "docs/REPRODUCIBILITY.md"
+      - "theory/OBSERVATION_CALCULUS.md"
+      - "theory/LEAN_OBSERVATION_FOUNDATION.md"
+      - "UFTID/**"
+      - "**/*.lean"
+      - "**/*.olean"
+      - "**/*.ilean"
+      - "lean-toolchain"
+      - "**/lean-toolchain"
+      - "lakefile.toml"
+      - "**/lakefile.toml"
+      - "lake-manifest.json"
+      - "**/lake-manifest.json"
       - ".github/workflows/**"
 
 permissions:
@@ -44,6 +84,7 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
+          fetch-depth: 0
 
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
@@ -61,6 +102,11 @@ jobs:
       - name: Validate reproducibility contract
         run: python scripts/validate_reproducibility.py
 
+      - name: Validate Lean observation source freeze
+        env:
+          UFT_REQUIRE_BASIS_COMMIT_OBJECT: "1"
+        run: python scripts/validate_lean_observation_foundation.py
+
       - name: Unit and adversarial tests
         run: python -m unittest discover -s tests -v
 
@@ -74,7 +120,12 @@ jobs:
           python scripts/validate_vopson_corpus.py --json > artifacts/vopson-corpus-validation.json 2> artifacts/vopson-corpus-validation.stderr.txt || true
           python scripts/render_vopson_docs.py --check --json > artifacts/vopson-doc-sync.json 2> artifacts/vopson-doc-sync.stderr.txt || true
           python scripts/validate_reproducibility.py --json > artifacts/reproducibility-validation.json 2> artifacts/reproducibility-validation.stderr.txt || true
+          UFT_REQUIRE_BASIS_COMMIT_OBJECT=1 python scripts/validate_lean_observation_foundation.py --json > artifacts/lean-observation-freeze-validation.json 2> artifacts/lean-observation-freeze-validation.stderr.txt || true
           python experiments/run_pr2.py --json > artifacts/pr2-receipt.json 2> artifacts/pr2-receipt.stderr.txt || true
+
+      - name: Verify retained Lean observation freeze evidence
+        if: always()
+        run: python scripts/verify_lean_observation_foundation_artifact.py artifacts
 
       - name: Retain corpus evidence bundle
         if: always()

@@ -54,20 +54,22 @@ LEAN_PROOF != RUNTIME_CONFORMANCE != EMPIRICAL_VALIDATION
 
 ### Active now — planned PR #10
 
-**Status:** ACTIVE — theorem-batch/dependency-graph freeze only. No Lean proof object, source-release tag, or DOI is claimed by this rollover.
+**Status:** ACTIVE — first theorem batch frozen by PR #21; exact merged-main release gate and immutable source tag are next. No Lean proof object, source-release tag, or DOI is claimed by this freeze PR.
 
 Immediate entry task:
 
-- [ ] Freeze the first PR #10 theorem batch and dependency graph.
-- [ ] Name exact source theorem IDs, statements, hypotheses, scopes, nonclaims, and counterexamples.
-- [ ] Define the expected Lean module map without adding proof claims yet.
-- [ ] Keep `MATHEMATICAL_PROOF`, `LEAN_PROOF`, `RUNTIME_CONFORMANCE`, and `EMPIRICAL_VALIDATION` separately typed.
+- [x] Freeze the first PR #10 theorem batch and dependency graph.
+- [x] Name exact source theorem IDs, statements, hypotheses, scopes, nonclaims, and counterexamples.
+- [x] Define the expected Lean module map without adding proof claims yet.
+- [x] Keep `MATHEMATICAL_PROOF`, `LEAN_PROOF`, `RUNTIME_CONFORMANCE`, and `EMPIRICAL_VALIDATION` separately typed.
+
+Frozen batch: `LEAN-OBS-BATCH-001`, covering `UFT-OBS-001` through `UFT-OBS-004`. `UFT-OBS-005` remains explicitly deferred to a later arithmetic-focused Lean batch. The live PR #10 phase remains active until the exact merged-main release gate is green and the immutable source tag is cut.
 
 The exact `Active now — planned PR #18` heading later in this live section is retained only as a merged-validator compatibility anchor. Its status is COMPLETE and it is not current scheduling authority.
 
 ### QSOL-CONTEXT → Lean 4 → Zenodo formalization workflow
 
-**Status:** ROADMAP-ONLY workflow contract for deferred PR #10 and later formalization releases.
+**Status:** ROADMAP-ONLY workflow contract for active PR #10 and later formalization releases.
 
 `QSOLKCB/QSOL-CONTEXT` is the provenance, coordination, and supersession spine between an immutable UFT-ID source release, reproducible Lean 4 packages, immutable Zenodo release bundles, and DOI records. Lean formalization is a later scholarly layer and must not be rewritten into the identity of the original source release.
 
@@ -126,7 +128,7 @@ Formalization/publication checklist:
 - [x] Preserve Lean as a later scholarly layer rather than part of the original source-release identity.
 - [x] Define the three-file Zenodo surface: deterministic source ZIP, Overview PDF, and release notes.
 - [x] Require independent archive reproduction before the archive layer is merged and artifacts are published.
-- [ ] Freeze the first PR #10 theorem batch and dependency graph.
+- [x] Freeze the first PR #10 theorem batch and dependency graph.
 - [ ] Pass the exact merged-main release gate and cut the immutable source tag.
 - [ ] Create the corresponding post-tag QSOL-CONTEXT target-binding record.
 - [ ] Pin the Lean 4, Lake, Mathlib, and package toolchain.

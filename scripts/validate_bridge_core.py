@@ -11,6 +11,7 @@ from __future__ import annotations
 import copy
 import importlib.util
 import json
+import math
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -67,6 +68,35 @@ EXPECTED_LIVE_ROADMAP = {'type': 'uft-id-roadmap-state',
  'deferred': []}
 
 
+def _strict_live_roadmap(path: Path) -> dict[str, object]:
+    def reject_duplicates(pairs: list[tuple[str, object]]) -> dict[str, object]:
+        value: dict[str, object] = {}
+        for key, item in pairs:
+            if key in value:
+                raise ValueError(f"duplicate JSON object key: {key}")
+            value[key] = item
+        return value
+
+    def reject_constant(token: str):
+        raise ValueError(f"non-finite JSON number: {token}")
+
+    def finite_float(token: str) -> float:
+        value = float(token)
+        if not math.isfinite(value):
+            raise ValueError(f"non-finite JSON number: {token}")
+        return value
+
+    value = json.loads(
+        path.read_text(encoding="utf-8"),
+        object_pairs_hook=reject_duplicates,
+        parse_constant=reject_constant,
+        parse_float=finite_float,
+    )
+    if not isinstance(value, dict):
+        raise ValueError(f"{path} must contain an object")
+    return value
+
+
 def validate() -> dict[str, object]:
     original_load = _prior._frozen.load_json
     try:
@@ -80,7 +110,11 @@ def validate() -> dict[str, object]:
         _prior._frozen.load_json = original_load
 
     errors = list(result.get("errors", []))
-    live = json.loads(ROADMAP.read_text(encoding="utf-8"))
+    try:
+        live = _strict_live_roadmap(ROADMAP)
+    except (OSError, ValueError) as exc:
+        errors.append(f"BridgeCore live roadmap JSON invalid: {exc}")
+        return {**result, "status": "error", "errors": errors}
     for key, expected in EXPECTED_LIVE_ROADMAP.items():
         if live.get(key) != expected:
             errors.append(f"BridgeCore live roadmap {key} drift")

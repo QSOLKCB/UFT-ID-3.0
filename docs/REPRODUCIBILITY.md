@@ -37,6 +37,7 @@ python scripts/validate_vopson_2019_mei.py
 python scripts/validate_reproducibility.py
 python scripts/validate_formalization_contracts.py
 python scripts/validate_observation_specs.py
+python scripts/validate_lean_observation_foundation.py
 python scripts/validate_relation_core.py
 python scripts/validate_graph_realization.py
 python experiments/graph_realization/run.py --json
@@ -89,6 +90,27 @@ experiments/run_empirical_falsification_profile.py
 ```
 
 All receipt families bind deterministic repository files and canonical result payloads while keeping runtime metadata outside portable fingerprints.
+
+## Lean observation source-freeze boundary
+
+`LEAN-OBS-BATCH-001` freezes source theorem identity for `UFT-OBS-001` through `UFT-OBS-004`, their dependency/counterexample links, and the expected future Lean module/declaration map. `UFT-OBS-005` remains explicitly deferred.
+
+Canonical validation:
+
+```bash
+python scripts/validate_observation_specs.py
+python scripts/validate_lean_observation_foundation.py
+```
+
+The freeze validator recomputes Git blob identities for the pinned PR9 source authority and rejects statement, hypothesis, nonclaim, dependency, module-map, toolchain, source-tag, or bootstrap drift.
+
+```text
+SOURCE_THEOREM_FREEZE != LEAN_PROOF
+THEOREM_BATCH_FREEZE != SOURCE_RELEASE_TAG
+SOURCE_RELEASE_TAG != LEAN_VERIFIED
+```
+
+No deterministic Lean receipt is created in this phase because no Lean toolchain or proof source exists yet.
 
 ## Graph-realization conformance boundary
 

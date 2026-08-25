@@ -7,7 +7,16 @@
     "repository": "QSOLKCB/UFT-ID-3.0"
   },
   "canonical_system": {
-    "tuple": ["S", "A", "F", "Pi_lex", "O", "T", "I", "C"],
+    "tuple": [
+      "S",
+      "A",
+      "F",
+      "Pi_lex",
+      "O",
+      "T",
+      "I",
+      "C"
+    ],
     "symbols": {
       "S": "total state space",
       "A": "admissible subspace",
@@ -21,14 +30,25 @@
   },
   "maths_staging_file": "MATHS.md",
   "runtime_support": {
-    "python": ["3.12", "3.13"],
+    "python": [
+      "3.12",
+      "3.13"
+    ],
     "github_runner": "ubuntu-24.04",
     "dependency_policy": "Python standard library only for current validators and finite experiments"
   },
   "ci_provenance": {
-    "workflow_files": [".github/workflows/finite-adversarial.yml", ".github/workflows/vopson-corpus.yml"],
-    "workflow_extensions": [".yml", ".yaml"],
-    "workflow_permissions": {"contents": "read"},
+    "workflow_files": [
+      ".github/workflows/finite-adversarial.yml",
+      ".github/workflows/vopson-corpus.yml"
+    ],
+    "workflow_extensions": [
+      ".yml",
+      ".yaml"
+    ],
+    "workflow_permissions": {
+      "contents": "read"
+    },
     "job_permission_overrides_allowed": false,
     "action_pins": {
       "actions/checkout": "d23441a48e516b6c34aea4fa41551a30e30af803",
@@ -39,13 +59,19 @@
     "artifact_directory": "artifacts",
     "artifact_retention_days": 30,
     "compile_command": "python -m compileall -q experiments scripts tests",
-    "test_commands": ["python -m unittest discover -s tests -v", "python -O -m unittest discover -s tests -v"],
+    "test_commands": [
+      "python -m unittest discover -s tests -v",
+      "python -O -m unittest discover -s tests -v"
+    ],
     "evidence_generation_condition": "always()",
     "validator": "scripts/validate_reproducibility.py"
   },
   "experiment_library": {
     "information_primitives": "experiments/lib/information.py",
-    "package_initializers": ["experiments/__init__.py", "experiments/lib/__init__.py"],
+    "package_initializers": [
+      "experiments/__init__.py",
+      "experiments/lib/__init__.py"
+    ],
     "scientific_asserts_allowed": false,
     "default_probability_tolerance": 1e-12,
     "shannon_logarithm_base": 2,
@@ -209,6 +235,18 @@
     "workflow": ".github/workflows/finite-adversarial.yml",
     "rule": "Empirical decision eligibility requires complete calibrated profile-matched evidence and remains scoped to one hypothesis/profile version; the synthetic REJECTED_IN_SCOPE label carries external-unverified registration status and no empirical-rejection licence until independent immutable preregistration provenance is verified. Non-rejection is not confirmation, fit is not unique explanation, and synthetic conformance is not empirical evidence."
   },
+  "lean_observation_foundation_authority": {
+    "machine_contract": "machine/lean_observation_foundation_contract.json",
+    "human": "theory/LEAN_OBSERVATION_FOUNDATION.md",
+    "validator": "scripts/validate_lean_observation_foundation.py",
+    "frozen_validator": "scripts/validate_lean_observation_foundation_pr21_frozen.py",
+    "tests": "tests/test_lean_observation_foundation.py",
+    "source_theorems": "machine/observation_theorems.json",
+    "source_counterexamples": "machine/observation_counterexamples.json",
+    "source_observation_contract": "machine/observation_contract.json",
+    "workflow": ".github/workflows/vopson-corpus.yml",
+    "rule": "The first Lean observation batch freezes source theorem identity and dependency/module mapping only; it does not claim Lean proof, select a toolchain, or create the immutable source-release tag."
+  },
   "vopson_corpus_authority": {
     "author": "research/vopson/AUTHOR.json",
     "human_corpus": "research/vopson/CORPUS.md",
@@ -245,13 +283,50 @@
   },
   "vopson_corpus_schema": {
     "snapshot_date": "2026-08-18",
-    "peer_review_status": ["peer-reviewed", "editorial-peer-reviewed", "early-online-peer-reviewed", "not-indicated", "not-applicable"],
-    "equation_map_status": ["pending", "partial", "complete", "not-applicable"],
-    "reproduction_status": ["metadata-verified", "partial-reproduction", "reproduced", "blocked", "not-started"],
-    "work_types": ["journal-article", "erratum", "dataset", "editorial", "response", "news-and-views"],
-    "node_kinds": ["external-premise", "source-claim", "interpretive-inference", "comparison-result"],
-    "edge_types": ["requires", "extends", "supports", "interprets", "tests"],
-    "established_literature_exempt_kinds": ["external-premise"],
+    "peer_review_status": [
+      "peer-reviewed",
+      "editorial-peer-reviewed",
+      "early-online-peer-reviewed",
+      "not-indicated",
+      "not-applicable"
+    ],
+    "equation_map_status": [
+      "pending",
+      "partial",
+      "complete",
+      "not-applicable"
+    ],
+    "reproduction_status": [
+      "metadata-verified",
+      "partial-reproduction",
+      "reproduced",
+      "blocked",
+      "not-started"
+    ],
+    "work_types": [
+      "journal-article",
+      "erratum",
+      "dataset",
+      "editorial",
+      "response",
+      "news-and-views"
+    ],
+    "node_kinds": [
+      "external-premise",
+      "source-claim",
+      "interpretive-inference",
+      "comparison-result"
+    ],
+    "edge_types": [
+      "requires",
+      "extends",
+      "supports",
+      "interprets",
+      "tests"
+    ],
+    "established_literature_exempt_kinds": [
+      "external-premise"
+    ],
     "alternate_identifier_scheme": "doi",
     "human_sync": {
       "corpus_table": "research/vopson/CORPUS.md#chronology",
@@ -259,11 +334,40 @@
       "renderer": "scripts/render_vopson_docs.py"
     }
   },
-  "claim_classes": ["DEFINITION", "THEOREM_TARGET", "PROVED", "COUNTEREXAMPLE", "DIAGNOSTIC", "EMPIRICAL", "INTERPRETIVE", "SPECULATIVE", "NONCLAIM"],
-  "authority_layers": ["formal-core", "diagnostic", "empirical", "interpretive", "speculative"],
+  "claim_classes": [
+    "DEFINITION",
+    "THEOREM_TARGET",
+    "PROVED",
+    "COUNTEREXAMPLE",
+    "DIAGNOSTIC",
+    "EMPIRICAL",
+    "INTERPRETIVE",
+    "SPECULATIVE",
+    "NONCLAIM"
+  ],
+  "authority_layers": [
+    "formal-core",
+    "diagnostic",
+    "empirical",
+    "interpretive",
+    "speculative"
+  ],
   "inherited_constraint_core": {
-    "symbols": ["S", "A", "r", "Phi", "Phi_crit", "Pi_lex", "Delta"],
-    "preferred_lineage": ["10.22541/au.176790866.68066655/v1", "10.22541/au.176790865.55905239/v1", "10.22541/au.176765062.20893637/v1", "10.22541/au.176780579.95800648/v1"]
+    "symbols": [
+      "S",
+      "A",
+      "r",
+      "Phi",
+      "Phi_crit",
+      "Pi_lex",
+      "Delta"
+    ],
+    "preferred_lineage": [
+      "10.22541/au.176790866.68066655/v1",
+      "10.22541/au.176790865.55905239/v1",
+      "10.22541/au.176765062.20893637/v1",
+      "10.22541/au.176780579.95800648/v1"
+    ]
   },
   "hard_rules": {
     "information_measures_interchangeable": false,
@@ -349,30 +453,111 @@
   "vopson": {
     "orcid": "0000-0002-8073-5538",
     "orcid_role": "bibliographic identity anchor only",
-    "tracks": ["mass-energy-information-equivalence", "genomic-information-entropy", "second-law-of-infodynamics", "cross-domain-applications", "simulation-hypothesis-inference", "information-theoretic-gravity", "polygon-symmetry", "language-diversity"]
+    "tracks": [
+      "mass-energy-information-equivalence",
+      "genomic-information-entropy",
+      "second-law-of-infodynamics",
+      "cross-domain-applications",
+      "simulation-hypothesis-inference",
+      "information-theoretic-gravity",
+      "polygon-symmetry",
+      "language-diversity"
+    ]
   },
   "formal_verification": {
     "system": "Lean",
     "status": "deferred",
     "entry_condition": "canonical definitions and theorem statements frozen after reproduction and adversarial review",
     "placeholder_formalizations_allowed": false,
-    "initial_targets": ["finite admissibility predicate", "finite total tie-break order", "lexicographic recovery existence and uniqueness", "recovery returns admissible state", "restricted monotonicity theorem", "explicit finite counterexamples", "coprime cyclic traversal", "finite minimum sufficient basis"]
+    "initial_targets": [
+      "finite admissibility predicate",
+      "finite total tie-break order",
+      "lexicographic recovery existence and uniqueness",
+      "recovery returns admissible state",
+      "restricted monotonicity theorem",
+      "explicit finite counterexamples",
+      "coprime cyclic traversal",
+      "finite minimum sufficient basis"
+    ]
   },
   "required_agent_reads": [
-    "README4AI.md", "AGENTS.md", "docs/CLAIMS.md", "docs/NONCLAIMS.md", "docs/ARCHITECTURE.md", "docs/REPRODUCIBILITY.md", "docs/MILESTONES.md",
-    "experiments/README.md", "MATHS.md", "theory/DEFINITIONS.md", "theory/AUXILIARY_CONTRACTS.md", "theory/THEOREM_TARGETS.md", "theory/FINITE_RESULTS.md", "theory/CROSS_REPO_RESULTS.md",
-    "theory/GRAPH_REALIZATION.md", "machine/finite_results.json", "machine/cross_repo_patterns.json", "machine/cross_repo_results.json", "machine/graph_realization_contract.json", "machine/graph_realization_results.json",
-    "theory/BRIDGE_CORE.md", "machine/bridge_core_contract.json", "machine/bridge_core_results.json", "scripts/validate_bridge_core.py", "experiments/run_bridge_core.py",
-    "theory/EPISTEMIC_BRIDGE.md", "machine/epistemic_bridge_contract.json", "machine/epistemic_bridge_results.json", "scripts/validate_epistemic_bridge.py", "experiments/run_epistemic_bridge.py",
-    "theory/REPRESENTATION_CALCULUS.md", "machine/representation_contract.json", "machine/representation_results.json", "scripts/validate_representation_calculus.py", "experiments/run_representation_calculus.py",
-    "theory/INFORMATION_COMPARABILITY.md", "machine/information_comparability_contract.json", "machine/information_comparability_results.json", "scripts/validate_information_comparability.py", "experiments/run_information_comparability.py",
-    "theory/RECOVERY_SPECIALIZATIONS.md", "machine/recovery_specialization_contract.json", "machine/recovery_specialization_results.json", "scripts/validate_recovery_specializations.py", "experiments/run_recovery_specializations.py",
-    "theory/CONTINUUM_STOCHASTIC_PREVALENCE.md", "machine/continuum_stochastic_prevalence_contract.json", "machine/continuum_stochastic_prevalence_results.json", "scripts/validate_continuum_stochastic_prevalence.py", "experiments/run_continuum_stochastic_prevalence.py",
-    "theory/EMPIRICAL_FALSIFICATION_PROFILE.md", "machine/empirical_falsification_profile_contract.json", "machine/empirical_falsification_profile_results.json", "scripts/validate_empirical_falsification_profile.py", "experiments/run_empirical_falsification_profile.py",
-    "research/CROSS_REPO_PATTERN_ATLAS.md", "research/GRAPH_REALIZATION_SOURCES.md", "research/vopson/AUTHOR.json", "research/vopson/CORPUS.md", "research/vopson/corpus.json", "research/vopson/CLAIM_GRAPH.md",
-    "research/vopson/CLAIM_GRAPH.json", "research/vopson/DEFINITIONS.md", "research/vopson/REPRODUCTION_MATRIX.md", "research/vopson/COUNTEREXAMPLE_MATRIX.md", "research/vopson/RESPONSE_HISTORY.md",
-    "research/vopson/reproduction/2019-mei/SOURCE_MAP.md", "research/vopson/reproduction/2019-mei/DERIVATION.md", "research/vopson/reproduction/2019-mei/ASSUMPTION_GRAPH.json",
-    "research/vopson/reproduction/2019-mei/DIMENSIONAL_AUDIT.md", "research/vopson/reproduction/2019-mei/CONTROL_MATRIX.md", "research/vopson/reproduction/2019-mei/result.json",
-    "scripts/validate_vopson_2019_mei.py", "scripts/validate_graph_realization.py", "experiments/run_graph_realization.py", "research/reports/2026-08-18-PR4-ACTION-REGISTER.md", "research/VOPSON_MATRIX.md", "ROADMAP.md"
+    "README4AI.md",
+    "AGENTS.md",
+    "docs/CLAIMS.md",
+    "docs/NONCLAIMS.md",
+    "docs/ARCHITECTURE.md",
+    "docs/REPRODUCIBILITY.md",
+    "docs/MILESTONES.md",
+    "experiments/README.md",
+    "MATHS.md",
+    "theory/DEFINITIONS.md",
+    "theory/AUXILIARY_CONTRACTS.md",
+    "theory/THEOREM_TARGETS.md",
+    "theory/FINITE_RESULTS.md",
+    "theory/CROSS_REPO_RESULTS.md",
+    "theory/GRAPH_REALIZATION.md",
+    "machine/finite_results.json",
+    "machine/cross_repo_patterns.json",
+    "machine/cross_repo_results.json",
+    "machine/graph_realization_contract.json",
+    "machine/graph_realization_results.json",
+    "theory/BRIDGE_CORE.md",
+    "machine/bridge_core_contract.json",
+    "machine/bridge_core_results.json",
+    "scripts/validate_bridge_core.py",
+    "experiments/run_bridge_core.py",
+    "theory/EPISTEMIC_BRIDGE.md",
+    "machine/epistemic_bridge_contract.json",
+    "machine/epistemic_bridge_results.json",
+    "scripts/validate_epistemic_bridge.py",
+    "experiments/run_epistemic_bridge.py",
+    "theory/REPRESENTATION_CALCULUS.md",
+    "machine/representation_contract.json",
+    "machine/representation_results.json",
+    "scripts/validate_representation_calculus.py",
+    "experiments/run_representation_calculus.py",
+    "theory/INFORMATION_COMPARABILITY.md",
+    "machine/information_comparability_contract.json",
+    "machine/information_comparability_results.json",
+    "scripts/validate_information_comparability.py",
+    "experiments/run_information_comparability.py",
+    "theory/RECOVERY_SPECIALIZATIONS.md",
+    "machine/recovery_specialization_contract.json",
+    "machine/recovery_specialization_results.json",
+    "scripts/validate_recovery_specializations.py",
+    "experiments/run_recovery_specializations.py",
+    "theory/CONTINUUM_STOCHASTIC_PREVALENCE.md",
+    "machine/continuum_stochastic_prevalence_contract.json",
+    "machine/continuum_stochastic_prevalence_results.json",
+    "scripts/validate_continuum_stochastic_prevalence.py",
+    "experiments/run_continuum_stochastic_prevalence.py",
+    "theory/EMPIRICAL_FALSIFICATION_PROFILE.md",
+    "machine/empirical_falsification_profile_contract.json",
+    "machine/empirical_falsification_profile_results.json",
+    "scripts/validate_empirical_falsification_profile.py",
+    "experiments/run_empirical_falsification_profile.py",
+    "research/CROSS_REPO_PATTERN_ATLAS.md",
+    "research/GRAPH_REALIZATION_SOURCES.md",
+    "research/vopson/AUTHOR.json",
+    "research/vopson/CORPUS.md",
+    "research/vopson/corpus.json",
+    "research/vopson/CLAIM_GRAPH.md",
+    "research/vopson/CLAIM_GRAPH.json",
+    "research/vopson/DEFINITIONS.md",
+    "research/vopson/REPRODUCTION_MATRIX.md",
+    "research/vopson/COUNTEREXAMPLE_MATRIX.md",
+    "research/vopson/RESPONSE_HISTORY.md",
+    "research/vopson/reproduction/2019-mei/SOURCE_MAP.md",
+    "research/vopson/reproduction/2019-mei/DERIVATION.md",
+    "research/vopson/reproduction/2019-mei/ASSUMPTION_GRAPH.json",
+    "research/vopson/reproduction/2019-mei/DIMENSIONAL_AUDIT.md",
+    "research/vopson/reproduction/2019-mei/CONTROL_MATRIX.md",
+    "research/vopson/reproduction/2019-mei/result.json",
+    "scripts/validate_vopson_2019_mei.py",
+    "scripts/validate_graph_realization.py",
+    "experiments/run_graph_realization.py",
+    "research/reports/2026-08-18-PR4-ACTION-REGISTER.md",
+    "research/VOPSON_MATRIX.md",
+    "ROADMAP.md"
   ]
 }

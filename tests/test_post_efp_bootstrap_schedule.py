@@ -8,6 +8,16 @@ ROOT = Path(__file__).resolve().parents[1]
 VALIDATOR = ROOT / "scripts/validate_empirical_falsification_profile.py"
 README = ROOT / "README4AI.md"
 
+LIVE_SCHEDULE_PHRASE = (
+    "Live scheduling authority is PR #10 Lean observation foundation: the first theorem batch and dependency graph "
+    "are frozen, and the active phase is the post-merge release gate for exact merged-main validation plus immutable "
+    "source tagging before Lean implementation."
+)
+STALE_SCHEDULE_PHRASE = (
+    "Live scheduling authority is PR #10 Lean observation foundation, active only for first-theorem-batch and "
+    "dependency-graph freezing."
+)
+
 
 def load_validator():
     spec = importlib.util.spec_from_file_location("post_efp_bootstrap_validator", VALIDATOR)
@@ -25,8 +35,9 @@ class PostEfpBootstrapScheduleTests(unittest.TestCase):
         self.assertEqual(result["status"], "ok", result["errors"])
         text = README.read_text(encoding="utf-8")
         self.assertIn("The completed planned PR #18 surface defines a synthetic conformance procedure", text)
-        self.assertIn("Live scheduling authority is PR #10 Lean observation foundation, active only for first-theorem-batch and dependency-graph freezing.", text)
-        self.assertIn("PR #10 Lean observation foundation is active only for theorem-batch and dependency-graph freezing.", text)
+        self.assertIn(LIVE_SCHEDULE_PHRASE, text)
+        self.assertNotIn(STALE_SCHEDULE_PHRASE, text)
+        self.assertIn("PR #10 Lean observation foundation is active. Source batch `LEAN-OBS-BATCH-001` is frozen in `machine/lean_observation_foundation_contract.json`, covering `UFT-OBS-001` through `UFT-OBS-004`; `UFT-OBS-005` remains deferred to a later arithmetic-focused batch.", text)
         self.assertNotIn("The active planned PR #18 surface", text)
         self.assertNotIn("Lean remains deferred until source reproduction", text)
 
