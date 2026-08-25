@@ -187,6 +187,34 @@ def workflow_step_key_present(text: str, key_name: str, *, indent: int = 8) -> b
     return re.search(rf"(?m)^{' ' * indent}{key}\s*:", text) is not None
 
 
+def workflow_defaults_run_shell_present(text: str, *, indent: int) -> bool:
+    """Detect an inherited defaults.run.shell at workflow or job scope."""
+    def key(name: str) -> str:
+        escaped = re.escape(name)
+        return rf"(?:{escaped}|\"{escaped}\"|'{escaped}')"
+
+    prefix = " " * indent
+    defaults_match = re.search(
+        rf"(?ms)^{prefix}{key('defaults')}\s*:\s*\n(?P<body>.*?)(?=^{prefix}\S|\Z)",
+        text,
+    )
+    if defaults_match is None:
+        return False
+    run_indent = indent + 2
+    run_prefix = " " * run_indent
+    run_match = re.search(
+        rf"(?ms)^{run_prefix}{key('run')}\s*:\s*\n(?P<body>.*?)(?=^{run_prefix}\S|\Z)",
+        defaults_match.group("body"),
+    )
+    if run_match is None:
+        return False
+    shell_prefix = " " * (indent + 4)
+    return re.search(
+        rf"(?m)^{shell_prefix}{key('shell')}\s*:",
+        run_match.group("body"),
+    ) is not None
+
+
 def workflow_contract_errors(text: str) -> list[str]:
     errors: list[str] = []
     required_paths = (
@@ -216,6 +244,8 @@ def workflow_contract_errors(text: str) -> list[str]:
         errors.append("registered Lean-freeze workflow pull_request branch filters must remain unrestricted")
     if workflow_event_branches(text, "push") != ("main",):
         errors.append("registered Lean-freeze workflow push branch restriction must be exactly main")
+    if workflow_defaults_run_shell_present(text, indent=0):
+        errors.append("registered Lean-freeze workflow may not inherit defaults.run.shell at workflow scope")
 
     direct = (
         '      - name: Validate Lean observation source freeze',
@@ -235,6 +265,8 @@ def workflow_contract_errors(text: str) -> list[str]:
     job_header = job_body.split("    steps:\n", 1)[0]
     if workflow_control_key_present(job_header, indent=4):
         errors.append("registered Lean-freeze workflow validate-corpus job may not be conditional or nonblocking")
+    if workflow_defaults_run_shell_present(job_body, indent=4):
+        errors.append("registered Lean-freeze workflow validate-corpus may not inherit defaults.run.shell")
 
     freeze_step = workflow_named_step_block(job_body, "Validate Lean observation source freeze")
     if freeze_step is None:
@@ -296,13 +328,20 @@ def source_tag_promotion(text: str) -> bool:
 
 def theorem_nonclaim_reversal(text: str) -> bool:
     """Reject positive prose that asserts the inverse of a frozen theorem nonclaim."""
-    patterns = (
-        r"(?is)\bUFT-OBS-001\b.{0,100}\b(?:proves?|shows?|establishes?|implies?|means?)\b.{0,100}\bobservational equivalence\b.{0,60}\b(?:is|equals?|constitutes?)\b.{0,30}\bphysical identity\b",
-        r"(?is)\bUFT-OBS-002\b.{0,100}\b(?:proves?|shows?|establishes?|implies?|means?)\b.{0,100}\bquotient\b.{0,60}\b(?:is|equals?|constitutes?)\b.{0,40}\b(?:the\s+)?full codomain\b",
-        r"(?is)\bUFT-OBS-003\b.{0,100}\b(?:proves?|shows?|establishes?|implies?|means?)\b.{0,100}\bexact(?: mathematical)? reconstruction\b.{0,100}\b(?:physical state persisted|original physical state persisted|observed directly)\b",
-        r"(?is)\bUFT-OBS-004\b.{0,100}\b(?:proves?|shows?|establishes?|implies?|means?)\b.{0,100}\bnoninjectiv(?:ity|e)\b.{0,80}\b(?:forbids?|precludes?|rules? out)\b.{0,80}\b(?:partial|representative|probabilistic|task-specific)\b.{0,30}\breconstruction\b",
+    attribution = r"(?:proves?|shows?|establishes?|implies?|means?)"
+    forward_patterns = (
+        rf"(?is)\bUFT-OBS-001\b.{{0,100}}\b{attribution}\b.{{0,100}}\bobservational equivalence\b.{{0,60}}\b(?:is|equals?|constitutes?)\b.{{0,30}}\bphysical identity\b",
+        rf"(?is)\bUFT-OBS-002\b.{{0,100}}\b{attribution}\b.{{0,100}}\bquotient\b.{{0,60}}\b(?:is|equals?|constitutes?)\b.{{0,40}}\b(?:the\s+)?full codomain\b",
+        rf"(?is)\bUFT-OBS-003\b.{{0,100}}\b{attribution}\b.{{0,100}}\bexact(?: mathematical)? reconstruction\b.{{0,100}}\b(?:physical state persisted|original physical state persisted|observed directly)\b",
+        rf"(?is)\bUFT-OBS-004\b.{{0,100}}\b{attribution}\b.{{0,100}}\bnoninjectiv(?:ity|e)\b.{{0,80}}\b(?:forbids?|precludes?|rules? out)\b.{{0,80}}\b(?:partial|representative|probabilistic|task-specific)\b.{{0,30}}\breconstruction\b",
     )
-    return any(re.search(pattern, text) for pattern in patterns)
+    reverse_patterns = (
+        rf"(?is)\bobservational equivalence\b\s+(?:is|equals?|constitutes?)\s+(?!not\b)(?:the\s+)?physical identity\b.{{0,120}}\bUFT-OBS-001\b.{{0,60}}\b{attribution}\b",
+        rf"(?is)\b(?:the\s+)?quotient\b\s+(?:is|equals?|constitutes?)\s+(?!not\b)(?:canonically\s+)?(?:the\s+)?full codomain(?:\s+Y)?\b.{{0,120}}\bUFT-OBS-002\b.{{0,60}}\b{attribution}\b",
+        rf"(?is)\bexact(?: mathematical)? reconstruction\b.{{0,100}}\b(?:establishes?|proves?|shows?|implies?|means?)\b.{{0,100}}\b(?:physical state persisted|original physical state persisted|observed directly)\b.{{0,120}}\bUFT-OBS-003\b.{{0,60}}\b{attribution}\b",
+        rf"(?is)\bnoninjectiv(?:ity|e)\b.{{0,80}}\b(?:forbids?|precludes?|rules? out)\b.{{0,80}}\b(?:partial|representative|probabilistic|task-specific)\b.{{0,30}}\breconstruction\b.{{0,120}}\bUFT-OBS-004\b.{{0,60}}\b{attribution}\b",
+    )
+    return any(re.search(pattern, text) for pattern in (*forward_patterns, *reverse_patterns))
 
 
 def _frozen_views(freeze: dict[str, object], base_contract: dict[str, object]):
