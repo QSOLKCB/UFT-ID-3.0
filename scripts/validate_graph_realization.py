@@ -24,9 +24,9 @@ _spec.loader.exec_module(_frozen)
 
 _frozen.EXPECTED_HUMAN_BLOBS.update({
     "claims": "b8242ecfac94ec0a516c76bbd81a27c6f3a8114a",
-    "readme4ai": "f9d43b7c04494f59ef69955192aa4b3ddd00f5a0",
+    "readme4ai": "a7ba82abb0c7cd5dde0abdcf038d9925281fd888",
     "reproducibility": "22daba8fe9b60c31c9c533d15f04a0a0f87b459d",
-    "roadmap": "b4322084be5191db5a43548f66c083bb8be1ec9b",
+    "roadmap": "599b2ec26bfdda61c31a23466e7c77252fa7b860",
 })
 _frozen.EXPECTED_VERIFY_STEP_DIRECTIVES = (
     "if: always()",
