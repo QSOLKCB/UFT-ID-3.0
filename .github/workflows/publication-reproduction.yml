@@ -1,0 +1,160 @@
+name: publication-reproduction
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/publication-reproduction.yml"
+      - "machine/scholarly_archive_reproduction_contract.json"
+      - "machine/scholarly_archive_contract.json"
+      - "scripts/build_scholarly_archive.py"
+      - "scripts/verify_scholarly_archive.py"
+      - "scripts/reproduce_scholarly_archive.py"
+      - "scripts/validate_reproducibility.py"
+      - "tests/test_scholarly_archive_reproduction.py"
+      - "tests/test_reproducibility_tooling.py"
+      - "machine/contract.json"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publication-reproduction.yml"
+      - "machine/scholarly_archive_reproduction_contract.json"
+      - "machine/scholarly_archive_contract.json"
+      - "scripts/build_scholarly_archive.py"
+      - "scripts/verify_scholarly_archive.py"
+      - "scripts/reproduce_scholarly_archive.py"
+      - "scripts/validate_reproducibility.py"
+      - "tests/test_scholarly_archive_reproduction.py"
+      - "tests/test_reproducibility_tooling.py"
+      - "machine/contract.json"
+
+permissions:
+  contents: read
+
+jobs:
+  reproduce-publication:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Compile Python
+        run: python -m compileall -q experiments scripts tests
+
+      - name: Validate reproducibility contract
+        run: python scripts/validate_reproducibility.py
+
+      - name: Unit and adversarial tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Optimized-Python tests
+        run: python -O -m unittest discover -s tests -v
+
+      - name: Build exact publication surface from merged main authority
+        env:
+          UFT_PUBLICATION_SOURCE_COMMIT: 9bffc6b59ba109824079dd00d87ab39993ad7f93
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/zenodo
+          publication_root="$RUNNER_TEMP/uft-id-publication-source"
+          git worktree add --detach "$publication_root" "$UFT_PUBLICATION_SOURCE_COMMIT"
+          trap 'git worktree remove --force "$publication_root" >/dev/null 2>&1 || true' EXIT
+          python "$publication_root/scripts/build_scholarly_archive.py" \
+            --output "$GITHUB_WORKSPACE/artifacts/zenodo" \
+            --json > artifacts/scholarly-archive-build.json
+          git -C "$publication_root" rev-parse HEAD > artifacts/publication-source-commit.txt
+          git -C "$publication_root" rev-parse 'HEAD^{tree}' > artifacts/publication-source-tree.txt
+
+      - name: Independently verify exact publication surface
+        env:
+          UFT_PUBLICATION_SOURCE_COMMIT: 9bffc6b59ba109824079dd00d87ab39993ad7f93
+        run: |
+          set -euo pipefail
+          publication_root="$RUNNER_TEMP/uft-id-publication-verify"
+          git worktree add --detach "$publication_root" "$UFT_PUBLICATION_SOURCE_COMMIT"
+          trap 'git worktree remove --force "$publication_root" >/dev/null 2>&1 || true' EXIT
+          python "$publication_root/scripts/verify_scholarly_archive.py" \
+            "$GITHUB_WORKSPACE/artifacts/zenodo" \
+            --json > artifacts/scholarly-archive-verification.json
+
+      - name: Reproduce archived formal layer in isolation
+        id: isolated_lean
+        if: matrix.python-version == '3.12'
+        env:
+          UFT_PUBLICATION_SOURCE_COMMIT: 9bffc6b59ba109824079dd00d87ab39993ad7f93
+          UFT_LEAN_URL: https://github.com/leanprover/lean4/releases/download/v4.33.1/lean-4.33.1-linux.tar.zst
+          UFT_LEAN_SHA256: 890afd185370f85666025b883914ab4f4b339136f8c96167b69cfb62aecaf235
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/lean-4.33.1-linux.tar.zst"
+          install_dir="$RUNNER_TEMP/lean-4.33.1"
+          curl --fail --location --retry 3 --output "$archive" "$UFT_LEAN_URL"
+          printf '%s  %s\n' "$UFT_LEAN_SHA256" "$archive" | sha256sum --check -
+          mkdir -p "$install_dir"
+          tar --zstd -xf "$archive" -C "$install_dir" --strip-components=1
+          "$install_dir/bin/lean" --version
+          "$install_dir/bin/lake" --version
+          python scripts/reproduce_scholarly_archive.py \
+            artifacts/zenodo \
+            --lake "$install_dir/bin/lake" \
+            --publication-source-commit "$UFT_PUBLICATION_SOURCE_COMMIT" \
+            --json-out artifacts/scholarly-archive-reproduction.json \
+            --axiom-json-out artifacts/scholarly-archive-isolated-axioms.json
+
+      - name: Generate publication reproduction evidence bundle
+        if: always()
+        env:
+          UFT_MATRIX_PYTHON: ${{ matrix.python-version }}
+          UFT_ISOLATED_LEAN_OUTCOME: ${{ steps.isolated_lean.outcome }}
+          UFT_GITHUB_SHA: ${{ github.sha }}
+        run: |
+          mkdir -p artifacts
+          python scripts/validate_reproducibility.py --json > artifacts/publication-reproducibility-validation.json 2> artifacts/publication-reproducibility-validation.stderr.txt || true
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          payload = {
+              "type": "uft-id-publication-workflow-runtime",
+              "schema_version": "1.0.0",
+              "python_version": os.environ["UFT_MATRIX_PYTHON"],
+              "isolated_lean_outcome": os.environ.get("UFT_ISOLATED_LEAN_OUTCOME", ""),
+              "workflow_checkout_sha": os.environ["UFT_GITHUB_SHA"],
+              "publication_source_commit": "9bffc6b59ba109824079dd00d87ab39993ad7f93",
+          }
+          Path("artifacts/publication-workflow-runtime.json").write_text(
+              json.dumps(payload, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Retain exact Zenodo publication bytes
+        if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: uft-id-zenodo-publication-py${{ matrix.python-version }}
+          path: artifacts/zenodo/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Retain publication reproduction evidence
+        if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: uft-id-zenodo-reproduction-evidence-py${{ matrix.python-version }}
+          path: |
+            artifacts/*.json
+            artifacts/*.txt
+          if-no-files-found: error
+          retention-days: 30
