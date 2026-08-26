@@ -40,6 +40,7 @@ EXPECTED_VERIFIED_ROADMAP_BLOB = "599b2ec26bfdda61c31a23466e7c77252fa7b860"
 EXPECTED_VERIFIED_ROADMAP_STATE_BLOB = "97f276f4e079e79af1e394d233ec337ffd981bca"
 EXPECTED_VERIFIED_RECORD_BLOB = "f39ad92f6522886d4449e938cd50cec669364930"
 EXPECTED_VERIFIED_WORKFLOW_BLOB = "626e44c3855a1de2be055fa31ba3ee35e6a9dafd"
+EXPECTED_VERIFIED_AXIOM_AUDITOR_BLOB = "368cf82e2b44220fee105a987002c027ec2e7425"
 
 
 def _git_blob_sha(path: Path) -> str:
@@ -94,6 +95,9 @@ _IMPL_ARTIFACT_VERIFIER_BLOB_ERRORS = _impl.artifact_verifier_blob_errors
 _COMBINED_VALIDATE_DOCUMENTS = _combined.validate_documents
 
 _OVERRIDES = {
+    "PREDECESSOR",
+    "EXPECTED_PREDECESSOR_BLOB",
+    "PREDECESSOR_WORKFLOW_ROUTE",
     "basis_git_blob_sha",
     "basis_source_object_errors",
     "base_validator_blob_errors",
@@ -208,6 +212,8 @@ VERIFIED_LEAN_IMPLEMENTATION_PARAGRAPH = (
     "kernel `#print axioms` audit passed. This verified scholarly layer does not rewrite the immutable `v3.0.0` "
     "source release. The next ordered gate is QSOL-CONTEXT verification capture, then DOI/archive work."
 )
+PENDING_READ_NEXT_45 = "45. `experiments/run_empirical_falsification_profile.py`"
+VERIFIED_READ_NEXT_45 = "45. `experiments/empirical_falsification_profile/run.py`"
 
 VERIFIED_ROADMAP_LIVE_NOTE = """## Post-merge Lean verification state: LEAN_VERIFIED
 
@@ -376,7 +382,13 @@ def _pending_roadmap_projection(value: dict[str, object]) -> dict[str, object]:
 
 
 def load_json(path: Path) -> dict[str, object]:
-    value = _IMPL_LOAD_JSON(path)
+    """Strict public loader: always return the live file contents."""
+    return _IMPL_LOAD_JSON(path)
+
+
+def _projected_predecessor_load_json(path: Path) -> dict[str, object]:
+    """Project only the canonical live roadmap while replaying the predecessor."""
+    value = load_json(path)
     if (
         path == ROADMAP_STATE
         and _git_blob_sha(path) == EXPECTED_VERIFIED_ROADMAP_STATE_BLOB
@@ -407,6 +419,7 @@ _VERIFIED_AUTHORITY_BLOBS.update(
         "machine/roadmap_state.json": EXPECTED_VERIFIED_ROADMAP_STATE_BLOB,
         "machine/lean_observation_verification.json": EXPECTED_VERIFIED_RECORD_BLOB,
         "scripts/validate_lean_observation_foundation_pr22_merged_frozen.py": EXPECTED_PREDECESSOR_BLOB,
+        "scripts/verify_lean_observation_axioms.py": EXPECTED_VERIFIED_AXIOM_AUDITOR_BLOB,
     }
 )
 _VERIFIED_AUTHORITY_MODES = dict(_impl._LIVE_AUTHORITY_MODES)
@@ -465,6 +478,7 @@ def live_authority_object_errors() -> list[str]:
         (ROADMAP_STATE, EXPECTED_VERIFIED_ROADMAP_STATE_BLOB, "verified live roadmap state"),
         (VERIFICATION, EXPECTED_VERIFIED_RECORD_BLOB, "LEAN_VERIFIED machine record"),
         (PREDECESSOR, EXPECTED_PREDECESSOR_BLOB, "merged-main PR22 validator"),
+        (AXIOM_AUDITOR, EXPECTED_VERIFIED_AXIOM_AUDITOR_BLOB, "verified Lean axiom auditor"),
     )
     errors: list[str] = []
     for path, expected, label in checks:
@@ -475,12 +489,13 @@ def live_authority_object_errors() -> list[str]:
         if actual != expected:
             errors.append(f"{label} blob drift: expected {expected}, got {actual}")
     errors.extend(_IMPL_LIVE_AUTHORITY_OBJECT_ERRORS())
-    # The predecessor's expected live blobs are intentionally superseded for
-    # README and roadmap state. Remove only those exact stale diagnostics;
-    # every other predecessor authority check remains active.
+    # These predecessor pins are intentionally superseded by the verified live
+    # layer. Filter only their exact stale diagnostics; every other predecessor
+    # authority check remains active.
     superseded_prefixes = (
         "README4AI live Lean phase blob drift:",
         "live roadmap state blob drift:",
+        "Lean axiom auditor blob drift:",
     )
     return [
         error
@@ -492,7 +507,11 @@ def live_authority_object_errors() -> list[str]:
 def _project_verified_readme(text: str) -> str:
     if _text_git_blob_sha(text) != EXPECTED_VERIFIED_README_BLOB:
         return text
-    if text.count(VERIFIED_EFP_PHASE) != 1 or text.count(VERIFIED_LEAN_IMPLEMENTATION_PARAGRAPH) != 1:
+    if (
+        text.count(VERIFIED_EFP_PHASE) != 1
+        or text.count(VERIFIED_LEAN_IMPLEMENTATION_PARAGRAPH) != 1
+        or text.count(VERIFIED_READ_NEXT_45) != 1
+    ):
         return text
     projected = text.replace(VERIFIED_EFP_PHASE, PENDING_EFP_PHASE, 1)
     projected = projected.replace(
@@ -500,6 +519,7 @@ def _project_verified_readme(text: str) -> str:
         PENDING_LEAN_IMPLEMENTATION_PARAGRAPH,
         1,
     )
+    projected = projected.replace(VERIFIED_READ_NEXT_45, PENDING_READ_NEXT_45, 1)
     return projected
 
 
@@ -523,17 +543,22 @@ def validate_documents(
     check_paths: bool = True,
     require_basis_objects: bool = False,
 ):
-    return _COMBINED_VALIDATE_DOCUMENTS(
-        freeze,
-        source_theorems,
-        source_counterexamples,
-        base_contract,
-        human,
-        _project_verified_roadmap(roadmap),
-        _project_verified_readme(readme),
-        check_paths=check_paths,
-        require_basis_objects=require_basis_objects,
-    )
+    old_tracked = _combined.tracked_authority_object_errors
+    try:
+        _combined.tracked_authority_object_errors = tracked_authority_object_errors
+        return _COMBINED_VALIDATE_DOCUMENTS(
+            freeze,
+            source_theorems,
+            source_counterexamples,
+            base_contract,
+            human,
+            _project_verified_roadmap(roadmap),
+            _project_verified_readme(readme),
+            check_paths=check_paths,
+            require_basis_objects=require_basis_objects,
+        )
+    finally:
+        _combined.tracked_authority_object_errors = old_tracked
 
 
 def workflow_contract_errors(text: str) -> list[str]:
@@ -579,27 +604,43 @@ def validate(*, require_basis_objects: bool = True):
         "load_json": _impl.load_json,
         "live_authority_object_errors": _impl.live_authority_object_errors,
     }
-    old_combined_documents = _combined.validate_documents
+    old_combined_values = {
+        "expected_verification_record": _combined.expected_verification_record,
+        "verification_record_errors": _combined.verification_record_errors,
+        "load_json": _combined.load_json,
+        "live_authority_object_errors": _combined.live_authority_object_errors,
+        "validate_documents": _combined.validate_documents,
+    }
     try:
         _impl.tracked_authority_object_errors = tracked_authority_object_errors
         _impl.workflow_contract_errors = workflow_contract_errors
         _impl.expected_verification_record = expected_verification_record
         _impl.verification_record_errors = verification_record_errors
-        _impl.load_json = globals()["load_json"]
+        _impl.load_json = _projected_predecessor_load_json
         _impl.live_authority_object_errors = live_authority_object_errors
+
+        # `_IMPL_VALIDATE` delegates into this actual combined-review module.
+        # Install the verified hooks there too so no pending-CI check sees the
+        # canonical schema-1.3 record or live roadmap before projection.
+        _combined.expected_verification_record = expected_verification_record
+        _combined.verification_record_errors = verification_record_errors
+        _combined.load_json = _projected_predecessor_load_json
+        _combined.live_authority_object_errors = live_authority_object_errors
         _combined.validate_documents = validate_documents
+
         result = _IMPL_VALIDATE(require_basis_objects=require_basis_objects)
     finally:
         for name, value in old_values.items():
             setattr(_impl, name, value)
-        _combined.validate_documents = old_combined_documents
+        for name, value in old_combined_values.items():
+            setattr(_combined, name, value)
         _restore_predecessor_hooks(bridged)
 
     errors = list(result.get("errors", []))
     errors.extend(predecessor_validator_blob_errors())
     errors.extend(live_authority_object_errors())
     try:
-        actual_record = _IMPL_LOAD_JSON(VERIFICATION)
+        actual_record = load_json(VERIFICATION)
     except (OSError, ValueError) as exc:
         errors.append(f"LEAN_VERIFIED machine record invalid: {exc}")
     else:

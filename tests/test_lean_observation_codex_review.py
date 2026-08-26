@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import importlib.util
 import json
 import unittest
@@ -29,9 +28,16 @@ def canonical_audit_fixture() -> tuple[dict[str, object], dict[str, object], dic
     policy = record["axiom_audit"]
     assert isinstance(policy, dict)
     declarations = A.declarations_from_record(record)
-    parsed = {full_name: [] for full_name in declarations.values()}
-    parsed[declarations["UFT-OBS-003"]] = ["Classical.choice"]
-    parsed[declarations["UFT-OBS-004"]] = ["Classical.choice"]
+    recorded = policy.get("observed_axioms_by_theorem")
+    if isinstance(recorded, dict):
+        parsed = {
+            declarations[theorem_id]: list(axioms)
+            for theorem_id, axioms in recorded.items()
+        }
+    else:
+        parsed = {full_name: [] for full_name in declarations.values()}
+        parsed[declarations["UFT-OBS-003"]] = ["Classical.choice"]
+        parsed[declarations["UFT-OBS-004"]] = ["Classical.choice"]
     return record, policy, parsed
 
 
@@ -43,6 +49,16 @@ class LeanObservationCodexReviewRegressions(unittest.TestCase):
         self.assertEqual(
             next(x for x in roadmap["sequence"] if x["planned_pr"] == 10)["status"],
             "active-lean-verified-awaiting-context-and-archive",
+        )
+        loaded = V.load_json(ROOT / "machine/roadmap_state.json")
+        self.assertEqual(
+            next(x for x in loaded["sequence"] if x["planned_pr"] == 10)["status"],
+            "active-lean-verified-awaiting-context-and-archive",
+        )
+        projected = V._projected_predecessor_load_json(ROOT / "machine/roadmap_state.json")
+        self.assertEqual(
+            next(x for x in projected["sequence"] if x["planned_pr"] == 10)["status"],
+            "active-post-tag-lean-implementation-ci-hardening",
         )
         readme = (ROOT / "README4AI.md").read_text(encoding="utf-8")
         self.assertIn("Live post-tag verification authority", readme)
@@ -177,6 +193,14 @@ class LeanObservationCodexReviewRegressions(unittest.TestCase):
         self.assertEqual(report["status"], "error")
         self.assertTrue(any("missing recorded required axioms" in e for e in report["errors"]), report)
 
+    def test_axiom_policy_rejects_recorded_observation_drift(self):
+        record, policy, parsed = canonical_audit_fixture()
+        declarations = A.declarations_from_record(record)
+        parsed[declarations["UFT-OBS-001"]] = ["Quot.sound"]
+        report = A.evaluate_axiom_policy(record, policy, parsed)
+        self.assertEqual(report["status"], "error")
+        self.assertTrue(any("UFT-OBS-001 observed axiom set drift" in e for e in report["errors"]), report)
+
     def test_workflow_routes_frozen_dependency_and_axiom_audit(self):
         workflow = (ROOT / ".github/workflows/vopson-corpus.yml").read_text(encoding="utf-8")
         self.assertEqual(V.workflow_contract_errors(workflow), [])
@@ -185,10 +209,18 @@ class LeanObservationCodexReviewRegressions(unittest.TestCase):
         self.assertEqual(workflow.count("verify_lean_observation_axioms.py"), 3)
         self.assertIn("--json-out artifacts/lean-observation-axioms.json", workflow)
 
-    def test_compatibility_export_does_not_reuse_loop_sentinel(self):
+    def test_compatibility_export_preserves_promotion_constants(self):
         source = VALIDATOR.read_text(encoding="utf-8")
         self.assertNotIn("globals()[_name]", source)
         self.assertIn("globals().update(_COMPAT_EXPORTS)", source)
+        self.assertIn('"PREDECESSOR"', source)
+        self.assertIn('"EXPECTED_PREDECESSOR_BLOB"', source)
+        self.assertIn('"PREDECESSOR_WORKFLOW_ROUTE"', source)
+        self.assertEqual(
+            V.PREDECESSOR.name,
+            "validate_lean_observation_foundation_pr22_merged_frozen.py",
+        )
+        self.assertEqual(V.EXPECTED_PREDECESSOR_BLOB, "498b28b08a51e87fcf7f69ea52582cb8ad8be114")
 
 
 if __name__ == "__main__":
