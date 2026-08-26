@@ -170,7 +170,13 @@ class ScholarlyArchiveTests(unittest.TestCase):
             output = Path(temporary)
             BUILD.build(output)
             pdf = output / "UFT-ID-v3.0.0-Overview.pdf"
-            pdf.write_bytes(pdf.read_bytes().replace(b"10.5281/zenodo.22108865", b"10.5281/zenodo.00000000", 1))
+            original = pdf.read_bytes()
+            mutated = original.replace(
+                b"10.5281/zenodo.22108865",
+                b"10.5281/zenodo.00000000",
+            )
+            self.assertNotEqual(mutated, original)
+            pdf.write_bytes(mutated)
             with self.assertRaisesRegex(RuntimeError, "Overview PDF missing required identity text"):
                 VERIFY.verify(output)
 
