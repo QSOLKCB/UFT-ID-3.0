@@ -61,6 +61,7 @@ jobs:
         run: python -O -m unittest discover -s tests -v
 
       - name: Build exact publication surface from merged main authority
+        id: build_publication
         env:
           UFT_PUBLICATION_SOURCE_COMMIT: 9bffc6b59ba109824079dd00d87ab39993ad7f93
         run: |
@@ -71,11 +72,13 @@ jobs:
           trap 'git worktree remove --force "$publication_root" >/dev/null 2>&1 || true' EXIT
           python "$publication_root/scripts/build_scholarly_archive.py" \
             --output "$GITHUB_WORKSPACE/artifacts/zenodo" \
-            --json > artifacts/scholarly-archive-build.json
+            --json > artifacts/scholarly-archive-build.json \
+            2> artifacts/scholarly-archive-build.stderr.txt
           git -C "$publication_root" rev-parse HEAD > artifacts/publication-source-commit.txt
           git -C "$publication_root" rev-parse 'HEAD^{tree}' > artifacts/publication-source-tree.txt
 
       - name: Independently verify exact publication surface
+        id: verify_publication
         env:
           UFT_PUBLICATION_SOURCE_COMMIT: 9bffc6b59ba109824079dd00d87ab39993ad7f93
         run: |
@@ -85,7 +88,8 @@ jobs:
           trap 'git worktree remove --force "$publication_root" >/dev/null 2>&1 || true' EXIT
           python "$publication_root/scripts/verify_scholarly_archive.py" \
             "$GITHUB_WORKSPACE/artifacts/zenodo" \
-            --json > artifacts/scholarly-archive-verification.json
+            --json > artifacts/scholarly-archive-verification.json \
+            2> artifacts/scholarly-archive-verification.stderr.txt
 
       - name: Reproduce archived formal layer in isolation
         id: isolated_lean
@@ -109,12 +113,15 @@ jobs:
             --lake "$install_dir/bin/lake" \
             --publication-source-commit "$UFT_PUBLICATION_SOURCE_COMMIT" \
             --json-out artifacts/scholarly-archive-reproduction.json \
-            --axiom-json-out artifacts/scholarly-archive-isolated-axioms.json
+            --axiom-json-out artifacts/scholarly-archive-isolated-axioms.json \
+            2> artifacts/scholarly-archive-reproduction.stderr.txt
 
       - name: Generate publication reproduction evidence bundle
         if: always()
         env:
           UFT_MATRIX_PYTHON: ${{ matrix.python-version }}
+          UFT_BUILD_OUTCOME: ${{ steps.build_publication.outcome }}
+          UFT_VERIFY_OUTCOME: ${{ steps.verify_publication.outcome }}
           UFT_ISOLATED_LEAN_OUTCOME: ${{ steps.isolated_lean.outcome }}
           UFT_GITHUB_SHA: ${{ github.sha }}
         run: |
@@ -129,9 +136,12 @@ jobs:
               "type": "uft-id-publication-workflow-runtime",
               "schema_version": "1.0.0",
               "python_version": os.environ["UFT_MATRIX_PYTHON"],
+              "build_outcome": os.environ.get("UFT_BUILD_OUTCOME", ""),
+              "verification_outcome": os.environ.get("UFT_VERIFY_OUTCOME", ""),
               "isolated_lean_outcome": os.environ.get("UFT_ISOLATED_LEAN_OUTCOME", ""),
               "workflow_checkout_sha": os.environ["UFT_GITHUB_SHA"],
               "publication_source_commit": "9bffc6b59ba109824079dd00d87ab39993ad7f93",
+              "canonical_publication_python": "3.12",
           }
           Path("artifacts/publication-workflow-runtime.json").write_text(
               json.dumps(payload, indent=2, sort_keys=True) + "\n",
@@ -140,10 +150,10 @@ jobs:
           PY
 
       - name: Retain exact Zenodo publication bytes
-        if: always()
+        if: matrix.python-version == '3.12' && success() && steps.build_publication.outcome == 'success' && steps.verify_publication.outcome == 'success' && steps.isolated_lean.outcome == 'success'
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:
-          name: uft-id-zenodo-publication-py${{ matrix.python-version }}
+          name: uft-id-zenodo-publication
           path: artifacts/zenodo/
           if-no-files-found: error
           retention-days: 30

@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest import mock
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -50,8 +51,13 @@ class ScholarlyArchiveReproductionTests(unittest.TestCase):
             ],
         )
         self.assertEqual(contract["pipeline"]["lean_reproduction_python"], "3.12")
+        self.assertEqual(contract["pipeline"]["canonical_publication_python"], "3.12")
+        self.assertEqual(
+            contract["pipeline"]["canonical_publication_artifact"],
+            "uft-id-zenodo-publication",
+        )
 
-    def test_workflow_builds_from_detached_merged_main_and_retains_exact_bytes(self):
+    def test_workflow_builds_from_detached_merged_main_and_retains_one_canonical_surface(self):
         text = (ROOT / ".github/workflows/publication-reproduction.yml").read_text(encoding="utf-8")
         self.assertIn(f"UFT_PUBLICATION_SOURCE_COMMIT: {PUBLICATION_SOURCE_COMMIT}", text)
         self.assertIn('git worktree add --detach "$publication_root" "$UFT_PUBLICATION_SOURCE_COMMIT"', text)
@@ -60,7 +66,18 @@ class ScholarlyArchiveReproductionTests(unittest.TestCase):
         self.assertIn("Reproduce archived formal layer in isolation", text)
         self.assertIn("scripts/reproduce_scholarly_archive.py", text)
         self.assertIn("path: artifacts/zenodo/", text)
-        self.assertIn("name: uft-id-zenodo-publication-py${{ matrix.python-version }}", text)
+        self.assertIn("name: uft-id-zenodo-publication", text)
+        self.assertNotIn("name: uft-id-zenodo-publication-py${{ matrix.python-version }}", text)
+        self.assertIn(
+            "if: matrix.python-version == '3.12' && success() && "
+            "steps.build_publication.outcome == 'success' && "
+            "steps.verify_publication.outcome == 'success' && "
+            "steps.isolated_lean.outcome == 'success'",
+            text,
+        )
+        self.assertIn("2> artifacts/scholarly-archive-build.stderr.txt", text)
+        self.assertIn("2> artifacts/scholarly-archive-verification.stderr.txt", text)
+        self.assertIn("2> artifacts/scholarly-archive-reproduction.stderr.txt", text)
         self.assertIn("fetch-depth: 0", text)
         self.assertNotIn("actions/download-artifact@", text)
 
@@ -95,6 +112,27 @@ class ScholarlyArchiveReproductionTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "unsafe ZIP path"):
                 REPRODUCE.extract_formal_layer(source_zip, root / "formal")
 
+    def test_formal_extraction_rejects_too_many_outer_members_before_zipfile_processing(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source_zip = root / "source.zip"
+            with zipfile.ZipFile(source_zip, "w") as zf:
+                for index in range(5):
+                    add_member(zf, f"noise/{index}.txt", b"")
+            with mock.patch.object(REPRODUCE, "MAX_ZIP_MEMBERS", 4):
+                with self.assertRaisesRegex(RuntimeError, "member count outside allowed bounds"):
+                    REPRODUCE.extract_formal_layer(source_zip, root / "formal")
+
+    def test_formal_extraction_rejects_outer_zip_size_before_open(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source_zip = root / "source.zip"
+            with zipfile.ZipFile(source_zip, "w") as zf:
+                add_member(zf, "formal/lean-toolchain", b"x")
+            with mock.patch.object(REPRODUCE, "MAX_OUTER_ZIP_BYTES", 1):
+                with self.assertRaisesRegex(RuntimeError, "source ZIP exceeds outer size bound"):
+                    REPRODUCE.extract_formal_layer(source_zip, root / "formal")
+
     def test_publication_surface_rejects_extra_outer_entry(self):
         names = [
             "UFT-ID-3.0.0-source.zip",
@@ -108,6 +146,39 @@ class ScholarlyArchiveReproductionTests(unittest.TestCase):
             (root / "extra").mkdir()
             with self.assertRaisesRegex(RuntimeError, "publication surface drift"):
                 REPRODUCE.artifact_surface(root, names)
+
+    def test_direct_authentication_rejects_altered_archive_bytes_before_execution(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "UFT-ID-3.0.0-source.zip").write_bytes(b"not-a-zip")
+            (root / "UFT-ID-v3.0.0-Overview.pdf").write_bytes(b"not-a-pdf")
+            (root / "RELEASE-NOTES.md").write_text("not release notes\n", encoding="utf-8")
+            with self.assertRaisesRegex(
+                RuntimeError,
+                "detached publication authority rejected supplied archive bytes",
+            ):
+                REPRODUCE.authenticate_publication_surface(root, PUBLICATION_SOURCE_COMMIT)
+
+    def test_runtime_toolchain_mismatch_fails_closed(self):
+        contract = REPRODUCE.load_contract()
+        toolchain = contract["lean_toolchain"]
+        REPRODUCE.validate_runtime_toolchain(
+            "Lean (version 4.33.1, x86_64-unknown-linux-gnu, commit deadbeef, Release)",
+            "Lake version 5.0.0-src+819816b (Lean version 4.33.1)",
+            toolchain,
+        )
+        with self.assertRaisesRegex(RuntimeError, "runtime Lean version mismatch"):
+            REPRODUCE.validate_runtime_toolchain(
+                "Lean (version 4.32.0, x86_64-unknown-linux-gnu, commit deadbeef, Release)",
+                "Lake version 5.0.0-src+819816b (Lean version 4.32.0)",
+                toolchain,
+            )
+        with self.assertRaisesRegex(RuntimeError, "runtime Lake version mismatch"):
+            REPRODUCE.validate_runtime_toolchain(
+                "Lean (version 4.33.1, x86_64-unknown-linux-gnu, commit deadbeef, Release)",
+                "Lake version 4.9.0 (Lean version 4.33.1)",
+                toolchain,
+            )
 
     def test_reproducer_rejects_wrong_publication_source_before_execution(self):
         with tempfile.TemporaryDirectory() as temporary:
