@@ -173,14 +173,12 @@ class CodexFifthBatchRegressions(unittest.TestCase):
 
     def test_nested_or_noncanonical_fences_cannot_hide_human_authority_drift(self):
         human = HUMAN.read_text(encoding="utf-8")
-        section = V.section(human, "## Expected Lean module map")
         body, errors = V._human_text_block(
             human,
             "## Expected Lean module map",
             "missing",
             "bad block",
         )
-        self.assertIsNotNone(section)
         self.assertEqual(errors, [])
         self.assertIsNotNone(body)
         canonical = f"```text\n{body}```"
