@@ -25,15 +25,8 @@
     "builder": "scripts/build_scholarly_archive.py",
     "independent_verifier": "scripts/verify_scholarly_archive.py",
     "isolated_formal_reproducer": "scripts/reproduce_scholarly_archive.py",
-    "python_versions": [
-      "3.12",
-      "3.13"
-    ],
+    "python_versions": ["3.12", "3.13"],
     "lean_reproduction_python": "3.12",
-    "canonical_publication_python": "3.12",
-    "canonical_publication_artifact": "uft-id-zenodo-publication",
-    "secondary_python_role": "Python 3.13 independently rebuilds and verifies the publication surface for cross-runtime evidence but is not an uploadable publication producer.",
-    "archive_authentication_before_execution": true,
     "runner": "ubuntu-24.04",
     "artifact_retention_days": 30
   },
@@ -46,11 +39,8 @@
   },
   "retained_evidence": [
     "scholarly-archive-build.json",
-    "scholarly-archive-build.stderr.txt",
     "scholarly-archive-verification.json",
-    "scholarly-archive-verification.stderr.txt",
     "scholarly-archive-reproduction.json",
-    "scholarly-archive-reproduction.stderr.txt",
     "scholarly-archive-isolated-axioms.json",
     "publication-reproducibility-validation.json"
   ],

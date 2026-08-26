@@ -18,6 +18,7 @@ from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "machine/scholarly_archive_reproduction_contract.json"
+SOURCE_ZIP_NAME = "UFT-ID-3.0.0-source.zip"
 MAX_FORMAL_FILE_BYTES = 64 * 1024 * 1024
 MAX_FORMAL_TOTAL_BYTES = 256 * 1024 * 1024
 MAX_OUTER_ZIP_BYTES = 256 * 1024 * 1024
@@ -227,13 +228,60 @@ def artifact_surface(directory: Path, names: list[str]) -> dict[str, dict[str, o
     return result
 
 
+def reject_publication_output_aliases(directory: Path, output: Path) -> None:
+    publication_root = directory.resolve()
+    resolved = output.resolve()
+    try:
+        resolved.relative_to(publication_root)
+    except ValueError:
+        return
+    raise RuntimeError(
+        "reproduction output must be outside protected publication directory: "
+        f"{resolved}"
+    )
+
+
+def require_exact_artifact_digests(
+    observed: dict[str, dict[str, object]],
+    canonical: dict[str, dict[str, object]],
+) -> None:
+    if set(observed) != set(canonical):
+        raise RuntimeError("publication artifact inventory does not match canonical authority bytes")
+    for name in sorted(canonical):
+        if observed[name].get("bytes") != canonical[name].get("bytes") or observed[name].get("sha256") != canonical[name].get("sha256"):
+            raise RuntimeError(f"publication artifact does not match canonical authority bytes: {name}")
+
+
 def authenticate_publication_surface(
     directory: Path,
     expected_commit: str,
+    exact_files: list[str] | None = None,
 ) -> dict[str, object]:
-    """Verify supplied bytes with the verifier and contract from trusted Git authority."""
+    """Bind supplied bytes to a trusted detached canonical rebuild before execution."""
+    contract = load_contract()
+    surface = contract.get("publication_surface")
+    if not isinstance(surface, dict):
+        raise RuntimeError("reproduction publication surface malformed")
+    contract_files = [str(value) for value in surface.get("exact_files", [])]
+    names = contract_files if exact_files is None else [str(value) for value in exact_files]
+    if not names or names != contract_files:
+        raise RuntimeError("publication surface file list does not match reproduction contract")
+    if SOURCE_ZIP_NAME not in names:
+        raise RuntimeError("reproduction publication surface is missing the source ZIP")
+
+    directory = directory.resolve()
+    supplied = artifact_surface(directory, names)
+
+    # The detached verifier at the immutable authority commit constructs
+    # ZipFile before applying its own member-count policy. Bound the hostile ZIP
+    # here first so authentication cannot reach that unbounded path.
+    bounded_zip_member_count(directory / SOURCE_ZIP_NAME)
+
     with tempfile.TemporaryDirectory(prefix="uft-id-publication-authority-") as temporary:
-        authority_root = Path(temporary) / "authority"
+        temporary_root = Path(temporary)
+        authority_root = temporary_root / "authority"
+        canonical_root = temporary_root / "canonical"
+        canonical_root.mkdir()
         add = subprocess.run(
             ["git", "worktree", "add", "--detach", str(authority_root), expected_commit],
             cwd=ROOT,
@@ -249,9 +297,27 @@ def authenticate_publication_surface(
                 + ("\n" + add.stderr if add.stderr else "")
             )
         try:
+            builder = authority_root / "scripts/build_scholarly_archive.py"
+            build = subprocess.run(
+                [sys.executable, str(builder), "--output", str(canonical_root), "--json"],
+                cwd=authority_root,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+            if build.returncode != 0:
+                raise RuntimeError(
+                    "detached publication authority could not rebuild canonical bytes:\n"
+                    + build.stdout
+                    + ("\n" + build.stderr if build.stderr else "")
+                )
+            canonical = artifact_surface(canonical_root, names)
+            require_exact_artifact_digests(supplied, canonical)
+
             verifier = authority_root / "scripts/verify_scholarly_archive.py"
             proc = subprocess.run(
-                [sys.executable, str(verifier), str(directory.resolve()), "--json"],
+                [sys.executable, str(verifier), str(directory), "--json"],
                 cwd=authority_root,
                 text=True,
                 stdout=subprocess.PIPE,
@@ -270,7 +336,19 @@ def authenticate_publication_surface(
             )
             if report.get("status") != "ok":
                 raise RuntimeError("detached publication authority verification did not report ok")
-            return report
+            verified = report.get("artifacts")
+            if not isinstance(verified, dict):
+                raise RuntimeError("detached publication authority omitted artifact digests")
+            for name in names:
+                if verified.get(name) != canonical[name]["sha256"]:
+                    raise RuntimeError(
+                        "detached publication authority digest disagrees with canonical authority bytes: "
+                        f"{name}"
+                    )
+            return {
+                "status": "ok",
+                "artifacts": {name: canonical[name]["sha256"] for name in names},
+            }
         finally:
             subprocess.run(
                 ["git", "worktree", "remove", "--force", str(authority_root)],
@@ -325,6 +403,10 @@ def reproduce(
     publication_source_commit: str,
     axiom_json_out: Path,
 ) -> dict[str, object]:
+    directory = directory.resolve()
+    axiom_json_out = axiom_json_out.resolve()
+    reject_publication_output_aliases(directory, axiom_json_out)
+
     contract = load_contract()
     expected_source = contract["publication_source"]
     surface = contract["publication_surface"]
@@ -340,9 +422,8 @@ def reproduce(
     if run_git("rev-parse", f"{expected_commit}^{{tree}}") != str(expected_source["merge_tree"]):
         raise RuntimeError("publication source tree drift")
 
-    authority_verification = authenticate_publication_surface(directory, expected_commit)
-
     exact_files = [str(value) for value in surface["exact_files"]]
+    authority_verification = authenticate_publication_surface(directory, expected_commit, exact_files)
     artifacts = artifact_surface(directory, exact_files)
     verified_artifacts = authority_verification.get("artifacts")
     if not isinstance(verified_artifacts, dict):
@@ -351,9 +432,8 @@ def reproduce(
         if verified_artifacts.get(name) != metadata["sha256"]:
             raise RuntimeError(f"detached publication authority digest mismatch: {name}")
 
-    source_zip = directory / "UFT-ID-3.0.0-source.zip"
+    source_zip = directory / SOURCE_ZIP_NAME
 
-    axiom_json_out = axiom_json_out.resolve()
     axiom_json_out.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="uft-id-publication-formal-") as temporary:
         isolated = Path(temporary)
@@ -451,12 +531,26 @@ def main() -> int:
     parser.add_argument("--axiom-json-out", type=Path, required=True)
     args = parser.parse_args()
 
+    directory = args.directory.resolve()
+    json_out = args.json_out.resolve()
+    axiom_json_out = args.axiom_json_out.resolve()
+
+    # Reject aliases before entering the general error-report path. In
+    # particular, an invalid --json-out must never overwrite a publication file
+    # even with an error receipt.
+    try:
+        reject_publication_output_aliases(directory, json_out)
+        reject_publication_output_aliases(directory, axiom_json_out)
+    except (OSError, RuntimeError, ValueError) as exc:
+        print(exc)
+        return 1
+
     try:
         report = reproduce(
-            args.directory.resolve(),
+            directory,
             lake=args.lake,
             publication_source_commit=args.publication_source_commit,
-            axiom_json_out=args.axiom_json_out,
+            axiom_json_out=axiom_json_out,
         )
     except (
         OSError,
@@ -473,8 +567,8 @@ def main() -> int:
             "errors": [str(exc)],
         }
 
-    args.json_out.parent.mkdir(parents=True, exist_ok=True)
-    args.json_out.write_text(
+    json_out.parent.mkdir(parents=True, exist_ok=True)
+    json_out.write_text(
         json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + "\n",
         encoding="utf-8",
     )
