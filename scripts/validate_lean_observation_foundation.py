@@ -113,22 +113,25 @@ _OVERRIDES = {
     "validate",
     "main",
 }
+# Export only the predecessor's public compatibility surface. Private
+# predecessor names such as its captured `_IMPL_*` callables must never replace
+# this promotion layer's own stable handles.
 _COMPAT_EXPORTS = {
     name: getattr(_impl, name)
     for name in dir(_impl)
-    if not name.startswith("__")
-    and name not in _OVERRIDES
-    and name != "_impl"
+    if not name.startswith("_") and name not in _OVERRIDES
 }
 globals().update(_COMPAT_EXPORTS)
-_COMPAT_BRIDGE_NAMES = tuple(
-    sorted(
-        name
-        for name in _COMPAT_EXPORTS
-        if not name.startswith("_") and name not in _OVERRIDES
-    )
-)
+_COMPAT_BRIDGE_NAMES = tuple(sorted(_COMPAT_EXPORTS))
 del _COMPAT_EXPORTS
+
+# Public current-authority constants describe the verified live checkout. The
+# historical PR #22 hashes remain asserted by the explicit reverse-projection
+# regression rather than masquerading as the current raw surfaces.
+EXPECTED_LIVE_README_BLOB = EXPECTED_VERIFIED_README_BLOB
+EXPECTED_CLAIM_SURFACE_BLOBS = dict(EXPECTED_CLAIM_SURFACE_BLOBS)
+EXPECTED_CLAIM_SURFACE_BLOBS["README4AI"] = EXPECTED_VERIFIED_README_BLOB
+EXPECTED_CLAIM_SURFACE_BLOBS["ROADMAP"] = EXPECTED_VERIFIED_ROADMAP_BLOB
 
 PENDING_ROADMAP_STATUS = "active-post-tag-lean-implementation-ci-hardening"
 VERIFIED_ROADMAP_STATUS = "active-lean-verified-awaiting-context-and-archive"
