@@ -70,7 +70,7 @@ class ReproducibilityPolicyTests(unittest.TestCase):
         self.assertTrue(report["ok"], report["errors"])
         self.assertGreaterEqual(report["summary"]["action_pins"], 3)
         self.assertEqual(report["summary"]["runner"], "ubuntu-24.04")
-        self.assertEqual(report["summary"]["workflows"], 2)
+        self.assertEqual(report["summary"]["workflows"], 3)
 
     def test_structural_parser_reads_effective_policy_fields(self):
         parsed = REPRO.parse_workflow(ROOT / ".github/workflows/finite-adversarial.yml")
@@ -90,6 +90,32 @@ class ReproducibilityPolicyTests(unittest.TestCase):
             if step.get("name") == "Generate deterministic evidence bundle"
         )
         self.assertEqual(evidence["if"], "always()")
+
+    def test_publication_upload_is_canonical_and_fail_closed(self):
+        parsed = REPRO.parse_workflow(ROOT / ".github/workflows/publication-reproduction.yml")
+        job = parsed["jobs"]["reproduce-publication"]
+        upload = next(
+            step
+            for step in job["steps"]
+            if step.get("name") == REPRO.PUBLICATION_UPLOAD_NAME
+        )
+        self.assertEqual(upload["if"], REPRO.PUBLICATION_UPLOAD_CONDITION)
+        self.assertEqual(upload["with"]["name"], REPRO.PUBLICATION_UPLOAD_ARTIFACT)
+
+    def test_rejects_publication_upload_with_always_condition(self):
+        def mutate(root: Path):
+            path = root / ".github/workflows/publication-reproduction.yml"
+            text = path.read_text(encoding="utf-8").replace(
+                f"        if: {REPRO.PUBLICATION_UPLOAD_CONDITION}",
+                "        if: always()",
+                1,
+            )
+            path.write_text(text, encoding="utf-8")
+
+        self.assert_rejected(
+            validate_mutation(mutate),
+            "canonical publication upload must use if:",
+        )
 
     def test_rejects_undeclared_yaml_workflow(self):
         def mutate(root: Path):

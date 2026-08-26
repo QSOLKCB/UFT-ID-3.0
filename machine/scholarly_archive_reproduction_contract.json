@@ -1,0 +1,64 @@
+{
+  "type": "uft-id-scholarly-archive-reproduction-contract",
+  "schema_version": "1.0.0",
+  "status": "PUBLICATION_REPRODUCTION_PENDING_CI",
+  "project": "UFT-ID 3.0",
+  "version": "3.0.0",
+  "doi": "10.5281/zenodo.22108865",
+  "publication_source": {
+    "pull_request": 24,
+    "merge_commit": "9bffc6b59ba109824079dd00d87ab39993ad7f93",
+    "merge_tree": "b98895d3720bf757b5f78758f8879d6c9cf916cc",
+    "rule": "The three Zenodo publication files are generated from this already-merged commit in a detached Git worktree, not from mutable PR working-tree publication sources."
+  },
+  "publication_surface": {
+    "directory": "artifacts/zenodo",
+    "exact_files": [
+      "UFT-ID-3.0.0-source.zip",
+      "UFT-ID-v3.0.0-Overview.pdf",
+      "RELEASE-NOTES.md"
+    ],
+    "hash": "SHA-256"
+  },
+  "pipeline": {
+    "workflow": ".github/workflows/publication-reproduction.yml",
+    "builder": "scripts/build_scholarly_archive.py",
+    "independent_verifier": "scripts/verify_scholarly_archive.py",
+    "isolated_formal_reproducer": "scripts/reproduce_scholarly_archive.py",
+    "python_versions": [
+      "3.12",
+      "3.13"
+    ],
+    "lean_reproduction_python": "3.12",
+    "canonical_publication_python": "3.12",
+    "canonical_publication_artifact": "uft-id-zenodo-publication",
+    "secondary_python_role": "Python 3.13 independently rebuilds and verifies the publication surface for cross-runtime evidence but is not an uploadable publication producer.",
+    "archive_authentication_before_execution": true,
+    "runner": "ubuntu-24.04",
+    "artifact_retention_days": 30
+  },
+  "lean_toolchain": {
+    "lean": "v4.33.1",
+    "lake": "5.0.0-src+819816b",
+    "mathlib_commit": "0df444a360eaa60ab8c11dca51a86af692955474",
+    "lean_archive_url": "https://github.com/leanprover/lean4/releases/download/v4.33.1/lean-4.33.1-linux.tar.zst",
+    "lean_archive_sha256": "890afd185370f85666025b883914ab4f4b339136f8c96167b69cfb62aecaf235"
+  },
+  "retained_evidence": [
+    "scholarly-archive-build.json",
+    "scholarly-archive-build.stderr.txt",
+    "scholarly-archive-verification.json",
+    "scholarly-archive-verification.stderr.txt",
+    "scholarly-archive-reproduction.json",
+    "scholarly-archive-reproduction.stderr.txt",
+    "scholarly-archive-isolated-axioms.json",
+    "publication-reproducibility-validation.json"
+  ],
+  "hard_boundaries": [
+    "PUBLICATION_REPRODUCTION != NEW_SOURCE_RELEASE",
+    "PUBLICATION_REPRODUCTION != NEW_FORMALIZATION",
+    "ARCHIVE_REPRODUCED != EMPIRICAL_VALIDATION",
+    "CHECKSUM_MATCH != SEMANTIC_TRUTH",
+    "ZENODO_UPLOAD_BYTES == VERIFIED_CI_PUBLICATION_BYTES"
+  ]
+}

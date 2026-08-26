@@ -40,6 +40,7 @@
   "ci_provenance": {
     "workflow_files": [
       ".github/workflows/finite-adversarial.yml",
+      ".github/workflows/publication-reproduction.yml",
       ".github/workflows/vopson-corpus.yml"
     ],
     "workflow_extensions": [

@@ -41,6 +41,7 @@ EXPECTED_VERIFIED_ROADMAP_STATE_BLOB = "97f276f4e079e79af1e394d233ec337ffd981bca
 EXPECTED_VERIFIED_RECORD_BLOB = "f39ad92f6522886d4449e938cd50cec669364930"
 EXPECTED_VERIFIED_WORKFLOW_BLOB = "626e44c3855a1de2be055fa31ba3ee35e6a9dafd"
 EXPECTED_VERIFIED_AXIOM_AUDITOR_BLOB = "368cf82e2b44220fee105a987002c027ec2e7425"
+EXPECTED_LIVE_MACHINE_CONTRACT_BLOB = "af34a9a5c51efec8f3de0b38d6a238489c0fe1b4"
 
 
 def _git_blob_sha(path: Path) -> str:
@@ -419,6 +420,7 @@ _VERIFIED_AUTHORITY_BLOBS.update(
         ".github/workflows/vopson-corpus.yml": EXPECTED_VERIFIED_WORKFLOW_BLOB,
         "README4AI.md": EXPECTED_VERIFIED_README_BLOB,
         "ROADMAP.md": EXPECTED_VERIFIED_ROADMAP_BLOB,
+        "machine/contract.json": EXPECTED_LIVE_MACHINE_CONTRACT_BLOB,
         "machine/roadmap_state.json": EXPECTED_VERIFIED_ROADMAP_STATE_BLOB,
         "machine/lean_observation_verification.json": EXPECTED_VERIFIED_RECORD_BLOB,
         "scripts/validate_lean_observation_foundation_pr22_merged_frozen.py": EXPECTED_PREDECESSOR_BLOB,

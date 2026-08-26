@@ -5,7 +5,6 @@ The workflow policy parser is deliberately dependency-free and limited to the
 GitHub Actions structures this repository uses. It validates active YAML fields
 by indentation/context rather than searching for policy strings in raw text.
 """
-
 from __future__ import annotations
 
 import argparse
@@ -20,6 +19,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 ACTION_REF_RE = re.compile(r"^([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)@([0-9a-f]{40})$")
 ACTION_NAME_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
+PUBLICATION_UPLOAD_NAME = "Retain exact Zenodo publication bytes"
+PUBLICATION_UPLOAD_ARTIFACT = "uft-id-zenodo-publication"
+PUBLICATION_UPLOAD_CONDITION = (
+    "matrix.python-version == '3.12' && success() && "
+    "steps.build_publication.outcome == 'success' && "
+    "steps.verify_publication.outcome == 'success' && "
+    "steps.isolated_lean.outcome == 'success'"
+)
 
 
 def display_path(path: Path, root: Path = ROOT) -> str:
@@ -60,7 +67,6 @@ def load_json(path: Path) -> dict[str, Any]:
 
 def _active(line: str) -> str:
     """Return one active YAML line with an optional trailing comment removed."""
-
     stripped = line.rstrip()
     if not stripped.lstrip() or stripped.lstrip().startswith("#"):
         return ""
@@ -372,6 +378,7 @@ def validate_workflow_contract(
             setup_seen = False
             upload_seen = False
             evidence_seen = False
+            publication_upload_seen = False
 
             for index, step in enumerate(steps):
                 run = step.get("run")
@@ -413,8 +420,23 @@ def validate_workflow_contract(
 
                 if isinstance(uses, str) and uses.startswith("actions/upload-artifact@"):
                     upload_seen = True
-                    if step.get("if") != "always()":
-                        errors.append(f"{job_label}: artifact upload must use if: always()")
+                    if name == PUBLICATION_UPLOAD_NAME:
+                        publication_upload_seen = True
+                        if step.get("if") != PUBLICATION_UPLOAD_CONDITION:
+                            errors.append(
+                                f"{job_label}: canonical publication upload must use if: "
+                                f"{PUBLICATION_UPLOAD_CONDITION}"
+                            )
+                        if (
+                            not isinstance(with_values, dict)
+                            or with_values.get("name") != PUBLICATION_UPLOAD_ARTIFACT
+                        ):
+                            errors.append(
+                                f"{job_label}: canonical publication artifact name must equal "
+                                f"{PUBLICATION_UPLOAD_ARTIFACT}"
+                            )
+                    elif step.get("if") != "always()":
+                        errors.append(f"{job_label}: evidence artifact upload must use if: always()")
                     if not isinstance(with_values, dict) or with_values.get("retention-days") != expected_retention:
                         errors.append(
                             f"{job_label}: artifact retention-days must equal {expected_retention}"
@@ -434,6 +456,8 @@ def validate_workflow_contract(
                 errors.append(f"{job_label}: evidence-generation step is missing")
             if not upload_seen:
                 errors.append(f"{job_label}: artifact-upload step is missing")
+            if label == ".github/workflows/publication-reproduction.yml" and not publication_upload_seen:
+                errors.append(f"{job_label}: canonical publication artifact-upload step is missing")
 
 
 def validate(root: Path = ROOT) -> dict[str, object]:
