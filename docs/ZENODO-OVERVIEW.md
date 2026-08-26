@@ -34,7 +34,10 @@ SOURCE_RELEASE != LATER_LEAN_FORMALIZATION_LAYER
 Formalization integration commit: bbcde19827921af4490c232bdc1edc401790d89e
 Formalization integration tree: b7ec78695f32a5b1cf78b416a5050627ad4f957d
 LEAN_VERIFIED promotion commit: 328785f7f23ed4ab246ecec1a3419c2a6ef126c0
-Final reviewed promotion head: 22f1ab15b180c038ea38f2b257d0811ea2bab2f8
+Codex no-major-issues reviewed commit: 111a9c7a0b6d26c999eb941f9c25f5c0f5176ed5
+Final PR head subsequently passing the complete pinned CI and axiom-audit gates: c32aaff36219961e3ec2a4e479ccdec521795bbe
+
+The Codex review result is bound only to the reviewed commit above. The later final PR head is retained separately as CI and axiom-audit provenance and is not promoted into a Codex review claim.
 
 The verified theorem inventory is:
 
@@ -95,9 +98,13 @@ Generated ZIP and PDF bytes are publication artifacts, not canonical source file
 
 # 5. Verification and reproduction
 
-The independent verifier distrusts the archive manifest and checks it against immutable Git objects. It rejects unsafe or non-canonical ZIP paths, directory entries, duplicate member names, unexpected top-level paths, oversized members, non-deterministic timestamps, unexpected modes, malformed checksum rows, manifest identity drift, source-tree drift, formal-layer drift, theorem inventory drift, PDF identity drift, and release-note hash drift.
+The independent verifier distrusts the archive manifest and checks it against immutable Git objects. It rejects unsafe or non-canonical ZIP paths, directory entries, duplicate member names, duplicate JSON keys, unexpected top-level paths, oversized members and outer artifacts, non-deterministic timestamps, unexpected modes, malformed checksum rows, manifest identity drift, source-tree drift, formal-layer drift, theorem inventory drift, package/toolchain drift, PDF identity drift, and release-note byte drift.
 
-The reference tree is compared byte-for-byte against git archive output from the frozen v3.0.0 commit. The selected formal layer is compared byte-for-byte against the declared LEAN_VERIFIED promotion commit. The verification record inside the formal layer must still report LEAN_VERIFIED and must bind the expected theorem source blobs.
+The reference tree is compared byte-for-byte against git archive output from the frozen v3.0.0 commit. The selected formal layer is compared byte-for-byte against the declared LEAN_VERIFIED promotion commit. The archived verification record must still report LEAN_VERIFIED and must independently agree with the archive contract on source release identity, integration commit/tree, Codex reviewed commit, later final PR head, toolchain identity, theorem source blobs, and the empty current-deferred set. Git tree identities are recomputed rather than trusted from the manifest.
+
+RELEASE-NOTES.md is authenticated as complete deterministic content regenerated independently from the contract and the actual ZIP/PDF hashes. Selected-substring matching is not sufficient. The exact outer surface also rejects injected directories, symlinks, and other non-regular entries.
+
+Both mandatory CI workflows fetch the full repository history required to reconstruct the frozen tag and post-tag verification objects, so the archive tests execute rather than being skipped in shallow clones.
 
 A deterministic rebuild must reproduce the same source ZIP, Overview PDF, and release notes bytes from the same Git objects and archive contract.
 

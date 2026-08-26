@@ -26,7 +26,8 @@
     "integration_tree": "b7ec78695f32a5b1cf78b416a5050627ad4f957d",
     "verification_promotion_commit": "328785f7f23ed4ab246ecec1a3419c2a6ef126c0",
     "verification_promotion_tree": "34c0bba51bfd34661280ccd01598987ecded8bd8",
-    "final_reviewed_head": "22f1ab15b180c038ea38f2b257d0811ea2bab2f8",
+    "codex_no_major_issues_reviewed_commit": "111a9c7a0b6d26c999eb941f9c25f5c0f5176ed5",
+    "final_pr_head": "c32aaff36219961e3ec2a4e479ccdec521795bbe",
     "review_result": "no_major_issues",
     "directory": "formal",
     "toolchain": {
@@ -63,6 +64,7 @@
     "archive source bytes come from immutable Git objects, never mutable working-tree copies",
     "reference-v3.0.0 is byte-for-byte derived from the frozen v3.0.0 commit",
     "formal is byte-for-byte derived from the LEAN_VERIFIED promotion commit for the declared archive paths",
+    "Codex no-major-issues review evidence is bound only to its exact reviewed commit; the later final PR head is separately recorded as CI/axiom-audit provenance",
     "the tracked lakefile.toml pins the exact mathlib commit; lake-manifest.json is intentionally not treated as reviewed source because it is not tracked at the verified commit",
     "ZIP member order, timestamps, modes, compression, JSON serialization, PDF metadata, and page layout are deterministic",
     "release notes bind the final source ZIP and Overview PDF SHA-256 values",

@@ -76,9 +76,23 @@ def assert_git_bindings(contract: dict[str, object]) -> None:
         raise RuntimeError(f"{tag} does not resolve to the bound source commit")
     if run_git("rev-parse", f"{commit}^{{tree}}") != tree:
         raise RuntimeError("bound source commit tree drifted")
+
+    integration = str(formal["integration_commit"])
+    if run_git("rev-parse", f"{integration}^{{commit}}") != integration:
+        raise RuntimeError("formalization integration commit is unavailable or ambiguous")
+    if run_git("rev-parse", f"{integration}^{{tree}}") != str(formal["integration_tree"]):
+        raise RuntimeError("formalization integration tree drifted")
+
     promotion = str(formal["verification_promotion_commit"])
     if run_git("rev-parse", f"{promotion}^{{commit}}") != promotion:
         raise RuntimeError("verification-promotion commit is unavailable or ambiguous")
+    if run_git("rev-parse", f"{promotion}^{{tree}}") != str(formal["verification_promotion_tree"]):
+        raise RuntimeError("verification-promotion tree drifted")
+
+    for field in ("codex_no_major_issues_reviewed_commit", "final_pr_head"):
+        value = str(formal[field])
+        if run_git("rev-parse", f"{value}^{{commit}}") != value:
+            raise RuntimeError(f"{field} is unavailable or ambiguous")
 
 
 def git_archive_files(ref: str, paths: list[str] | None = None) -> dict[str, bytes]:
@@ -174,7 +188,8 @@ def write_archive_manifest(stage: Path, contract: dict[str, object]) -> None:
             "integration_tree": formal["integration_tree"],
             "verification_promotion_commit": formal["verification_promotion_commit"],
             "verification_promotion_tree": formal["verification_promotion_tree"],
-            "final_reviewed_head": formal["final_reviewed_head"],
+            "codex_no_major_issues_reviewed_commit": formal["codex_no_major_issues_reviewed_commit"],
+            "final_pr_head": formal["final_pr_head"],
             "review_result": formal["review_result"],
             "directory": formal["directory"],
             "toolchain": formal["toolchain"],

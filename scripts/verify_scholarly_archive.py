@@ -21,6 +21,9 @@ MAX_MEMBERS = 10000
 MAX_FILE_BYTES = 64 * 1024 * 1024
 MAX_TOTAL_BYTES = 256 * 1024 * 1024
 MAX_COMPRESSION_RATIO = 300.0
+MAX_OUTER_ZIP_BYTES = 256 * 1024 * 1024
+MAX_OUTER_PDF_BYTES = 8 * 1024 * 1024
+MAX_OUTER_NOTES_BYTES = 1024 * 1024
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -35,8 +38,28 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
+def reject_duplicate_object_pairs(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON key: {key}")
+        result[key] = value
+    return result
+
+
+def strict_json_bytes(raw: bytes, *, label: str) -> object:
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise RuntimeError(f"{label} is not UTF-8") from exc
+    try:
+        return json.loads(text, object_pairs_hook=reject_duplicate_object_pairs)
+    except (json.JSONDecodeError, ValueError) as exc:
+        raise RuntimeError(f"{label} is not strict JSON: {exc}") from exc
+
+
 def load_contract() -> dict[str, object]:
-    value = json.loads(CONTRACT_PATH.read_text(encoding="utf-8"))
+    value = strict_json_bytes(CONTRACT_PATH.read_bytes(), label="scholarly archive contract")
     if not isinstance(value, dict):
         raise RuntimeError("scholarly archive contract must be a JSON object")
     return value
@@ -48,6 +71,17 @@ def run_git(*args: str) -> str:
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     )
     return cp.stdout.strip()
+
+
+def bounded_bytes(path: Path, limit: int, *, label: str) -> bytes:
+    size = path.stat().st_size
+    if size > limit:
+        raise RuntimeError(f"{label} exceeds size bound")
+    with path.open("rb") as fh:
+        data = fh.read(limit + 1)
+    if len(data) != size or len(data) > limit:
+        raise RuntimeError(f"{label} exceeds size bound")
+    return data
 
 
 def safe_path(name: str, allowed_top: set[str]) -> PurePosixPath:
@@ -104,6 +138,8 @@ def git_archive_files(ref: str, paths: list[str] | None = None) -> dict[str, byt
 
 
 def read_zip(path: Path, contract: dict[str, object]) -> dict[str, bytes]:
+    if path.stat().st_size > MAX_OUTER_ZIP_BYTES:
+        raise RuntimeError("source ZIP exceeds outer size bound")
     source = contract["source_release"]
     formal = contract["formalization"]
     if not isinstance(source, dict) or not isinstance(formal, dict):
@@ -157,10 +193,7 @@ def verify_manifest(files: dict[str, bytes], contract: dict[str, object]) -> dic
     raw = files.get("ARCHIVE-MANIFEST.json")
     if raw is None:
         raise RuntimeError("source ZIP missing ARCHIVE-MANIFEST.json")
-    try:
-        manifest = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise RuntimeError("ARCHIVE-MANIFEST.json is not valid UTF-8 JSON") from exc
+    manifest = strict_json_bytes(raw, label="ARCHIVE-MANIFEST.json")
     if not isinstance(manifest, dict):
         raise RuntimeError("archive manifest must be an object")
     metadata = contract["zenodo_metadata"]
@@ -184,7 +217,8 @@ def verify_manifest(files: dict[str, bytes], contract: dict[str, object]) -> dic
             "integration_tree": formal["integration_tree"],
             "verification_promotion_commit": formal["verification_promotion_commit"],
             "verification_promotion_tree": formal["verification_promotion_tree"],
-            "final_reviewed_head": formal["final_reviewed_head"],
+            "codex_no_major_issues_reviewed_commit": formal["codex_no_major_issues_reviewed_commit"],
+            "final_pr_head": formal["final_pr_head"],
             "review_result": formal["review_result"],
             "directory": formal["directory"],
             "toolchain": formal["toolchain"],
@@ -311,25 +345,84 @@ def verify_package_definition(files: dict[str, bytes], contract: dict[str, objec
         raise RuntimeError("untracked lake-manifest.json must not be registered as reviewed formal source")
 
 
-def verify_verification_record(files: dict[str, bytes], contract: dict[str, object]) -> None:
+def verify_verification_record(files: dict[str, bytes], contract: dict[str, object]) -> dict[str, object]:
     formal = contract["formalization"]
+    source = contract["source_release"]
     name = f"{formal['directory']}/machine/lean_observation_verification.json"
     raw = files.get(name)
     if raw is None:
         raise RuntimeError("formal layer missing Lean verification record")
-    record = json.loads(raw.decode("utf-8"))
+    record = strict_json_bytes(raw, label="archived Lean verification record")
+    if not isinstance(record, dict):
+        raise RuntimeError("archived Lean verification record must be an object")
     if record.get("status") != "LEAN_VERIFIED":
         raise RuntimeError("archived Lean verification record is not LEAN_VERIFIED")
+
+    expected_source = {key: source[key] for key in ("tag", "commit", "tree")}
+    if record.get("source_release") != expected_source:
+        raise RuntimeError("archived Lean verification source-release provenance drift")
+
+    integration = record.get("formalization_integration")
+    if not isinstance(integration, dict):
+        raise RuntimeError("archived Lean verification integration provenance malformed")
+    if integration.get("merge_commit") != formal["integration_commit"]:
+        raise RuntimeError("archived Lean verification integration commit drift")
+    if integration.get("merge_tree") != formal["integration_tree"]:
+        raise RuntimeError("archived Lean verification integration tree drift")
+    if integration.get("final_pr_head") != formal["final_pr_head"]:
+        raise RuntimeError("archived Lean verification final PR head drift")
+
+    review = record.get("review_evidence")
+    if not isinstance(review, dict):
+        raise RuntimeError("archived Lean verification review provenance malformed")
+    if review.get("codex_no_major_issues_reviewed_commit") != formal["codex_no_major_issues_reviewed_commit"]:
+        raise RuntimeError("archived Codex reviewed-commit provenance drift")
+    if review.get("final_pr_head") != formal["final_pr_head"]:
+        raise RuntimeError("archived Codex later-head provenance drift")
+    if formal.get("review_result") != "no_major_issues":
+        raise RuntimeError("archive contract review result is not the declared Codex result")
+
+    record_toolchain = record.get("toolchain")
+    if not isinstance(record_toolchain, dict):
+        raise RuntimeError("archived Lean verification toolchain provenance malformed")
+    for key in ("lean", "lake", "mathlib_commit", "lean_archive_sha256"):
+        if record_toolchain.get(key) != formal["toolchain"].get(key):
+            raise RuntimeError(f"archived Lean verification toolchain drift: {key}")
+
     expected = [(row["id"], row["source_blob_sha"]) for row in formal["theorems"]]
     observed = [(row.get("id"), row.get("source_blob_sha")) for row in record.get("theorems", [])]
     if observed != expected:
         raise RuntimeError("archived theorem/source-blob inventory drift")
     if record.get("current_deferred_theorem_ids") != []:
         raise RuntimeError("archived verification record has a current deferred theorem")
+    return record
+
+
+def verify_git_provenance(contract: dict[str, object]) -> None:
+    source = contract["source_release"]
+    formal = contract["formalization"]
+    if run_git("rev-parse", f"{source['tag']}^{{commit}}") != str(source["commit"]):
+        raise RuntimeError("source tag no longer resolves to bound commit")
+    if run_git("rev-parse", f"{source['commit']}^{{tree}}") != str(source["tree"]):
+        raise RuntimeError("source tree binding drift")
+
+    identities = (
+        ("integration", formal["integration_commit"], formal["integration_tree"]),
+        ("verification-promotion", formal["verification_promotion_commit"], formal["verification_promotion_tree"]),
+    )
+    for label, commit, tree in identities:
+        if run_git("rev-parse", f"{commit}^{{commit}}") != str(commit):
+            raise RuntimeError(f"{label} commit unavailable")
+        if run_git("rev-parse", f"{commit}^{{tree}}") != str(tree):
+            raise RuntimeError(f"{label} tree binding drift")
+    for field in ("codex_no_major_issues_reviewed_commit", "final_pr_head"):
+        value = str(formal[field])
+        if run_git("rev-parse", f"{value}^{{commit}}") != value:
+            raise RuntimeError(f"{field} unavailable")
 
 
 def verify_pdf(path: Path, contract: dict[str, object]) -> None:
-    data = path.read_bytes()
+    data = bounded_bytes(path, MAX_OUTER_PDF_BYTES, label="Overview PDF")
     if not data.startswith(b"%PDF-1.4") or b"xref\n" not in data or not data.rstrip().endswith(b"%%EOF"):
         raise RuntimeError("Overview PDF structure is not the deterministic PDF profile")
     page_count = len(re.findall(rb"/Type /Page\b", data))
@@ -341,6 +434,7 @@ def verify_pdf(path: Path, contract: dict[str, object]) -> None:
         str(contract["doi"]), str(contract["version"]), str(contract["repository"]),
         str(source["commit"]), str(source["tree"]),
         str(formal["integration_commit"]), str(formal["verification_promotion_commit"]),
+        str(formal["codex_no_major_issues_reviewed_commit"]), str(formal["final_pr_head"]),
         "UFT-OBS-005", "LEAN_VERIFIED", "Creative Commons Attribution 4.0", "MIT",
     ]
     text = data.decode("latin-1")
@@ -349,18 +443,24 @@ def verify_pdf(path: Path, contract: dict[str, object]) -> None:
             raise RuntimeError(f"Overview PDF missing required identity text: {needle}")
 
 
+def expected_release_notes_text(contract: dict[str, object], source_zip: Path, overview_pdf: Path) -> str:
+    zip_sha = sha256_file(source_zip)
+    pdf_sha = sha256_file(overview_pdf)
+    source = contract["source_release"]
+    formal = contract["formalization"]
+    return f"""# UFT-ID 3.0 Scholarly Archive Release Notes\n\nVersion: {contract['version']}\nZenodo DOI: {contract['doi']}\nRepository: {contract['repository']}\n\n## Publication surface\n\n- `{source_zip.name}`\n  - SHA-256: `{zip_sha}`\n- `{overview_pdf.name}`\n  - SHA-256: `{pdf_sha}`\n- `RELEASE-NOTES.md`\n  - its uploaded checksum is recorded independently by Zenodo; this file does not self-embed its own hash.\n\n## Provenance\n\nThe source archive contains two explicitly separate layers:\n\n- `reference-v3.0.0/`: exact immutable source tag `{source['tag']}`, commit `{source['commit']}`, tree `{source['tree']}`.\n- `formal/`: selected verified post-tag Lean layer from promotion commit `{formal['verification_promotion_commit']}`; formalization integration commit `{formal['integration_commit']}` remains separately recorded.\n\n`UFT-OBS-001` through `UFT-OBS-004` are `LEAN-OBS-BATCH-001`. `UFT-OBS-005` is the separately registered arithmetic `LEAN-OBS-BATCH-002`. The historical v3.0.0 batch-001 deferral of UFT-OBS-005 is preserved as history and is not a current deferral.\n\n## Toolchain\n\n- Lean: `{formal['toolchain']['lean']}`\n- Lake: `{formal['toolchain']['lake']}`\n- mathlib: `{formal['toolchain']['mathlib_commit']}`\n- Lean archive SHA-256: `{formal['toolchain']['lean_archive_sha256']}`\n\n## Licensing\n\nThe Zenodo scholarly record/overview uses Creative Commons Attribution 4.0 International as configured in Zenodo. Software source bytes retain the repository's MIT License. The archive records these as separate licensing domains.\n\n## Claim boundary\n\n`LEAN_VERIFIED != COMPLETE_SOFTWARE_FORMAL_VERIFICATION`\n\n`LEAN_PROOF != EMPIRICAL_VALIDATION`\n\n`SOURCE_RELEASE != LATER_LEAN_FORMALIZATION_LAYER`\n\n`CHECKSUM_MATCH != SEMANTIC_TRUTH`\n"""
+
+
 def verify_release_notes(notes: Path, source_zip: Path, overview_pdf: Path, contract: dict[str, object]) -> None:
-    text = notes.read_text(encoding="utf-8")
-    required = [
-        str(contract["doi"]), source_zip.name, overview_pdf.name,
-        sha256_file(source_zip), sha256_file(overview_pdf),
-        "SOURCE_RELEASE != LATER_LEAN_FORMALIZATION_LAYER",
-        "Creative Commons Attribution 4.0", "MIT",
-    ]
-    for needle in required:
-        if needle not in text:
-            raise RuntimeError(f"release notes missing required text: {needle}")
-    own = sha256_file(notes)
+    raw = bounded_bytes(notes, MAX_OUTER_NOTES_BYTES, label="RELEASE-NOTES.md")
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise RuntimeError("RELEASE-NOTES.md is not UTF-8") from exc
+    expected = expected_release_notes_text(contract, source_zip, overview_pdf)
+    if text != expected:
+        raise RuntimeError("release notes do not match canonical deterministic content")
+    own = sha256_bytes(raw)
     if own in text:
         raise RuntimeError("release notes must not self-embed their own SHA-256")
 
@@ -387,23 +487,25 @@ def verify(directory: Path, *, lake: str | None = None) -> dict[str, object]:
     contract = load_contract()
     surface = contract["publication_surface"]
     expected_names = {str(surface["source_zip"]), str(surface["overview_pdf"]), str(surface["release_notes"])}
-    observed_names = {path.name for path in directory.iterdir() if path.is_file()}
+    entries = list(directory.iterdir())
+    observed_names = {entry.name for entry in entries}
     if observed_names != expected_names:
         raise RuntimeError(f"outer publication surface drift: {sorted(observed_names)}")
+    for entry in entries:
+        if entry.is_symlink() or not entry.is_file():
+            raise RuntimeError(f"outer publication surface contains non-regular entry: {entry.name}")
 
     source_zip = directory / str(surface["source_zip"])
     overview_pdf = directory / str(surface["overview_pdf"])
     notes = directory / str(surface["release_notes"])
+    if source_zip.stat().st_size > MAX_OUTER_ZIP_BYTES:
+        raise RuntimeError("source ZIP exceeds outer size bound")
+    if overview_pdf.stat().st_size > MAX_OUTER_PDF_BYTES:
+        raise RuntimeError("Overview PDF exceeds size bound")
+    if notes.stat().st_size > MAX_OUTER_NOTES_BYTES:
+        raise RuntimeError("RELEASE-NOTES.md exceeds size bound")
 
-    source = contract["source_release"]
-    formal = contract["formalization"]
-    if run_git("rev-parse", f"{source['tag']}^{{commit}}") != str(source["commit"]):
-        raise RuntimeError("source tag no longer resolves to bound commit")
-    if run_git("rev-parse", f"{source['commit']}^{{tree}}") != str(source["tree"]):
-        raise RuntimeError("source tree binding drift")
-    if run_git("rev-parse", f"{formal['verification_promotion_commit']}^{{commit}}") != str(formal["verification_promotion_commit"]):
-        raise RuntimeError("verification-promotion commit unavailable")
-
+    verify_git_provenance(contract)
     files = read_zip(source_zip, contract)
     verify_manifest(files, contract)
     verify_internal_sums(files)
