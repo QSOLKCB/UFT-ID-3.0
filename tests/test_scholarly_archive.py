@@ -101,7 +101,7 @@ class ScholarlyArchiveTests(unittest.TestCase):
             b"0df444a360eaa60ab8c11dca51a86af692955474",
             b"1111111111111111111111111111111111111111",
         )
-        with self.assertRaisesRegex(RuntimeError, "package authority drift|unexpected dependency revision"):
+        with self.assertRaisesRegex(RuntimeError, "mathlib dependency does not match archive contract"):
             VERIFY.verify_package_definition(mutated, contract)
 
     @REQUIRES_HISTORY
