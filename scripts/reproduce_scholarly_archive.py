@@ -49,11 +49,25 @@ CENTRAL_DIRECTORY_SIGNATURE = _io.CENTRAL_DIRECTORY_SIGNATURE
 CENTRAL_DIRECTORY_HEADER = _io.CENTRAL_DIRECTORY_HEADER
 PUBLICATION_FILE_NAMES = _io.PUBLICATION_FILE_NAMES
 PUBLICATION_SIZE_LIMITS = _io.PUBLICATION_SIZE_LIMITS
-artifact_surface = _io.artifact_surface
 safe_atomic_write = _io.safe_atomic_write
 materialize_verified_publication = _io.materialize_verified_publication
 stage_pinned_lean_archive = _toolchain.stage_pinned_lean_archive
 extract_pinned_lean_toolchain = _toolchain.extract_pinned_lean_toolchain
+
+
+def artifact_surface(
+    directory: Path,
+    names: list[str],
+    *,
+    expected_sizes: dict[str, int] | None = None,
+) -> dict[str, dict[str, object]]:
+    """Project the façade's live size policy into the hardened snapshot reader."""
+    previous = _io.PUBLICATION_SIZE_LIMITS
+    try:
+        _io.PUBLICATION_SIZE_LIMITS = PUBLICATION_SIZE_LIMITS
+        return _io.artifact_surface(directory, names, expected_sizes=expected_sizes)
+    finally:
+        _io.PUBLICATION_SIZE_LIMITS = previous
 
 
 def bounded_zip_member_count(path: Path) -> int:
