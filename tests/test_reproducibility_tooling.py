@@ -91,6 +91,32 @@ class ReproducibilityPolicyTests(unittest.TestCase):
         )
         self.assertEqual(evidence["if"], "always()")
 
+    def test_publication_upload_is_canonical_and_fail_closed(self):
+        parsed = REPRO.parse_workflow(ROOT / ".github/workflows/publication-reproduction.yml")
+        job = parsed["jobs"]["reproduce-publication"]
+        upload = next(
+            step
+            for step in job["steps"]
+            if step.get("name") == REPRO.PUBLICATION_UPLOAD_NAME
+        )
+        self.assertEqual(upload["if"], REPRO.PUBLICATION_UPLOAD_CONDITION)
+        self.assertEqual(upload["with"]["name"], REPRO.PUBLICATION_UPLOAD_ARTIFACT)
+
+    def test_rejects_publication_upload_with_always_condition(self):
+        def mutate(root: Path):
+            path = root / ".github/workflows/publication-reproduction.yml"
+            text = path.read_text(encoding="utf-8").replace(
+                f"        if: {REPRO.PUBLICATION_UPLOAD_CONDITION}",
+                "        if: always()",
+                1,
+            )
+            path.write_text(text, encoding="utf-8")
+
+        self.assert_rejected(
+            validate_mutation(mutate),
+            "canonical publication upload must use if:",
+        )
+
     def test_rejects_undeclared_yaml_workflow(self):
         def mutate(root: Path):
             path = root / ".github/workflows/rogue.yaml"
