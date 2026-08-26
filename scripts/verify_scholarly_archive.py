@@ -271,6 +271,41 @@ def compare_git_layers(files: dict[str, bytes], contract: dict[str, object]) -> 
         raise RuntimeError("formal layer is not byte-identical to the bound verification-promotion commit")
 
 
+def verify_package_definition(files: dict[str, bytes], contract: dict[str, object]) -> None:
+    formal = contract["formalization"]
+    prefix = f"{formal['directory']}/"
+    toolchain = formal["toolchain"]
+    toolchain_name = f"{prefix}lean-toolchain"
+    lakefile_name = f"{prefix}lakefile.toml"
+    try:
+        lean_text = files[toolchain_name].decode("utf-8")
+        lake_text = files[lakefile_name].decode("utf-8")
+    except KeyError as exc:
+        raise RuntimeError(f"formal layer missing tracked package authority: {exc.args[0]}") from exc
+    except UnicodeDecodeError as exc:
+        raise RuntimeError("tracked Lean package authority is not UTF-8") from exc
+
+    expected_lean = f"leanprover/lean4:{toolchain['lean']}\n"
+    if lean_text != expected_lean:
+        raise RuntimeError("archived lean-toolchain does not match archive contract")
+
+    required_lines = {
+        'name = "UFTID"',
+        f'version = "{contract["version"]}"',
+        'git = "https://github.com/leanprover-community/mathlib4.git"',
+        f'rev = "{toolchain["mathlib_commit"]}"',
+    }
+    lines = lake_text.splitlines()
+    for required in required_lines:
+        if lines.count(required) != 1:
+            raise RuntimeError(f"archived lakefile.toml package authority drift: {required}")
+    rev_lines = [line for line in lines if re.match(r"^rev\s*=", line)]
+    if rev_lines != [f'rev = "{toolchain["mathlib_commit"]}"']:
+        raise RuntimeError("archived lakefile.toml contains an unexpected dependency revision")
+    if "lake-manifest.json" in formal.get("archive_paths", []):
+        raise RuntimeError("untracked lake-manifest.json must not be registered as reviewed formal source")
+
+
 def verify_verification_record(files: dict[str, bytes], contract: dict[str, object]) -> None:
     formal = contract["formalization"]
     name = f"{formal['directory']}/machine/lean_observation_verification.json"
@@ -368,6 +403,7 @@ def verify(directory: Path, *, lake: str | None = None) -> dict[str, object]:
     verify_manifest(files, contract)
     verify_internal_sums(files)
     compare_git_layers(files, contract)
+    verify_package_definition(files, contract)
     verify_verification_record(files, contract)
     verify_pdf(overview_pdf, contract)
     verify_release_notes(notes, source_zip, overview_pdf, contract)
