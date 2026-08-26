@@ -142,10 +142,30 @@ def extract_formal_layer(source_zip: Path, destination: Path) -> list[str]:
     return sorted(extracted, key=lambda value: PurePosixPath(value).parts)
 
 
-def run_checked(command: list[str], cwd: Path) -> str:
+def pinned_toolchain_environment(lake: Path) -> tuple[Path, dict[str, str]]:
+    lake_path = lake.resolve()
+    toolchain_bin = lake_path.parent
+    lean_path = toolchain_bin / "lean"
+    if not lake_path.is_file():
+        raise RuntimeError(f"pinned Lake executable missing: {lake_path}")
+    if not lean_path.is_file():
+        raise RuntimeError(f"pinned Lean executable missing beside Lake: {lean_path}")
+    env = os.environ.copy()
+    existing = env.get("PATH", "")
+    env["PATH"] = str(toolchain_bin) + (os.pathsep + existing if existing else "")
+    return lean_path, env
+
+
+def run_checked(
+    command: list[str],
+    cwd: Path,
+    *,
+    env: dict[str, str] | None = None,
+) -> str:
     proc = subprocess.run(
         command,
         cwd=cwd,
+        env=env,
         check=False,
         text=True,
         stdout=subprocess.PIPE,
@@ -205,12 +225,17 @@ def reproduce(
         isolated = Path(temporary)
         members = extract_formal_layer(source_zip, isolated)
 
-        lake_path = str(Path(lake).resolve())
-        lake_version = run_checked([lake_path, "--version"], isolated)
-        lean_version = run_checked([lake_path, "env", "lean", "--version"], isolated)
-        run_checked([lake_path, "update"], isolated)
-        run_checked([lake_path, "exe", "cache", "get"], isolated)
-        build_output = run_checked([lake_path, "build", "UFTID"], isolated)
+        lake_file = Path(lake).resolve()
+        lean_file, toolchain_env = pinned_toolchain_environment(lake_file)
+        lake_path = str(lake_file)
+        lake_version = run_checked([lake_path, "--version"], isolated, env=toolchain_env)
+        # Do not use `lake env lean --version` before a manifest exists: Lake
+        # may implicitly update dependencies. Query the pinned sibling binary
+        # directly, then perform the explicit update under the pinned PATH.
+        lean_version = run_checked([str(lean_file), "--version"], isolated, env=toolchain_env)
+        run_checked([lake_path, "update"], isolated, env=toolchain_env)
+        run_checked([lake_path, "exe", "cache", "get"], isolated, env=toolchain_env)
+        build_output = run_checked([lake_path, "build", "UFTID"], isolated, env=toolchain_env)
         run_checked(
             [
                 sys.executable,
@@ -221,6 +246,7 @@ def reproduce(
                 str(axiom_json_out),
             ],
             isolated,
+            env=toolchain_env,
         )
 
         axiom_report = load_json_bytes(axiom_json_out.read_bytes(), axiom_json_out.name)
