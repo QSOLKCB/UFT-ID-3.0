@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 from pathlib import Path
 import subprocess
+import struct
 import sys
 import tempfile
 import unittest
@@ -34,6 +36,16 @@ def add_member(zf: zipfile.ZipFile, name: str, data: bytes) -> None:
     info.external_attr = (0o100644 & 0xFFFF) << 16
     info.create_system = 3
     zf.writestr(info, data, compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
+
+
+def set_eocd_member_count(path: Path, count: int) -> None:
+    data = bytearray(path.read_bytes())
+    offset = data.rfind(REPRODUCE.EOCD_SIGNATURE)
+    if offset < 0:
+        raise RuntimeError("test ZIP has no EOCD record")
+    struct.pack_into("<H", data, offset + 8, count)
+    struct.pack_into("<H", data, offset + 10, count)
+    path.write_bytes(data)
 
 
 def build_canonical_surface(destination: Path) -> None:
@@ -106,6 +118,29 @@ class ScholarlyArchiveReproductionTests(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, "member count outside allowed bounds"):
                     REPRODUCE.extract_formal_layer(source_zip, root / "formal")
 
+    def test_member_preflight_counts_actual_central_directory_records(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source_zip = root / "source.zip"
+            with zipfile.ZipFile(source_zip, "w") as zf:
+                for index in range(5):
+                    add_member(zf, f"noise/{index}.txt", b"")
+
+            set_eocd_member_count(source_zip, 1)
+            with self.assertRaisesRegex(
+                RuntimeError,
+                "central-directory member count disagrees with EOCD",
+            ):
+                REPRODUCE.bounded_zip_member_count(source_zip)
+
+            with mock.patch.object(REPRODUCE.zipfile, "ZipFile") as zip_constructor:
+                with self.assertRaisesRegex(
+                    RuntimeError,
+                    "central-directory member count disagrees with EOCD",
+                ):
+                    REPRODUCE.extract_formal_layer(source_zip, root / "formal")
+                zip_constructor.assert_not_called()
+
     def test_authentication_preflights_zip_before_launching_detached_verifier(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -139,6 +174,23 @@ class ScholarlyArchiveReproductionTests(unittest.TestCase):
                     REPRODUCE.reject_publication_output_aliases(root, output)
             safe = root.parent / "receipt.json"
             REPRODUCE.reject_publication_output_aliases(root, safe)
+
+    def test_rejects_hard_linked_report_output_outside_publication_directory(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "zenodo"
+            root.mkdir()
+            protected = root / "RELEASE-NOTES.md"
+            protected.write_text("sentinel\n", encoding="utf-8")
+            external_alias = root.parent / "receipt.json"
+            os.link(protected, external_alias)
+
+            with self.assertRaisesRegex(
+                RuntimeError,
+                "hard-link aliases protected publication artifact",
+            ):
+                REPRODUCE.reject_publication_output_aliases(root, external_alias)
+
+            self.assertTrue(os.path.samestat(protected.stat(), external_alias.stat()))
 
     def test_main_does_not_overwrite_publication_artifact_on_json_output_alias(self):
         with tempfile.TemporaryDirectory() as temporary:
