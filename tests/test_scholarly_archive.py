@@ -69,9 +69,40 @@ class ScholarlyArchiveTests(unittest.TestCase):
         self.assertEqual(contract["formalization"]["verification_promotion_commit"], PROMOTION_COMMIT)
         self.assertIn("lakefile.toml", contract["formalization"]["archive_paths"])
         self.assertNotIn("lakefile.lean", contract["formalization"]["archive_paths"])
+        self.assertNotIn("lake-manifest.json", contract["formalization"]["archive_paths"])
         self.assertEqual([row["id"] for row in contract["formalization"]["theorems"]], [
             "UFT-OBS-001", "UFT-OBS-002", "UFT-OBS-003", "UFT-OBS-004", "UFT-OBS-005",
         ])
+
+    def test_package_definition_is_linked_to_archive_toolchain_contract(self):
+        contract = json.loads((ROOT / "machine/scholarly_archive_contract.json").read_text())
+        formal = contract["formalization"]
+        prefix = f"{formal['directory']}/"
+        files = {
+            f"{prefix}lean-toolchain": b"leanprover/lean4:v4.33.1\n",
+            f"{prefix}lakefile.toml": (
+                'name = "UFTID"\n'
+                'version = "3.0.0"\n'
+                'defaultTargets = ["UFTID"]\n\n'
+                '[leanOptions]\n'
+                'autoImplicit = false\n'
+                'relaxedAutoImplicit = false\n\n'
+                '[[require]]\n'
+                'name = "mathlib"\n'
+                'git = "https://github.com/leanprover-community/mathlib4.git"\n'
+                'rev = "0df444a360eaa60ab8c11dca51a86af692955474"\n\n'
+                '[[lean_lib]]\n'
+                'name = "UFTID"\n'
+            ).encode("utf-8"),
+        }
+        VERIFY.verify_package_definition(files, contract)
+        mutated = dict(files)
+        mutated[f"{prefix}lakefile.toml"] = files[f"{prefix}lakefile.toml"].replace(
+            b"0df444a360eaa60ab8c11dca51a86af692955474",
+            b"1111111111111111111111111111111111111111",
+        )
+        with self.assertRaisesRegex(RuntimeError, "package authority drift|unexpected dependency revision"):
+            VERIFY.verify_package_definition(mutated, contract)
 
     @REQUIRES_HISTORY
     def test_build_is_byte_deterministic_and_verifies(self):
