@@ -348,7 +348,7 @@ class ScholarlyArchiveReproductionTests(unittest.TestCase):
                 encoding="utf-8",
             )
             self.assertEqual(VERIFY.verify(root)["status"], "ok")
-            with self.assertRaisesRegex(RuntimeError, "does not match canonical authority bytes"):
+            with self.assertRaisesRegex(RuntimeError, "does not match canonical authority"):
                 REPRODUCE.authenticate_publication_surface(
                     root,
                     PUBLICATION_SOURCE_COMMIT,
