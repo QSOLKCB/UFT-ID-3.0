@@ -301,7 +301,7 @@ def verify_pdf(path: Path, contract: dict[str, object]) -> None:
         str(contract["doi"]), str(contract["version"]), str(contract["repository"]),
         str(source["commit"]), str(source["tree"]),
         str(formal["integration_commit"]), str(formal["verification_promotion_commit"]),
-        "UFT-OBS-005", "LEAN_VERIFIED", "CC BY 4.0", "MIT",
+        "UFT-OBS-005", "LEAN_VERIFIED", "Creative Commons Attribution 4.0", "MIT",
     ]
     text = data.decode("latin-1")
     for needle in required:
@@ -315,7 +315,7 @@ def verify_release_notes(notes: Path, source_zip: Path, overview_pdf: Path, cont
         str(contract["doi"]), source_zip.name, overview_pdf.name,
         sha256_file(source_zip), sha256_file(overview_pdf),
         "SOURCE_RELEASE != LATER_LEAN_FORMALIZATION_LAYER",
-        "CC BY 4.0", "MIT",
+        "Creative Commons Attribution 4.0", "MIT",
     ]
     for needle in required:
         if needle not in text:
