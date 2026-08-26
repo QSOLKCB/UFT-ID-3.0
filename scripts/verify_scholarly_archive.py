@@ -9,6 +9,7 @@ import re
 import subprocess
 import tarfile
 import tempfile
+import tomllib
 import zipfile
 from pathlib import Path, PurePosixPath
 
@@ -289,19 +290,23 @@ def verify_package_definition(files: dict[str, bytes], contract: dict[str, objec
     if lean_text != expected_lean:
         raise RuntimeError("archived lean-toolchain does not match archive contract")
 
-    required_lines = {
-        'name = "UFTID"',
-        f'version = "{contract["version"]}"',
-        'git = "https://github.com/leanprover-community/mathlib4.git"',
-        f'rev = "{toolchain["mathlib_commit"]}"',
-    }
-    lines = lake_text.splitlines()
-    for required in required_lines:
-        if lines.count(required) != 1:
-            raise RuntimeError(f"archived lakefile.toml package authority drift: {required}")
-    rev_lines = [line for line in lines if re.match(r"^rev\s*=", line)]
-    if rev_lines != [f'rev = "{toolchain["mathlib_commit"]}"']:
-        raise RuntimeError("archived lakefile.toml contains an unexpected dependency revision")
+    try:
+        package = tomllib.loads(lake_text)
+    except tomllib.TOMLDecodeError as exc:
+        raise RuntimeError("archived lakefile.toml is not valid TOML") from exc
+    if package.get("name") != "UFTID" or package.get("version") != contract["version"]:
+        raise RuntimeError("archived lakefile.toml package identity does not match archive contract")
+    if package.get("defaultTargets") != ["UFTID"]:
+        raise RuntimeError("archived lakefile.toml default target drift")
+    if package.get("lean_lib") != [{"name": "UFTID"}]:
+        raise RuntimeError("archived lakefile.toml Lean library declaration drift")
+    expected_require = [{
+        "name": "mathlib",
+        "git": "https://github.com/leanprover-community/mathlib4.git",
+        "rev": toolchain["mathlib_commit"],
+    }]
+    if package.get("require") != expected_require:
+        raise RuntimeError("archived lakefile.toml mathlib dependency does not match archive contract")
     if "lake-manifest.json" in formal.get("archive_paths", []):
         raise RuntimeError("untracked lake-manifest.json must not be registered as reviewed formal source")
 
