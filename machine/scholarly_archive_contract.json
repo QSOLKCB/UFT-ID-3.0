@@ -1,0 +1,82 @@
+{
+  "type": "uft-id-scholarly-archive-contract",
+  "schema_version": "1.0.0",
+  "status": "DOI_RESERVED_ARCHIVE_CONSTRUCTION",
+  "project": "UFT-ID 3.0",
+  "version": "3.0.0",
+  "doi": "10.5281/zenodo.22108865",
+  "repository": "https://github.com/QSOLKCB/UFT-ID-3.0",
+  "zenodo_metadata": {
+    "record_license": "CC-BY-4.0",
+    "software_source_license": "MIT",
+    "languages": ["English"],
+    "programming_languages": ["Python", "Lean"],
+    "status": "Active",
+    "externally_managed_fields": ["creators", "copyright", "contributors"]
+  },
+  "source_release": {
+    "tag": "v3.0.0",
+    "commit": "b7f51590985e60920c8b09fc9238b8aec6cfa3bc",
+    "tree": "966bdf47596832f792e77d619b33222f4cf60c8d",
+    "directory": "reference-v3.0.0",
+    "immutable": true
+  },
+  "formalization": {
+    "integration_commit": "bbcde19827921af4490c232bdc1edc401790d89e",
+    "integration_tree": "b7ec78695f32a5b1cf78b416a5050627ad4f957d",
+    "verification_promotion_commit": "328785f7f23ed4ab246ecec1a3419c2a6ef126c0",
+    "verification_promotion_tree": "34c0bba51bfd34661280ccd01598987ecded8bd8",
+    "codex_no_major_issues_reviewed_commit": "111a9c7a0b6d26c999eb941f9c25f5c0f5176ed5",
+    "final_pr_head": "c32aaff36219961e3ec2a4e479ccdec521795bbe",
+    "review_result": "no_major_issues",
+    "directory": "formal",
+    "toolchain": {
+      "lean": "v4.33.1",
+      "lake": "5.0.0-src+819816b",
+      "mathlib_commit": "0df444a360eaa60ab8c11dca51a86af692955474",
+      "lean_archive_sha256": "890afd185370f85666025b883914ab4f4b339136f8c96167b69cfb62aecaf235"
+    },
+    "theorems": [
+      {"id": "UFT-OBS-001", "source_blob_sha": "55dbd9c883e2b3c15acc90f6f6f4085117d5d5ee"},
+      {"id": "UFT-OBS-002", "source_blob_sha": "a1e62ca0f439c00e79d3c68866708fadc4acff0b"},
+      {"id": "UFT-OBS-003", "source_blob_sha": "248c535cbafb7d0b83ba62e391578978ffdebd18"},
+      {"id": "UFT-OBS-004", "source_blob_sha": "248c535cbafb7d0b83ba62e391578978ffdebd18"},
+      {"id": "UFT-OBS-005", "source_blob_sha": "d587ff9321dc7f3a8f5cb40fe6e9e1aa49c37ebc"}
+    ],
+    "archive_paths": [
+      "UFTID",
+      "UFTID.lean",
+      "lean-toolchain",
+      "lakefile.toml",
+      "machine/lean_observation_verification.json",
+      "scripts/verify_lean_observation_axioms.py"
+    ]
+  },
+  "publication_surface": {
+    "profile": "software-formalization-three-file",
+    "source_zip": "UFT-ID-3.0.0-source.zip",
+    "overview_pdf": "UFT-ID-v3.0.0-Overview.pdf",
+    "release_notes": "RELEASE-NOTES.md",
+    "exact_outer_file_set": true,
+    "internal_files": ["ARCHIVE-MANIFEST.json", "SHA256SUMS"]
+  },
+  "build_rules": [
+    "archive source bytes come from immutable Git objects, never mutable working-tree copies",
+    "reference-v3.0.0 is byte-for-byte derived from the frozen v3.0.0 commit",
+    "formal is byte-for-byte derived from the LEAN_VERIFIED promotion commit for the declared archive paths",
+    "Codex no-major-issues review evidence is bound only to its exact reviewed commit; the later final PR head is separately recorded as CI/axiom-audit provenance",
+    "the tracked lakefile.toml pins the exact mathlib commit; lake-manifest.json is intentionally not treated as reviewed source because it is not tracked at the verified commit",
+    "ZIP member order, timestamps, modes, compression, JSON serialization, PDF metadata, and page layout are deterministic",
+    "release notes bind the final source ZIP and Overview PDF SHA-256 values",
+    "RELEASE-NOTES.md does not embed its own SHA-256",
+    "generated publication artifacts are CI outputs and are not canonical source files"
+  ],
+  "hard_boundaries": [
+    "SOURCE_RELEASE != LATER_LEAN_FORMALIZATION_LAYER",
+    "LEAN_VERIFIED != COMPLETE_SOFTWARE_FORMAL_VERIFICATION",
+    "LEAN_PROOF != EMPIRICAL_VALIDATION",
+    "DOI_METADATA != ARCHIVE_BYTES",
+    "CHECKSUM_MATCH != SEMANTIC_TRUTH",
+    "CC_BY_4_0_SCHOLARLY_RECORD != MIT_SOFTWARE_SOURCE_LICENSE"
+  ]
+}
