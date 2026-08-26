@@ -26,6 +26,13 @@ MAX_ZIP_MEMBERS = 10000
 MAX_EOCD_SCAN_BYTES = 65557
 EXPECTED_MODE = 0o100644
 EOCD_SIGNATURE = b"PK\x05\x06"
+CENTRAL_DIRECTORY_SIGNATURE = b"PK\x01\x02"
+CENTRAL_DIRECTORY_HEADER = struct.Struct("<4s6H3L5H2L")
+PUBLICATION_FILE_NAMES = (
+    SOURCE_ZIP_NAME,
+    "UFT-ID-v3.0.0-Overview.pdf",
+    "RELEASE-NOTES.md",
+)
 
 
 def reject_duplicates(pairs):
@@ -111,8 +118,8 @@ def bounded_zip_member_count(path: Path) -> int:
         fh.seek(size - scan)
         tail = fh.read(scan)
 
-    offset = tail.rfind(EOCD_SIGNATURE)
-    if offset < 0 or offset + 22 > len(tail):
+    tail_offset = tail.rfind(EOCD_SIGNATURE)
+    if tail_offset < 0 or tail_offset + 22 > len(tail):
         raise RuntimeError("source ZIP EOCD record missing")
     (
         signature,
@@ -120,21 +127,87 @@ def bounded_zip_member_count(path: Path) -> int:
         central_directory_disk,
         entries_on_disk,
         total_entries,
-        _central_directory_bytes,
-        _central_directory_offset,
+        central_directory_bytes,
+        central_directory_offset,
         comment_length,
-    ) = struct.unpack_from("<4s4H2LH", tail, offset)
+    ) = struct.unpack_from("<4s4H2LH", tail, tail_offset)
     if signature != EOCD_SIGNATURE:
         raise RuntimeError("source ZIP EOCD signature mismatch")
     if disk_number != 0 or central_directory_disk != 0 or entries_on_disk != total_entries:
         raise RuntimeError("multi-disk ZIP archives are forbidden")
-    if total_entries == 0xFFFF:
+    if (
+        total_entries == 0xFFFF
+        or central_directory_bytes == 0xFFFFFFFF
+        or central_directory_offset == 0xFFFFFFFF
+    ):
         raise RuntimeError("ZIP64 member enumeration is forbidden")
-    if offset + 22 + comment_length != len(tail):
+    if tail_offset + 22 + comment_length != len(tail):
         raise RuntimeError("source ZIP EOCD/comment length drift")
     if total_entries == 0 or total_entries > MAX_ZIP_MEMBERS:
         raise RuntimeError("source ZIP member count outside allowed bounds")
-    return total_entries
+
+    eocd_offset = size - scan + tail_offset
+    central_directory_end = central_directory_offset + central_directory_bytes
+    if central_directory_offset >= eocd_offset or central_directory_end != eocd_offset:
+        raise RuntimeError("source ZIP central-directory bounds drift")
+
+    # Do not trust EOCD's entry count: ZipFile walks central-directory records
+    # according to the directory byte range. Count those records directly before
+    # constructing ZipFile/infolist(), which materializes every entry in memory.
+    observed_entries = 0
+    with path.open("rb") as fh:
+        fh.seek(central_directory_offset)
+        remaining = central_directory_bytes
+        while remaining:
+            if remaining < CENTRAL_DIRECTORY_HEADER.size:
+                raise RuntimeError("truncated source ZIP central-directory record")
+
+            header = fh.read(CENTRAL_DIRECTORY_HEADER.size)
+            if len(header) != CENTRAL_DIRECTORY_HEADER.size:
+                raise RuntimeError("truncated source ZIP central-directory header")
+
+            (
+                record_signature,
+                _made_by,
+                _needed,
+                _flags,
+                _compression,
+                _mtime,
+                _mdate,
+                _crc,
+                _compressed_size,
+                _uncompressed_size,
+                filename_length,
+                extra_length,
+                comment_length,
+                _disk_start,
+                _internal_attributes,
+                _external_attributes,
+                _local_header_offset,
+            ) = CENTRAL_DIRECTORY_HEADER.unpack(header)
+            if record_signature != CENTRAL_DIRECTORY_SIGNATURE:
+                raise RuntimeError("invalid source ZIP central-directory record")
+
+            record_size = (
+                CENTRAL_DIRECTORY_HEADER.size
+                + filename_length
+                + extra_length
+                + comment_length
+            )
+            if record_size > remaining:
+                raise RuntimeError("source ZIP central-directory record exceeds bounds")
+
+            fh.seek(record_size - CENTRAL_DIRECTORY_HEADER.size, os.SEEK_CUR)
+            remaining -= record_size
+            observed_entries += 1
+            if observed_entries > MAX_ZIP_MEMBERS:
+                raise RuntimeError("source ZIP member count outside allowed bounds")
+
+    if observed_entries == 0:
+        raise RuntimeError("source ZIP member count outside allowed bounds")
+    if observed_entries != total_entries:
+        raise RuntimeError("source ZIP central-directory member count disagrees with EOCD")
+    return observed_entries
 
 
 def extract_formal_layer(source_zip: Path, destination: Path) -> list[str]:
@@ -234,11 +307,32 @@ def reject_publication_output_aliases(directory: Path, output: Path) -> None:
     try:
         resolved.relative_to(publication_root)
     except ValueError:
+        pass
+    else:
+        raise RuntimeError(
+            "reproduction output must be outside protected publication directory: "
+            f"{resolved}"
+        )
+
+    # Path containment does not identify hard links. If an existing external
+    # output names the same inode as a retained publication file, writing the
+    # receipt would mutate the authenticated upload surface.
+    try:
+        output_stat = resolved.stat()
+    except FileNotFoundError:
         return
-    raise RuntimeError(
-        "reproduction output must be outside protected publication directory: "
-        f"{resolved}"
-    )
+
+    for name in PUBLICATION_FILE_NAMES:
+        protected = publication_root / name
+        try:
+            protected_stat = protected.stat()
+        except FileNotFoundError:
+            continue
+        if os.path.samestat(output_stat, protected_stat):
+            raise RuntimeError(
+                "reproduction output hard-link aliases protected publication artifact: "
+                f"{name}"
+            )
 
 
 def require_exact_artifact_digests(
