@@ -2,9 +2,10 @@
 """Audit imported axioms for the registered UFT observation theorems.
 
 This is a post-build check. It asks the pinned Lean kernel for `#print axioms`
-on every registered theorem, rejects undeclared axioms, requires the explicit
-classical-choice dependency for UFT-OBS-003/004, and optionally retains the
-observed report as JSON.
+on every registered theorem, rejects undeclared axioms, requires explicitly
+registered minimum dependencies, and, once a verification record is promoted,
+requires the exact recorded observed axiom set for every theorem. The observed
+report can optionally be retained as JSON.
 """
 from __future__ import annotations
 
@@ -87,6 +88,35 @@ def declarations_from_record(record: dict[str, object]) -> dict[str, str]:
     return declarations
 
 
+def _validated_axiom_map(
+    value: object,
+    *,
+    field: str,
+    theorem_ids: set[str],
+    require_complete: bool,
+) -> dict[str, list[str]]:
+    if not isinstance(value, dict):
+        raise RuntimeError(f"axiom_audit.{field} is malformed")
+    keys = set(value)
+    unknown = sorted(keys - theorem_ids)
+    if unknown:
+        raise RuntimeError(f"axiom_audit {field} names unknown theorem ids: {unknown}")
+    if require_complete:
+        missing = sorted(theorem_ids - keys)
+        if missing:
+            raise RuntimeError(f"axiom_audit {field} omits theorem ids: {missing}")
+    result: dict[str, list[str]] = {}
+    for theorem_id, axioms in value.items():
+        if not isinstance(theorem_id, str) or not isinstance(axioms, list) or not all(
+            isinstance(x, str) for x in axioms
+        ):
+            raise RuntimeError(f"axiom_audit.{field}[{theorem_id!r}] is malformed")
+        if len(axioms) != len(set(axioms)):
+            raise RuntimeError(f"axiom_audit.{field}[{theorem_id}] contains duplicate axioms")
+        result[theorem_id] = sorted(axioms)
+    return result
+
+
 def evaluate_axiom_policy(
     record: dict[str, object],
     policy: dict[str, object],
@@ -94,19 +124,29 @@ def evaluate_axiom_policy(
 ) -> dict[str, object]:
     """Evaluate parsed kernel output against the machine axiom policy."""
     declarations = declarations_from_record(record)
+    theorem_ids = set(declarations)
     allowed = policy.get("allowed_axioms")
     required = policy.get("required_axioms_by_theorem")
     if not isinstance(allowed, list) or not all(isinstance(x, str) for x in allowed):
         raise RuntimeError("axiom_audit.allowed_axioms is malformed")
-    if not isinstance(required, dict):
-        raise RuntimeError("axiom_audit.required_axioms_by_theorem is malformed")
-    allowed_set = set(allowed)
-
-    unknown_required = sorted(set(required) - set(declarations))
-    if unknown_required:
-        raise RuntimeError(
-            f"axiom_audit required policy names unknown theorem ids: {unknown_required}"
+    if len(allowed) != len(set(allowed)):
+        raise RuntimeError("axiom_audit.allowed_axioms contains duplicates")
+    required_map = _validated_axiom_map(
+        required,
+        field="required_axioms_by_theorem",
+        theorem_ids=theorem_ids,
+        require_complete=False,
+    )
+    recorded_observed_raw = policy.get("observed_axioms_by_theorem")
+    recorded_observed = None
+    if recorded_observed_raw is not None:
+        recorded_observed = _validated_axiom_map(
+            recorded_observed_raw,
+            field="observed_axioms_by_theorem",
+            theorem_ids=theorem_ids,
+            require_complete=True,
         )
+    allowed_set = set(allowed)
 
     errors: list[str] = []
     observed_by_id: dict[str, list[str]] = {}
@@ -119,15 +159,17 @@ def evaluate_axiom_policy(
         undeclared = sorted(set(actual) - allowed_set)
         if undeclared:
             errors.append(f"{theorem_id} uses undeclared axioms: {undeclared}")
-        expected_required = required.get(theorem_id, [])
-        if not isinstance(expected_required, list) or not all(
-            isinstance(x, str) for x in expected_required
-        ):
-            errors.append(f"{theorem_id} required axiom policy is malformed")
-            continue
+        expected_required = required_map.get(theorem_id, [])
         missing_required = sorted(set(expected_required) - set(actual))
         if missing_required:
             errors.append(f"{theorem_id} missing recorded required axioms: {missing_required}")
+        if recorded_observed is not None:
+            expected_observed = recorded_observed[theorem_id]
+            if actual != expected_observed:
+                errors.append(
+                    f"{theorem_id} observed axiom set drift: "
+                    f"expected {expected_observed}, got {actual}"
+                )
 
     unexpected_results = sorted(set(parsed) - set(declarations.values()))
     if unexpected_results:

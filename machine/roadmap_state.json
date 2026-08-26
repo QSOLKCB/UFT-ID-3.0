@@ -29,7 +29,7 @@
     {
       "planned_pr": 10,
       "surface": "lean-observation-foundation",
-      "status": "active-post-tag-lean-implementation-ci-hardening"
+      "status": "active-lean-verified-awaiting-context-and-archive"
     },
     {
       "planned_pr": 11,
@@ -72,12 +72,12 @@
       "status": "complete-merged-516cff5d6a45af54d6fc4ae9c72c2e8e9c668637"
     }
   ],
-  "compatibility_note": "machine/formalization_contract.json retains the PR9-era roadmap_rebase snapshot; frozen PR11, BridgeCore, Epistemic Bridge, Representation, Information Comparability, Recovery, CSP, EFP, and the v3.0.0 Lean source-freeze authorities retain their historical semantics. This file is the live post-tag schedule authority: immutable source tag v3.0.0 resolves to b7f51590985e60920c8b09fc9238b8aec6cfa3bc; LEAN-OBS-BATCH-001 implements UFT-OBS-001 through UFT-OBS-004 and LEAN-OBS-BATCH-002 implements UFT-OBS-005. Both remain IMPLEMENTED_PENDING_CI until the pinned Lean build, source binding, hostile review, and axiom audit are green.",
+  "compatibility_note": "machine/formalization_contract.json retains the PR9-era roadmap_rebase snapshot; frozen PR11, BridgeCore, Epistemic Bridge, Representation, Information Comparability, Recovery, CSP, EFP, and the v3.0.0 Lean source-freeze authorities retain their historical semantics. This file is the live post-tag schedule authority: immutable source tag v3.0.0 resolves to b7f51590985e60920c8b09fc9238b8aec6cfa3bc; LEAN-OBS-BATCH-001 implements UFT-OBS-001 through UFT-OBS-004 and LEAN-OBS-BATCH-002 implements UFT-OBS-005. Both are LEAN_VERIFIED at formalization integration commit bbcde19827921af4490c232bdc1edc401790d89e, tree b7ec78695f32a5b1cf78b416a5050627ad4f957d, after exact merged-main finite-adversarial run 32876623204 and vopson-corpus run 32876623479 succeeded. The next ordered gate is QSOL-CONTEXT verification capture, then DOI/archive work.",
   "fixture_policy": "Minimal fixtures travel with the theorem or counterexample that requires them.",
   "rules": [
     "NO_GIANT_FORMALIZATION_PR",
     "NO_STANDALONE_FINITE_FIXTURE_ZOO",
-    "The v3.0.0 source freeze remains immutable and historically records UFT-OBS-005 as deferred from batch 001; live post-tag implementation may proceed only against that exact tag, with pinned Lean/Lake/Mathlib, exact source binding, checked compilation, and explicit imported-axiom auditing before any LEAN_VERIFIED promotion.",
+    "The v3.0.0 source freeze remains immutable and historically records UFT-OBS-005 as deferred from batch 001; LEAN_VERIFIED is bound to that exact tag, pinned Lean/Lake/Mathlib, exact theorem-source identities, merged-main build and validation at bbcde19827921af4490c232bdc1edc401790d89e, and the explicit imported-axiom audit. Later changes require a new versioned verification state rather than rewriting this evidence.",
     "A unique-selection claim requires an actual discriminating theorem or uniqueness proof, not compatibility or one successful construction.",
     "No semantic lifting is licensed without an explicit typed bridge declaring preserved structure, lost structure, scope, and version compatibility.",
     "Structural transport, retrieval, inference, execution, storage, or replay cannot create verification authority without an explicit epistemic operation and receipt.",
