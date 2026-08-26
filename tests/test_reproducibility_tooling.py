@@ -70,7 +70,7 @@ class ReproducibilityPolicyTests(unittest.TestCase):
         self.assertTrue(report["ok"], report["errors"])
         self.assertGreaterEqual(report["summary"]["action_pins"], 3)
         self.assertEqual(report["summary"]["runner"], "ubuntu-24.04")
-        self.assertEqual(report["summary"]["workflows"], 2)
+        self.assertEqual(report["summary"]["workflows"], 3)
 
     def test_structural_parser_reads_effective_policy_fields(self):
         parsed = REPRO.parse_workflow(ROOT / ".github/workflows/finite-adversarial.yml")
