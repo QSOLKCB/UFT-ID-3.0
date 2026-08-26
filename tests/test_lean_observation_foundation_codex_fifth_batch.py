@@ -173,15 +173,22 @@ class CodexFifthBatchRegressions(unittest.TestCase):
 
     def test_nested_or_noncanonical_fences_cannot_hide_human_authority_drift(self):
         human = HUMAN.read_text(encoding="utf-8")
-        body, errors = V._human_text_block(
-            human,
-            "## Expected Lean module map",
-            "missing",
-            "bad block",
+        body = (
+            "UFTID.Observation.Basic\n"
+            "  UFTID/Observation/Basic.lean\n"
+            "  UFT-OBS-001\n\n"
+            "UFTID.Observation.Quotient\n"
+            "  UFTID/Observation/Quotient.lean\n"
+            "  depends on UFTID.Observation.Basic\n"
+            "  UFT-OBS-002\n\n"
+            "UFTID.Observation.Reconstruction\n"
+            "  UFTID/Observation/Reconstruction.lean\n"
+            "  depends on UFTID.Observation.Basic\n"
+            "  UFT-OBS-003\n"
+            "  UFT-OBS-004\n"
         )
-        self.assertEqual(errors, [])
-        self.assertIsNotNone(body)
         canonical = f"```text\n{body}```"
+        self.assertIn(canonical, human)
         nested = f"````text\n```text\n{body}```\n  CONTRADICTORY MODULE MAP\n````"
         mutated = human.replace(canonical, nested, 1)
         result = self.validate_surfaces(human=mutated)
