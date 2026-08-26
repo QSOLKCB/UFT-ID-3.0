@@ -8,6 +8,7 @@ import json
 import math
 import os
 import re
+import secrets
 import stat
 import struct
 import subprocess
@@ -22,10 +23,15 @@ SOURCE_ZIP_NAME = "UFT-ID-3.0.0-source.zip"
 MAX_FORMAL_FILE_BYTES = 64 * 1024 * 1024
 MAX_FORMAL_TOTAL_BYTES = 256 * 1024 * 1024
 MAX_OUTER_ZIP_BYTES = 256 * 1024 * 1024
+MAX_OUTER_PDF_BYTES = 8 * 1024 * 1024
+MAX_OUTER_NOTES_BYTES = 1024 * 1024
+MAX_EVIDENCE_BYTES = 4 * 1024 * 1024
 MAX_ZIP_MEMBERS = 10000
 MAX_EOCD_SCAN_BYTES = 65557
 EXPECTED_MODE = 0o100644
 EOCD_SIGNATURE = b"PK\x05\x06"
+ZIP64_EOCD_SIGNATURE = b"PK\x06\x06"
+ZIP64_LOCATOR_SIGNATURE = b"PK\x06\x07"
 CENTRAL_DIRECTORY_SIGNATURE = b"PK\x01\x02"
 CENTRAL_DIRECTORY_HEADER = struct.Struct("<4s6H3L5H2L")
 PUBLICATION_FILE_NAMES = (
@@ -33,6 +39,11 @@ PUBLICATION_FILE_NAMES = (
     "UFT-ID-v3.0.0-Overview.pdf",
     "RELEASE-NOTES.md",
 )
+PUBLICATION_SIZE_LIMITS = {
+    SOURCE_ZIP_NAME: MAX_OUTER_ZIP_BYTES,
+    "UFT-ID-v3.0.0-Overview.pdf": MAX_OUTER_PDF_BYTES,
+    "RELEASE-NOTES.md": MAX_OUTER_NOTES_BYTES,
+}
 
 
 def reject_duplicates(pairs):
@@ -75,12 +86,27 @@ def load_contract() -> dict[str, object]:
     return load_json_bytes(CONTRACT_PATH.read_bytes(), str(CONTRACT_PATH.relative_to(ROOT)))
 
 
+def sha256_bytes(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
 def sha256_file(path: Path) -> str:
     h = hashlib.sha256()
     with path.open("rb") as fh:
         for chunk in iter(lambda: fh.read(1024 * 1024), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+def bounded_read_bytes(path: Path, limit: int, *, label: str) -> bytes:
+    size = path.stat().st_size
+    if size > limit:
+        raise RuntimeError(f"{label} exceeds size bound")
+    with path.open("rb") as fh:
+        data = fh.read(limit + 1)
+    if len(data) != size or len(data) > limit:
+        raise RuntimeError(f"{label} exceeds size bound")
+    return data
 
 
 def run_git(*args: str) -> str:
@@ -121,6 +147,16 @@ def bounded_zip_member_count(path: Path) -> int:
     tail_offset = tail.rfind(EOCD_SIGNATURE)
     if tail_offset < 0 or tail_offset + 22 > len(tail):
         raise RuntimeError("source ZIP EOCD record missing")
+    eocd_offset = size - scan + tail_offset
+
+    if eocd_offset >= 20:
+        with path.open("rb") as fh:
+            fh.seek(eocd_offset - 20)
+            if fh.read(4) == ZIP64_LOCATOR_SIGNATURE:
+                raise RuntimeError("ZIP64 locator is forbidden")
+    if ZIP64_EOCD_SIGNATURE in tail[:tail_offset]:
+        raise RuntimeError("ZIP64 EOCD record is forbidden")
+
     (
         signature,
         disk_number,
@@ -146,14 +182,10 @@ def bounded_zip_member_count(path: Path) -> int:
     if total_entries == 0 or total_entries > MAX_ZIP_MEMBERS:
         raise RuntimeError("source ZIP member count outside allowed bounds")
 
-    eocd_offset = size - scan + tail_offset
     central_directory_end = central_directory_offset + central_directory_bytes
     if central_directory_offset >= eocd_offset or central_directory_end != eocd_offset:
         raise RuntimeError("source ZIP central-directory bounds drift")
 
-    # Do not trust EOCD's entry count: ZipFile walks central-directory records
-    # according to the directory byte range. Count those records directly before
-    # constructing ZipFile/infolist(), which materializes every entry in memory.
     observed_entries = 0
     with path.open("rb") as fh:
         fh.seek(central_directory_offset)
@@ -161,11 +193,9 @@ def bounded_zip_member_count(path: Path) -> int:
         while remaining:
             if remaining < CENTRAL_DIRECTORY_HEADER.size:
                 raise RuntimeError("truncated source ZIP central-directory record")
-
             header = fh.read(CENTRAL_DIRECTORY_HEADER.size)
             if len(header) != CENTRAL_DIRECTORY_HEADER.size:
                 raise RuntimeError("truncated source ZIP central-directory header")
-
             (
                 record_signature,
                 _made_by,
@@ -175,19 +205,26 @@ def bounded_zip_member_count(path: Path) -> int:
                 _mtime,
                 _mdate,
                 _crc,
-                _compressed_size,
-                _uncompressed_size,
+                compressed_size,
+                uncompressed_size,
                 filename_length,
                 extra_length,
                 comment_length,
-                _disk_start,
+                disk_start,
                 _internal_attributes,
                 _external_attributes,
-                _local_header_offset,
+                local_header_offset,
             ) = CENTRAL_DIRECTORY_HEADER.unpack(header)
             if record_signature != CENTRAL_DIRECTORY_SIGNATURE:
                 raise RuntimeError("invalid source ZIP central-directory record")
-
+            if disk_start != 0:
+                raise RuntimeError("multi-disk ZIP member is forbidden")
+            if (
+                compressed_size == 0xFFFFFFFF
+                or uncompressed_size == 0xFFFFFFFF
+                or local_header_offset == 0xFFFFFFFF
+            ):
+                raise RuntimeError("ZIP64 central-directory member is forbidden")
             record_size = (
                 CENTRAL_DIRECTORY_HEADER.size
                 + filename_length
@@ -196,7 +233,6 @@ def bounded_zip_member_count(path: Path) -> int:
             )
             if record_size > remaining:
                 raise RuntimeError("source ZIP central-directory record exceeds bounds")
-
             fh.seek(record_size - CENTRAL_DIRECTORY_HEADER.size, os.SEEK_CUR)
             remaining -= record_size
             observed_entries += 1
@@ -288,17 +324,64 @@ def run_checked(
     return proc.stdout.strip()
 
 
-def artifact_surface(directory: Path, names: list[str]) -> dict[str, dict[str, object]]:
-    observed = sorted(path.name for path in directory.iterdir())
-    if observed != sorted(names):
-        raise RuntimeError(f"publication surface drift: expected {sorted(names)}, got {observed}")
-    result: dict[str, dict[str, object]] = {}
-    for name in names:
-        path = directory / name
-        if not path.is_file() or path.is_symlink():
-            raise RuntimeError(f"publication artifact is not a regular file: {name}")
-        result[name] = {"bytes": path.stat().st_size, "sha256": sha256_file(path)}
-    return result
+def _hash_regular_fd(fd: int, size: int) -> str:
+    h = hashlib.sha256()
+    remaining = size
+    while remaining:
+        chunk = os.read(fd, min(1024 * 1024, remaining))
+        if not chunk:
+            raise RuntimeError("publication artifact changed size while hashing")
+        h.update(chunk)
+        remaining -= len(chunk)
+    if os.read(fd, 1):
+        raise RuntimeError("publication artifact changed size while hashing")
+    return h.hexdigest()
+
+
+def artifact_surface(
+    directory: Path,
+    names: list[str],
+    *,
+    expected_sizes: dict[str, int] | None = None,
+) -> dict[str, dict[str, object]]:
+    directory = directory.resolve()
+    expected_names = sorted(names)
+    observed: list[str] = []
+    dir_flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+    dir_fd = os.open(directory, dir_flags)
+    try:
+        with os.scandir(dir_fd) as entries:
+            for entry in entries:
+                observed.append(entry.name)
+                if len(observed) > len(names):
+                    raise RuntimeError(
+                        f"publication surface drift: expected {expected_names}, got more than {len(names)} entries"
+                    )
+        if sorted(observed) != expected_names:
+            raise RuntimeError(f"publication surface drift: expected {expected_names}, got {sorted(observed)}")
+
+        result: dict[str, dict[str, object]] = {}
+        nofollow = getattr(os, "O_NOFOLLOW", 0)
+        for name in names:
+            limit = PUBLICATION_SIZE_LIMITS.get(name)
+            if limit is None:
+                raise RuntimeError(f"publication artifact has no size policy: {name}")
+            fd = os.open(name, os.O_RDONLY | nofollow, dir_fd=dir_fd)
+            try:
+                st = os.fstat(fd)
+                if not stat.S_ISREG(st.st_mode):
+                    raise RuntimeError(f"publication artifact is not a regular file: {name}")
+                if st.st_size > limit:
+                    raise RuntimeError(f"publication artifact exceeds size bound: {name}")
+                if expected_sizes is not None and st.st_size != expected_sizes[name]:
+                    raise RuntimeError(f"publication artifact does not match canonical authority size: {name}")
+                digest = _hash_regular_fd(fd, st.st_size)
+            finally:
+                os.close(fd)
+            result[name] = {"bytes": st.st_size, "sha256": digest}
+        return result
+    finally:
+        os.close(dir_fd)
 
 
 def reject_publication_output_aliases(directory: Path, output: Path) -> None:
@@ -314,14 +397,10 @@ def reject_publication_output_aliases(directory: Path, output: Path) -> None:
             f"{resolved}"
         )
 
-    # Path containment does not identify hard links. If an existing external
-    # output names the same inode as a retained publication file, writing the
-    # receipt would mutate the authenticated upload surface.
     try:
         output_stat = resolved.stat()
     except FileNotFoundError:
         return
-
     for name in PUBLICATION_FILE_NAMES:
         protected = publication_root / name
         try:
@@ -335,6 +414,88 @@ def reject_publication_output_aliases(directory: Path, output: Path) -> None:
             )
 
 
+def reject_evidence_output_aliases(json_out: Path, axiom_json_out: Path) -> None:
+    first = json_out.resolve()
+    second = axiom_json_out.resolve()
+    if first == second:
+        raise RuntimeError("reproduction evidence outputs must be distinct files")
+    try:
+        first_stat = first.stat()
+        second_stat = second.stat()
+    except FileNotFoundError:
+        return
+    if os.path.samestat(first_stat, second_stat):
+        raise RuntimeError("reproduction evidence outputs must not hard-link alias each other")
+
+
+def _reject_destination_at_write_time(
+    parent_fd: int,
+    name: str,
+    publication_root: Path,
+) -> None:
+    try:
+        st = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+    except FileNotFoundError:
+        return
+    if stat.S_ISLNK(st.st_mode):
+        raise RuntimeError("reproduction output destination became a symlink")
+    if not stat.S_ISREG(st.st_mode):
+        raise RuntimeError("reproduction output destination is not a regular file")
+    for publication_name in PUBLICATION_FILE_NAMES:
+        protected = publication_root / publication_name
+        try:
+            protected_stat = protected.stat()
+        except FileNotFoundError:
+            continue
+        if os.path.samestat(st, protected_stat):
+            raise RuntimeError(
+                "reproduction output hard-link aliases protected publication artifact: "
+                f"{publication_name}"
+            )
+
+
+def safe_atomic_write(path: Path, data: bytes, *, publication_root: Path) -> None:
+    publication_root = publication_root.resolve()
+    path = path.resolve(strict=False)
+    reject_publication_output_aliases(publication_root, path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    parent = path.parent.resolve()
+    name = path.name
+    if not name or name in {".", ".."}:
+        raise RuntimeError("invalid reproduction output filename")
+
+    dir_flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+    dir_fd = os.open(parent, dir_flags)
+    temp_name = f".{name}.tmp.{os.getpid()}.{secrets.token_hex(8)}"
+    temp_fd: int | None = None
+    try:
+        _reject_destination_at_write_time(dir_fd, name, publication_root)
+        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
+        temp_fd = os.open(temp_name, flags, 0o600, dir_fd=dir_fd)
+        view = memoryview(data)
+        written = 0
+        while written < len(view):
+            count = os.write(temp_fd, view[written:])
+            if count <= 0:
+                raise RuntimeError("could not write reproduction output")
+            written += count
+        os.fsync(temp_fd)
+        os.close(temp_fd)
+        temp_fd = None
+
+        _reject_destination_at_write_time(dir_fd, name, publication_root)
+        os.replace(temp_name, name, src_dir_fd=dir_fd, dst_dir_fd=dir_fd)
+        os.fsync(dir_fd)
+    finally:
+        if temp_fd is not None:
+            os.close(temp_fd)
+        try:
+            os.unlink(temp_name, dir_fd=dir_fd)
+        except FileNotFoundError:
+            pass
+        os.close(dir_fd)
+
+
 def require_exact_artifact_digests(
     observed: dict[str, dict[str, object]],
     canonical: dict[str, dict[str, object]],
@@ -342,8 +503,22 @@ def require_exact_artifact_digests(
     if set(observed) != set(canonical):
         raise RuntimeError("publication artifact inventory does not match canonical authority bytes")
     for name in sorted(canonical):
-        if observed[name].get("bytes") != canonical[name].get("bytes") or observed[name].get("sha256") != canonical[name].get("sha256"):
+        if (
+            observed[name].get("bytes") != canonical[name].get("bytes")
+            or observed[name].get("sha256") != canonical[name].get("sha256")
+        ):
             raise RuntimeError(f"publication artifact does not match canonical authority bytes: {name}")
+
+
+def revalidate_publication_surface(
+    directory: Path,
+    names: list[str],
+    canonical: dict[str, dict[str, object]],
+) -> dict[str, dict[str, object]]:
+    expected_sizes = {name: int(canonical[name]["bytes"]) for name in names}
+    observed = artifact_surface(directory, names, expected_sizes=expected_sizes)
+    require_exact_artifact_digests(observed, canonical)
+    return observed
 
 
 def authenticate_publication_surface(
@@ -365,10 +540,6 @@ def authenticate_publication_surface(
 
     directory = directory.resolve()
     supplied = artifact_surface(directory, names)
-
-    # The detached verifier at the immutable authority commit constructs
-    # ZipFile before applying its own member-count policy. Bound the hostile ZIP
-    # here first so authentication cannot reach that unbounded path.
     bounded_zip_member_count(directory / SOURCE_ZIP_NAME)
 
     with tempfile.TemporaryDirectory(prefix="uft-id-publication-authority-") as temporary:
@@ -407,6 +578,8 @@ def authenticate_publication_surface(
                     + ("\n" + build.stderr if build.stderr else "")
                 )
             canonical = artifact_surface(canonical_root, names)
+            expected_sizes = {name: int(canonical[name]["bytes"]) for name in names}
+            supplied = artifact_surface(directory, names, expected_sizes=expected_sizes)
             require_exact_artifact_digests(supplied, canonical)
 
             verifier = authority_root / "scripts/verify_scholarly_archive.py"
@@ -442,6 +615,7 @@ def authenticate_publication_surface(
             return {
                 "status": "ok",
                 "artifacts": {name: canonical[name]["sha256"] for name in names},
+                "artifact_metadata": canonical,
             }
         finally:
             subprocess.run(
@@ -461,7 +635,6 @@ def validate_runtime_toolchain(
 ) -> None:
     expected_lean = str(toolchain["lean"])
     expected_lake = str(toolchain["lake"])
-
     lean_match = re.search(r"Lean \(version ([^, )]+)", lean_version_output)
     if lean_match is None:
         raise RuntimeError("could not parse runtime Lean version")
@@ -470,7 +643,6 @@ def validate_runtime_toolchain(
         raise RuntimeError(
             f"runtime Lean version mismatch: expected {expected_lean}, got {observed_lean}"
         )
-
     lake_match = re.search(
         r"Lake version ([^ ]+) \(Lean version ([^)]+)\)",
         lake_version_output,
@@ -498,7 +670,7 @@ def reproduce(
     axiom_json_out: Path,
 ) -> dict[str, object]:
     directory = directory.resolve()
-    axiom_json_out = axiom_json_out.resolve()
+    axiom_json_out = axiom_json_out.resolve(strict=False)
     reject_publication_output_aliases(directory, axiom_json_out)
 
     contract = load_contract()
@@ -518,17 +690,13 @@ def reproduce(
 
     exact_files = [str(value) for value in surface["exact_files"]]
     authority_verification = authenticate_publication_surface(directory, expected_commit, exact_files)
-    artifacts = artifact_surface(directory, exact_files)
     verified_artifacts = authority_verification.get("artifacts")
-    if not isinstance(verified_artifacts, dict):
-        raise RuntimeError("detached publication authority omitted artifact digests")
-    for name, metadata in artifacts.items():
-        if verified_artifacts.get(name) != metadata["sha256"]:
-            raise RuntimeError(f"detached publication authority digest mismatch: {name}")
+    canonical_metadata = authority_verification.get("artifact_metadata")
+    if not isinstance(verified_artifacts, dict) or not isinstance(canonical_metadata, dict):
+        raise RuntimeError("detached publication authority omitted canonical artifact metadata")
 
     source_zip = directory / SOURCE_ZIP_NAME
-
-    axiom_json_out.parent.mkdir(parents=True, exist_ok=True)
+    axiom_bytes = b""
     with tempfile.TemporaryDirectory(prefix="uft-id-publication-formal-") as temporary:
         isolated = Path(temporary)
         members = extract_formal_layer(source_zip, isolated)
@@ -551,10 +719,11 @@ def reproduce(
         lake_version = run_checked([str(lake_path), "--version"], isolated, env=toolchain_env)
         lean_version = run_checked([str(lean_path), "--version"], isolated, env=toolchain_env)
         validate_runtime_toolchain(lean_version, lake_version, toolchain)
-
         run_checked([str(lake_path), "update"], isolated, env=toolchain_env)
         run_checked([str(lake_path), "exe", "cache", "get"], isolated, env=toolchain_env)
         build_output = run_checked([str(lake_path), "build", "UFTID"], isolated, env=toolchain_env)
+
+        internal_axiom_out = isolated / ".publication-axiom-report.json"
         run_checked(
             [
                 sys.executable,
@@ -562,17 +731,26 @@ def reproduce(
                 "--lake",
                 str(lake_path),
                 "--json-out",
-                str(axiom_json_out),
+                str(internal_axiom_out),
             ],
             isolated,
             env=toolchain_env,
         )
-
-        axiom_report = load_json_bytes(axiom_json_out.read_bytes(), axiom_json_out.name)
+        axiom_bytes = bounded_read_bytes(
+            internal_axiom_out,
+            MAX_EVIDENCE_BYTES,
+            label="isolated archived axiom audit",
+        )
+        axiom_report = load_json_bytes(axiom_bytes, internal_axiom_out.name)
         if axiom_report.get("status") != "ok":
             raise RuntimeError("isolated archived axiom audit did not report ok")
+        verification_bytes = bounded_read_bytes(
+            isolated / "machine/lean_observation_verification.json",
+            MAX_EVIDENCE_BYTES,
+            label="archived Lean verification record",
+        )
         verification_record = load_json_bytes(
-            (isolated / "machine/lean_observation_verification.json").read_bytes(),
+            verification_bytes,
             "archived Lean verification record",
         )
         if verification_record.get("status") != "LEAN_VERIFIED":
@@ -587,6 +765,15 @@ def reproduce(
         if record_toolchain.get("mathlib_commit") != toolchain["mathlib_commit"]:
             raise RuntimeError("isolated archived mathlib revision disagrees with reproduction contract")
 
+    final_artifacts = revalidate_publication_surface(
+        directory, exact_files, canonical_metadata
+    )
+
+    safe_atomic_write(axiom_json_out, axiom_bytes, publication_root=directory)
+    final_artifacts = revalidate_publication_surface(
+        directory, exact_files, canonical_metadata
+    )
+
     return {
         "type": "uft-id-scholarly-archive-reproduction",
         "schema_version": "1.0.0",
@@ -597,7 +784,7 @@ def reproduce(
             "commit": expected_commit,
             "tree": expected_source["merge_tree"],
         },
-        "artifacts": artifacts,
+        "artifacts": final_artifacts,
         "authority_verification": {
             "status": authority_verification["status"],
             "artifacts": verified_artifacts,
@@ -609,7 +796,7 @@ def reproduce(
             "build_result": "success",
             "build_output_tail": build_output[-1000:],
             "axiom_audit_status": axiom_report["status"],
-            "axiom_audit_sha256": sha256_file(axiom_json_out),
+            "axiom_audit_sha256": sha256_bytes(axiom_bytes),
             "observed_axioms_by_theorem": axiom_report.get("observed_axioms_by_theorem"),
         },
         "boundaries": contract["hard_boundaries"],
@@ -626,15 +813,13 @@ def main() -> int:
     args = parser.parse_args()
 
     directory = args.directory.resolve()
-    json_out = args.json_out.resolve()
-    axiom_json_out = args.axiom_json_out.resolve()
+    json_out = args.json_out.resolve(strict=False)
+    axiom_json_out = args.axiom_json_out.resolve(strict=False)
 
-    # Reject aliases before entering the general error-report path. In
-    # particular, an invalid --json-out must never overwrite a publication file
-    # even with an error receipt.
     try:
         reject_publication_output_aliases(directory, json_out)
         reject_publication_output_aliases(directory, axiom_json_out)
+        reject_evidence_output_aliases(json_out, axiom_json_out)
     except (OSError, RuntimeError, ValueError) as exc:
         print(exc)
         return 1
@@ -661,11 +846,15 @@ def main() -> int:
             "errors": [str(exc)],
         }
 
-    json_out.parent.mkdir(parents=True, exist_ok=True)
-    json_out.write_text(
-        json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + "\n",
-        encoding="utf-8",
-    )
+    report_bytes = (
+        json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + "\n"
+    ).encode("utf-8")
+    try:
+        safe_atomic_write(json_out, report_bytes, publication_root=directory)
+    except (OSError, RuntimeError, ValueError) as exc:
+        print(exc)
+        return 1
+
     if report.get("status") == "ok":
         print("UFT-ID scholarly archive isolated formal reproduction: ok")
         return 0
