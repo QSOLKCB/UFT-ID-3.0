@@ -46,7 +46,7 @@
       "UFTID",
       "UFTID.lean",
       "lean-toolchain",
-      "lakefile.lean",
+      "lakefile.toml",
       "lake-manifest.json",
       "machine/lean_observation_verification.json",
       "scripts/verify_lean_observation_axioms.py"
